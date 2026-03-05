@@ -1,0 +1,178 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  status    String   @default("active")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users     User[]
+  projects  Project[]
+  roles     Role[]
+  fundingSources FundingSource[]
+  expenses  Expense[]
+  documents Document[]
+  auditLogs AuditLog[]
+}
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String
+
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  roles     UserRole[]
+  uploadedDocuments Document[]
+  auditLogs AuditLog[]
+
+  @@index([tenantId])
+}
+model Role {
+  id        String   @id @default(uuid())
+  name      String   
+
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+
+  users     UserRole[]
+
+  @@unique([tenantId, name])
+}
+model UserRole {
+  id       String @id @default(uuid())
+
+  userId   String
+  roleId   String
+
+  user     User @relation(fields: [userId], references: [id])
+  role     Role @relation(fields: [roleId], references: [id])
+
+  @@unique([userId, roleId])
+}
+model Project {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  budget      Float?
+
+  status      String   @default("active")
+
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  fundingSources FundingSource[]
+  expenses       Expense[]
+  documents      Document[]
+
+  @@index([tenantId])
+  @@index([createdAt])
+}
+model FundingSource {
+  id          String   @id @default(uuid())
+
+  name        String
+  fundingType String   // grant | impact_loan | impact_investment
+  amount      Float
+  currency    String
+
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id])
+
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+
+  createdAt   DateTime @default(now())
+
+  expenses    Expense[]
+
+  @@index([tenantId])
+  @@index([projectId])
+  @@index([fundingType])
+}
+model Expense {
+  id          String   @id @default(uuid())
+
+  description String
+  amount      Float
+  currency    String
+
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id])
+
+  fundingSourceId String
+  fundingSource   FundingSource @relation(fields: [fundingSourceId], references: [id])
+
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+
+  createdAt   DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([projectId])
+  @@index([fundingSourceId])
+  @@index([createdAt])
+}
+model Document {
+  id          String   @id @default(uuid())
+  name        String
+  fileUrl     String
+  fileType    String?
+
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id])
+
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+
+  uploadedById String?
+  uploadedBy   User? @relation(fields: [uploadedById], references: [id])
+  uploadedAt  DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([projectId])
+  @@index([uploadedById])
+}
+model AuditLog {
+  id          String   @id @default(uuid())
+
+  action      String
+  entityType  String
+  entityId    String
+
+  userId   String?
+  user     User? @relation(fields: [userId], references: [id])
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  
+  blockchainHash String?
+  blockchainTx   String?
+
+  createdAt   DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([createdAt])
+  @@index([userId])
+}

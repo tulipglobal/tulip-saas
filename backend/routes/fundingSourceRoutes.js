@@ -1,16 +1,18 @@
+// ─────────────────────────────────────────────────────────────
+//  routes/fundingSourceRoutes.js — v2
+// ─────────────────────────────────────────────────────────────
 const express = require('express')
-const router = express.Router()
-const authenticate = require('../middleware/authenticate')
-const authorize = require('../middleware/authorize')
+const router  = express.Router()
+const { can } = require('../middleware/permission')
 const {
   getFundingSources, getFundingSource,
   createFundingSource, updateFundingSource, deleteFundingSource
 } = require('../controllers/fundingSourceController')
 
-router.get('/',       authenticate, getFundingSources)
-router.get('/:id',    authenticate, getFundingSource)
-router.post('/',      authenticate, authorize('admin'), createFundingSource)
-router.put('/:id',    authenticate, authorize('admin'), updateFundingSource)
-router.delete('/:id', authenticate, authorize('admin'), deleteFundingSource)
+router.get('/',        can('funding:read'),   getFundingSources)
+router.get('/:id',     can('funding:read'),   getFundingSource)
+router.post('/',       can('funding:write'),  createFundingSource)
+router.put('/:id',     can('funding:write'),  updateFundingSource)
+router.delete('/:id',  can('funding:delete'), deleteFundingSource)
 
 module.exports = router

@@ -1,15 +1,17 @@
+// ─────────────────────────────────────────────────────────────
+//  routes/documentRoutes.js — v2
+// ─────────────────────────────────────────────────────────────
 const express = require('express')
-const router = express.Router()
-const authenticate = require('../middleware/authenticate')
-const authorize = require('../middleware/authorize')
+const router  = express.Router()
+const { can } = require('../middleware/permission')
 const {
   getDocuments, getDocument,
   createDocument, deleteDocument
 } = require('../controllers/documentController')
 
-router.get('/',       authenticate, getDocuments)
-router.get('/:id',    authenticate, getDocument)
-router.post('/',      authenticate, authorize('admin'), createDocument)
-router.delete('/:id', authenticate, authorize('admin'), deleteDocument)
+router.get('/',        can('documents:read'),   getDocuments)
+router.get('/:id',     can('documents:read'),   getDocument)
+router.post('/',       can('documents:write'),  createDocument)
+router.delete('/:id',  can('documents:delete'), deleteDocument)
 
 module.exports = router

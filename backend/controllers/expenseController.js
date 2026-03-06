@@ -1,35 +1,41 @@
-const tenantClient = require('../lib/tenantClient')
+// ─────────────────────────────────────────────────────────────
+//  controllers/expenseController.js — v2
+//  ✔ Paginated list with ?page, ?limit, ?projectId filter
+// ─────────────────────────────────────────────────────────────
 
-// GET /api/expenses
+const tenantClient = require('../lib/tenantClient')
+const { parsePagination, paginatedResponse } = require('../lib/paginate')
+
 exports.getExpenses = async (req, res) => {
   try {
     const db = tenantClient(req.user.tenantId)
-    const { projectId, fundingSourceId } = req.query
-    const expenses = await db.expense.findMany({
-      where: {
-        ...(projectId && { projectId }),
-        ...(fundingSourceId && { fundingSourceId })
-      },
-      include: {
-        project: { select: { id: true, name: true } },
-        fundingSource: { select: { id: true, name: true, fundingType: true } }
-      },
-      orderBy: { createdAt: 'desc' }
-    })
-    res.json(expenses)
+    const { page, limit, skip, take } = parsePagination(req)
+
+    const where = {}
+    if (req.query.projectId)       where.projectId       = req.query.projectId
+    if (req.query.fundingSourceId) where.fundingSourceId = req.query.fundingSourceId
+
+    const [expenses, total] = await Promise.all([
+      db.expense.findMany({
+        where, skip, take,
+        include: { fundingSource: true },
+        orderBy: { createdAt: 'desc' }
+      }),
+      db.expense.count({ where })
+    ])
+
+    res.json(paginatedResponse(expenses, total, page, limit))
   } catch (err) {
-    console.error(err)
     res.status(500).json({ error: 'Failed to fetch expenses' })
   }
 }
 
-// GET /api/expenses/:id
 exports.getExpense = async (req, res) => {
   try {
-    const db = tenantClient(req.user.tenantId)
+    const db      = tenantClient(req.user.tenantId)
     const expense = await db.expense.findFirst({
-      where: { id: req.params.id },
-      include: { project: true, fundingSource: true }
+      where:   { id: req.params.id },
+      include: { fundingSource: true }
     })
     if (!expense) return res.status(404).json({ error: 'Expense not found' })
     res.json(expense)
@@ -38,47 +44,42 @@ exports.getExpense = async (req, res) => {
   }
 }
 
-// POST /api/expenses
 exports.createExpense = async (req, res) => {
   try {
     const db = tenantClient(req.user.tenantId)
     const { description, amount, currency, projectId, fundingSourceId } = req.body
-
-    if (!description || !amount || !currency || !projectId || !fundingSourceId)
-      return res.status(400).json({ error: 'description, amount, currency, projectId, fundingSourceId are required' })
-
-    // Verify project and funding source both belong to tenant
-    const [project, fundingSource] = await Promise.all([
-      db.project.findFirst({ where: { id: projectId } }),
-      db.fundingSource.findFirst({ where: { id: fundingSourceId } })
-    ])
-    if (!project) return res.status(404).json({ error: 'Project not found' })
-    if (!fundingSource) return res.status(404).json({ error: 'Funding source not found' })
-
+    if (!description || !amount || !projectId) {
+      return res.status(400).json({ error: 'description, amount, and projectId are required' })
+    }
     const expense = await db.expense.create({
-      data: { description, amount: parseFloat(amount), currency, projectId, fundingSourceId }
+      data: {
+        description,
+        amount:          parseFloat(amount),
+        currency:        currency || 'USD',
+        projectId,
+        fundingSourceId: fundingSourceId || null,
+      }
     })
     res.status(201).json(expense)
   } catch (err) {
-    console.error(err)
     res.status(500).json({ error: 'Failed to create expense' })
   }
 }
 
-// PUT /api/expenses/:id
 exports.updateExpense = async (req, res) => {
   try {
-    const db = tenantClient(req.user.tenantId)
+    const db       = tenantClient(req.user.tenantId)
     const existing = await db.expense.findFirst({ where: { id: req.params.id } })
     if (!existing) return res.status(404).json({ error: 'Expense not found' })
 
-    const { description, amount, currency } = req.body
+    const { description, amount, currency, fundingSourceId } = req.body
     const expense = await db.expense.update({
       where: { id: req.params.id },
       data: {
-        ...(description && { description }),
-        ...(amount !== undefined && { amount: parseFloat(amount) }),
-        ...(currency && { currency })
+        ...(description     !== undefined && { description }),
+        ...(amount          !== undefined && { amount: parseFloat(amount) }),
+        ...(currency        !== undefined && { currency }),
+        ...(fundingSourceId !== undefined && { fundingSourceId }),
       }
     })
     res.json(expense)
@@ -87,15 +88,13 @@ exports.updateExpense = async (req, res) => {
   }
 }
 
-// DELETE /api/expenses/:id
 exports.deleteExpense = async (req, res) => {
   try {
-    const db = tenantClient(req.user.tenantId)
+    const db       = tenantClient(req.user.tenantId)
     const existing = await db.expense.findFirst({ where: { id: req.params.id } })
     if (!existing) return res.status(404).json({ error: 'Expense not found' })
-
     await db.expense.delete({ where: { id: req.params.id } })
-    res.json({ message: 'Expense deleted' })
+    res.json({ deleted: true, id: req.params.id })
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete expense' })
   }

@@ -4,115 +4,133 @@ const prisma = require("../../lib/client");
 
 async function main() {
 
-  // Create Tenants
-  const ngo1 = await prisma.tenant.create({
-    data: {
-      name: "Caritas Kenya",
-      slug: "caritas-kenya"
-    }
+  // ── Tenants ───────────────────────────────────────────────
+  const ngo1 = await prisma.tenant.upsert({
+    where:  { slug: "caritas-kenya" },
+    update: {},
+    create: { name: "Caritas Kenya", slug: "caritas-kenya" }
   });
 
-  const ngo2 = await prisma.tenant.create({
-    data: {
-      name: "Jesuit Refugee Service",
-      slug: "jrs"
-    }
+  const ngo2 = await prisma.tenant.upsert({
+    where:  { slug: "jrs" },
+    update: {},
+    create: { name: "Jesuit Refugee Service", slug: "jrs" }
   });
 
-  // Create Roles for ngo1
-  const adminRole = await prisma.role.create({
-    data: {
-      name: "admin",
-      tenantId: ngo1.id
-    }
+  // ── Roles ─────────────────────────────────────────────────
+  const adminRole = await prisma.role.upsert({
+    where:  { tenantId_name: { tenantId: ngo1.id, name: "admin" } },
+    update: {},
+    create: { name: "admin", tenantId: ngo1.id }
   });
 
-  const memberRole = await prisma.role.create({
-    data: {
-      name: "member",
-      tenantId: ngo1.id
-    }
+  const memberRole = await prisma.role.upsert({
+    where:  { tenantId_name: { tenantId: ngo1.id, name: "member" } },
+    update: {},
+    create: { name: "member", tenantId: ngo1.id }
   });
 
-  // Create User for ngo1
-  const user = await prisma.user.create({
-    data: {
-      email: "admin@caritas-kenya.org",
-      name: "John Kamau",
+  // ── User ──────────────────────────────────────────────────
+  const user = await prisma.user.upsert({
+    where:  { email: "admin@caritas-kenya.org" },
+    update: {},
+    create: {
+      email:    "admin@caritas-kenya.org",
+      name:     "John Kamau",
       password: "$2b$10$m71wb4uQtzugm/GHe/pFouqDe9sShmCHOpJuUfjw2Pg3mLJuYGC.q",
       tenantId: ngo1.id,
-      roles: {
-        create: {
-          roleId: adminRole.id
-        }
-      }
     }
   });
 
-  // Create Project
-  const project = await prisma.project.create({
-    data: {
-      name: "Water Access Program",
+  // ── UserRole ──────────────────────────────────────────────
+  await prisma.userRole.upsert({
+    where:  { userId_roleId: { userId: user.id, roleId: adminRole.id } },
+    update: {},
+    create: { userId: user.id, roleId: adminRole.id }
+  });
+
+  // ── Project ───────────────────────────────────────────────
+  const project = await prisma.project.upsert({
+    where:  { id: 'seed-project-water-access' },
+    update: {},
+    create: {
+      id:          'seed-project-water-access',
+      name:        "Water Access Program",
       description: "Rural borehole construction",
-      budget: 500000,
-      tenantId: ngo1.id
+      budget:      500000,
+      tenantId:    ngo1.id
     }
   });
 
-  // Create Funding Sources
-  const grant = await prisma.fundingSource.create({
-    data: {
-      name: "EU Grant",
+  // ── Funding Sources ───────────────────────────────────────
+  const grant = await prisma.fundingSource.upsert({
+    where:  { id: 'seed-funding-eu-grant' },
+    update: {},
+    create: {
+      id:          'seed-funding-eu-grant',
+      name:        "EU Grant",
       fundingType: "grant",
-      amount: 200000,
-      currency: "EUR",
-      projectId: project.id,
-      tenantId: ngo1.id
+      amount:      200000,
+      currency:    "EUR",
+      projectId:   project.id,
+      tenantId:    ngo1.id
     }
   });
 
-  const loan = await prisma.fundingSource.create({
-    data: {
-      name: "LCBC Impact Loan",
+  await prisma.fundingSource.upsert({
+    where:  { id: 'seed-funding-lcbc-loan' },
+    update: {},
+    create: {
+      id:          'seed-funding-lcbc-loan',
+      name:        "LCBC Impact Loan",
       fundingType: "impact_loan",
-      amount: 150000,
-      currency: "USD",
-      projectId: project.id,
-      tenantId: ngo1.id
+      amount:      150000,
+      currency:    "USD",
+      projectId:   project.id,
+      tenantId:    ngo1.id
     }
   });
 
-  const investment = await prisma.fundingSource.create({
-    data: {
-      name: "Catholic Impact Fund",
+  await prisma.fundingSource.upsert({
+    where:  { id: 'seed-funding-catholic-fund' },
+    update: {},
+    create: {
+      id:          'seed-funding-catholic-fund',
+      name:        "Catholic Impact Fund",
       fundingType: "impact_investment",
-      amount: 150000,
-      currency: "USD",
-      projectId: project.id,
-      tenantId: ngo1.id
+      amount:      150000,
+      currency:    "USD",
+      projectId:   project.id,
+      tenantId:    ngo1.id
     }
   });
 
-  // Create Expense
-  await prisma.expense.create({
-    data: {
-      description: "Drilling equipment",
-      amount: 20000,
-      currency: "USD",
-      projectId: project.id,
-      fundingSourceId: grant.id,
-      tenantId: ngo1.id
+  // ── Expense ───────────────────────────────────────────────
+  await prisma.expense.upsert({
+    where:  { id: 'seed-expense-drilling' },
+    update: {},
+    create: {
+      id:             'seed-expense-drilling',
+      description:    "Drilling equipment",
+      amount:         20000,
+      currency:       "USD",
+      projectId:      project.id,
+      fundingSourceId:grant.id,
+      tenantId:       ngo1.id
     }
   });
 
-  // Create AuditLog
-  await prisma.auditLog.create({
-    data: {
-      action: "CREATE",
+  // ── AuditLog ──────────────────────────────────────────────
+  await prisma.auditLog.upsert({
+    where:  { id: 'seed-audit-project-create' },
+    update: {},
+    create: {
+      id:         'seed-audit-project-create',
+      action:     "CREATE",
       entityType: "Project",
-      entityId: project.id,
-      userId: user.id,
-      tenantId: ngo1.id
+      entityId:   project.id,
+      userId:     user.id,
+      tenantId:   ngo1.id
     }
   });
 

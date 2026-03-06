@@ -1,16 +1,18 @@
+// ─────────────────────────────────────────────────────────────
+//  routes/expenseRoutes.js — v2
+// ─────────────────────────────────────────────────────────────
 const express = require('express')
-const router = express.Router()
-const authenticate = require('../middleware/authenticate')
-const authorize = require('../middleware/authorize')
+const router  = express.Router()
+const { can } = require('../middleware/permission')
 const {
   getExpenses, getExpense,
   createExpense, updateExpense, deleteExpense
 } = require('../controllers/expenseController')
 
-router.get('/',       authenticate, getExpenses)
-router.get('/:id',    authenticate, getExpense)
-router.post('/',      authenticate, authorize('admin'), createExpense)
-router.put('/:id',    authenticate, authorize('admin'), updateExpense)
-router.delete('/:id', authenticate, authorize('admin'), deleteExpense)
+router.get('/',        can('expenses:read'),   getExpenses)
+router.get('/:id',     can('expenses:read'),   getExpense)
+router.post('/',       can('expenses:write'),  createExpense)
+router.put('/:id',     can('expenses:write'),  updateExpense)
+router.delete('/:id',  can('expenses:delete'), deleteExpense)
 
 module.exports = router

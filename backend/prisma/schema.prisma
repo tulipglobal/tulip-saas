@@ -23,10 +23,13 @@ model Tenant {
   users     User[]
   projects  Project[]
   roles     Role[]
+  userRoles UserRole[]
   fundingSources FundingSource[]
   expenses  Expense[]
   documents Document[]
   auditLogs AuditLog[]
+  apiKeys ApiKey[]
+  refreshTokens RefreshToken[]
 }
 model User {
   id        String   @id @default(uuid())
@@ -39,10 +42,13 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 
   roles     UserRole[]
   uploadedDocuments Document[]
   auditLogs AuditLog[]
+  apiKeys ApiKey[] @relation("ApiKeyCreator")
+  refreshTokens RefreshToken[]
 
   @@index([tenantId])
 }
@@ -54,19 +60,122 @@ model Role {
   tenant    Tenant   @relation(fields: [tenantId], references: [id])
 
   users     UserRole[]
+  permissions RolePermission[]
 
   @@unique([tenantId, name])
+  @@index([tenantId])
+}
+model Permission {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  description String?
+
+  roles       RolePermission[]
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+model UserPermissionCache {
+  id          String   @id @default(uuid())
+  userId      String
+  tenantId    String
+  permissions Json     @default("[]")
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, tenantId])
+  @@index([userId])
+  @@index([tenantId])
+}
+model ApiKey {
+  id          String    @id @default(uuid())
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdBy   String
+  creator     User      @relation("ApiKeyCreator", fields: [createdBy], references: [id])
+  name        String
+  prefix      String    @unique
+  keyHash     String
+  permissions String[]
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  @@index([tenantId])
+  @@index([createdBy])
+}
+model RefreshToken {
+  id         String    @id @default(uuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenantId   String
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tokenHash  String
+  family     String
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  replacedBy String?
+  userAgent  String?
+  ip         String?
+  createdAt  DateTime  @default(now())
+  @@index([userId])
+  @@index([tenantId])
+  @@index([family])
+  @@index([tokenHash])
+}
+model Webhook {
+  id          String    @id @default(uuid())
+  tenantId    String
+  url         String
+  secret      String
+  events      String[]
+  active      Boolean   @default(true)
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deliveries  WebhookDelivery[]
+  @@index([tenantId])
+  @@index([active])
+}
+
+model WebhookDelivery {
+  id           String    @id @default(uuid())
+  webhookId    String
+  webhook      Webhook   @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  tenantId     String
+  event        String
+  payload      Json
+  status       String    @default("pending")
+  statusCode   Int?
+  responseBody String?
+  attempts     Int       @default(0)
+  nextRetryAt  DateTime?
+  deliveredAt  DateTime?
+  createdAt    DateTime  @default(now())
+  @@index([webhookId])
+  @@index([tenantId])
+  @@index([status])
+  @@index([nextRetryAt])
 }
 model UserRole {
   id       String @id @default(uuid())
 
   userId   String
   roleId   String
+  tenantId String
 
   user     User @relation(fields: [userId], references: [id])
   role     Role @relation(fields: [roleId], references: [id])
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
 
   @@unique([userId, roleId])
+  @@index([tenantId])
 }
 model Project {
   id          String   @id @default(uuid())
@@ -155,24 +264,41 @@ model Document {
   @@index([uploadedById])
 }
 model AuditLog {
-  id          String   @id @default(uuid())
+  id               String    @id @default(uuid())
+  action           String
+  entityType       String
+  entityId         String
 
-  action      String
-  entityType  String
-  entityId    String
+  // ── Actor ──────────────────────────────────────────────
+  userId           String?
+  user             User?     @relation(fields: [userId], references: [id])
+  tenantId         String
+  tenant           Tenant    @relation(fields: [tenantId], references: [id])
 
-  userId   String?
-  user     User? @relation(fields: [userId], references: [id])
+  // ── Integrity ──────────────────────────────────────────
+  dataHash         String?   // SHA-256 hash of this audit record's content
+  prevHash         String?   // hash of the previous AuditLog entry (tamper-evident chain)
 
-  tenantId String
-  tenant   Tenant @relation(fields: [tenantId], references: [id])
-  
-  blockchainHash String?
-  blockchainTx   String?
+  // ── Blockchain Anchor ──────────────────────────────────
+  batchId          String?   // groups multiple AuditLog entries into one anchor batch
+  blockchainTx     String?   // Polygon TX hash of the anchor transaction
+  blockNumber      Int?      // Polygon block number — required for finality & reorg checks
+  blockHash        String?   // Polygon block hash — secondary reorg verification
+  anchorStatus     String?   // pending | confirmed | failed | reorg_detected
+  ancheredAt       DateTime? // when the TX was confirmed on-chain
 
-  createdAt   DateTime @default(now())
+  // ── Timestamps ─────────────────────────────────────────
+  createdAt        DateTime  @default(now())
+  timestampToken  String?
+  timestampedAt   DateTime?
+  tsaUrl          String?
+  timestampStatus String?   @default("pending")
 
+  // ── Indexes ────────────────────────────────────────────
   @@index([tenantId])
   @@index([createdAt])
   @@index([userId])
+  @@index([batchId])        // NEW — fast batch lookups
+  @@index([anchorStatus])   // NEW — fast queue queries (WHERE anchorStatus = 'pending')
 }
+

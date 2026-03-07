@@ -51,7 +51,7 @@ export default function ExpensesPage() {
   const [search, setSearch] = useState('')
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/expenses?limit=50`, { credentials: 'include' })
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/expenses?limit=50`, )
       .then(r => r.ok ? r.json() : { items: [] })
       .then(d => { setExpenses(d.items ?? d ?? []); setLoading(false) })
       .catch(() => setLoading(false))

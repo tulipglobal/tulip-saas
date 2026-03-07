@@ -49,7 +49,7 @@ export default function DocumentsPage() {
   const [search, setSearch] = useState('')
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/documents?limit=50`, { credentials: 'include' })
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/documents?limit=50`, )
       .then(r => r.ok ? r.json() : { items: [] })
       .then(d => { setDocs(d.items ?? d ?? []); setLoading(false) })
       .catch(() => setLoading(false))

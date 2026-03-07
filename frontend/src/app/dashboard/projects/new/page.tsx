@@ -21,8 +21,8 @@ export default function NewProjectPage() {
     setSaving(true); setError('')
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/projects`, {
-        method: 'POST', credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` },
         body: JSON.stringify({
           name: form.name.trim(),
           description: form.description || null,

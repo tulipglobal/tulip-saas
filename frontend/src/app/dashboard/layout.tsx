@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, FolderOpen, FileCheck, Receipt,
   Key, Webhook, BarChart3, Settings, LogOut,
@@ -11,20 +11,43 @@ import {
 import { clsx } from 'clsx'
 
 const nav = [
-  { label: 'Overview',      href: '/dashboard',              icon: LayoutDashboard },
-  { label: 'Projects',      href: '/dashboard/projects',     icon: FolderOpen },
-  { label: 'Documents',     href: '/dashboard/documents',    icon: FileCheck },
-  { label: 'Expenses',      href: '/dashboard/expenses',     icon: Receipt },
-  { label: 'Audit Log',     href: '/dashboard/audit',        icon: Shield },
-  { label: 'Analytics',     href: '/dashboard/analytics',    icon: BarChart3 },
-  { label: 'API Keys',      href: '/dashboard/api-keys',     icon: Key },
-  { label: 'Webhooks',      href: '/dashboard/webhooks',     icon: Webhook },
-  { label: 'Settings',      href: '/dashboard/settings',     icon: Settings },
+  { label: 'Overview',  href: '/dashboard',           icon: LayoutDashboard },
+  { label: 'Projects',  href: '/dashboard/projects',  icon: FolderOpen },
+  { label: 'Documents', href: '/dashboard/documents', icon: FileCheck },
+  { label: 'Expenses',  href: '/dashboard/expenses',  icon: Receipt },
+  { label: 'Audit Log', href: '/dashboard/audit',     icon: Shield },
+  { label: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+  { label: 'API Keys',  href: '/dashboard/api-keys',  icon: Key },
+  { label: 'Webhooks',  href: '/dashboard/webhooks',  icon: Webhook },
+  { label: 'Settings',  href: '/dashboard/settings',  icon: Settings },
 ]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
+
+  const handleSignOut = async () => {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken')
+      const accessToken = localStorage.getItem('accessToken')
+
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ refreshToken }),
+      })
+    } catch {
+      // continue even if logout call fails
+    } finally {
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
+      router.push('/login')
+    }
+  }
 
   return (
     <div className="flex h-screen bg-[#040f1f] text-white overflow-hidden">
@@ -81,10 +104,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
             {!collapsed && <span className="text-sm">Collapse</span>}
           </button>
-          <Link href="/api/auth/signout" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/40 hover:text-red-400 hover:bg-red-400/5 transition-all">
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-white/40 hover:text-red-400 hover:bg-red-400/5 transition-all"
+          >
             <LogOut size={18} className="shrink-0" />
             {!collapsed && <span className="text-sm">Sign out</span>}
-          </Link>
+          </button>
         </div>
       </aside>
 

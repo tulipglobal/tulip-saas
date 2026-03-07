@@ -89,7 +89,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const API = process.env.NEXT_PUBLIC_API_URL
     Promise.all([
-      fetch(`${API}/api/audit?limit=8`, { credentials: 'include' }).then(r => r.ok ? r.json() : null),
+      fetch(`${API}/api/audit?limit=8`, ).then(r => r.ok ? r.json() : null),
     ]).then(([audit]) => {
       setStats({
         totalDocuments: audit?.total ?? 0,

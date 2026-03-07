@@ -54,7 +54,7 @@ export default function ProjectsPage() {
   const [search, setSearch] = useState('')
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/projects?limit=50`, { credentials: 'include' })
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/projects?limit=50`, )
       .then(r => r.ok ? r.json() : { items: [] })
       .then(d => { setProjects(d.items ?? d ?? []); setLoading(false) })
       .catch(() => setLoading(false))

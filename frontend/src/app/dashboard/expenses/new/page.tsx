@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save } from 'lucide-react'
+import { apiGet, apiPost } from '@/lib/api'
 
 interface Project { id: string; name: string }
 
@@ -19,7 +20,7 @@ export default function NewExpensePage() {
   })
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/projects?limit=100`, { credentials: 'include' })
+    apiGet('/api/projects?limit=100')
       .then(r => r.ok ? r.json() : { items: [] })
       .then(d => setProjects(d.items ?? []))
       .catch(() => {})
@@ -32,19 +33,15 @@ export default function NewExpensePage() {
     if (!form.amount || isNaN(parseFloat(form.amount))) { setError('Valid amount is required'); return }
     setSaving(true); setError('')
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/expenses`, {
-        method: 'POST', credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: form.title.trim(),
-          amount: parseFloat(form.amount),
-          currency: form.currency,
-          category: form.category || null,
-          vendor: form.vendor || null,
-          expenseDate: form.expenseDate,
-          projectId: form.projectId || null,
-          notes: form.notes || null,
-        })
+      const res = await apiPost('/api/expenses', {
+        title: form.title.trim(),
+        amount: parseFloat(form.amount),
+        currency: form.currency,
+        category: form.category || null,
+        vendor: form.vendor || null,
+        expenseDate: form.expenseDate,
+        projectId: form.projectId || null,
+        notes: form.notes || null,
       })
       if (res.ok) { router.push('/dashboard/expenses') }
       else { const d = await res.json(); setError(d.message ?? 'Failed to log expense') }

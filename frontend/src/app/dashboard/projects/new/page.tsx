@@ -32,7 +32,7 @@ export default function NewProjectPage() {
       })
       if (res.ok) {
         const data = await res.json()
-        router.push(`/dashboard/projects/${data.id ?? ''}`)
+        router.push('/dashboard/projects')
       } else {
         const d = await res.json()
         setError(d.message ?? 'Failed to create project')

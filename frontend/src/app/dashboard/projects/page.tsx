@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { apiGet } from '@/lib/api'
 import Link from 'next/link'
 import { FolderOpen, Plus, ArrowUpRight, CheckCircle, Clock, AlertTriangle, Search } from 'lucide-react'
 
@@ -54,7 +55,7 @@ export default function ProjectsPage() {
   const [search, setSearch] = useState('')
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/projects?limit=50`, )
+    apiGet('/api/projects?limit=50')
       .then(r => r.ok ? r.json() : { items: [] })
       .then(d => { setProjects(d.items ?? d ?? []); setLoading(false) })
       .catch(() => setLoading(false))

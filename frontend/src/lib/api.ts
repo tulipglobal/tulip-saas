@@ -4,7 +4,7 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 export async function apiFetch(path: string, options: RequestInit = {}): Promise<Response> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
+  const token = typeof window !== 'undefined' ? localStorage.getItem('tulip_token') : null
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -22,8 +22,8 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
 
   // If 401, clear tokens and redirect to login
   if (res.status === 401 && typeof window !== 'undefined') {
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('refreshToken')
+    localStorage.removeItem('tulip_token')
+    localStorage.removeItem('tulip_refresh')
     window.location.href = '/login'
   }
 

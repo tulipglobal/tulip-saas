@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { apiPost } from '@/lib/api'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save } from 'lucide-react'
@@ -20,9 +21,9 @@ export default function NewProjectPage() {
     if (!form.name.trim()) { setError('Project name is required'); return }
     setSaving(true); setError('')
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/projects`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` },
+      const res = await apiPost('/api/projects', {
+        
+        
         body: JSON.stringify({
           name: form.name.trim(),
           description: form.description || null,

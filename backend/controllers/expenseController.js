@@ -47,21 +47,23 @@ exports.getExpense = async (req, res) => {
 exports.createExpense = async (req, res) => {
   try {
     const db = tenantClient(req.user.tenantId)
-    const { description, amount, currency, projectId, fundingSourceId } = req.body
-    if (!description || !amount || !projectId) {
-      return res.status(400).json({ error: 'description, amount, and projectId are required' })
+    const { title, description, amount, currency, projectId, fundingSourceId } = req.body
+    const expenseTitle = title || description
+    if (!expenseTitle || !amount) {
+      return res.status(400).json({ error: 'title and amount are required' })
     }
     const expense = await db.expense.create({
       data: {
-        description,
+        description:     expenseTitle,
         amount:          parseFloat(amount),
         currency:        currency || 'USD',
-        projectId,
+        projectId:       projectId || null,
         fundingSourceId: fundingSourceId || null,
       }
     })
     res.status(201).json(expense)
   } catch (err) {
+    console.error('createExpense error:', err)
     res.status(500).json({ error: 'Failed to create expense' })
   }
 }

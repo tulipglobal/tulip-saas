@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { apiGet } from '@/lib/api'
 import Link from 'next/link'
 import { Receipt, Plus, Search, ExternalLink, Copy, Check } from 'lucide-react'
 
@@ -51,7 +52,7 @@ export default function ExpensesPage() {
   const [search, setSearch] = useState('')
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/expenses?limit=50`, )
+    apiGet('/api/expenses?limit=50')
       .then(r => r.ok ? r.json() : { items: [] })
       .then(d => { setExpenses(d.data ?? d.items ?? []); setLoading(false) })
       .catch(() => setLoading(false))

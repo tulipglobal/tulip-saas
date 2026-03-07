@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,28 +5,27 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
 model Tenant {
-  id           String   @id @default(uuid())
-  code         String   @unique  // TNGO-26-X7K2M
-  tenantType   String   @default("NGO")  // NGO | DON | API | VER
-  sequence     Int      // internal counter e.g. 47
-  name         String
-  slug         String   @unique
-  status       String   @default("active")
-
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  users        User[]
-  projects     Project[]
-  roles        Role[]
-  userRoles    UserRole[]
+  id             String          @id @default(uuid())
+  name           String
+  slug           String          @unique
+  status         String          @default("active")
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  code           String          @unique
+  sequence       Int
+  tenantType     String          @default("NGO")
+  apiKeys        ApiKey[]
+  auditLogs      AuditLog[]
+  documents      Document[]
+  expenses       Expense[]
   fundingSources FundingSource[]
-  expenses     Expense[]
-  documents    Document[]
-  auditLogs    AuditLog[]
-  apiKeys      ApiKey[]
-  refreshTokens RefreshToken[]
+  projects       Project[]
+  refreshTokens  RefreshToken[]
+  roles          Role[]
+  users          User[]
+  userRoles      UserRole[]
 
   @@index([code])
   @@index([tenantType])
@@ -46,57 +39,54 @@ model TenantCounter {
 
   @@unique([tenantType, year])
 }
+
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String
-  password  String
-
-  tenantId  String
-  tenant    Tenant   @relation(fields: [tenantId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
-
-  roles     UserRole[]
+  id                String         @id @default(uuid())
+  email             String         @unique
+  name              String
+  password          String
+  tenantId          String
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  deletedAt         DateTime?
+  apiKeys           ApiKey[]       @relation("ApiKeyCreator")
+  auditLogs         AuditLog[]
   uploadedDocuments Document[]
-  auditLogs AuditLog[]
-  apiKeys ApiKey[] @relation("ApiKeyCreator")
-  refreshTokens RefreshToken[]
+  refreshTokens     RefreshToken[]
+  tenant            Tenant         @relation(fields: [tenantId], references: [id])
+  roles             UserRole[]
 
   @@index([tenantId])
 }
+
 model Role {
-  id        String   @id @default(uuid())
-  name      String   
-
-  tenantId  String
-  tenant    Tenant   @relation(fields: [tenantId], references: [id])
-
-  users     UserRole[]
+  id          String           @id @default(uuid())
+  name        String
+  tenantId    String
+  tenant      Tenant           @relation(fields: [tenantId], references: [id])
   permissions RolePermission[]
+  users       UserRole[]
 
   @@unique([tenantId, name])
   @@index([tenantId])
 }
-model Permission {
-  id          String   @id @default(uuid())
-  key         String   @unique
-  description String?
 
+model Permission {
+  id          String           @id @default(uuid())
+  key         String           @unique
+  description String?
   roles       RolePermission[]
 }
 
 model RolePermission {
   roleId       String
   permissionId String
-
-  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@id([roleId, permissionId])
 }
+
 model UserPermissionCache {
   id          String   @id @default(uuid())
   userId      String
@@ -108,12 +98,11 @@ model UserPermissionCache {
   @@index([userId])
   @@index([tenantId])
 }
+
 model ApiKey {
   id          String    @id @default(uuid())
   tenantId    String
-  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   createdBy   String
-  creator     User      @relation("ApiKeyCreator", fields: [createdBy], references: [id])
   name        String
   prefix      String    @unique
   keyHash     String
@@ -122,15 +111,17 @@ model ApiKey {
   expiresAt   DateTime?
   revokedAt   DateTime?
   createdAt   DateTime  @default(now())
+  creator     User      @relation("ApiKeyCreator", fields: [createdBy], references: [id])
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
   @@index([tenantId])
   @@index([createdBy])
 }
+
 model RefreshToken {
   id         String    @id @default(uuid())
   userId     String
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   tenantId   String
-  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   tokenHash  String
   family     String
   expiresAt  DateTime
@@ -139,22 +130,27 @@ model RefreshToken {
   userAgent  String?
   ip         String?
   createdAt  DateTime  @default(now())
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([tenantId])
   @@index([family])
   @@index([tokenHash])
 }
+
 model Webhook {
-  id          String    @id @default(uuid())
+  id          String            @id @default(uuid())
   tenantId    String
   url         String
   secret      String
   events      String[]
-  active      Boolean   @default(true)
+  active      Boolean           @default(true)
   description String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
   deliveries  WebhookDelivery[]
+
   @@index([tenantId])
   @@index([active])
 }
@@ -162,7 +158,6 @@ model Webhook {
 model WebhookDelivery {
   id           String    @id @default(uuid())
   webhookId    String
-  webhook      Webhook   @relation(fields: [webhookId], references: [id], onDelete: Cascade)
   tenantId     String
   event        String
   payload      Json
@@ -173,147 +168,126 @@ model WebhookDelivery {
   nextRetryAt  DateTime?
   deliveredAt  DateTime?
   createdAt    DateTime  @default(now())
+  webhook      Webhook   @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+
   @@index([webhookId])
   @@index([tenantId])
   @@index([status])
   @@index([nextRetryAt])
 }
+
 model UserRole {
   id       String @id @default(uuid())
-
   userId   String
   roleId   String
   tenantId String
-
-  user     User @relation(fields: [userId], references: [id])
-  role     Role @relation(fields: [roleId], references: [id])
+  role     Role   @relation(fields: [roleId], references: [id])
   tenant   Tenant @relation(fields: [tenantId], references: [id])
+  user     User   @relation(fields: [userId], references: [id])
 
   @@unique([userId, roleId])
   @@index([tenantId])
 }
+
 model Project {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  budget      Float?
-
-  status      String   @default("active")
-
-  tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id])
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  fundingSources FundingSource[]
-  expenses       Expense[]
+  id             String          @id @default(uuid())
+  name           String
+  description    String?
+  budget         Float?
+  tenantId       String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  status         String          @default("active")
   documents      Document[]
+  expenses       Expense[]
+  fundingSources FundingSource[]
+  tenant         Tenant          @relation(fields: [tenantId], references: [id])
 
   @@index([tenantId])
   @@index([createdAt])
 }
-model FundingSource {
-  id          String   @id @default(uuid())
 
+model FundingSource {
+  id          String    @id @default(uuid())
   name        String
-  fundingType String   // grant | impact_loan | impact_investment
+  fundingType String
   amount      Float
   currency    String
-
   projectId   String
-  project     Project  @relation(fields: [projectId], references: [id])
-
   tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id])
-
-  createdAt   DateTime @default(now())
-
+  createdAt   DateTime  @default(now())
   expenses    Expense[]
+  project     Project   @relation(fields: [projectId], references: [id])
+  tenant      Tenant    @relation(fields: [tenantId], references: [id])
 
   @@index([tenantId])
   @@index([projectId])
   @@index([fundingType])
 }
+
 model Expense {
-  id          String   @id @default(uuid())
-
-  description String
-  amount      Float
-  currency    String
-
-  projectId   String
-  project     Project  @relation(fields: [projectId], references: [id])
-
-  fundingSourceId String
-  fundingSource   FundingSource @relation(fields: [fundingSourceId], references: [id])
-
-  tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id])
-
-  createdAt   DateTime @default(now())
+  id              String        @id @default(uuid())
+  description     String
+  amount          Float
+  currency        String
+  projectId       String
+  fundingSourceId String?
+  tenantId        String
+  createdAt       DateTime      @default(now())
+  fundingSource   FundingSource? @relation(fields: [fundingSourceId], references: [id])
+  project         Project       @relation(fields: [projectId], references: [id])
+  tenant          Tenant        @relation(fields: [tenantId], references: [id])
 
   @@index([tenantId])
   @@index([projectId])
   @@index([fundingSourceId])
   @@index([createdAt])
 }
+
 model Document {
-  id          String   @id @default(uuid())
-  name        String
-  fileUrl     String
-  fileType    String?
-
-  projectId   String?
-  project     Project? @relation(fields: [projectId], references: [id])
-
-  tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id])
-
+  id           String   @id @default(uuid())
+  name         String
+  fileUrl      String
+  fileType     String?
+  projectId    String?
+  tenantId     String
   uploadedById String?
-  uploadedBy   User? @relation(fields: [uploadedById], references: [id])
-  uploadedAt  DateTime @default(now())
+  uploadedAt   DateTime @default(now())
+  project      Project? @relation(fields: [projectId], references: [id])
+  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+  uploadedBy   User?    @relation(fields: [uploadedById], references: [id])
 
   @@index([tenantId])
   @@index([projectId])
   @@index([uploadedById])
 }
+
 model AuditLog {
-  id               String    @id @default(uuid())
-  action           String
-  entityType       String
-  entityId         String
-
-  // ── Actor ──────────────────────────────────────────────
-  userId           String?
-  user             User?     @relation(fields: [userId], references: [id])
-  tenantId         String
-  tenant           Tenant    @relation(fields: [tenantId], references: [id])
-
-  // ── Integrity ──────────────────────────────────────────
-  dataHash         String?   // SHA-256 hash of this audit record's content
-  prevHash         String?   // hash of the previous AuditLog entry (tamper-evident chain)
-
-  // ── Blockchain Anchor ──────────────────────────────────
-  batchId          String?   // groups multiple AuditLog entries into one anchor batch
-  blockchainTx     String?   // Polygon TX hash of the anchor transaction
-  blockNumber      Int?      // Polygon block number — required for finality & reorg checks
-  blockHash        String?   // Polygon block hash — secondary reorg verification
-  anchorStatus     String?   // pending | confirmed | failed | reorg_detected
-  ancheredAt       DateTime? // when the TX was confirmed on-chain
-
-  // ── Timestamps ─────────────────────────────────────────
-  createdAt        DateTime  @default(now())
+  id              String    @id @default(uuid())
+  action          String
+  entityType      String
+  entityId        String
+  userId          String?
+  tenantId        String
+  blockchainTx    String?
+  createdAt       DateTime  @default(now())
+  batchId         String?
+  dataHash        String?
+  ancheredAt      DateTime?
+  anchorStatus    String?
+  blockHash       String?
+  blockNumber     Int?
+  prevHash        String?
+  timestampStatus String?   @default("pending")
   timestampToken  String?
   timestampedAt   DateTime?
   tsaUrl          String?
-  timestampStatus String?   @default("pending")
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  user            User?     @relation(fields: [userId], references: [id])
 
-  // ── Indexes ────────────────────────────────────────────
   @@index([tenantId])
   @@index([createdAt])
   @@index([userId])
-  @@index([batchId])        // NEW — fast batch lookups
-  @@index([anchorStatus])   // NEW — fast queue queries (WHERE anchorStatus = 'pending')
+  @@index([batchId])
+  @@index([anchorStatus])
 }
-

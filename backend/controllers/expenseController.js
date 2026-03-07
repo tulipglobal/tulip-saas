@@ -1,3 +1,4 @@
+const { createAuditLog } = require('../services/auditService')
 // ─────────────────────────────────────────────────────────────
 //  controllers/expenseController.js — v2
 //  ✔ Paginated list with ?page, ?limit, ?projectId filter
@@ -61,6 +62,7 @@ exports.createExpense = async (req, res) => {
         fundingSourceId: fundingSourceId || null,
       }
     })
+    await createAuditLog({ action: 'EXPENSE_CREATED', entityType: 'Expense', entityId: expense.id, userId: req.user.id, tenantId: req.user.tenantId }).catch(() => {})
     res.status(201).json(expense)
   } catch (err) {
     console.error('createExpense error:', err)

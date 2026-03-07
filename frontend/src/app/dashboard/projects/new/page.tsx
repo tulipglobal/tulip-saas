@@ -22,9 +22,6 @@ export default function NewProjectPage() {
     setSaving(true); setError('')
     try {
       const res = await apiPost('/api/projects', {
-        
-        
-        body: JSON.stringify({
           name: form.name.trim(),
           description: form.description || null,
           status: form.status,
@@ -32,7 +29,6 @@ export default function NewProjectPage() {
           currency: form.currency,
           startDate: form.startDate || null,
           endDate: form.endDate || null,
-        })
       })
       if (res.ok) {
         const data = await res.json()

@@ -46,7 +46,7 @@ export default function VerifyPage() {
       const data = await res.json()
       if (res.ok) {
         setResult({
-            status: data.verified === true ? 'verified' : 'failed',
+            status: (data.verified === true || (data.integrity?.hashIntact === true && data.entityType)) ? 'verified' : 'failed',
             hash: data.dataHash,
             prevHash: data.integrity?.hashRecomputed,
             merkleRoot: data.batchId,
@@ -54,7 +54,7 @@ export default function VerifyPage() {
             blockNumber: data.blockchain?.blockNumber,
             blockchainTimestamp: data.blockchain?.ancheredAt,
             timestampedAt: data.blockchain?.ancheredAt,
-            integrityStatus: data.verified ? 'verified' : 'failed',
+            integrityStatus: (data.integrity?.hashIntact) ? 'verified' : 'failed',
             record: {
               title: data.action,
               tenantName: data.audit?.tenantId,

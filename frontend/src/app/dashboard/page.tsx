@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { apiGet } from '@/lib/api'
 import Link from 'next/link'
 import {
   Shield, CheckCircle, Clock, AlertTriangle,
@@ -90,7 +89,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const API = process.env.NEXT_PUBLIC_API_URL
     Promise.all([
-      apiGet('/api/audit?limit=100').then(r => r.ok ? r.json() : null),
+      fetch(`${API}/api/audit?limit=100`, ).then(r => r.ok ? r.json() : null),
     ]).then(([audit]) => {
       setStats({
         totalDocuments: audit?.total ?? 0,

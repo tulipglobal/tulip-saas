@@ -68,7 +68,7 @@ export default function AuditPage() {
     if (filter !== 'all') params.set('anchorStatus', filter)
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/audit?${params}`, )
       .then(r => r.ok ? r.json() : { items: [], total: 0 })
-      .then(d => { setEntries(d.items ?? []); setTotal(d.total ?? 0); setLoading(false) })
+      .then(d => { setEntries(d.data ?? d.items ?? []); setTotal(d.total ?? 0); setLoading(false) })
       .catch(() => setLoading(false))
   }
 

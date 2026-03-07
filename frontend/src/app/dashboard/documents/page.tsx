@@ -51,7 +51,7 @@ export default function DocumentsPage() {
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/documents?limit=50`, )
       .then(r => r.ok ? r.json() : { items: [] })
-      .then(d => { setDocs(d.items ?? d ?? []); setLoading(false) })
+      .then(d => { setDocs(d.data ?? d.items ?? []); setLoading(false) })
       .catch(() => setLoading(false))
   }, [])
 

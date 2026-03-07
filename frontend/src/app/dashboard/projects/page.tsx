@@ -57,7 +57,7 @@ export default function ProjectsPage() {
   useEffect(() => {
     apiGet('/api/projects?limit=50')
       .then(r => r.ok ? r.json() : { items: [] })
-      .then(d => { setProjects(d.items ?? d ?? []); setLoading(false) })
+      .then(d => { setProjects(d.data ?? d.items ?? []); setLoading(false) })
       .catch(() => setLoading(false))
   }, [])
 

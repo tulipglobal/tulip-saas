@@ -53,7 +53,7 @@ export default function ExpensesPage() {
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/expenses?limit=50`, )
       .then(r => r.ok ? r.json() : { items: [] })
-      .then(d => { setExpenses(d.items ?? d ?? []); setLoading(false) })
+      .then(d => { setExpenses(d.data ?? d.items ?? []); setLoading(false) })
       .catch(() => setLoading(false))
   }, [])
 

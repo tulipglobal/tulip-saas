@@ -22,7 +22,7 @@ export default function NewExpensePage() {
   useEffect(() => {
     apiGet('/api/projects?limit=100')
       .then(r => r.ok ? r.json() : { items: [] })
-      .then(d => setProjects(d.items ?? []))
+      .then(d => setProjects(d.data ?? d.items ?? []))
       .catch(() => {})
   }, [])
 

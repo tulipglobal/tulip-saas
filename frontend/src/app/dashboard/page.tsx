@@ -93,11 +93,11 @@ export default function DashboardPage() {
     ]).then(([audit]) => {
       setStats({
         totalDocuments: audit?.total ?? 0,
-        verifiedDocuments: audit?.items?.filter((i: AuditEntry) => i.anchorStatus === 'confirmed').length ?? 0,
-        pendingDocuments: audit?.items?.filter((i: AuditEntry) => i.anchorStatus === 'pending').length ?? 0,
+        verifiedDocuments: audit?.data?.filter ?? audit?.items?.filter((i: AuditEntry) => i.anchorStatus === 'confirmed').length ?? 0,
+        pendingDocuments: audit?.data?.filter ?? audit?.items?.filter((i: AuditEntry) => i.anchorStatus === 'pending').length ?? 0,
         totalProjects: 0,
         totalExpenses: 0,
-        recentAuditLogs: audit?.items ?? [],
+        recentAuditLogs: audit?.data ?? audit?.items ?? [],
       })
       setLoading(false)
     }).catch(() => setLoading(false))

@@ -18,39 +18,79 @@ const { issueTokenPair, rotateRefreshToken, revokeFamily } = require('../service
 
 exports.register = async (req, res) => {
   try {
-    const { email, name, password, tenantId } = req.body
+    const { email, name, password, organisationName, tenantType = 'NGO' } = req.body
+
+    if (!email || !name || !password || !organisationName) {
+      return res.status(400).json({ error: 'email, name, password and organisationName are required' })
+    }
 
     const existing = await prisma.user.findUnique({ where: { email } })
     if (existing) return res.status(400).json({ error: 'Email already registered' })
 
-    const hashed = await bcrypt.hash(password, 10)
+    // Generate tenant code e.g. TNGO-26-X7K2M
+    const year = new Date().getFullYear().toString().slice(-2)
+    const type = tenantType.toUpperCase().slice(0, 3)
+    const prefix = `T${type}`
 
-    let role = await prisma.role.findFirst({ where: { name: 'member', tenantId } })
-    if (!role) role = await prisma.role.create({ data: { name: 'member', tenantId } })
+    // Get or create counter for this type+year
+    const counter = await prisma.tenantCounter.upsert({
+      where: { tenantType_year: { tenantType: type, year } },
+      update: { count: { increment: 1 } },
+      create: { tenantType: type, year, count: 1 }
+    })
 
-    const user = await prisma.user.create({
+    // Generate 5-char nanoid
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+    const nanoId = Array.from({ length: 5 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+    const code = `${prefix}-${year}-${nanoId}`
+
+    // Create slug from organisation name
+    const baseSlug = organisationName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    const existingTenant = await prisma.tenant.findUnique({ where: { slug: baseSlug } })
+    const slug = existingTenant ? `${baseSlug}-${Date.now()}` : baseSlug
+
+    // Create tenant
+    const tenant = await prisma.tenant.create({
       data: {
-        email, name, password: hashed, tenantId,
-        roles: { create: { roleId: role.id, tenantId } }
+        code,
+        tenantType: type,
+        sequence: counter.count,
+        name: organisationName,
+        slug,
+        status: 'active'
       }
     })
 
-    await buildCache(user.id, tenantId)
-    await createAuditLog({ action: 'USER_REGISTERED', entityType: 'User', entityId: user.id, userId: user.id, tenantId })
-    siemEmit('auth.register', { userId: user.id, tenantId, email }, req).catch(() => {})
+    const hashed = await bcrypt.hash(password, 10)
+
+    // Create admin role for this tenant
+    const role = await prisma.role.create({
+      data: { name: 'admin', tenantId: tenant.id }
+    })
+
+    // Create user
+    const user = await prisma.user.create({
+      data: {
+        email, name, password: hashed, tenantId: tenant.id,
+        roles: { create: { roleId: role.id, tenantId: tenant.id } }
+      }
+    })
+
+    await buildCache(user.id, tenant.id)
+    await createAuditLog({ action: 'USER_REGISTERED', entityType: 'User', entityId: user.id, userId: user.id, tenantId: tenant.id })
+    siemEmit('auth.register', { userId: user.id, tenantId: tenant.id, email }, req).catch(() => {})
 
     const tokens = await issueTokenPair(user, req)
 
     res.status(201).json({
       ...tokens,
-      user: { id: user.id, email: user.email, name: user.name }
+      user: { id: user.id, email: user.email, name: user.name, tenantId: tenant.id, tenantCode: tenant.code }
     })
   } catch (err) {
     console.error('[auth/register]', err)
-    res.status(500).json({ error: 'Registration failed' })
+    res.status(500).json({ error: 'Registration failed', detail: err.message })
   }
 }
-
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body

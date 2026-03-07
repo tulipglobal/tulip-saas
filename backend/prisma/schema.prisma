@@ -12,24 +12,39 @@ datasource db {
   provider = "postgresql"
 }
 model Tenant {
-  id        String   @id @default(uuid())
-  name      String
-  slug      String   @unique
-  status    String   @default("active")
+  id           String   @id @default(uuid())
+  code         String   @unique  // TNGO-26-X7K2M
+  tenantType   String   @default("NGO")  // NGO | DON | API | VER
+  sequence     Int      // internal counter e.g. 47
+  name         String
+  slug         String   @unique
+  status       String   @default("active")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  users     User[]
-  projects  Project[]
-  roles     Role[]
-  userRoles UserRole[]
+  users        User[]
+  projects     Project[]
+  roles        Role[]
+  userRoles    UserRole[]
   fundingSources FundingSource[]
-  expenses  Expense[]
-  documents Document[]
-  auditLogs AuditLog[]
-  apiKeys ApiKey[]
+  expenses     Expense[]
+  documents    Document[]
+  auditLogs    AuditLog[]
+  apiKeys      ApiKey[]
   refreshTokens RefreshToken[]
+
+  @@index([code])
+  @@index([tenantType])
+}
+
+model TenantCounter {
+  id         String @id @default(uuid())
+  tenantType String
+  year       String
+  count      Int    @default(0)
+
+  @@unique([tenantType, year])
 }
 model User {
   id        String   @id @default(uuid())

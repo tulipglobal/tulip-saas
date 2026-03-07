@@ -18,7 +18,7 @@ exports.getExpenses = async (req, res) => {
     const [expenses, total] = await Promise.all([
       db.expense.findMany({
         where, skip, take,
-        include: { fundingSource: true },
+        include: { fundingSource: true, project: { select: { id: true, name: true } } },
         orderBy: { createdAt: 'desc' }
       }),
       db.expense.count({ where })

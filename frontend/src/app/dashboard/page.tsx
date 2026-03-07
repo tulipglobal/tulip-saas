@@ -1,4 +1,5 @@
 'use client'
+import { apiGet } from '@/lib/api'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -89,10 +90,10 @@ export default function DashboardPage() {
   useEffect(() => {
     const API = process.env.NEXT_PUBLIC_API_URL
     Promise.all([
-      fetch(`${API}/api/audit?limit=100`, ).then(r => r.ok ? r.json() : null),
+      apiGet('/api/audit?limit=100').then(r => r.ok ? r.json() : null),
     ]).then(([audit]) => {
       setStats({
-        totalDocuments: audit?.total ?? 0,
+        totalDocuments: audit?.pagination?.total ?? audit?.total ?? 0,
         verifiedDocuments: (audit?.data ?? audit?.items ?? []).filter((i: AuditEntry) => i.anchorStatus === 'confirmed').length,
         pendingDocuments: (audit?.data ?? audit?.items ?? []).filter((i: AuditEntry) => i.anchorStatus === 'pending').length,
         totalProjects: 0,

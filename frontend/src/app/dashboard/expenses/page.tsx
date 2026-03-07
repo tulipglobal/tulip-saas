@@ -8,6 +8,7 @@ import { Receipt, Plus, Search, ExternalLink, Copy, Check } from 'lucide-react'
 interface Expense {
   id: string
   title: string
+  description: string
   amount: number
   currency: string
   category: string | null
@@ -59,7 +60,7 @@ export default function ExpensesPage() {
   }, [])
 
   const filtered = expenses.filter(e =>
-    e.title.toLowerCase().includes(search.toLowerCase()) ||
+    ( e.title ?? e.description ?? '').toLowerCase().includes(search.toLowerCase()) ||
     (e.vendor ?? '').toLowerCase().includes(search.toLowerCase()) ||
     (e.category ?? '').toLowerCase().includes(search.toLowerCase())
   )
@@ -122,7 +123,7 @@ export default function ExpensesPage() {
             {filtered.map(expense => (
               <div key={expense.id} className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_40px] gap-4 items-center px-5 py-3.5 hover:bg-white/2 transition-colors">
                 <div>
-                  <div className="text-sm font-medium text-white/80">{expense.title}</div>
+                  <div className="text-sm font-medium text-white/80">{expense.title ?? expense.description}</div>
                   <div className="text-xs text-white/30 mt-0.5">{expense.vendor ?? expense.category ?? '—'}</div>
                 </div>
                 <div className="text-sm font-medium text-white">

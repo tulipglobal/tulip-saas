@@ -29,8 +29,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const handleSignOut = async () => {
     try {
-      const refreshToken = localStorage.getItem('refreshToken')
-      const accessToken = localStorage.getItem('accessToken')
+      const refreshToken = localStorage.getItem('tulip_refresh')
+      const accessToken = localStorage.getItem('tulip_token')
 
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
         method: 'POST',
@@ -43,8 +43,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     } catch {
       // continue even if logout call fails
     } finally {
-      localStorage.removeItem('accessToken')
-      localStorage.removeItem('refreshToken')
+      localStorage.removeItem('tulip_token')
+      localStorage.removeItem('tulip_refresh')
       router.push('/login')
     }
   }

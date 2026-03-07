@@ -35,8 +35,8 @@ const tenantApiLimiter = rateLimit({
 
 // ── Auth limiter — stricter, per IP ──────────────────────────
 const authLimiter = rateLimit({
-  windowMs:         60 * 60 * 1000,
-  max:              10,
+  windowMs:         15 * 60 * 1000,
+  max:              200,
   keyGenerator:     byIP,
   standardHeaders:  true,
   legacyHeaders:    false,

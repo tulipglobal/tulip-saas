@@ -22,6 +22,12 @@ interface VerifyResult {
   record?: {
     title?: string
     tenantName?: string
+    organisationType?: string
+    projectName?: string
+    expenseDescription?: string
+    amount?: number
+    currency?: string
+    budget?: number
     createdAt?: string
     type?: string
   }
@@ -57,7 +63,13 @@ export default function VerifyPage() {
             integrityStatus: (data.integrity?.hashIntact) ? 'verified' : 'failed',
             record: {
               title: data.action,
-              tenantName: data.audit?.tenantId,
+              tenantName: data.entityDetails?.organisationName || data.audit?.tenantId,
+              organisationType: data.entityDetails?.organisationType,
+              projectName: data.entityDetails?.projectName,
+              expenseDescription: data.entityDetails?.expenseDescription,
+              amount: data.entityDetails?.amount,
+              currency: data.entityDetails?.currency,
+              budget: data.entityDetails?.budget,
               createdAt: data.recordedAt,
               type: data.entityType,
             }
@@ -204,27 +216,51 @@ export default function VerifyPage() {
                     Record
                   </p>
                   <div className="grid grid-cols-2 gap-4">
-                    {result.record.title && (
-                      <div>
-                        <p style={{ color: '#475569', fontSize: '12px' }}>Title</p>
-                        <p style={{ color: 'white', fontSize: '14px', fontWeight: 500, marginTop: '2px' }}>{result.record.title}</p>
-                      </div>
-                    )}
                     {result.record.tenantName && (
                       <div>
                         <p style={{ color: '#475569', fontSize: '12px' }}>Organisation</p>
                         <p style={{ color: 'white', fontSize: '14px', fontWeight: 500, marginTop: '2px' }}>{result.record.tenantName}</p>
                       </div>
                     )}
-                    {result.record.type && (
+                    {result.record.organisationType && (
                       <div>
                         <p style={{ color: '#475569', fontSize: '12px' }}>Type</p>
-                        <p style={{ color: 'white', fontSize: '14px', fontWeight: 500, marginTop: '2px' }}>{result.record.type}</p>
+                        <p style={{ color: 'white', fontSize: '14px', fontWeight: 500, marginTop: '2px' }}>{result.record.organisationType}</p>
+                      </div>
+                    )}
+                    {result.record.projectName && (
+                      <div>
+                        <p style={{ color: '#475569', fontSize: '12px' }}>Project</p>
+                        <p style={{ color: 'white', fontSize: '14px', fontWeight: 500, marginTop: '2px' }}>{result.record.projectName}</p>
+                      </div>
+                    )}
+                    {result.record.expenseDescription && (
+                      <div>
+                        <p style={{ color: '#475569', fontSize: '12px' }}>Description</p>
+                        <p style={{ color: 'white', fontSize: '14px', fontWeight: 500, marginTop: '2px' }}>{result.record.expenseDescription}</p>
+                      </div>
+                    )}
+                    {result.record.amount && (
+                      <div>
+                        <p style={{ color: '#475569', fontSize: '12px' }}>Amount</p>
+                        <p style={{ color: '#34d399', fontSize: '16px', fontWeight: 700, marginTop: '2px' }}>{result.record.currency} {result.record.amount.toLocaleString()}</p>
+                      </div>
+                    )}
+                    {result.record.budget && (
+                      <div>
+                        <p style={{ color: '#475569', fontSize: '12px' }}>Budget</p>
+                        <p style={{ color: '#34d399', fontSize: '16px', fontWeight: 700, marginTop: '2px' }}>USD {result.record.budget.toLocaleString()}</p>
+                      </div>
+                    )}
+                    {result.record.title && (
+                      <div>
+                        <p style={{ color: '#475569', fontSize: '12px' }}>Action</p>
+                        <p style={{ color: 'white', fontSize: '14px', fontWeight: 500, marginTop: '2px' }}>{result.record.title}</p>
                       </div>
                     )}
                     {result.record.createdAt && (
                       <div>
-                        <p style={{ color: '#475569', fontSize: '12px' }}>Created</p>
+                        <p style={{ color: '#475569', fontSize: '12px' }}>Recorded</p>
                         <p style={{ color: 'white', fontSize: '14px', fontWeight: 500, marginTop: '2px' }}>
                           {new Date(result.record.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </p>

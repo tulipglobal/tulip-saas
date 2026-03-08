@@ -102,6 +102,53 @@ router.get('/:dataHash', async (req, res) => {
 
     const verified = hashIntact && chainIntact && record.anchorStatus === 'confirmed' && onChainVerified
 
+    // Enrich with entity details
+    let entityDetails = null
+    try {
+      const tenant = await prisma.tenant.findUnique({
+        where: { id: record.tenantId },
+        select: { name: true, tenantType: true }
+      })
+
+      if (record.entityType === 'Expense' && record.entityId) {
+        const expense = await prisma.expense.findUnique({
+          where: { id: record.entityId },
+          select: { description: true, amount: true, currency: true,
+                    project: { select: { name: true } } }
+        })
+        if (expense) {
+          entityDetails = {
+            organisationName: tenant?.name || null,
+            organisationType: tenant?.tenantType || null,
+            expenseDescription: expense.description,
+            amount: expense.amount,
+            currency: expense.currency,
+            projectName: expense.project?.name || null,
+          }
+        }
+      } else if (record.entityType === 'Project' && record.entityId) {
+        const project = await prisma.project.findUnique({
+          where: { id: record.entityId },
+          select: { name: true, description: true, budget: true, status: true }
+        })
+        if (project) {
+          entityDetails = {
+            organisationName: tenant?.name || null,
+            organisationType: tenant?.tenantType || null,
+            projectName: project.name,
+            projectDescription: project.description || null,
+            budget: project.budget || null,
+            status: project.status,
+          }
+        }
+      } else if (record.entityType === 'User') {
+        entityDetails = {
+          organisationName: tenant?.name || null,
+          organisationType: tenant?.tenantType || null,
+        }
+      }
+    } catch (e) { /* enrichment failure is non-fatal */ }
+
     return res.json({
       verified,
       dataHash:   record.dataHash,
@@ -110,6 +157,7 @@ router.get('/:dataHash', async (req, res) => {
       entityId:   record.entityId,
       action:     record.action,
       recordedAt: record.createdAt,
+      entityDetails,
       integrity: { hashRecomputed: recomputedHash, hashIntact, chainIntact, chainBreakReason: chainBreakReason || undefined },
       blockchain: {
         network: 'Polygon', txHash: record.blockchainTx || null,

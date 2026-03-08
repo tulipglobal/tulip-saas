@@ -98,7 +98,7 @@ export default function DashboardPage() {
         pendingDocuments: (audit?.data ?? audit?.items ?? []).filter((i: AuditEntry) => i.anchorStatus === 'pending').length,
         totalProjects: 0,
         totalExpenses: 0,
-        recentAuditLogs: audit?.data ?? audit?.items ?? [],
+        recentAuditLogs: (audit?.data ?? audit?.items ?? []).slice(0, 8),
       })
       setLoading(false)
     }).catch(() => setLoading(false))

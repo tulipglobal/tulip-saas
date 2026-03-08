@@ -128,6 +128,7 @@ exports.create = async (req, res) => {
           await sendEmail({
             to: donor.email,
             subject: orgName + ' has invited you to view verified records on Tulip DS',
+            text: orgName + ' has invited you (' + (donor.name || '') + ') to view their verified financial records for "' + agreement.title + '" on Tulip DS.\n\nAccept your invitation here:\n' + inviteUrl + '\n\nThis invite expires in 7 days.',
             html: [
               '<div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:30px">',
               '<div style="text-align:center;margin-bottom:30px">',

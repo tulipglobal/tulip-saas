@@ -37,6 +37,12 @@ exports.createInvite = async (req, res) => {
       await sendEmail({
         to: email,
         subject: `${tenant?.name || 'An organisation'} has invited you to Tulip DS`,
+        text: `${tenant?.name || "An organisation"} has invited you${donorName ? " (" + donorName + ")" : ""} to view their verified financial records on Tulip DS.
+
+Accept your invitation here:
+${inviteUrl}
+
+This invite expires in 7 days.`,
         html: `
           <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:30px">
             <div style="text-align:center;margin-bottom:30px">

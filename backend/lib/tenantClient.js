@@ -29,6 +29,7 @@ module.exports = function tenantClient(tenantId) {
       update:    (args = {}) => prisma.expense.update(args),
       delete:    (args = {}) => prisma.expense.delete(args),
       count:     (args = {}) => prisma.expense.count({ ...args, where: { ...args.where, tenantId } }),
+      aggregate: (args = {}) => prisma.expense.aggregate({ ...args, where: { ...args.where, tenantId } }),
     },
 
     document: {
@@ -37,6 +38,15 @@ module.exports = function tenantClient(tenantId) {
       create:    (args = {}) => prisma.document.create({ ...args, data: { ...args.data, tenantId } }),
       delete:    (args = {}) => prisma.document.delete(args),
       count:     (args = {}) => prisma.document.count({ ...args, where: { ...args.where, tenantId } }),
+    },
+
+    fundingAgreement: {
+      findMany:  (args = {}) => prisma.fundingAgreement.findMany({ ...args, where: { ...args.where, tenantId } }),
+      findFirst: (args = {}) => prisma.fundingAgreement.findFirst({ ...args, where: { ...args.where, tenantId } }),
+      create:    (args = {}) => prisma.fundingAgreement.create({ ...args, data: { ...args.data, tenantId } }),
+      update:    (args = {}) => prisma.fundingAgreement.update(args),
+      delete:    (args = {}) => prisma.fundingAgreement.delete(args),
+      count:     (args = {}) => prisma.fundingAgreement.count({ ...args, where: { ...args.where, tenantId } }),
     },
 
     auditLog: {

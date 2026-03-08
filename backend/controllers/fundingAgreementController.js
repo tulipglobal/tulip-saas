@@ -1,9 +1,12 @@
 // ─────────────────────────────────────────────────────────────
-//  controllers/fundingAgreementController.js — v1
+//  controllers/fundingAgreementController.js — v2
+//  Fixes: tenantClient usage, auto-send donor invite email
 // ─────────────────────────────────────────────────────────────
+const crypto = require('crypto')
 const tenantClient = require('../lib/tenantClient')
 const prisma = require('../lib/client')
 const { createAuditLog } = require('../services/auditService')
+const { sendEmail } = require('../services/emailService')
 const { parsePagination, paginatedResponse } = require('../lib/paginate')
 
 exports.list = async (req, res) => {
@@ -65,6 +68,7 @@ exports.get = async (req, res) => {
     const spent = await db.expense.aggregate({ where: { fundingAgreementId: agreement.id }, _sum: { amount: true } })
     res.json({ ...agreement, spent: spent._sum.amount || 0 })
   } catch (err) {
+    console.error('fundingAgreement get error:', err)
     res.status(500).json({ error: 'Failed to fetch funding agreement' })
   }
 }
@@ -93,6 +97,66 @@ exports.create = async (req, res) => {
     })
 
     await createAuditLog({ action: 'FUNDING_AGREEMENT_CREATED', entityType: 'FundingAgreement', entityId: agreement.id, userId: req.user.userId || req.user.id, tenantId: req.user.tenantId }).catch(() => {})
+
+    // Auto-send donor invite email if donor has an email address
+    if (agreement.donorId) {
+      try {
+        const donor = await prisma.donor.findUnique({ where: { id: agreement.donorId }, select: { email: true, name: true } })
+        if (donor && donor.email) {
+          console.log('[funding] Donor has email, sending invite to:', donor.email)
+
+          const token = crypto.randomBytes(32).toString('hex')
+          const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+
+          await prisma.donorInvite.create({
+            data: {
+              token,
+              email: donor.email,
+              invitedByUserId: req.user.userId || req.user.id,
+              inviteType: 'NGO_INVITES_DONOR',
+              tenantId: req.user.tenantId,
+              expiresAt,
+            }
+          })
+
+          const tenant = await prisma.tenant.findUnique({ where: { id: req.user.tenantId }, select: { name: true } })
+          const orgName = tenant ? tenant.name : 'An organisation'
+          const inviteUrl = 'https://donor.tulipds.com/accept-invite?token=' + token
+
+          console.log('[funding] Sending invite email to', donor.email, 'for agreement:', agreement.title)
+
+          await sendEmail({
+            to: donor.email,
+            subject: orgName + ' has invited you to view verified records on Tulip DS',
+            html: [
+              '<div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:30px">',
+              '<div style="text-align:center;margin-bottom:30px">',
+              '<h1 style="color:#0c7aed;font-size:24px;margin:0">Tulip DS</h1>',
+              '<p style="color:#64748b;font-size:13px;margin-top:4px">Verification Infrastructure</p>',
+              '</div>',
+              '<h2 style="color:#1e293b;font-size:20px">You\'ve been invited</h2>',
+              '<p style="color:#475569;line-height:1.6">',
+              '<strong>' + orgName + '</strong> has invited you (' + (donor.name || '') + ') to view their verified financial records for <strong>' + agreement.title + '</strong> on Tulip DS.',
+              '</p>',
+              '<div style="text-align:center;margin:30px 0">',
+              '<a href="' + inviteUrl + '" style="display:inline-block;padding:14px 28px;background:linear-gradient(135deg,#0c7aed,#004ea8);color:white;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px">Accept Invitation</a>',
+              '</div>',
+              '<p style="color:#94a3b8;font-size:13px">This invite expires in 7 days. If you did not expect this invitation, you can safely ignore it.</p>',
+              '<hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0"/>',
+              '<p style="color:#94a3b8;font-size:11px;text-align:center">Tulip DS &middot; Bright Bytes Technology &middot; Dubai, UAE</p>',
+              '</div>'
+            ].join('')
+          })
+
+          console.log('[funding] Invite email sent successfully to', donor.email)
+        } else {
+          console.log('[funding] Donor has no email, skipping invite')
+        }
+      } catch (emailErr) {
+        console.error('[funding] Failed to send donor invite email:', emailErr.message)
+      }
+    }
+
     res.status(201).json(agreement)
   } catch (err) {
     console.error('createFundingAgreement error:', err)

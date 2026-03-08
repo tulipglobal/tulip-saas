@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Shield, ExternalLink, Copy, Check, Search, RefreshCw } from 'lucide-react'
+import { apiGet } from '@/lib/api'
 
 interface AuditEntry {
   id: string
@@ -17,6 +18,7 @@ interface AuditEntry {
   blockNumber: number | null
   createdAt: string
   userId: string | null
+  projectName: string | null
 }
 
 function HashCell({ hash, short = false }: { hash: string; short?: boolean }) {
@@ -66,7 +68,7 @@ export default function AuditPage() {
     setLoading(true)
     const params = new URLSearchParams({ limit: String(limit), page: String(p) })
     if (filter !== 'all') params.set('anchorStatus', filter)
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/audit?${params}`, )
+    apiGet(`/api/audit?${params}`)
       .then(r => r.ok ? r.json() : { items: [], total: 0 })
       .then(d => { setEntries(d.data ?? d.items ?? []); setTotal(d.total ?? 0); setLoading(false) })
       .catch(() => setLoading(false))
@@ -118,8 +120,8 @@ export default function AuditPage() {
       {/* Table */}
       <div className="rounded-xl border border-white/8 overflow-hidden"
         style={{ background: 'rgba(255,255,255,0.02)' }}>
-        <div className="grid grid-cols-[1fr_1fr_2fr_1fr_1fr_32px] gap-3 px-5 py-3 border-b border-white/8 text-xs text-white/30 uppercase tracking-wide font-medium">
-          <span>Action</span><span>Entity</span><span>Hash</span><span>Status</span><span>Date</span><span/>
+        <div className="grid grid-cols-[1fr_1fr_1fr_2fr_1fr_1fr_32px] gap-3 px-5 py-3 border-b border-white/8 text-xs text-white/30 uppercase tracking-wide font-medium">
+          <span>Action</span><span>Entity</span><span>Project</span><span>Hash</span><span>Status</span><span>Date</span><span/>
         </div>
 
         {loading ? (
@@ -133,12 +135,13 @@ export default function AuditPage() {
           <div className="divide-y divide-white/5">
             {filtered.map(entry => (
               <div key={entry.id}
-                className="grid grid-cols-[1fr_1fr_2fr_1fr_1fr_32px] gap-3 items-center px-5 py-3 hover:bg-white/2 transition-colors">
+                className="grid grid-cols-[1fr_1fr_1fr_2fr_1fr_1fr_32px] gap-3 items-center px-5 py-3 hover:bg-white/2 transition-colors">
                 <div className="text-sm font-medium text-white/80 truncate">{entry.action}</div>
                 <div>
                   <div className="text-xs text-white/50 truncate">{entry.entityType}</div>
                   <div className="text-xs text-white/25 truncate">{entry.entityId}</div>
                 </div>
+                <div className="text-sm text-white/50 truncate">{entry.projectName ?? '—'}</div>
                 <div className="min-w-0">
                   <HashCell hash={entry.dataHash} short />
                   {entry.blockNumber && (

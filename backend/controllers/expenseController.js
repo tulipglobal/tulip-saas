@@ -1,3 +1,4 @@
+const { createAuditLog } = require('../services/auditService')
 // ─────────────────────────────────────────────────────────────
 //  controllers/expenseController.js — v2
 //  ✔ Paginated list with ?page, ?limit, ?projectId filter
@@ -18,7 +19,7 @@ exports.getExpenses = async (req, res) => {
     const [expenses, total] = await Promise.all([
       db.expense.findMany({
         where, skip, take,
-        include: { fundingSource: true, project: { select: { id: true, name: true } } },
+        include: { fundingSource: true, project: { select: { id: true, name: true } }, documents: { select: { id: true, name: true, sha256Hash: true, fileType: true, uploadedAt: true } } },       
         orderBy: { createdAt: 'desc' }
       }),
       db.expense.count({ where })
@@ -61,6 +62,7 @@ exports.createExpense = async (req, res) => {
         fundingSourceId: fundingSourceId || null,
       }
     })
+    await createAuditLog({ action: 'EXPENSE_CREATED', entityType: 'Expense', entityId: expense.id, userId: req.user.id, tenantId: req.user.tenantId }).catch(() => {})
     res.status(201).json(expense)
   } catch (err) {
     console.error('createExpense error:', err)

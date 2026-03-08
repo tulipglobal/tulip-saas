@@ -63,6 +63,20 @@ app.use('/api/verify',     verifyRouter)
 app.use('/api/projects',   apiLimiter,     authenticate, tenantScope, projectRoutes)
 app.use('/api/funding-sources', apiLimiter, authenticate, tenantScope, fundingSourceRoutes)
 app.use('/api/expenses',   apiLimiter,     authenticate, tenantScope, expenseRoutes)
+// Public document view - no auth
+app.get('/api/documents/:id/view/public', apiLimiter, async (req, res) => {
+  try {
+    const prisma = require('./prisma/client')
+    const document = await prisma.document.findFirst({ where: { id: req.params.id } })
+    if (!document) return res.status(404).json({ error: 'Document not found' })
+    const { getPresignedUrl } = require('./lib/s3Upload')
+    const url = await getPresignedUrl(document.fileUrl)
+    if (!url) return res.status(500).json({ error: 'Could not generate URL' })
+    res.json({ url, expiresIn: 3600 })
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get document URL' })
+  }
+})
 app.use('/api/documents',  apiLimiter,     authenticate, tenantScope, documentRoutes)
 app.use('/api/audit',      apiLimiter,     authenticate, tenantScope, auditRoutes)
 app.use('/api/gdpr',       strictLimiter,  authenticate, tenantScope, gdprRoutes)

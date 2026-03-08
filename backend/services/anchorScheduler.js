@@ -7,7 +7,7 @@
 
 const cron    = require('node-cron')
 const { anchorBatch }             = require('./batchAnchorService')
-const { retryFailedDeliveries }   = require('./webhookService')
+const { retryFailed: retryFailedDeliveries } = require('./webhookService')
 const { cleanupExpiredTokens }    = require('./refreshTokenService')
 const { stampPendingLogs }        = require('./timestampService')
 const logger  = require('../lib/logger')

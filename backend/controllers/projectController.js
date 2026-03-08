@@ -1,3 +1,4 @@
+const { createAuditLog } = require('../services/auditService')
 // ─────────────────────────────────────────────────────────────
 //  controllers/projectController.js — v2
 //
@@ -67,6 +68,7 @@ exports.createProject = async (req, res) => {
     const project = await db.project.create({
       data: { name, description, budget: budget ? parseFloat(budget) : null }
     })
+    await createAuditLog({ action: 'PROJECT_CREATED', entityType: 'Project', entityId: project.id, userId: req.user.id, tenantId: req.user.tenantId }).catch(() => {})
     res.status(201).json(project)
   } catch (err) {
     console.error(err)

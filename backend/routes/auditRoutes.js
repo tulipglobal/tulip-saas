@@ -36,12 +36,16 @@ router.get('/', can('audit:read'), async (req, res) => {
           userId:          true,
           tenantId:        true,
           dataHash:        true,
+          prevHash:        true,
+          batchId:         true,
+          blockNumber:     true,
           anchorStatus:    true,
           blockchainTx:    true,
           ancheredAt:      true,
           timestampStatus: true,
           timestampedAt:   true,
           createdAt:       true,
+
         }
       }),
       prisma.auditLog.count({ where })

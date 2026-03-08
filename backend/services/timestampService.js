@@ -229,7 +229,7 @@ async function stampAuditLog(auditLogId) {
 async function stampPendingLogs(limit = 10) {
   const pending = await prisma.auditLog.findMany({
     where: {
-      timestampStatus: { in: ['pending', 'failed', null] },
+      timestampStatus: { in: ['pending', 'failed'] },
       dataHash:        { not: null },
     },
     take:    limit,

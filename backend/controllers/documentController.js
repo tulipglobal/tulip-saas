@@ -1,21 +1,40 @@
 const tenantClient = require('../lib/tenantClient')
+const { uploadToS3, computeSHA256 } = require('../lib/s3Upload')
+const { createAuditLog } = require('../services/auditService')
+const multer = require('multer')
+
+// Multer — memory storage (buffer for SHA-256 + S3)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB
+  fileFilter: (req, file, cb) => {
+    const allowed = ['.pdf','.doc','.docx','.xlsx','.xls','.jpg','.jpeg','.png','.csv']
+    const ext = '.' + file.originalname.split('.').pop().toLowerCase()
+    allowed.includes(ext) ? cb(null, true) : cb(new Error('File type not allowed'))
+  }
+})
+
+exports.uploadMiddleware = upload.single('file')
 
 // GET /api/documents
 exports.getDocuments = async (req, res) => {
   try {
     const db = tenantClient(req.user.tenantId)
-    const { projectId } = req.query
+    const { projectId, expenseId, documentLevel } = req.query
     const documents = await db.document.findMany({
       where: {
-        ...(projectId && { projectId })
+        ...(projectId && { projectId }),
+        ...(expenseId && { expenseId }),
+        ...(documentLevel && { documentLevel }),
       },
       include: {
         project: { select: { id: true, name: true } },
-        uploadedBy: { select: { id: true, name: true } }
+        uploadedBy: { select: { id: true, name: true } },
+        expense: { select: { id: true, description: true, amount: true, currency: true } }
       },
       orderBy: { uploadedAt: 'desc' }
     })
-    res.json(documents)
+    res.json({ data: documents, total: documents.length })
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: 'Failed to fetch documents' })
@@ -30,6 +49,7 @@ exports.getDocument = async (req, res) => {
       where: { id: req.params.id },
       include: {
         project: true,
+        expense: true,
         uploadedBy: { select: { id: true, name: true } }
       }
     })
@@ -44,30 +64,74 @@ exports.getDocument = async (req, res) => {
 exports.createDocument = async (req, res) => {
   try {
     const db = tenantClient(req.user.tenantId)
-    const { name, fileUrl, fileType, projectId } = req.body
+    const { name, description, documentType, documentLevel, projectId, expenseId } = req.body
 
-    if (!name || !fileUrl)
-      return res.status(400).json({ error: 'name and fileUrl are required' })
+    if (!name) return res.status(400).json({ error: 'name is required' })
+    if (!req.file) return res.status(400).json({ error: 'file is required' })
 
-    // Verify project belongs to tenant if provided
+    // Compute SHA-256 of file
+    const sha256Hash = computeSHA256(req.file.buffer)
+
+    // Upload to S3
+    const { fileUrl } = await uploadToS3(
+      req.file.buffer,
+      req.file.originalname,
+      req.user.tenantId,
+      `documents/${documentLevel || 'project'}`
+    )
+
+    // Verify project/expense belong to tenant
     if (projectId) {
       const project = await db.project.findFirst({ where: { id: projectId } })
       if (!project) return res.status(404).json({ error: 'Project not found' })
+    }
+    if (expenseId) {
+      const expense = await db.expense.findFirst({ where: { id: expenseId } })
+      if (!expense) return res.status(404).json({ error: 'Expense not found' })
     }
 
     const document = await db.document.create({
       data: {
         name,
+        description: description || null,
+        documentType: documentType || null,
+        documentLevel: documentLevel || 'project',
         fileUrl,
-        fileType: fileType || null,
+        fileType: req.file.originalname.split('.').pop().toLowerCase(),
+        fileSize: req.file.size,
+        sha256Hash,
         projectId: projectId || null,
-        uploadedById: req.user.userId
+        expenseId: expenseId || null,
+        uploadedById: req.user.userId,
+      },
+      include: {
+        project: { select: { id: true, name: true } },
+        expense: { select: { id: true, description: true, amount: true } }
       }
     })
+
+    // Create audit log entry for blockchain anchoring
+    await createAuditLog({
+      action: 'DOCUMENT_UPLOADED',
+      entityType: 'Document',
+      entityId: document.id,
+      userId: req.user.userId,
+      tenantId: req.user.tenantId,
+      metadata: {
+        name: document.name,
+        sha256Hash,
+        fileType: document.fileType,
+        fileSize: document.fileSize,
+        documentLevel: document.documentLevel,
+        projectId: document.projectId,
+        expenseId: document.expenseId,
+      }
+    })
+
     res.status(201).json(document)
   } catch (err) {
     console.error(err)
-    res.status(500).json({ error: 'Failed to create document' })
+    res.status(500).json({ error: err.message || 'Failed to create document' })
   }
 }
 
@@ -77,10 +141,24 @@ exports.deleteDocument = async (req, res) => {
     const db = tenantClient(req.user.tenantId)
     const existing = await db.document.findFirst({ where: { id: req.params.id } })
     if (!existing) return res.status(404).json({ error: 'Document not found' })
-
     await db.document.delete({ where: { id: req.params.id } })
     res.json({ message: 'Document deleted' })
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete document' })
+  }
+}
+
+// GET /api/documents/:id/view — returns presigned URL
+exports.getDocumentUrl = async (req, res) => {
+  try {
+    const db = tenantClient(req.user.tenantId)
+    const document = await db.document.findFirst({ where: { id: req.params.id } })
+    if (!document) return res.status(404).json({ error: 'Document not found' })
+    const { getPresignedUrl } = require('../lib/s3Upload')
+    const url = await getPresignedUrl(document.fileUrl)
+    if (!url) return res.status(500).json({ error: 'Could not generate view URL' })
+    res.json({ url, expiresIn: 3600 })
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get document URL' })
   }
 }

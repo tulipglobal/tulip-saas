@@ -1,4 +1,5 @@
 'use client'
+import { apiGet } from '@/lib/api'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -89,15 +90,15 @@ export default function DashboardPage() {
   useEffect(() => {
     const API = process.env.NEXT_PUBLIC_API_URL
     Promise.all([
-      fetch(`${API}/api/audit?limit=8`, ).then(r => r.ok ? r.json() : null),
+      apiGet('/api/audit?limit=100').then(r => r.ok ? r.json() : null),
     ]).then(([audit]) => {
       setStats({
-        totalDocuments: audit?.total ?? 0,
-        verifiedDocuments: audit?.data?.filter ?? audit?.items?.filter((i: AuditEntry) => i.anchorStatus === 'confirmed').length ?? 0,
-        pendingDocuments: audit?.data?.filter ?? audit?.items?.filter((i: AuditEntry) => i.anchorStatus === 'pending').length ?? 0,
+        totalDocuments: audit?.pagination?.total ?? audit?.total ?? 0,
+        verifiedDocuments: (audit?.data ?? audit?.items ?? []).filter((i: AuditEntry) => i.anchorStatus === 'confirmed').length,
+        pendingDocuments: (audit?.data ?? audit?.items ?? []).filter((i: AuditEntry) => i.anchorStatus === 'pending').length,
         totalProjects: 0,
         totalExpenses: 0,
-        recentAuditLogs: audit?.data ?? audit?.items ?? [],
+        recentAuditLogs: (audit?.data ?? audit?.items ?? []).slice(0, 8),
       })
       setLoading(false)
     }).catch(() => setLoading(false))
@@ -207,7 +208,11 @@ export default function DashboardPage() {
                   <HashCell hash={entry.dataHash} />
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
-                  <StatusBadge status={entry.anchorStatus} />
+                  {entry.anchorStatus === 'confirmed' && entry.dataHash ? (
+                    <Link href={`/verify?hash=${entry.dataHash}`} target="_blank">
+                      <StatusBadge status={entry.anchorStatus} />
+                    </Link>
+                  ) : <StatusBadge status={entry.anchorStatus} />}
                   {entry.blockchainTx && (
                     <Link href={`https://amoy.polygonscan.com/tx/${entry.blockchainTx}`} target="_blank"
                       className="text-white/20 hover:text-[#369bff] transition-colors">

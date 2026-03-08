@@ -72,7 +72,57 @@ router.get('/:dataHash', async (req, res) => {
                 anchorStatus:true, ancheredAt:true },
     })
 
-    if (!record) return res.json({ verified: false, reason: 'Hash not found', dataHash })
+if (!record) {
+  const doc = await prisma.document.findFirst({
+    where: { sha256Hash: dataHash },
+    include: { project: { select: { name: true } }, expense: { select: { description: true, amount: true, currency: true } } }
+  })
+  if (!doc) return res.json({ verified: false, reason: 'Hash not found', dataHash })
+
+  const docAudit = await prisma.auditLog.findFirst({
+    where: { entityType: 'Document', entityId: doc.id },
+    select: { id:true, action:true, entityType:true, entityId:true, userId:true,
+              tenantId:true, createdAt:true, dataHash:true, prevHash:true,
+              batchId:true, blockchainTx:true, blockNumber:true, blockHash:true,
+              anchorStatus:true, ancheredAt:true }
+  })
+
+  const tenant = docAudit ? await prisma.tenant.findUnique({
+    where: { id: docAudit.tenantId },
+    select: { name: true, tenantType: true }
+  }) : null
+
+  return res.json({
+    verified: docAudit?.anchorStatus === 'confirmed',
+    dataHash,
+    documentHash: true,
+    documentId: doc.id,
+    batchId: docAudit?.batchId || null,
+    entityType: 'Document',
+    entityId: doc.id,
+    action: 'DOCUMENT_UPLOADED',
+    recordedAt: doc.uploadedAt,
+    entityDetails: {
+      organisationName: tenant?.name || null,
+      organisationType: tenant?.tenantType || null,
+      documentName: doc.name,
+      fileType: doc.fileType,
+      documentLevel: doc.documentLevel,
+      projectName: doc.project?.name || null,
+      expenseDescription: doc.expense?.description || null,
+      amount: doc.expense?.amount || null,
+      currency: doc.expense?.currency || null,
+    },
+    integrity: { hashIntact: true, chainIntact: true },
+    blockchain: {
+      txHash: docAudit?.blockchainTx || null,
+      blockNumber: docAudit?.blockNumber || null,
+      anchorStatus: docAudit?.anchorStatus || null,
+      ancheredAt: docAudit?.ancheredAt || null,
+    },
+    audit: { tenantId: docAudit?.tenantId, userId: docAudit?.userId }
+  })
+}
 
     const recomputedHash = hashRecord(record)
     const hashIntact     = recomputedHash === record.dataHash
@@ -102,6 +152,53 @@ router.get('/:dataHash', async (req, res) => {
 
     const verified = hashIntact && chainIntact && record.anchorStatus === 'confirmed' && onChainVerified
 
+    // Enrich with entity details
+    let entityDetails = null
+    try {
+      const tenant = await prisma.tenant.findUnique({
+        where: { id: record.tenantId },
+        select: { name: true, tenantType: true }
+      })
+
+      if (record.entityType === 'Expense' && record.entityId) {
+        const expense = await prisma.expense.findUnique({
+          where: { id: record.entityId },
+          select: { description: true, amount: true, currency: true,
+                    project: { select: { name: true } } }
+        })
+        if (expense) {
+          entityDetails = {
+            organisationName: tenant?.name || null,
+            organisationType: tenant?.tenantType || null,
+            expenseDescription: expense.description,
+            amount: expense.amount,
+            currency: expense.currency,
+            projectName: expense.project?.name || null,
+          }
+        }
+      } else if (record.entityType === 'Project' && record.entityId) {
+        const project = await prisma.project.findUnique({
+          where: { id: record.entityId },
+          select: { name: true, description: true, budget: true, status: true }
+        })
+        if (project) {
+          entityDetails = {
+            organisationName: tenant?.name || null,
+            organisationType: tenant?.tenantType || null,
+            projectName: project.name,
+            projectDescription: project.description || null,
+            budget: project.budget || null,
+            status: project.status,
+          }
+        }
+      } else if (record.entityType === 'User') {
+        entityDetails = {
+          organisationName: tenant?.name || null,
+          organisationType: tenant?.tenantType || null,
+        }
+      }
+    } catch (e) { /* enrichment failure is non-fatal */ }
+
     return res.json({
       verified,
       dataHash:   record.dataHash,
@@ -110,6 +207,7 @@ router.get('/:dataHash', async (req, res) => {
       entityId:   record.entityId,
       action:     record.action,
       recordedAt: record.createdAt,
+      entityDetails,
       integrity: { hashRecomputed: recomputedHash, hashIntact, chainIntact, chainBreakReason: chainBreakReason || undefined },
       blockchain: {
         network: 'Polygon', txHash: record.blockchainTx || null,
@@ -188,3 +286,4 @@ router.get('/batch/:batchId', async (req, res) => {
 })
 
 module.exports = router
+// This is added at the bottom — do NOT run this

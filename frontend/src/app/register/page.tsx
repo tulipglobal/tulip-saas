@@ -142,8 +142,9 @@ export default function RegisterPage() {
       }
 
       if (data.accessToken) {
-        localStorage.setItem('accessToken', data.accessToken)
-        localStorage.setItem('refreshToken', data.refreshToken)
+        localStorage.setItem('tulip_token', data.accessToken)
+        localStorage.setItem('tulip_refresh', data.refreshToken)
+        if (data.user) localStorage.setItem('tulip_user', JSON.stringify(data.user))
       }
 
       router.push(selectedProduct.redirect)

@@ -63,10 +63,18 @@ exports.register = async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10)
 
-    // Create admin role for this tenant
+    // Create admin role for this tenant and assign all permissions
     const role = await prisma.role.create({
       data: { name: 'admin', tenantId: tenant.id }
     })
+
+    const allPermissions = await prisma.permission.findMany({ select: { id: true } })
+    if (allPermissions.length > 0) {
+      await prisma.rolePermission.createMany({
+        data: allPermissions.map(p => ({ roleId: role.id, permissionId: p.id })),
+        skipDuplicates: true,
+      })
+    }
 
     // Create user
     const user = await prisma.user.create({

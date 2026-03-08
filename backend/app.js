@@ -38,6 +38,7 @@ const apiKeyRoutes        = require('./routes/apiKeyRoutes')
 const archiveRoutes       = require('./routes/archiveRoutes')
 const timestampRoutes     = require('./routes/timestampRoutes')
 const verifyRouter        = require('./src/routes/verify')
+const tenantPublicRoutes  = require('./routes/tenantPublicRoutes')
 
 app.get('/', (req, res) => res.send('Tulip API Running'))
 
@@ -60,6 +61,7 @@ app.get('/api/health', async (req, res) => {
 
 app.use('/api/auth',       authLimiter,    authRoutes)
 app.use('/api/verify',     verifyRouter)
+app.use('/api/tenants/public', apiLimiter, tenantPublicRoutes)
 app.use('/api/projects',   apiLimiter,     authenticate, tenantScope, projectRoutes)
 app.use('/api/funding-sources', apiLimiter, authenticate, tenantScope, fundingSourceRoutes)
 app.use('/api/expenses',   apiLimiter,     authenticate, tenantScope, expenseRoutes)

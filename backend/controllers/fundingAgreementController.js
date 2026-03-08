@@ -31,16 +31,17 @@ exports.list = async (req, res) => {
       db.fundingAgreement.count({ where })
     ])
 
-    // compute spent per agreement
+    // compute spent per agreement using Prisma groupBy
     const ids = agreements.map(a => a.id)
     const spentRaw = ids.length > 0
-      ? await prisma.$queryRawUnsafe(
-          `SELECT "fundingAgreementId", SUM(amount) as spent FROM "Expense" WHERE "fundingAgreementId" = ANY($1::uuid[]) GROUP BY "fundingAgreementId"`,
-          ids
-        )
+      ? await prisma.expense.groupBy({
+          by: ['fundingAgreementId'],
+          where: { fundingAgreementId: { in: ids } },
+          _sum: { amount: true }
+        })
       : []
     const spentMap = {}
-    for (const r of spentRaw) spentMap[r.fundingAgreementId] = Number(r.spent)
+    for (const r of spentRaw) spentMap[r.fundingAgreementId] = Number(r._sum.amount || 0)
 
     const enriched = agreements.map(a => ({ ...a, spent: spentMap[a.id] || 0 }))
     res.json(paginatedResponse(enriched, total, page, limit))
@@ -140,8 +141,9 @@ exports.create = async (req, res) => {
               '<strong>' + orgName + '</strong> has invited you (' + (donor.name || '') + ') to view their verified financial records for <strong>' + agreement.title + '</strong> on Tulip DS.',
               '</p>',
               '<div style="text-align:center;margin:30px 0">',
-              '<a href="' + inviteUrl + '" style="display:inline-block;padding:14px 28px;background:linear-gradient(135deg,#0c7aed,#004ea8);color:white;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px">Accept Invitation</a>',
+              '<a href="' + inviteUrl + '" style="display:inline-block;padding:14px 28px;background-color:#0c7aed;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px">Accept Invitation</a>',
               '</div>',
+              '<p style="color:#475569;font-size:12px;text-align:center;margin-top:8px">Or copy this link: <a href="' + inviteUrl + '" style="color:#0c7aed;word-break:break-all">' + inviteUrl + '</a></p>',
               '<p style="color:#94a3b8;font-size:13px">This invite expires in 7 days. If you did not expect this invitation, you can safely ignore it.</p>',
               '<hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0"/>',
               '<p style="color:#94a3b8;font-size:11px;text-align:center">Tulip DS &middot; Bright Bytes Technology &middot; Dubai, UAE</p>',

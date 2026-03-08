@@ -19,19 +19,23 @@ export default function SettingsPage() {
   const router = useRouter()
 
   useEffect(() => {
-    // Load from localStorage first
+    // Load from localStorage for initial render
     try {
       const stored = localStorage.getItem('tulip_user')
-      if (stored) {
-        setUser(JSON.parse(stored))
-        setLoading(false)
-        return
-      }
+      if (stored) setUser(JSON.parse(stored))
     } catch {}
 
+    // Always fetch from API to get full profile (including createdAt)
     apiGet('/api/auth/me')
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d) setUser(d.user ?? d); setLoading(false) })
+      .then(d => {
+        if (d) {
+          const profile = d.user ?? d
+          setUser(profile)
+          localStorage.setItem('tulip_user', JSON.stringify(profile))
+        }
+        setLoading(false)
+      })
       .catch(() => setLoading(false))
   }, [])
 
@@ -51,7 +55,7 @@ export default function SettingsPage() {
     router.push('/login')
   }
 
-  if (loading) return (
+  if (loading && !user) return (
     <div className="p-6 animate-fade-up">
       <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>Settings</h1>
       <p className="text-white/30 text-sm mt-4">Loading...</p>

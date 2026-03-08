@@ -36,7 +36,7 @@ exports.getExpense = async (req, res) => {
     const db      = tenantClient(req.user.tenantId)
     const expense = await db.expense.findFirst({
       where:   { id: req.params.id },
-      include: { fundingSource: true }
+      include: { fundingSource: true, project: { select: { id: true, name: true } }, documents: { select: { id: true, name: true, sha256Hash: true, fileType: true, fileSize: true, uploadedAt: true } } }
     })
     if (!expense) return res.status(404).json({ error: 'Expense not found' })
     res.json(expense)

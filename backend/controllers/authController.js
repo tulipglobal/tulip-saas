@@ -183,7 +183,7 @@ exports.me = async (req, res) => {
       include: { roles: { include: { role: true } } }
     })
     if (!user || user.deletedAt) return res.status(404).json({ error: 'User not found' })
-    res.json({ id: user.id, email: user.email, name: user.name, tenantId: user.tenantId, roles: user.roles.map(r => r.role.name) })
+    res.json({ id: user.id, email: user.email, name: user.name, tenantId: user.tenantId, createdAt: user.createdAt, roles: user.roles.map(r => r.role.name) })
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch user' })
   }

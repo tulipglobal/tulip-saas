@@ -123,7 +123,7 @@ export default function ExpensesPage() {
             {filtered.map(expense => (
               <div key={expense.id} className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_40px] gap-4 items-center px-5 py-3.5 hover:bg-white/2 transition-colors">
                 <div>
-                  <div className="text-sm font-medium text-white/80">{expense.title ?? expense.description}</div>
+                  <Link href={`/dashboard/expenses/${expense.id}`} className="text-sm font-medium text-white/80 hover:text-cyan-400 transition-colors">{expense.title ?? expense.description}</Link>
                   <div className="text-xs text-white/30 mt-0.5">{expense.vendor ?? expense.category ?? '—'}</div>
                 </div>
                 <div className="text-sm font-medium text-white">

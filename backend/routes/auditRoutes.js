@@ -22,7 +22,7 @@ router.get('/', can('audit:read'), async (req, res) => {
     if (req.query.action)     where.action     = req.query.action
     if (req.query.entityType) where.entityType = req.query.entityType
     if (req.query.userId)     where.userId     = req.query.userId
-    if (req.query.status)     where.anchorStatus = req.query.status
+    if (req.query.status || req.query.anchorStatus) where.anchorStatus = req.query.anchorStatus || req.query.status
 
     const [logs, total] = await Promise.all([
       prisma.auditLog.findMany({

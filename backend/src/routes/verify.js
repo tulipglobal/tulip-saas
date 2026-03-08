@@ -75,7 +75,7 @@ router.get('/:dataHash', async (req, res) => {
 if (!record) {
   const doc = await prisma.document.findFirst({
     where: { sha256Hash: dataHash },
-    include: { project: { select: { name: true } }, expense: { select: { description: true, amount: true, currency: true } } }
+    include: { project: { select: { name: true } }, expense: { select: { description: true, amount: true, currency: true, project: { select: { name: true } } } } }
   })
   if (!doc) return res.json({ verified: false, reason: 'Hash not found', dataHash })
 
@@ -108,7 +108,7 @@ if (!record) {
       documentName: doc.name,
       fileType: doc.fileType,
       documentLevel: doc.documentLevel,
-      projectName: doc.project?.name || null,
+      projectName: doc.project?.name || doc.expense?.project?.name || null,
       expenseDescription: doc.expense?.description || null,
       amount: doc.expense?.amount || null,
       currency: doc.expense?.currency || null,

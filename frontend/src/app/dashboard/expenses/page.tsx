@@ -67,7 +67,7 @@ function ExpenseRow({ expense, onRefresh }: { expense: Expense; onRefresh: () =>
         onClick={() => setExpanded(e => !e)}
       >
         <div>
-          <div className="text-sm font-medium text-white/80">{expense.title ?? expense.description}</div>
+          <Link href={`/dashboard/expenses/${expense.id}`} className="text-sm font-medium text-white/80 hover:text-cyan-400 transition-colors">{expense.title ?? expense.description}</Link>
           <div className="flex items-center gap-2 mt-0.5">
             {expense.project && (
               <span className="text-xs text-[#369bff]/70">{expense.project.name}</span>

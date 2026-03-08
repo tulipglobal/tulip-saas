@@ -34,10 +34,14 @@ const auditRoutes         = require('./routes/auditRoutes')
 const gdprRoutes          = require('./routes/gdprRoutes')
 const webhookRoutes       = require('./routes/webhookRoutes')
 const metricsRoutes       = require('./routes/metricsRoutes')
+const donorRoutes             = require("./routes/donorRoutes")
+const fundingAgreementRoutes  = require("./routes/fundingAgreementRoutes")
+const donorInviteRoutes       = require("./routes/donorInviteRoutes")
 const apiKeyRoutes        = require('./routes/apiKeyRoutes')
 const archiveRoutes       = require('./routes/archiveRoutes')
 const timestampRoutes     = require('./routes/timestampRoutes')
 const verifyRouter        = require('./src/routes/verify')
+const tenantPublicRoutes  = require('./routes/tenantPublicRoutes')
 
 app.get('/', (req, res) => res.send('Tulip API Running'))
 
@@ -60,23 +64,10 @@ app.get('/api/health', async (req, res) => {
 
 app.use('/api/auth',       authLimiter,    authRoutes)
 app.use('/api/verify',     verifyRouter)
+app.use('/api/tenants/public', apiLimiter, tenantPublicRoutes)
 app.use('/api/projects',   apiLimiter,     authenticate, tenantScope, projectRoutes)
 app.use('/api/funding-sources', apiLimiter, authenticate, tenantScope, fundingSourceRoutes)
 app.use('/api/expenses',   apiLimiter,     authenticate, tenantScope, expenseRoutes)
-// Public document view - no auth
-app.get('/api/documents/:id/view/public', apiLimiter, async (req, res) => {
-  try {
-    const prisma = require('./prisma/client')
-    const document = await prisma.document.findFirst({ where: { id: req.params.id } })
-    if (!document) return res.status(404).json({ error: 'Document not found' })
-    const { getPresignedUrl } = require('./lib/s3Upload')
-    const url = await getPresignedUrl(document.fileUrl)
-    if (!url) return res.status(500).json({ error: 'Could not generate URL' })
-    res.json({ url, expiresIn: 3600 })
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to get document URL' })
-  }
-})
 app.use('/api/documents',  apiLimiter,     authenticate, tenantScope, documentRoutes)
 app.use('/api/audit',      apiLimiter,     authenticate, tenantScope, auditRoutes)
 app.use('/api/gdpr',       strictLimiter,  authenticate, tenantScope, gdprRoutes)
@@ -85,6 +76,9 @@ app.use('/api/api-keys',   strictLimiter,  authenticate, tenantScope, apiKeyRout
 app.use('/api/archives',   apiLimiter,     authenticate, tenantScope, archiveRoutes)
 app.use('/api/timestamps', apiLimiter,     authenticate, tenantScope, timestampRoutes)
 app.use('/api/metrics',                    authenticate, tenantScope, metricsRoutes)
+app.use("/api/donors",              apiLimiter,     authenticate, tenantScope, donorRoutes)
+app.use("/api/funding-agreements",  apiLimiter,     authenticate, tenantScope, fundingAgreementRoutes)
+app.use("/api/donor-invites",  apiLimiter, donorInviteRoutes)
 
 app.use((err, req, res, next) => {
   logger.error('Unhandled error', { error: err.message, path: req.path })

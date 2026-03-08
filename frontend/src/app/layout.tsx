@@ -3,15 +3,15 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: {
-    default: 'Tulip DS — Verification Infrastructure',
+    default: 'Tulip DS — Every Document. Blockchain Verified. Forever.',
     template: '%s | Tulip DS',
   },
-  description: 'Cryptographic verification infrastructure for NGOs, donors, and enterprises. Powered by Bright Bytes Technology.',
+  description: 'Drag any document and know in seconds if it is authentic. Blockchain-verified audit trails and RFC 3161 timestamps for NGOs, donors, and enterprises.',
   keywords: ['NGO verification', 'blockchain audit', 'transparency', 'impact reporting', 'data integrity'],
   authors: [{ name: 'Bright Bytes Technology', url: 'https://tulipds.com' }],
   openGraph: {
-    title: 'Tulip DS — Verification Infrastructure',
-    description: 'Tamper-proof audit trails and blockchain verification for organizations that need to prove their integrity.',
+    title: 'Tulip DS — Every Document. Blockchain Verified. Forever.',
+    description: 'Drag any document and know in seconds if it is authentic. Blockchain-verified audit trails for NGOs, donors, and enterprises.',
     url: 'https://tulipds.com',
     siteName: 'Tulip DS',
     locale: 'en_US',

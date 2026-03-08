@@ -49,14 +49,13 @@ export default function HomePage() {
 
             <h1 className="animate-fade-up-delay-1"
               style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 'clamp(40px, 6vw, 72px)', color: 'white', lineHeight: 1.1, letterSpacing: '-0.03em' }}>
-              Prove your integrity.<br />
-              <span style={{ color: '#369bff' }}>Cryptographically.</span>
+              Every Document. Blockchain Verified. Forever.
+              
             </h1>
 
             <p className="mt-6 animate-fade-up-delay-2"
               style={{ color: '#94a3b8', fontSize: '18px', lineHeight: 1.7, maxWidth: '560px' }}>
-              Tulip DS provides tamper-proof audit trails, blockchain anchoring, and RFC 3161 timestamps
-              for NGOs, foundations, and enterprises that need to prove their data hasn't changed.
+              Drag any document. Know in seconds if it's authentic.
             </p>
 
             <div className="flex flex-wrap items-center gap-4 mt-10 animate-fade-up-delay-3">

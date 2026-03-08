@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
-  LayoutDashboard, FolderOpen, FileCheck, Receipt,
+  LayoutDashboard, FolderOpen, FileCheck, Receipt, Banknote,
   Key, Webhook, BarChart3, Settings, LogOut,
   ChevronLeft, ChevronRight, Shield, Bell, Search
 } from 'lucide-react'
@@ -13,6 +13,7 @@ import { clsx } from 'clsx'
 const nav = [
   { label: 'Overview',  href: '/dashboard',           icon: LayoutDashboard },
   { label: 'Projects',  href: '/dashboard/projects',  icon: FolderOpen },
+  { label: 'Funding',   href: '/dashboard/funding',   icon: Banknote },
   { label: 'Documents', href: '/dashboard/documents', icon: FileCheck },
   { label: 'Expenses',  href: '/dashboard/expenses',  icon: Receipt },
   { label: 'Audit Log', href: '/dashboard/audit',     icon: Shield },

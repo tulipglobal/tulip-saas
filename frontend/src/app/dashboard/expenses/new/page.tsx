@@ -3,28 +3,32 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Save, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Save } from 'lucide-react'
 import { apiGet, apiPost } from '@/lib/api'
-import DocumentUploadSection from '@/components/DocumentUploadSection'
 
 interface Project { id: string; name: string }
+interface FundingAgreement { id: string; title: string; currency: string; totalAmount: number; donor: { name: string } | null }
 
 export default function NewExpensePage() {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [projects, setProjects] = useState<Project[]>([])
-  const [savedExpenseId, setSavedExpenseId] = useState<string | null>(null)
+  const [agreements, setAgreements] = useState<FundingAgreement[]>([])
   const [form, setForm] = useState({
     title: '', amount: '', currency: 'USD', category: '',
     vendor: '', expenseDate: new Date().toISOString().split('T')[0],
-    projectId: '', notes: ''
+    projectId: '', fundingAgreementId: '', notes: ''
   })
 
   useEffect(() => {
     apiGet('/api/projects?limit=100')
       .then(r => r.ok ? r.json() : { items: [] })
       .then(d => setProjects(d.data ?? d.items ?? []))
+      .catch(() => {})
+    apiGet('/api/funding-agreements?limit=100')
+      .then(r => r.ok ? r.json() : { data: [] })
+      .then(d => setAgreements(d.data ?? []))
       .catch(() => {})
   }, [])
 
@@ -43,15 +47,11 @@ export default function NewExpensePage() {
         vendor: form.vendor || null,
         expenseDate: form.expenseDate,
         projectId: form.projectId || null,
+        fundingAgreementId: form.fundingAgreementId || null,
         notes: form.notes || null,
       })
-      if (res.ok) {
-        const data = await res.json()
-        setSavedExpenseId(data.id)
-      } else {
-        const d = await res.json()
-        setError(d.message ?? 'Failed to log expense')
-      }
+      if (res.ok) { router.push('/dashboard/expenses') }
+      else { const d = await res.json(); setError(d.message ?? 'Failed to log expense') }
     } catch { setError('Network error') }
     setSaving(false)
   }
@@ -67,118 +67,99 @@ export default function NewExpensePage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>Log Expense</h1>
-          <p className="text-white/40 text-sm">SHA-256 hashed and anchored to Polygon</p>
+          <p className="text-white/40 text-sm">This expense will be SHA-256 hashed and anchored to Polygon</p>
         </div>
       </div>
 
-      <div className="space-y-4">
-        {!savedExpenseId ? (
-          <div className="rounded-xl border border-white/8 p-6 space-y-5"
-            style={{ background: 'rgba(255,255,255,0.02)' }}>
+      <div className="rounded-xl border border-white/8 p-6 space-y-5"
+        style={{ background: 'rgba(255,255,255,0.02)' }}>
 
-            <div>
-              <label className={labelCls}>Title *</label>
-              <input value={form.title} onChange={e => set('title', e.target.value)}
-                placeholder="e.g. Field equipment purchase" className={inputCls} />
-            </div>
+        <div>
+          <label className={labelCls}>Title *</label>
+          <input value={form.title} onChange={e => set('title', e.target.value)}
+            placeholder="e.g. Field equipment purchase" className={inputCls} />
+        </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className={labelCls}>Amount *</label>
-                <input type="number" step="0.01" value={form.amount} onChange={e => set('amount', e.target.value)}
-                  placeholder="0.00" className={inputCls} />
-              </div>
-              <div>
-                <label className={labelCls}>Currency</label>
-                <select value={form.currency} onChange={e => set('currency', e.target.value)} className={inputCls}>
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
-                  <option value="AED">AED</option>
-                  <option value="OMR">OMR</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className={labelCls}>Category</label>
-                <select value={form.category} onChange={e => set('category', e.target.value)} className={inputCls}>
-                  <option value="">Select category</option>
-                  <option value="personnel">Personnel</option>
-                  <option value="equipment">Equipment</option>
-                  <option value="travel">Travel</option>
-                  <option value="supplies">Supplies</option>
-                  <option value="services">Services</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-              <div>
-                <label className={labelCls}>Vendor</label>
-                <input value={form.vendor} onChange={e => set('vendor', e.target.value)}
-                  placeholder="Vendor name" className={inputCls} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className={labelCls}>Expense Date</label>
-                <input type="date" value={form.expenseDate} onChange={e => set('expenseDate', e.target.value)} className={inputCls} />
-              </div>
-              <div>
-                <label className={labelCls}>Project</label>
-                <select value={form.projectId} onChange={e => set('projectId', e.target.value)} className={inputCls}>
-                  <option value="">No project</option>
-                  {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className={labelCls}>Notes</label>
-              <textarea value={form.notes} onChange={e => set('notes', e.target.value)}
-                placeholder="Additional notes..." rows={2} className={inputCls + ' resize-none'} />
-            </div>
-
-            {error && (
-              <div className="rounded-lg bg-red-400/10 border border-red-400/20 px-4 py-3 text-sm text-red-400">{error}</div>
-            )}
-
-            <div className="flex items-center gap-3 pt-2">
-              <button onClick={submit} disabled={saving}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white disabled:opacity-50"
-                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
-                <Save size={15} /> {saving ? 'Saving…' : 'Log Expense'}
-              </button>
-              <Link href="/dashboard/expenses" className="px-5 py-2.5 rounded-lg text-sm text-white/50 hover:text-white transition-colors">
-                Cancel
-              </Link>
-            </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className={labelCls}>Amount *</label>
+            <input type="number" step="0.01" value={form.amount} onChange={e => set('amount', e.target.value)}
+              placeholder="0.00" className={inputCls} />
           </div>
-        ) : (
-          <div className="rounded-xl border border-green-500/20 bg-green-500/5 px-5 py-4 flex items-center gap-3">
-            <CheckCircle size={16} className="text-green-400" />
-            <p className="text-sm text-green-400 font-medium">Expense logged and anchored to blockchain ✓</p>
+          <div>
+            <label className={labelCls}>Currency</label>
+            <select value={form.currency} onChange={e => set('currency', e.target.value)} className={inputCls}>
+              <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+              <option value="GBP">GBP</option>
+              <option value="AED">AED</option>
+              <option value="OMR">OMR</option>
+            </select>
           </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className={labelCls}>Category</label>
+            <select value={form.category} onChange={e => set('category', e.target.value)} className={inputCls}>
+              <option value="">Select category</option>
+              <option value="personnel">Personnel</option>
+              <option value="equipment">Equipment</option>
+              <option value="travel">Travel</option>
+              <option value="supplies">Supplies</option>
+              <option value="services">Services</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelCls}>Vendor</label>
+            <input value={form.vendor} onChange={e => set('vendor', e.target.value)}
+              placeholder="Vendor name" className={inputCls} />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className={labelCls}>Expense Date</label>
+            <input type="date" value={form.expenseDate} onChange={e => set('expenseDate', e.target.value)} className={inputCls} />
+          </div>
+          <div>
+            <label className={labelCls}>Project</label>
+            <select value={form.projectId} onChange={e => set('projectId', e.target.value)} className={inputCls}>
+              <option value="">No project</option>
+              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label className={labelCls}>Funding Source</label>
+          <select value={form.fundingAgreementId} onChange={e => set('fundingAgreementId', e.target.value)} className={inputCls}>
+            <option value="">No funding source</option>
+            {agreements.map(a => <option key={a.id} value={a.id}>{a.title}{a.donor ? ` (${a.donor.name})` : ''}</option>)}
+          </select>
+        </div>
+
+        <div>
+          <label className={labelCls}>Notes</label>
+          <textarea value={form.notes} onChange={e => set('notes', e.target.value)}
+            placeholder="Additional notes..." rows={2} className={inputCls + ' resize-none'} />
+        </div>
+
+        {error && (
+          <div className="rounded-lg bg-red-400/10 border border-red-400/20 px-4 py-3 text-sm text-red-400">{error}</div>
         )}
 
-        {/* Document upload — shown after expense is saved */}
-        {savedExpenseId && (
-          <>
-            <DocumentUploadSection entityType="expense" entityId={savedExpenseId} />
-            <div className="flex items-center gap-3">
-              <button onClick={() => router.push('/dashboard/expenses')}
-                className="px-5 py-2.5 rounded-lg text-sm font-medium text-white"
-                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
-                Done — Back to Expenses
-              </button>
-              <button onClick={() => router.push('/dashboard/expenses/new')}
-                className="px-5 py-2.5 rounded-lg text-sm text-white/50 hover:text-white transition-colors">
-                Log Another Expense
-              </button>
-            </div>
-          </>
-        )}
+        <div className="flex items-center gap-3 pt-2">
+          <button onClick={submit} disabled={saving}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white disabled:opacity-50"
+            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+            <Save size={15} /> {saving ? 'Saving…' : 'Log Expense'}
+          </button>
+          <Link href="/dashboard/expenses" className="px-5 py-2.5 rounded-lg text-sm text-white/50 hover:text-white transition-colors">
+            Cancel
+          </Link>
+        </div>
       </div>
     </div>
   )

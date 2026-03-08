@@ -63,10 +63,18 @@ exports.register = async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10)
 
-    // Create admin role for this tenant
+    // Create admin role for this tenant and assign all permissions
     const role = await prisma.role.create({
       data: { name: 'admin', tenantId: tenant.id }
     })
+
+    const allPermissions = await prisma.permission.findMany({ select: { id: true } })
+    if (allPermissions.length > 0) {
+      await prisma.rolePermission.createMany({
+        data: allPermissions.map(p => ({ roleId: role.id, permissionId: p.id })),
+        skipDuplicates: true,
+      })
+    }
 
     // Create user
     const user = await prisma.user.create({
@@ -175,7 +183,7 @@ exports.me = async (req, res) => {
       include: { roles: { include: { role: true } } }
     })
     if (!user || user.deletedAt) return res.status(404).json({ error: 'User not found' })
-    res.json({ id: user.id, email: user.email, name: user.name, tenantId: user.tenantId, roles: user.roles.map(r => r.role.name) })
+    res.json({ id: user.id, email: user.email, name: user.name, tenantId: user.tenantId, createdAt: user.createdAt, roles: user.roles.map(r => r.role.name) })
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch user' })
   }

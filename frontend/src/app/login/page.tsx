@@ -20,6 +20,7 @@ export default function LoginPage() {
       const data = await res.json()
       if (data.accessToken) {
         localStorage.setItem('tulip_token', data.accessToken)
+        localStorage.setItem('tulip_refresh', data.refreshToken)
         localStorage.setItem('tulip_user', JSON.stringify(data.user))
         window.location.href = '/dashboard'
       } else {

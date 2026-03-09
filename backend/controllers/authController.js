@@ -125,7 +125,7 @@ exports.register = async (req, res) => {
             Every record you create is cryptographically verified and anchored to the blockchain — giving your donors proof they can trust.
           </p>
           <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
-          <p style="color: #94a3b8; font-size: 12px;">Tulip DS · Bright Bytes Technology · Dubai, UAE</p>
+          <p style="color: #94a3b8; font-size: 12px;">Tulip DS</p>
         </div>
       `
     }).then(() => {

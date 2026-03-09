@@ -20,7 +20,7 @@ function wrap(body) {
         ${body}
       </div>
       <div style="border-top: 1px solid #e2e8f0; padding: 16px 24px; text-align: center;">
-        <p style="color: #94a3b8; font-size: 11px; margin: 0;">Tulip DS &middot; Bright Bytes Technology &middot; Dubai, UAE</p>
+        <p style="color: #94a3b8; font-size: 11px; margin: 0;">Tulip DS</p>
         <p style="color: #cbd5e1; font-size: 10px; margin: 4px 0 0;">You received this because you have an account on <a href="${APP_URL}" style="color: #0c7aed; text-decoration: none;">Tulip DS</a></p>
       </div>
     </div>

@@ -62,7 +62,7 @@ This invite expires in 7 days.`,
             <p style="color:#475569;font-size:12px;text-align:center;margin-top:8px">Or copy this link: <a href="" style="color:#0c7aed;word-break:break-all"></a></p>
             <p style="color:#94a3b8;font-size:13px">This invite expires in 7 days. If you did not expect this invitation, you can safely ignore it.</p>
             <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0"/>
-            <p style="color:#94a3b8;font-size:11px;text-align:center">Tulip DS · Bright Bytes Technology · Dubai, UAE</p>
+            <p style="color:#94a3b8;font-size:11px;text-align:center">Tulip DS</p>
           </div>
         `
       })

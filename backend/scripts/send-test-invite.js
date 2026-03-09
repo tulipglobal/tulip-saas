@@ -35,7 +35,7 @@ async function main() {
       `<p style="color:#475569;font-size:12px;text-align:center;margin-top:8px">Or copy this link: <a href="${inviteUrl}" style="color:#0c7aed;word-break:break-all">${inviteUrl}</a></p>`,
       '<p style="color:#94a3b8;font-size:13px">This is a <strong>test email</strong> to verify the donor invite system is working correctly.</p>',
       '<hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0"/>',
-      '<p style="color:#94a3b8;font-size:11px;text-align:center">Tulip DS &middot; Bright Bytes Technology &middot; Dubai, UAE</p>',
+      '<p style="color:#94a3b8;font-size:11px;text-align:center">Tulip DS</p>',
       '</div>'
     ].join('')
   })

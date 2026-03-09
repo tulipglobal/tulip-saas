@@ -131,15 +131,18 @@ async function generateCertificate(result: VerifyResult, fileName?: string) {
   y += 28
 
   // Details section
+  doc.setCharSpace(0)
   const addField = (label: string, value: string, yPos: number): number => {
     doc.setFontSize(7.5)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(100, 116, 139)
-    doc.text(label.toUpperCase(), 20, yPos)
-    doc.setFontSize(10)
+    doc.text(label.toUpperCase(), 20, yPos, { charSpace: 0 })
+    doc.setFontSize(9.5)
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(30, 41, 59)
-    doc.text(value, 20, yPos + 5.5)
+    const maxW = W / 2 - 25
+    const lines = doc.splitTextToSize(value, maxW)
+    doc.text(lines[0] || value, 20, yPos + 5.5, { charSpace: 0 })
     return yPos + 14
   }
 
@@ -147,11 +150,13 @@ async function generateCertificate(result: VerifyResult, fileName?: string) {
     doc.setFontSize(7.5)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(100, 116, 139)
-    doc.text(label.toUpperCase(), W / 2 + 5, yPos)
-    doc.setFontSize(10)
+    doc.text(label.toUpperCase(), W / 2 + 5, yPos, { charSpace: 0 })
+    doc.setFontSize(9.5)
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(30, 41, 59)
-    doc.text(value, W / 2 + 5, yPos + 5.5)
+    const maxW = W / 2 - 25
+    const lines = doc.splitTextToSize(value, maxW)
+    doc.text(lines[0] || value, W / 2 + 5, yPos + 5.5, { charSpace: 0 })
     return yPos + 14
   }
 
@@ -392,18 +397,23 @@ async function generateProofBundle(result: VerifyResult, fileName?: string) {
   }
   y += 28
 
+  doc.setCharSpace(0)
   const addField = (label: string, value: string, yPos: number): number => {
     doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(100, 116, 139)
-    doc.text(label.toUpperCase(), 20, yPos)
-    doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(30, 41, 59)
-    doc.text(value, 20, yPos + 5.5)
+    doc.text(label.toUpperCase(), 20, yPos, { charSpace: 0 })
+    doc.setFontSize(9.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(30, 41, 59)
+    const maxW = W / 2 - 25
+    const lines = doc.splitTextToSize(value, maxW)
+    doc.text(lines[0] || value, 20, yPos + 5.5, { charSpace: 0 })
     return yPos + 14
   }
   const addFieldRight = (label: string, value: string, yPos: number): number => {
     doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(100, 116, 139)
-    doc.text(label.toUpperCase(), W / 2 + 5, yPos)
-    doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(30, 41, 59)
-    doc.text(value, W / 2 + 5, yPos + 5.5)
+    doc.text(label.toUpperCase(), W / 2 + 5, yPos, { charSpace: 0 })
+    doc.setFontSize(9.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(30, 41, 59)
+    const maxW = W / 2 - 25
+    const lines = doc.splitTextToSize(value, maxW)
+    doc.text(lines[0] || value, W / 2 + 5, yPos + 5.5, { charSpace: 0 })
     return yPos + 14
   }
 

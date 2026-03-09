@@ -42,12 +42,13 @@ function StatCard({ label, value, icon: Icon, color = 'text-white' }: { label: s
 /* ─── Impact Report PDF Generator ────────────────────────── */
 async function generateImpactReport() {
   // Fetch all data in parallel
-  const [projectsRes, fundingRes, auditRes, docsRes, expensesRes] = await Promise.all([
+  const [projectsRes, fundingRes, auditRes, docsRes, expensesRes, meRes] = await Promise.all([
     apiGet('/api/projects?limit=100'),
     apiGet('/api/funding-agreements?limit=100'),
     apiGet('/api/audit?limit=1&page=1'),
     apiGet('/api/documents?limit=1&page=1'),
     apiGet('/api/expenses?limit=1&page=1'),
+    apiGet('/api/auth/me'),
   ])
 
   const projectsData = projectsRes.ok ? await projectsRes.json() : { data: [] }
@@ -55,6 +56,7 @@ async function generateImpactReport() {
   const auditData = auditRes.ok ? await auditRes.json() : { data: [], pagination: { total: 0 } }
   const docsData = docsRes.ok ? await docsRes.json() : { data: [], pagination: { total: 0 } }
   const expensesData = expensesRes.ok ? await expensesRes.json() : { data: [], pagination: { total: 0 } }
+  const meData = meRes.ok ? await meRes.json() : {}
 
   const projects: ReportProject[] = projectsData.data ?? projectsData.items ?? []
   const agreements: ReportAgreement[] = fundingData.data ?? []
@@ -62,10 +64,7 @@ async function generateImpactReport() {
   const docsTotal = docsData.pagination?.total ?? docsData.data?.length ?? 0
   const expensesTotal = expensesData.pagination?.total ?? expensesData.data?.length ?? 0
 
-  // Get org name from localStorage
-  const userStr = typeof window !== 'undefined' ? localStorage.getItem('tulip_user') : null
-  let orgName = 'Organisation'
-  try { if (userStr) { const u = JSON.parse(userStr); orgName = u.tenantName || u.organisationName || orgName } } catch {}
+  const orgName = meData.tenantName || 'Organisation'
 
   const totalFunding = agreements.reduce((s, a) => s + a.totalAmount, 0)
   const totalSpent = agreements.reduce((s, a) => s + (a.spent || 0), 0)

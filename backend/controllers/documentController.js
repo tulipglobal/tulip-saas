@@ -2,6 +2,7 @@ const tenantClient = require('../lib/tenantClient')
 const { uploadToS3, computeSHA256 } = require('../lib/s3Upload')
 const { createAuditLog } = require('../services/auditService')
 const { notifyDocumentUploaded } = require('../services/emailNotificationService')
+const { KEY_DOCUMENT_CATEGORIES, isKeyCategory } = require('../lib/documentCategories')
 const multer = require('multer')
 
 // Multer — memory storage (buffer for SHA-256 + S3)
@@ -65,7 +66,7 @@ exports.getDocument = async (req, res) => {
 exports.createDocument = async (req, res) => {
   try {
     const db = tenantClient(req.user.tenantId)
-    const { name, description, documentType, documentLevel, projectId, expenseId } = req.body
+    const { name, description, documentType, documentLevel, projectId, expenseId, category, expiryDate } = req.body
 
     if (!name) return res.status(400).json({ error: 'name is required' })
     if (!req.file) return res.status(400).json({ error: 'file is required' })
@@ -104,6 +105,8 @@ exports.createDocument = async (req, res) => {
         projectId: projectId || null,
         expenseId: expenseId || null,
         uploadedById: req.user.userId,
+        category: category || null,
+        expiryDate: (category && isKeyCategory(category) && expiryDate) ? new Date(expiryDate) : null,
       },
       include: {
         project: { select: { id: true, name: true } },
@@ -141,6 +144,75 @@ exports.createDocument = async (req, res) => {
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: err.message || 'Failed to create document' })
+  }
+}
+
+// PATCH /api/documents/:id
+exports.updateDocument = async (req, res) => {
+  try {
+    const db = tenantClient(req.user.tenantId)
+    const existing = await db.document.findFirst({ where: { id: req.params.id } })
+    if (!existing) return res.status(404).json({ error: 'Document not found' })
+
+    const { name, description, documentType, category, expiryDate } = req.body
+    const data = {}
+    if (name !== undefined) data.name = name
+    if (description !== undefined) data.description = description
+    if (documentType !== undefined) data.documentType = documentType
+    if (category !== undefined) {
+      data.category = category || null
+      // Only save expiryDate if category is a key type
+      if (isKeyCategory(category) && expiryDate !== undefined) {
+        data.expiryDate = expiryDate ? new Date(expiryDate) : null
+        // Reset alert flags when expiry date changes
+        data.expiryAlertSent30 = false
+        data.expiryAlertSent7 = false
+        data.expiryAlertSent1 = false
+      } else if (!isKeyCategory(category)) {
+        data.expiryDate = null
+      }
+    } else if (expiryDate !== undefined && isKeyCategory(existing.category)) {
+      data.expiryDate = expiryDate ? new Date(expiryDate) : null
+      data.expiryAlertSent30 = false
+      data.expiryAlertSent7 = false
+      data.expiryAlertSent1 = false
+    }
+
+    const document = await db.document.update({
+      where: { id: req.params.id },
+      data,
+      include: { project: { select: { id: true, name: true } } }
+    })
+    res.json(document)
+  } catch (err) {
+    console.error('[document/update]', err)
+    res.status(500).json({ error: 'Failed to update document' })
+  }
+}
+
+// GET /api/documents/expiring
+exports.getExpiring = async (req, res) => {
+  try {
+    const db = tenantClient(req.user.tenantId)
+    const now = new Date()
+    const thirtyDays = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
+
+    const documents = await db.document.findMany({
+      where: {
+        category: { in: KEY_DOCUMENT_CATEGORIES },
+        expiryDate: { not: null, lte: thirtyDays },
+      },
+      include: {
+        project: { select: { id: true, name: true } },
+        uploadedBy: { select: { id: true, name: true } },
+      },
+      orderBy: { expiryDate: 'asc' },
+    })
+
+    res.json({ data: documents })
+  } catch (err) {
+    console.error('[document/expiring]', err)
+    res.status(500).json({ error: 'Failed to fetch expiring documents' })
   }
 }
 

@@ -11,6 +11,7 @@ const { retryFailed: retryFailedDeliveries } = require('./webhookService')
 const { cleanupExpiredTokens }    = require('./refreshTokenService')
 const { stampPendingLogs }        = require('./timestampService')
 const { checkTrialExpirations }  = require('./emailNotificationService')
+const { checkDocumentExpiry }   = require('../jobs/expiryAlerts')
 const logger  = require('../lib/logger')
 
 function startAnchorScheduler() {
@@ -55,11 +56,23 @@ function startAnchorScheduler() {
     } catch (err) { logger.error('Trial check failed', { error: err.message }) }
   })
 
+  // Document expiry alert — daily at 8am UAE (4am UTC)
+  cron.schedule('0 4 * * *', async () => {
+    logger.info('Running document expiry alert check...')
+    try {
+      const result = await checkDocumentExpiry()
+      if (result.alertsSent > 0) {
+        logger.info('[expiry-alerts] Complete', result)
+      }
+    } catch (err) { logger.error('Expiry alert job failed', { error: err.message }) }
+  })
+
   logger.info('Blockchain anchor scheduler started (every 5 minutes)')
   logger.info('Webhook retry worker started (every 5 minutes)')
   logger.info('RFC 3161 timestamp job started (every 10 minutes)')
   logger.info('Refresh token cleanup scheduled (daily 3am)')
   logger.info('Trial expiration check scheduled (daily 9am)')
+  logger.info('Document expiry alert check scheduled (daily 4am UTC / 8am UAE)')
 }
 
 module.exports = { startAnchorScheduler }

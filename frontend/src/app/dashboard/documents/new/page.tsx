@@ -15,6 +15,19 @@ const DOCUMENT_TYPES = {
   expense: ['Invoice','Receipt','Payment Proof','Purchase Order','Bank Transfer','Petty Cash Voucher','Other'],
 }
 
+const KEY_DOCUMENT_CATEGORIES = ['licence','certificate','contract','permit','insurance','visa','id_document','mou']
+const CATEGORY_OPTIONS = [
+  { value: '', label: 'General' },
+  { value: 'licence', label: 'Licence' },
+  { value: 'certificate', label: 'Certificate' },
+  { value: 'contract', label: 'Contract' },
+  { value: 'permit', label: 'Permit' },
+  { value: 'insurance', label: 'Insurance' },
+  { value: 'visa', label: 'Visa' },
+  { value: 'id_document', label: 'ID Document' },
+  { value: 'mou', label: 'MOU' },
+]
+
 export default function AddDocumentPage() {
   const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
@@ -26,6 +39,8 @@ export default function AddDocumentPage() {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [documentType, setDocumentType] = useState('')
+  const [category, setCategory] = useState('')
+  const [expiryDate, setExpiryDate] = useState('')
   const [file, setFile] = useState<File|null>(null)
   const [dragging, setDragging] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -64,6 +79,8 @@ export default function AddDocumentPage() {
       formData.append('description', description)
       formData.append('documentType', documentType)
       formData.append('documentLevel', level)
+      if (category) formData.append('category', category)
+      if (category && KEY_DOCUMENT_CATEGORIES.includes(category) && expiryDate) formData.append('expiryDate', expiryDate)
       if (level === 'project' || level === 'expense') formData.append('projectId', selectedProject)
       if (level === 'expense') formData.append('expenseId', selectedExpense)
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/documents`, {
@@ -150,6 +167,22 @@ export default function AddDocumentPage() {
             {DOCUMENT_TYPES[level].map(t => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
+
+        <div style={{ marginBottom:16 }}>
+          <label style={{ color:'#94a3b8', fontSize:12, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', display:'block', marginBottom:8 }}>Category</label>
+          <select value={category} onChange={e => { setCategory(e.target.value); if (!KEY_DOCUMENT_CATEGORIES.includes(e.target.value)) setExpiryDate('') }}
+            style={{ width:'100%', padding:'10px 14px', borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.05)', color:'white', fontSize:14 }}>
+            {CATEGORY_OPTIONS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+          </select>
+        </div>
+
+        {KEY_DOCUMENT_CATEGORIES.includes(category) && (
+          <div style={{ marginBottom:16 }}>
+            <label style={{ color:'#94a3b8', fontSize:12, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', display:'block', marginBottom:8 }}>Expiry Date</label>
+            <input type="date" value={expiryDate} onChange={e => setExpiryDate(e.target.value)}
+              style={{ width:'100%', padding:'10px 14px', borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.05)', color:'white', fontSize:14, boxSizing:'border-box' }} />
+          </div>
+        )}
 
         <div style={{ marginBottom:16 }}>
           <label style={{ color:'#94a3b8', fontSize:12, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', display:'block', marginBottom:8 }}>Document Name *</label>

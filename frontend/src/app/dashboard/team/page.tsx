@@ -172,7 +172,8 @@ export default function TeamPage() {
           </thead>
           <tbody>
             {members.map(m => {
-              const roleName = m.roles[0]?.name || 'viewer'
+              const rawRole = m.roles[0]?.name || 'member'
+              const roleName = rawRole === 'editor' ? 'member' : rawRole
               const isCurrentUser = m.id === currentUserId
               return (
                 <tr key={m.id} className="border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors">

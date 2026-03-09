@@ -72,9 +72,10 @@ exports.invite = async (req, res) => {
     const tempPassword = crypto.randomBytes(8).toString('hex')
     const hashed = await bcrypt.hash(tempPassword, 10)
 
-    // Validate and resolve role — default to 'member'
+    // Validate and resolve role — default to 'member', treat 'editor' as legacy → 'member'
     const VALID_ROLES = ['member', 'admin']
-    const targetRole = VALID_ROLES.includes(roleName) ? roleName : 'member'
+    const normalized = roleName === 'editor' ? 'member' : roleName
+    const targetRole = VALID_ROLES.includes(normalized) ? normalized : 'member'
     let role = await prisma.role.findFirst({ where: { tenantId, name: targetRole } })
     if (!role) {
       role = await prisma.role.create({ data: { name: targetRole, tenantId } })

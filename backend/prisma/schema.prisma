@@ -266,30 +266,36 @@ model Expense {
 }
 
 model Document {
-  id            String   @id @default(uuid())
-  name          String
-  description   String?
-  documentType  String?
-  documentLevel String   @default("project")
-  fileUrl       String
-  fileType      String?
-  fileSize      Int?
-  sha256Hash    String?
-  expenseId     String?
-  projectId     String?
-  tenantId      String
-  uploadedById  String?
-  uploadedAt    DateTime @default(now())
-  expense       Expense? @relation(fields: [expenseId], references: [id])
-  project       Project? @relation(fields: [projectId], references: [id])
-  tenant        Tenant   @relation(fields: [tenantId], references: [id])
-  uploadedBy    User?    @relation(fields: [uploadedById], references: [id])
+  id                 String    @id @default(uuid())
+  name               String
+  description        String?
+  documentType       String?
+  documentLevel      String    @default("project")
+  category           String?
+  expiryDate         DateTime?
+  expiryAlertSent30  Boolean   @default(false)
+  expiryAlertSent7   Boolean   @default(false)
+  expiryAlertSent1   Boolean   @default(false)
+  fileUrl            String
+  fileType           String?
+  fileSize           Int?
+  sha256Hash         String?
+  expenseId          String?
+  projectId          String?
+  tenantId           String
+  uploadedById       String?
+  uploadedAt         DateTime  @default(now())
+  expense            Expense?  @relation(fields: [expenseId], references: [id])
+  project            Project?  @relation(fields: [projectId], references: [id])
+  tenant             Tenant    @relation(fields: [tenantId], references: [id])
+  uploadedBy         User?     @relation(fields: [uploadedById], references: [id])
 
   @@index([tenantId])
   @@index([projectId])
   @@index([expenseId])
   @@index([uploadedById])
   @@index([sha256Hash])
+  @@index([expiryDate])
 }
 
 model AuditLog {

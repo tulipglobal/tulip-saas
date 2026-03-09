@@ -3,7 +3,14 @@ import { apiGet } from '@/lib/api'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { FileCheck, Plus, Search, ExternalLink, Copy, Check, Shield } from 'lucide-react'
+import { FileCheck, Plus, Search, ExternalLink, Copy, Check, Shield, AlertTriangle } from 'lucide-react'
+
+const KEY_DOCUMENT_CATEGORIES = ['licence','certificate','contract','permit','insurance','visa','id_document','mou']
+const CATEGORY_LABELS: Record<string, string> = {
+  licence: 'Licence', certificate: 'Certificate', contract: 'Contract',
+  permit: 'Permit', insurance: 'Insurance', visa: 'Visa',
+  id_document: 'ID Document', mou: 'MOU',
+}
 
 interface Document {
   id: string
@@ -11,6 +18,8 @@ interface Document {
   description: string | null
   documentType: string | null
   documentLevel: string
+  category: string | null
+  expiryDate: string | null
   fileType: string | null
   fileSize: number | null
   sha256Hash: string | null
@@ -31,6 +40,37 @@ function HashCell({ hash }: { hash: string }) {
       </button>
     </div>
   )
+}
+
+function CategoryBadge({ category }: { category: string | null }) {
+  if (!category || !CATEGORY_LABELS[category]) return null
+  return (
+    <span className="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-indigo-400/10 text-indigo-400">
+      {CATEGORY_LABELS[category]}
+    </span>
+  )
+}
+
+function ExpiryCell({ doc }: { doc: Document }) {
+  if (!doc.category || !KEY_DOCUMENT_CATEGORIES.includes(doc.category) || !doc.expiryDate) {
+    return <span className="text-white/20 text-xs">—</span>
+  }
+  const now = new Date()
+  const expiry = new Date(doc.expiryDate)
+  const diffMs = expiry.getTime() - now.getTime()
+  const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+  const formatted = expiry.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })
+
+  if (daysLeft <= 0) {
+    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-red-400/10 text-red-400 border border-red-400/20">Expired</span>
+  }
+  if (daysLeft <= 7) {
+    return <span className="text-red-400 text-xs font-medium flex items-center gap-1"><AlertTriangle size={11} />{formatted}</span>
+  }
+  if (daysLeft <= 30) {
+    return <span className="text-orange-400 text-xs font-medium">{formatted}</span>
+  }
+  return <span className="text-white/40 text-xs">{formatted}</span>
 }
 
 function FileTypeBadge({ type }: { type: string | null }) {
@@ -95,8 +135,8 @@ export default function DocumentsPage() {
 
       <div className="rounded-xl border border-white/8 overflow-hidden"
         style={{ background: 'rgba(255,255,255,0.02)' }}>
-        <div className="grid grid-cols-[2fr_80px_1fr_1fr_1fr_60px] gap-4 px-5 py-3 border-b border-white/8 text-xs text-white/30 uppercase tracking-wide font-medium">
-          <span>Document</span><span>Type</span><span>Hash</span><span>Project</span><span>Date</span><span>Actions</span>
+        <div className="grid grid-cols-[2fr_80px_90px_80px_1fr_1fr_1fr_60px] gap-3 px-5 py-3 border-b border-white/8 text-xs text-white/30 uppercase tracking-wide font-medium">
+          <span>Document</span><span>Type</span><span>Category</span><span>Expiry</span><span>Hash</span><span>Project</span><span>Date</span><span>Actions</span>
         </div>
 
         {loading ? (
@@ -110,7 +150,7 @@ export default function DocumentsPage() {
         ) : (
           <div className="divide-y divide-white/5">
             {filtered.map(doc => (
-              <div key={doc.id} className="grid grid-cols-[2fr_80px_1fr_1fr_1fr_60px] gap-4 items-center px-5 py-3.5 hover:bg-white/2 transition-colors">
+              <div key={doc.id} className="grid grid-cols-[2fr_80px_90px_80px_1fr_1fr_1fr_60px] gap-3 items-center px-5 py-3.5 hover:bg-white/2 transition-colors">
                 <div className="flex items-center gap-3 cursor-pointer" onClick={() => openDoc(doc.id)}>
                   <div className="w-8 h-8 rounded-lg bg-[#0c7aed]/10 flex items-center justify-center shrink-0">
                     <FileCheck size={14} className="text-[#369bff]" />
@@ -122,6 +162,8 @@ export default function DocumentsPage() {
                   </div>
                 </div>
                 <FileTypeBadge type={doc.fileType} />
+                <CategoryBadge category={doc.category} />
+                <ExpiryCell doc={doc} />
                 <div
                   className="cursor-pointer"
                   onClick={() => doc.sha256Hash && window.open(`/verify?hash=${doc.sha256Hash}`, '_blank')}

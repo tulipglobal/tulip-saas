@@ -6,7 +6,7 @@ import Link from 'next/link'
 import {
   Shield, CheckCircle, Clock, AlertTriangle,
   TrendingUp, FileCheck, FolderOpen, Receipt,
-  ArrowUpRight, ExternalLink, Copy, Check, Sparkles
+  ArrowUpRight, ExternalLink, Copy, Check, Sparkles, X
 } from 'lucide-react'
 
 // ── Types ──────────────────────────────────────────────────
@@ -78,6 +78,50 @@ function StatCard({ icon: Icon, label, value, sub, color }: {
         <div className="text-sm text-white/50 mt-0.5">{label}</div>
         {sub && <div className="text-xs text-white/30 mt-1">{sub}</div>}
       </div>
+    </div>
+  )
+}
+
+// ── Expiry alerts banner ─────────────────────────────────────
+function ExpiryAlertsBanner() {
+  const [count, setCount] = useState(0)
+  const [urgent, setUrgent] = useState(false)
+  const [dismissed, setDismissed] = useState(false)
+
+  useEffect(() => {
+    apiGet('/api/documents/expiring').then(r => r.ok ? r.json() : null).then(data => {
+      if (!data?.data?.length) return
+      const docs = data.data
+      setCount(docs.length)
+      const now = new Date()
+      const hasUrgent = docs.some((d: { expiryDate: string }) => {
+        const diff = new Date(d.expiryDate).getTime() - now.getTime()
+        return Math.ceil(diff / (1000 * 60 * 60 * 24)) <= 7
+      })
+      setUrgent(hasUrgent)
+    }).catch(() => {})
+  }, [])
+
+  if (count === 0 || dismissed) return null
+
+  return (
+    <div className={`rounded-xl border p-4 flex items-center gap-4 ${urgent ? 'border-red-500/20' : 'border-orange-500/20'}`}
+      style={{ background: urgent ? 'rgba(239,68,68,0.06)' : 'rgba(245,158,11,0.06)' }}>
+      <AlertTriangle size={20} className={urgent ? 'text-red-400 shrink-0' : 'text-orange-400 shrink-0'} />
+      <div className="flex-1">
+        <div className="text-sm font-medium text-white">
+          {count} document{count !== 1 ? 's' : ''} expiring soon
+        </div>
+        <div className="text-xs text-white/40 mt-0.5">
+          {urgent ? 'Some documents expire within 7 days' : 'Documents expiring within 30 days'}
+        </div>
+      </div>
+      <Link href="/dashboard/documents?filter=expiring"
+        className="px-4 py-2 rounded-lg text-sm font-semibold text-white shrink-0"
+        style={{ background: urgent ? '#dc2626' : '#f59e0b' }}>
+        View
+      </Link>
+      <button onClick={() => setDismissed(true)} className="text-white/30 hover:text-white/60 shrink-0"><X size={16} /></button>
     </div>
   )
 }
@@ -173,6 +217,9 @@ export default function DashboardPage() {
           </Link>
         </div>
       )}
+
+      {/* Expiry alerts banner */}
+      <ExpiryAlertsBanner />
 
       {/* Integrity banner */}
       <div className="rounded-xl border p-4 flex items-center gap-4"

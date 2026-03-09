@@ -3,8 +3,8 @@ const router  = express.Router()
 const { can } = require('../middleware/permission')
 const {
   getDocuments, getDocument,
-  createDocument, deleteDocument,
-  uploadMiddleware, getDocumentUrl
+  createDocument, updateDocument, deleteDocument,
+  uploadMiddleware, getDocumentUrl, getExpiring
 } = require('../controllers/documentController')
 
 // PUBLIC - no auth - must be first
@@ -24,10 +24,12 @@ router.get('/:id/view/public', async (req, res) => {
 })
 
 // AUTHENTICATED routes
-router.get('/',         can('documents:read'),   getDocuments)
-router.get('/:id',      can('documents:read'),   getDocument)
-router.post('/',        can('documents:write'),  uploadMiddleware, createDocument)
-router.get('/:id/view', can('documents:read'),   getDocumentUrl)
-router.delete('/:id',   can('documents:delete'), deleteDocument)
+router.get('/expiring',  can('documents:read'),   getExpiring)
+router.get('/',          can('documents:read'),   getDocuments)
+router.get('/:id',       can('documents:read'),   getDocument)
+router.post('/',         can('documents:write'),  uploadMiddleware, createDocument)
+router.patch('/:id',     can('documents:write'),  updateDocument)
+router.get('/:id/view',  can('documents:read'),   getDocumentUrl)
+router.delete('/:id',    can('documents:delete'), deleteDocument)
 
 module.exports = router

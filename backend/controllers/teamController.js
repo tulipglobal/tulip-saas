@@ -62,7 +62,7 @@ exports.invite = async (req, res) => {
     // Check if user already exists in this tenant
     const existing = await prisma.user.findUnique({ where: { email: cleanEmail } })
     if (existing && existing.tenantId === tenantId && !existing.deletedAt) {
-      return res.status(400).json({ error: 'User is already a team member' })
+      return res.status(409).json({ error: `${cleanEmail} is already a team member` })
     }
 
     const tenant = await prisma.tenant.findUnique({ where: { id: tenantId }, select: { name: true } })
@@ -72,8 +72,9 @@ exports.invite = async (req, res) => {
     const tempPassword = crypto.randomBytes(8).toString('hex')
     const hashed = await bcrypt.hash(tempPassword, 10)
 
-    // Find or create the role
-    const targetRole = roleName || 'editor'
+    // Validate and resolve role — default to 'member'
+    const VALID_ROLES = ['member', 'admin']
+    const targetRole = VALID_ROLES.includes(roleName) ? roleName : 'member'
     let role = await prisma.role.findFirst({ where: { tenantId, name: targetRole } })
     if (!role) {
       role = await prisma.role.create({ data: { name: targetRole, tenantId } })

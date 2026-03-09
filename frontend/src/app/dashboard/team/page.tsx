@@ -29,9 +29,12 @@ function Toast({ message, type, onClose }: { message: string; type: 'success' | 
 
 const roleBadgeColors: Record<string, string> = {
   admin: 'bg-purple-400/10 text-purple-400 border-purple-400/20',
+  member: 'bg-blue-400/10 text-blue-400 border-blue-400/20',
   editor: 'bg-blue-400/10 text-blue-400 border-blue-400/20',
   viewer: 'bg-gray-400/10 text-gray-400 border-gray-400/20',
 }
+
+const INVITE_ROLES = ['member', 'admin']
 
 export default function TeamPage() {
   const [members, setMembers] = useState<Member[]>([])
@@ -43,7 +46,7 @@ export default function TeamPage() {
   // Invite modal
   const [showInvite, setShowInvite] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
-  const [inviteRole, setInviteRole] = useState('editor')
+  const [inviteRole, setInviteRole] = useState('member')
   const [inviting, setInviting] = useState(false)
 
   // Remove confirmation
@@ -79,10 +82,12 @@ export default function TeamPage() {
     if (!inviteEmail) return
     setInviting(true)
     try {
+      const sentTo = inviteEmail
       const res = await apiPost('/api/team/invite', { email: inviteEmail, roleName: inviteRole })
       if (res.ok) {
-        setToast({ message: `Invite sent to ${inviteEmail}`, type: 'success' })
+        setToast({ message: `Invitation sent to ${sentTo}`, type: 'success' })
         setInviteEmail('')
+        setInviteRole('member')
         setShowInvite(false)
         fetchTeam()
       } else {
@@ -129,7 +134,7 @@ export default function TeamPage() {
     setRemoving(false)
   }
 
-  const availableRoles = roles.length > 0 ? roles.map(r => r.name) : ['admin', 'editor', 'viewer']
+  const tableRoles = roles.length > 0 ? roles.map(r => r.name) : ['admin', 'member']
 
   if (loading) return (
     <div className="p-6 animate-fade-up">
@@ -194,7 +199,7 @@ export default function TeamPage() {
                         onChange={e => handleRoleChange(m.id, e.target.value)}
                         className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white/80 outline-none focus:border-[#0c7aed]/50 cursor-pointer"
                       >
-                        {availableRoles.map(r => (
+                        {tableRoles.map(r => (
                           <option key={r} value={r} className="bg-[#0a1628] text-white">{r}</option>
                         ))}
                       </select>
@@ -243,7 +248,7 @@ export default function TeamPage() {
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white/80 outline-none focus:border-[#0c7aed]/50"
                 value={inviteRole} onChange={e => setInviteRole(e.target.value)}
               >
-                {availableRoles.map(r => (
+                {INVITE_ROLES.map(r => (
                   <option key={r} value={r} className="bg-[#0a1628] text-white">{r}</option>
                 ))}
               </select>

@@ -71,11 +71,12 @@ export default function SettingsPage() {
         setProfileEmail(p.email || '')
       }
       if (setup) {
+        console.log('[settings] raw org API response:', JSON.stringify(setup))
         setOrg(setup)
         setOrgName(setup.name || '')
         setOrgDescription(setup.description || '')
         setOrgWebsite(setup.website || '')
-        setOrgRegNumber(setup.registrationNumber || '')
+        setOrgRegNumber(setup.registrationNumber || setup.registration_number || '')
         setOrgCountry(setup.country || '')
       }
       setLoading(false)

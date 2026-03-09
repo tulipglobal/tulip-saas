@@ -114,14 +114,14 @@ export default function DocumentsPage() {
   )
 
   return (
-    <div className="p-6 space-y-6 animate-fade-up">
-      <div className="flex items-center justify-between">
+    <div className="p-4 md:p-6 space-y-6 animate-fade-up">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>Documents</h1>
           <p className="text-white/40 text-sm mt-1">{docs.length} document{docs.length !== 1 ? 's' : ''} — SHA-256 fingerprinted</p>
         </div>
         <Link href="/dashboard/documents/new"
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white self-start"
           style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
           <Plus size={16} /> Add Document
         </Link>
@@ -142,7 +142,8 @@ export default function DocumentsPage() {
 
       <div className="rounded-xl border border-white/8 overflow-hidden"
         style={{ background: 'rgba(255,255,255,0.02)' }}>
-        <div className="grid grid-cols-[2fr_80px_90px_80px_1fr_1fr_1fr_60px] gap-3 px-5 py-3 border-b border-white/8 text-xs text-white/30 uppercase tracking-wide font-medium">
+        {/* Desktop table header */}
+        <div className="hidden lg:grid grid-cols-[2fr_80px_90px_80px_1fr_1fr_1fr_60px] gap-3 px-5 py-3 border-b border-white/8 text-xs text-white/30 uppercase tracking-wide font-medium">
           <span>Document</span><span>Type</span><span>Category</span><span>Expiry</span><span>Hash</span><span>Project</span><span>Date</span><span>Actions</span>
         </div>
 
@@ -157,32 +158,56 @@ export default function DocumentsPage() {
         ) : (
           <div className="divide-y divide-white/5">
             {filtered.map(doc => (
-              <div key={doc.id} className="grid grid-cols-[2fr_80px_90px_80px_1fr_1fr_1fr_60px] gap-3 items-center px-5 py-3.5 hover:bg-white/2 transition-colors">
+              <div key={doc.id} className="px-4 py-3.5 hover:bg-white/2 transition-colors lg:grid lg:grid-cols-[2fr_80px_90px_80px_1fr_1fr_1fr_60px] lg:gap-3 lg:items-center lg:px-5">
+                {/* Document name + info — always visible */}
                 <div className="flex items-center gap-3 cursor-pointer" onClick={() => openDoc(doc.id)}>
                   <div className="w-8 h-8 rounded-lg bg-[#0c7aed]/10 flex items-center justify-center shrink-0">
                     <FileCheck size={14} className="text-[#369bff]" />
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <div className="text-sm font-medium text-white/80 truncate hover:text-[#369bff] transition-colors">{doc.name}</div>
                     {doc.description && <div className="text-xs text-white/30 truncate">{doc.description}</div>}
-                    {doc.fileSize && <div className="text-xs text-white/20">{(doc.fileSize / 1024).toFixed(1)} KB</div>}
+                    {/* Mobile-only meta row */}
+                    <div className="flex flex-wrap items-center gap-2 mt-1 lg:hidden">
+                      <FileTypeBadge type={doc.fileType} />
+                      <CategoryBadge category={doc.category} />
+                      <ExpiryCell doc={doc} />
+                      {doc.project?.name && <span className="text-xs text-white/40">{doc.project.name}</span>}
+                      <span className="text-xs text-white/25">
+                        {new Date(doc.uploadedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
+                      </span>
+                    </div>
+                  </div>
+                  {/* Mobile actions */}
+                  <div className="flex items-center gap-2 lg:hidden shrink-0">
+                    <button onClick={(e) => { e.stopPropagation(); openDoc(doc.id) }}
+                      className="text-white/20 hover:text-[#34d399] transition-colors" title="View document">
+                      <ExternalLink size={15} />
+                    </button>
+                    {doc.sha256Hash && (
+                      <Link href={`/verify?hash=${doc.sha256Hash}`} target="_blank"
+                        className="text-white/20 hover:text-[#369bff] transition-colors" title="Verify">
+                        <Shield size={15} />
+                      </Link>
+                    )}
                   </div>
                 </div>
-                <FileTypeBadge type={doc.fileType} />
-                <CategoryBadge category={doc.category} />
-                <ExpiryCell doc={doc} />
+                {/* Desktop-only columns */}
+                <div className="hidden lg:block"><FileTypeBadge type={doc.fileType} /></div>
+                <div className="hidden lg:block"><CategoryBadge category={doc.category} /></div>
+                <div className="hidden lg:block"><ExpiryCell doc={doc} /></div>
                 <div
-                  className="cursor-pointer"
+                  className="hidden lg:block cursor-pointer"
                   onClick={() => doc.sha256Hash && window.open(`/verify?hash=${doc.sha256Hash}`, '_blank')}
                   title="Click to verify this hash"
                 >
                   {doc.sha256Hash ? <HashCell hash={doc.sha256Hash} /> : <span className="text-white/20 text-xs">Pending</span>}
                 </div>
-                <div className="text-xs text-white/40 truncate">{doc.project?.name ?? '—'}</div>
-                <div className="text-xs text-white/30">
+                <div className="hidden lg:block text-xs text-white/40 truncate">{doc.project?.name ?? '—'}</div>
+                <div className="hidden lg:block text-xs text-white/30">
                   {new Date(doc.uploadedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="hidden lg:flex items-center gap-2">
                   <button onClick={() => openDoc(doc.id)}
                     className="text-white/20 hover:text-[#34d399] transition-colors cursor-pointer bg-transparent border-none p-0" title="View document">
                     <ExternalLink size={13} />

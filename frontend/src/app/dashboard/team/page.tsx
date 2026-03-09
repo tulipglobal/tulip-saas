@@ -144,24 +144,25 @@ export default function TeamPage() {
   )
 
   return (
-    <div className="p-6 space-y-6 animate-fade-up">
+    <div className="p-4 md:p-6 space-y-6 animate-fade-up">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>Team</h1>
           <p className="text-white/40 text-sm mt-1">{members.length} member{members.length !== 1 ? 's' : ''}</p>
         </div>
         <button onClick={() => setShowInvite(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-[#0c7aed] text-white hover:bg-[#0c7aed]/80 transition-all">
+          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-[#0c7aed] text-white hover:bg-[#0c7aed]/80 transition-all self-start">
           <Plus size={16} />
           Invite Member
         </button>
       </div>
 
-      {/* Members Table */}
+      {/* Members — Desktop table, mobile card list */}
       <div className="rounded-xl border border-white/8 overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)' }}>
-        <table className="w-full">
+        {/* Desktop table */}
+        <table className="w-full hidden md:table">
           <thead>
             <tr className="border-b border-white/8">
               <th className="text-left text-xs font-medium text-white/30 uppercase tracking-wide px-5 py-3">Member</th>
@@ -225,12 +226,64 @@ export default function TeamPage() {
             )}
           </tbody>
         </table>
+
+        {/* Mobile card list */}
+        <div className="md:hidden divide-y divide-white/5">
+          {members.map(m => {
+            const rawRole = m.roles[0]?.name || 'member'
+            const roleName = rawRole === 'editor' ? 'member' : rawRole
+            const isCurrentUser = m.id === currentUserId
+            return (
+              <div key={m.id} className="px-4 py-3.5">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                    style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                    {m.name?.charAt(0)?.toUpperCase() || m.email.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-white/90 truncate">{m.name}{isCurrentUser && <span className="text-white/30 ml-2 text-xs">(you)</span>}</div>
+                    <div className="text-xs text-white/40 truncate">{m.email}</div>
+                  </div>
+                  {!isCurrentUser && (
+                    <button onClick={() => setRemoveTarget(m)}
+                      className="p-2 rounded-lg text-white/30 hover:text-red-400 hover:bg-red-400/5 transition-all shrink-0">
+                      <Trash2 size={15} />
+                    </button>
+                  )}
+                </div>
+                <div className="flex items-center gap-3 mt-2 ml-11">
+                  {isCurrentUser ? (
+                    <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium border ${roleBadgeColors[roleName] || roleBadgeColors.viewer}`}>
+                      {roleName}
+                    </span>
+                  ) : (
+                    <select
+                      value={roleName}
+                      onChange={e => handleRoleChange(m.id, e.target.value)}
+                      className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white/80 outline-none focus:border-[#0c7aed]/50 cursor-pointer"
+                    >
+                      {tableRoles.map(r => (
+                        <option key={r} value={r} className="bg-[#0a1628] text-white">{r}</option>
+                      ))}
+                    </select>
+                  )}
+                  <span className="text-xs text-white/30">
+                    {new Date(m.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                  </span>
+                </div>
+              </div>
+            )
+          })}
+          {members.length === 0 && (
+            <div className="px-4 py-8 text-center text-white/30 text-sm">No team members yet</div>
+          )}
+        </div>
       </div>
 
       {/* Invite Modal */}
       {showInvite && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowInvite(false)}>
-          <div className="bg-[#0a1628] border border-white/10 rounded-xl p-6 w-full max-w-md space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-[#0a1628] border border-white/10 rounded-none md:rounded-xl p-6 w-full h-full md:h-auto md:max-w-md space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-white">Invite Team Member</h3>
               <button onClick={() => setShowInvite(false)} className="text-white/30 hover:text-white/60"><X size={18} /></button>
@@ -273,7 +326,7 @@ export default function TeamPage() {
       {/* Remove Confirmation Modal */}
       {removeTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setRemoveTarget(null)}>
-          <div className="bg-[#0a1628] border border-white/10 rounded-xl p-6 w-full max-w-sm space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-[#0a1628] border border-white/10 rounded-none md:rounded-xl p-6 w-full h-full md:h-auto md:max-w-sm space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-semibold text-white">Remove Member</h3>
             <p className="text-sm text-white/60">
               Are you sure you want to remove <strong className="text-white/90">{removeTarget.name || removeTarget.email}</strong> from your team? They will lose access immediately.

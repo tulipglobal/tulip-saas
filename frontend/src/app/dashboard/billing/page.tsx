@@ -166,7 +166,7 @@ export default function BillingPage() {
   const currentPlan = data?.plan || 'FREE'
 
   return (
-    <div className="p-6 space-y-6 animate-fade-up">
+    <div className="p-4 md:p-6 space-y-6 animate-fade-up">
 
       {/* Header */}
       <div>
@@ -207,7 +207,7 @@ export default function BillingPage() {
       )}
 
       {/* Current plan + Usage */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Current plan card */}
         <div className="rounded-xl border border-white/8 p-5" style={{ background: 'rgba(255,255,255,0.03)' }}>
           <div className="text-xs text-white/40 uppercase tracking-wider font-medium mb-3">Current Plan</div>

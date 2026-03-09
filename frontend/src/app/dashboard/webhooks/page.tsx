@@ -97,8 +97,8 @@ function DeliveryLogModal({ webhookId, onClose }: { webhookId: string; onClose: 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-[#0a1929] border border-white/10 rounded-2xl w-full max-w-3xl max-h-[80vh] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/8">
+      <div className="bg-[#0a1929] border border-white/10 rounded-none md:rounded-2xl w-full h-full md:h-auto md:max-w-3xl md:max-h-[80vh] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-white/8">
           <h3 className="text-white font-semibold text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>Delivery Log</h3>
           <button onClick={onClose} className="text-white/30 hover:text-white/60 transition-colors"><X size={18} /></button>
         </div>
@@ -114,7 +114,7 @@ function DeliveryLogModal({ webhookId, onClose }: { webhookId: string; onClose: 
                 <div key={d.id}>
                   <button
                     onClick={() => setExpanded(expanded === d.id ? null : d.id)}
-                    className="w-full grid grid-cols-[1.5fr_1fr_80px_80px_80px] gap-3 items-center px-6 py-3 hover:bg-white/[0.02] transition-colors text-left"
+                    className="w-full grid grid-cols-[1fr_80px_80px] md:grid-cols-[1.5fr_1fr_80px_80px_80px] gap-3 items-center px-4 md:px-6 py-3 hover:bg-white/[0.02] transition-colors text-left"
                   >
                     <div className="flex items-center gap-2">
                       {expanded === d.id ? <ChevronDown size={12} className="text-white/20" /> : <ChevronRight size={12} className="text-white/20" />}
@@ -223,8 +223,8 @@ function WebhookFormModal({ webhook, onClose, onSaved }: {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-[#0a1929] border border-white/10 rounded-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/8">
+      <div className="bg-[#0a1929] border border-white/10 rounded-none md:rounded-2xl w-full h-full md:h-auto md:max-w-lg md:max-h-[85vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-white/8">
           <h3 className="text-white font-semibold text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>
             {isEdit ? 'Edit Webhook' : 'Add Webhook'}
           </h3>
@@ -389,16 +389,16 @@ export default function WebhooksPage() {
   )
 
   return (
-    <div className="p-6 space-y-6 animate-fade-up">
+    <div className="p-4 md:p-6 space-y-6 animate-fade-up">
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>Webhooks</h1>
           <p className="text-white/40 text-sm mt-1">Receive real-time notifications via HMAC-signed HTTP callbacks</p>
         </div>
         <button onClick={() => setFormModal({ open: true, webhook: null })}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white self-start"
           style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
           <Plus size={16} /> Add Webhook
         </button>

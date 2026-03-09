@@ -63,11 +63,20 @@ function ExpenseRow({ expense, onRefresh }: { expense: Expense; onRefresh: () =>
   return (
     <>
       <div
-        className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_60px] gap-4 items-center px-5 py-3.5 hover:bg-white/2 transition-colors cursor-pointer"
+        className="px-4 py-3.5 hover:bg-white/2 transition-colors cursor-pointer lg:grid lg:grid-cols-[2fr_1fr_1fr_1fr_1fr_60px] lg:gap-4 lg:items-center lg:px-5"
         onClick={() => setExpanded(e => !e)}
       >
         <div>
-          <Link href={`/dashboard/expenses/${expense.id}`} className="text-sm font-medium text-white/80 hover:text-cyan-400 transition-colors">{expense.title ?? expense.description}</Link>
+          <div className="flex items-center justify-between">
+            <Link href={`/dashboard/expenses/${expense.id}`} className="text-sm font-medium text-white/80 hover:text-cyan-400 transition-colors" onClick={e => e.stopPropagation()}>{expense.title ?? expense.description}</Link>
+            {/* Mobile-only amount + chevron */}
+            <div className="flex items-center gap-2 lg:hidden">
+              <span className="text-sm font-medium text-white">{expense.currency} {expense.amount.toLocaleString()}</span>
+              <span className="text-white/20">
+                {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+              </span>
+            </div>
+          </div>
           <div className="flex items-center gap-2 mt-0.5">
             {expense.project && (
               <span className="text-xs text-[#369bff]/70">{expense.project.name}</span>
@@ -82,18 +91,34 @@ function ExpenseRow({ expense, onRefresh }: { expense: Expense; onRefresh: () =>
               </span>
             )}
           </div>
+          {/* Mobile-only status row */}
+          <div className="flex items-center gap-2 mt-1.5 lg:hidden">
+            <AnchorBadge status={expense.anchorStatus} />
+            {expense.dataHash && (
+              <Link href={`/verify?hash=${expense.dataHash}`} target="_blank"
+                className="text-white/20 hover:text-[#369bff] transition-colors" title="Verify" onClick={e => e.stopPropagation()}>
+                <Shield size={13} />
+              </Link>
+            )}
+            {expense.blockchainTx && (
+              <Link href={`https://amoy.polygonscan.com/tx/${expense.blockchainTx}`} target="_blank"
+                className="text-white/20 hover:text-[#34d399] transition-colors" title="Polygonscan" onClick={e => e.stopPropagation()}>
+                <ExternalLink size={13} />
+              </Link>
+            )}
+          </div>
         </div>
-        <div className="text-sm font-medium text-white">
+        <div className="hidden lg:block text-sm font-medium text-white">
           {expense.currency} {expense.amount.toLocaleString()}
         </div>
-        <div className="text-xs text-white/40 truncate">
+        <div className="hidden lg:block text-xs text-white/40 truncate">
           {expense.project?.name ?? '—'}
         </div>
-        <div onClick={e => e.stopPropagation()}>
+        <div className="hidden lg:block" onClick={e => e.stopPropagation()}>
           {expense.dataHash ? <HashCell hash={expense.dataHash} /> : <span className="text-white/20 text-xs">—</span>}
         </div>
-        <AnchorBadge status={expense.anchorStatus} />
-        <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+        <div className="hidden lg:block"><AnchorBadge status={expense.anchorStatus} /></div>
+        <div className="hidden lg:flex items-center gap-2" onClick={e => e.stopPropagation()}>
           {expense.dataHash && (
             <Link href={`/verify?hash=${expense.dataHash}`} target="_blank"
               className="text-white/20 hover:text-[#369bff] transition-colors" title="Verify on blockchain">
@@ -194,21 +219,21 @@ export default function ExpensesPage() {
   const total = filtered.reduce((sum, e) => sum + e.amount, 0)
 
   return (
-    <div className="p-6 space-y-6 animate-fade-up">
-      <div className="flex items-center justify-between">
+    <div className="p-4 md:p-6 space-y-6 animate-fade-up">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>Expenses</h1>
           <p className="text-white/40 text-sm mt-1">{expenses.length} expense{expenses.length !== 1 ? 's' : ''} — every entry blockchain anchored</p>
         </div>
         <Link href="/dashboard/expenses/new"
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white self-start"
           style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
           <Plus size={16} /> Log Expense
         </Link>
       </div>
 
       {filtered.length > 0 && (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { label: 'Total Logged', value: `$${total.toLocaleString()}` },
             { label: 'Anchored', value: filtered.filter(e => e.anchorStatus === 'confirmed').length },
@@ -229,7 +254,7 @@ export default function ExpensesPage() {
       </div>
 
       <div className="rounded-xl border border-white/8 overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)' }}>
-        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_60px] gap-4 px-5 py-3 border-b border-white/8 text-xs text-white/30 uppercase tracking-wide font-medium">
+        <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_60px] gap-4 px-5 py-3 border-b border-white/8 text-xs text-white/30 uppercase tracking-wide font-medium">
           <span>Expense</span><span>Amount</span><span>Project</span><span>Hash</span><span>Status</span><span>Actions</span>
         </div>
 

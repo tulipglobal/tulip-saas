@@ -178,7 +178,7 @@ function AgreementCard({ agreement, documents, token }: {
           </p>
 
           {/* Amount + progress */}
-          <div className="flex items-center gap-4 mt-3">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-3">
             <div>
               <span className="text-white/30 text-xs">Funded</span>
               <p className="text-white font-bold text-sm">{agreement.currency} {agreement.totalAmount.toLocaleString()}</p>
@@ -187,7 +187,7 @@ function AgreementCard({ agreement, documents, token }: {
               <span className="text-white/30 text-xs">Spent</span>
               <p className="text-white/60 font-medium text-sm">{agreement.currency} {agreement.spent.toLocaleString()}</p>
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-[120px]">
               <div className="flex items-center gap-2">
                 <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
                   <div className="h-full rounded-full transition-all" style={{
@@ -509,7 +509,7 @@ export default function DonorDashboardPage() {
 
       {/* ── Nav ── */}
       <nav className="border-b border-white/8 bg-[#07224a]/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/donor/dashboard" className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center"
@@ -535,7 +535,7 @@ export default function DonorDashboardPage() {
         </div>
       </nav>
 
-      <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8 space-y-6 md:space-y-8">
 
         {/* ── Header ── */}
         <div>
@@ -640,7 +640,7 @@ export default function DonorDashboardPage() {
 
       {/* ── Footer ── */}
       <footer className="border-t border-white/5 py-6 mt-8">
-        <div className="max-w-6xl mx-auto px-6 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="text-white/15 text-xs">
             &copy; 2026 Tulip DS &middot; Bright Bytes Technology &middot; Dubai, UAE
           </p>

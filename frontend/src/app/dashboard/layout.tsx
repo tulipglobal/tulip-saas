@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, FolderOpen, FileCheck, Receipt, Banknote,
   Key, Webhook, BarChart3, Settings, LogOut, Code2, CreditCard, Users,
-  ChevronLeft, ChevronRight, Shield, Bell, Search
+  ChevronLeft, ChevronRight, Shield, Bell, Search, Menu, X
 } from 'lucide-react'
 import { clsx } from 'clsx'
 
@@ -28,8 +28,19 @@ const nav = [
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
+
+  // Close mobile sidebar on route change
+  useEffect(() => { setMobileOpen(false) }, [pathname])
+
+  // Close mobile sidebar on escape key
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMobileOpen(false) }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [])
 
   const handleSignOut = async () => {
     try {
@@ -53,84 +64,134 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }
 
+  const sidebarContent = (
+    <>
+      {/* Logo */}
+      <div className={clsx(
+        'flex items-center border-b border-white/8 h-16 shrink-0',
+        collapsed && !mobileOpen ? 'justify-center px-0' : 'px-5 gap-3'
+      )}>
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+          style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+          <span className="text-white font-bold text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>T</span>
+        </div>
+        {(!collapsed || mobileOpen) && (
+          <span className="font-bold text-white text-lg" style={{ fontFamily: 'Syne, sans-serif' }}>
+            tulip<span style={{ color: '#369bff' }}>ds</span>
+          </span>
+        )}
+        {/* Close button — mobile only */}
+        {mobileOpen && (
+          <button onClick={() => setMobileOpen(false)} className="ml-auto text-white/40 hover:text-white md:hidden">
+            <X size={20} />
+          </button>
+        )}
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 py-4 overflow-y-auto">
+        {nav.map(({ label, href, icon: Icon }) => {
+          const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
+          return (
+            <Link key={href} href={href} className={clsx(
+              'flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg mb-0.5 transition-all group',
+              active
+                ? 'bg-[#0c7aed]/20 text-[#369bff]'
+                : 'text-white/50 hover:text-white hover:bg-white/5'
+            )}>
+              <Icon size={18} className="shrink-0" />
+              {(!collapsed || mobileOpen) && <span className="text-sm font-medium">{label}</span>}
+              {active && (!collapsed || mobileOpen) && (
+                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#369bff]" />
+              )}
+            </Link>
+          )
+        })}
+      </nav>
+
+      {/* Bottom */}
+      <div className="border-t border-white/8 p-3 space-y-1">
+        {/* Collapse toggle — desktop only */}
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="hidden md:flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-white/40 hover:text-white hover:bg-white/5 transition-all"
+        >
+          {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+          {!collapsed && <span className="text-sm">Collapse</span>}
+        </button>
+        <button
+          onClick={handleSignOut}
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-white/40 hover:text-red-400 hover:bg-red-400/5 transition-all"
+        >
+          <LogOut size={18} className="shrink-0" />
+          {(!collapsed || mobileOpen) && <span className="text-sm">Sign out</span>}
+        </button>
+      </div>
+    </>
+  )
+
   return (
     <div className="flex h-screen bg-[#040f1f] text-white overflow-hidden">
 
-      {/* Sidebar */}
+      {/* Mobile sidebar overlay */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-40 md:hidden" onClick={() => setMobileOpen(false)}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+        </div>
+      )}
+
+      {/* Mobile sidebar drawer */}
       <aside className={clsx(
-        'flex flex-col border-r border-white/8 transition-all duration-300 shrink-0',
+        'fixed inset-y-0 left-0 z-50 w-60 flex flex-col border-r border-white/8 transition-transform duration-300 md:hidden',
+        mobileOpen ? 'translate-x-0' : '-translate-x-full'
+      )} style={{ background: 'linear-gradient(180deg, #07224a 0%, #040f1f 100%)' }}>
+        {sidebarContent}
+      </aside>
+
+      {/* Desktop sidebar */}
+      <aside className={clsx(
+        'hidden md:flex flex-col border-r border-white/8 transition-all duration-300 shrink-0',
         collapsed ? 'w-16' : 'w-60'
       )} style={{ background: 'linear-gradient(180deg, #07224a 0%, #040f1f 100%)' }}>
-
-        {/* Logo */}
-        <div className={clsx(
-          'flex items-center border-b border-white/8 h-16 shrink-0',
-          collapsed ? 'justify-center px-0' : 'px-5 gap-3'
-        )}>
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
-            <span className="text-white font-bold text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>T</span>
-          </div>
-          {!collapsed && (
-            <span className="font-bold text-white text-lg" style={{ fontFamily: 'Syne, sans-serif' }}>
-              tulip<span style={{ color: '#369bff' }}>ds</span>
-            </span>
-          )}
-        </div>
-
-        {/* Nav */}
-        <nav className="flex-1 py-4 overflow-y-auto">
-          {nav.map(({ label, href, icon: Icon }) => {
-            const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
-            return (
-              <Link key={href} href={href} className={clsx(
-                'flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg mb-0.5 transition-all group',
-                active
-                  ? 'bg-[#0c7aed]/20 text-[#369bff]'
-                  : 'text-white/50 hover:text-white hover:bg-white/5'
-              )}>
-                <Icon size={18} className="shrink-0" />
-                {!collapsed && <span className="text-sm font-medium">{label}</span>}
-                {active && !collapsed && (
-                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#369bff]" />
-                )}
-              </Link>
-            )
-          })}
-        </nav>
-
-        {/* Bottom */}
-        <div className="border-t border-white/8 p-3 space-y-1">
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-white/40 hover:text-white hover:bg-white/5 transition-all"
-          >
-            {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-            {!collapsed && <span className="text-sm">Collapse</span>}
-          </button>
-          <button
-            onClick={handleSignOut}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-white/40 hover:text-red-400 hover:bg-red-400/5 transition-all"
-          >
-            <LogOut size={18} className="shrink-0" />
-            {!collapsed && <span className="text-sm">Sign out</span>}
-          </button>
-        </div>
+        {sidebarContent}
       </aside>
 
       {/* Main */}
       <div className="flex-1 flex flex-col overflow-hidden">
 
         {/* Topbar */}
-        <header className="h-16 border-b border-white/8 flex items-center justify-between px-6 shrink-0"
+        <header className="h-16 border-b border-white/8 flex items-center justify-between px-4 md:px-6 shrink-0"
           style={{ background: 'rgba(4,15,31,0.8)', backdropFilter: 'blur(12px)' }}>
-          <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-lg px-3 py-2 w-72">
-            <Search size={15} className="text-white/30" />
-            <input
-              placeholder="Search projects, documents..."
-              className="bg-transparent text-sm text-white/70 placeholder-white/30 outline-none w-full"
-            />
+
+          {/* Left: hamburger (mobile) + search (desktop) */}
+          <div className="flex items-center gap-3">
+            <button onClick={() => setMobileOpen(true)}
+              className="md:hidden w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all">
+              <Menu size={18} className="text-white/60" />
+            </button>
+
+            {/* Logo — mobile only (centered feel) */}
+            <div className="md:hidden flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                <span className="text-white font-bold text-xs" style={{ fontFamily: 'Syne, sans-serif' }}>T</span>
+              </div>
+              <span className="font-bold text-white text-base" style={{ fontFamily: 'Syne, sans-serif' }}>
+                tulip<span style={{ color: '#369bff' }}>ds</span>
+              </span>
+            </div>
+
+            {/* Search — desktop only */}
+            <div className="hidden md:flex items-center gap-3 bg-white/5 border border-white/10 rounded-lg px-3 py-2 w-72">
+              <Search size={15} className="text-white/30" />
+              <input
+                placeholder="Search projects, documents..."
+                className="bg-transparent text-sm text-white/70 placeholder-white/30 outline-none w-full"
+              />
+            </div>
           </div>
+
+          {/* Right: bell + avatar */}
           <div className="flex items-center gap-3">
             <button className="relative w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all">
               <Bell size={16} className="text-white/60" />

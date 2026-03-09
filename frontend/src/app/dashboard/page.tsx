@@ -159,10 +159,10 @@ export default function DashboardPage() {
   const pct        = total > 0 ? Math.round((verified / total) * 100) : 0
 
   return (
-    <div className="p-6 space-y-6 animate-fade-up">
+    <div className="p-4 md:p-6 space-y-6 animate-fade-up">
 
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>
             Overview
@@ -172,7 +172,7 @@ export default function DashboardPage() {
           </p>
         </div>
         <Link href="/verify" target="_blank"
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#369bff] border border-[#0c7aed]/30 hover:bg-[#0c7aed]/10 transition-all">
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#369bff] border border-[#0c7aed]/30 hover:bg-[#0c7aed]/10 transition-all self-start">
           <ExternalLink size={14} />
           Public Verifier
         </Link>
@@ -254,7 +254,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick actions */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { icon: FolderOpen, label: 'New Project',  href: '/dashboard/projects/new',  color: 'text-blue-400' },
           { icon: FileCheck,  label: 'Add Document', href: '/dashboard/documents/new', color: 'text-green-400' },

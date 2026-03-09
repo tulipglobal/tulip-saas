@@ -1,9 +1,49 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Shield, CheckCircle, Globe, Zap, ArrowRight, Lock, Hash, Clock } from 'lucide-react'
+
+export const metadata: Metadata = {
+  title: 'Tulip DS — Every Document. Blockchain Verified. Forever.',
+  description: 'Blockchain-verified audit trails, RFC 3161 timestamps, and document verification for NGOs, donors, and enterprises. Drag any document and know in seconds if it is authentic.',
+  alternates: { canonical: 'https://tulipds.com' },
+  openGraph: {
+    title: 'Tulip DS — Every Document. Blockchain Verified. Forever.',
+    description: 'Blockchain-verified audit trails for NGOs, donors, and enterprises. Prove your integrity with immutable, on-chain verification.',
+    url: 'https://tulipds.com',
+    type: 'website',
+  },
+}
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Tulip DS',
+  applicationCategory: 'BusinessApplication',
+  operatingSystem: 'Web',
+  description: 'Blockchain-verified audit trails, RFC 3161 timestamps, and document verification for NGOs, donors, and enterprises.',
+  url: 'https://tulipds.com',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+    description: 'Free tier available',
+  },
+  creator: {
+    '@type': 'Organization',
+    name: 'Bright Bytes Technology',
+    url: 'https://tulipds.com',
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Dubai',
+      addressCountry: 'AE',
+    },
+  },
+}
 
 export default function HomePage() {
   return (
     <div className="min-h-screen" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       {/* NAV */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 backdrop-blur-md bg-[#07224a]/90">

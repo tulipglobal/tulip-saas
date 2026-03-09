@@ -72,3 +72,11 @@ npm run lint                  # ESLint
 - **Audit logs are immutable** — they are SHA-256 hashed, Merkle-tree batched, and anchored to Polygon. Never delete or modify audit entries (GDPR erasure anonymizes the userId but preserves the record).
 - **API keys** use Stripe-style format: `tl_live_` prefix + random bytes. The full key is shown once; only the bcrypt hash is stored.
 - **The `/api/verify` route is public** (no auth) — it's the external verification endpoint for donors.
+
+## Database Safety Rules
+
+**NEVER drop, delete, or truncate any database tables or data under any circumstances.**
+- Never use `prisma migrate reset`, `pg_restore --clean`, or any destructive database commands.
+- If schema changes are needed, only use `prisma db push` to add new tables/columns.
+- Always take a backup before any database operation.
+- Never run `DROP TABLE`, `TRUNCATE`, `DELETE FROM` without an explicit WHERE clause, or any command that removes data in bulk.

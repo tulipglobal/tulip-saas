@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Shield, ExternalLink, Copy, Check, Search, RefreshCw } from 'lucide-react'
+import { Shield, Copy, Check, Search, RefreshCw, Download, X, FileArchive, Loader2 } from 'lucide-react'
 import { apiGet } from '@/lib/api'
 
 interface AuditEntry {
@@ -62,6 +62,15 @@ export default function AuditPage() {
   const [filter, setFilter] = useState('all')
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
+  const [showExport, setShowExport] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const [exportOpts, setExportOpts] = useState({
+    from: '',
+    to: '',
+    anchorStatus: 'all',
+    entityType: 'all',
+    includeFiles: true,
+  })
   const limit = 20
 
   const load = (p = 1) => {
@@ -72,6 +81,39 @@ export default function AuditPage() {
       .then(r => r.ok ? r.json() : { items: [], total: 0 })
       .then(d => { setEntries(d.data ?? d.items ?? []); setTotal(d.pagination?.total ?? d.total ?? 0); setLoading(false) })
       .catch(() => setLoading(false))
+  }
+
+  const doExport = async () => {
+    setExporting(true)
+    try {
+      const params = new URLSearchParams()
+      if (exportOpts.anchorStatus !== 'all') params.set('anchorStatus', exportOpts.anchorStatus)
+      if (exportOpts.entityType !== 'all')   params.set('entityType', exportOpts.entityType)
+      if (exportOpts.from) params.set('from', exportOpts.from)
+      if (exportOpts.to)   params.set('to', exportOpts.to)
+      if (exportOpts.includeFiles) params.set('includeFiles', 'true')
+
+      const token = localStorage.getItem('tulip_token')
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/audit/export?${params}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) throw new Error('Export failed')
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      const today = new Date().toISOString().slice(0, 10)
+      a.download = `tulip-audit-export-${today}.zip`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+      setShowExport(false)
+    } catch {
+      // silently fail — user sees the button stop spinning
+    } finally {
+      setExporting(false)
+    }
   }
 
   useEffect(() => { load(1); setPage(1) }, [filter])
@@ -90,12 +132,93 @@ export default function AuditPage() {
           <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>Audit Log</h1>
           <p className="text-white/40 text-sm mt-1">{total} entries — immutable blockchain hash chain</p>
         </div>
-        <button onClick={() => load(page)}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-white/50 hover:text-white border border-white/10 hover:border-white/20 transition-all">
-          <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-          Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowExport(true)}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90 transition-opacity"
+            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+            <Download size={14} />
+            Export
+          </button>
+          <button onClick={() => load(page)}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-white/50 hover:text-white border border-white/10 hover:border-white/20 transition-all">
+            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+            Refresh
+          </button>
+        </div>
       </div>
+
+      {/* Export Panel */}
+      {showExport && (
+        <div className="rounded-xl border border-white/10 p-5 space-y-5" style={{ background: 'rgba(255,255,255,0.03)' }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <FileArchive size={18} className="text-[#369bff]" />
+              <h3 className="text-white font-semibold text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>Export Audit Log</h3>
+            </div>
+            <button onClick={() => setShowExport(false)} className="text-white/30 hover:text-white transition-colors">
+              <X size={16} />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* Date range */}
+            <div>
+              <label className="block text-white/30 text-xs mb-1.5">From</label>
+              <input type="date" value={exportOpts.from} onChange={e => setExportOpts(o => ({ ...o, from: e.target.value }))}
+                className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70 text-sm outline-none focus:border-white/20 transition-colors" />
+            </div>
+            <div>
+              <label className="block text-white/30 text-xs mb-1.5">To</label>
+              <input type="date" value={exportOpts.to} onChange={e => setExportOpts(o => ({ ...o, to: e.target.value }))}
+                className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70 text-sm outline-none focus:border-white/20 transition-colors" />
+            </div>
+
+            {/* Status filter */}
+            <div>
+              <label className="block text-white/30 text-xs mb-1.5">Status</label>
+              <select value={exportOpts.anchorStatus} onChange={e => setExportOpts(o => ({ ...o, anchorStatus: e.target.value }))}
+                className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70 text-sm outline-none focus:border-white/20 transition-colors appearance-none">
+                <option value="all">All statuses</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="pending">Pending</option>
+                <option value="failed">Failed</option>
+              </select>
+            </div>
+
+            {/* Entity type filter */}
+            <div>
+              <label className="block text-white/30 text-xs mb-1.5">Entity type</label>
+              <select value={exportOpts.entityType} onChange={e => setExportOpts(o => ({ ...o, entityType: e.target.value }))}
+                className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70 text-sm outline-none focus:border-white/20 transition-colors appearance-none">
+                <option value="all">All types</option>
+                <option value="Document">Documents</option>
+                <option value="Expense">Expenses</option>
+                <option value="Project">Projects</option>
+                <option value="FundingSource">Funding</option>
+                <option value="User">Users</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-1">
+            {/* Include files toggle */}
+            <label className="flex items-center gap-2.5 cursor-pointer select-none">
+              <button onClick={() => setExportOpts(o => ({ ...o, includeFiles: !o.includeFiles }))}
+                className={`w-9 h-5 rounded-full transition-colors relative ${exportOpts.includeFiles ? 'bg-[#0c7aed]' : 'bg-white/10'}`}>
+                <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${exportOpts.includeFiles ? 'left-[18px]' : 'left-0.5'}`} />
+              </button>
+              <span className="text-white/50 text-sm">Include document files in ZIP</span>
+            </label>
+
+            <button onClick={doExport} disabled={exporting}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+              style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+              {exporting ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+              {exporting ? 'Exporting…' : 'Download ZIP'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex items-center gap-3 flex-wrap">
@@ -148,7 +271,7 @@ export default function AuditPage() {
                     <div className="text-xs text-white/20 mt-0.5">Block #{entry.blockNumber.toLocaleString()}</div>
                   )}
                 </div>
-                <StatusBadge status={entry.anchorStatus} />
+                <StatusBadge status={entry.anchorStatus || 'pending'} />
                 <div className="text-xs text-white/30">
                   {new Date(entry.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
                 </div>

@@ -138,7 +138,7 @@ export default function ProjectsPage() {
                 </div>
                 {project.budget && (
                   <div className="ml-auto text-xs font-medium text-white/50">
-                    {project.currency} {project.budget.toLocaleString()}
+                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: project.currency || 'USD', minimumFractionDigits: 0 }).format(project.budget)}
                   </div>
                 )}
               </div>

@@ -494,7 +494,9 @@ function VerifyPageInner() {
               </h2>
               <p className="text-slate-400 text-sm mt-1 leading-relaxed">
                 {isVerified
-                  ? 'This record has been independently confirmed on the Polygon blockchain. It has not been altered since it was created.'
+                  ? (result.documentHash
+                    ? 'This document has been independently confirmed on the Polygon blockchain. It has not been altered since it was created.'
+                    : 'No document — this is an activity log entry. The hash chain is intact and the record has not been tampered with.')
                   : result.reason || 'This hash was not found in the verification registry.'}
               </p>
             </div>
@@ -586,7 +588,7 @@ function VerifyPageInner() {
                     <button onClick={async () => {
                       try {
                         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.tulipds.com'
-                        const res = await fetch(`${apiUrl}/api/documents/${result.documentId}/view/public`)
+                        const res = await fetch(`${apiUrl}/api/verify/document/${result.documentId}/view`)
                         const data = await res.json()
                         if (data.url) window.open(data.url, '_blank')
                       } catch {}

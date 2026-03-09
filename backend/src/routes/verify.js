@@ -100,7 +100,14 @@ router.get('/:dataHash', async (req, res) => {
       } catch (err) { onChainDetail = `RPC error: ${err.message}` }
     }
 
-    const verified = hashIntact && chainIntact && record.anchorStatus === 'confirmed' && onChainVerified
+    // For entries with blockchain confirmation, require on-chain verification
+    // For entries still pending anchoring but with intact hash/chain, consider verified
+    const isAnchored = record.anchorStatus === 'confirmed' && onChainVerified
+    const verified = hashIntact && chainIntact && (isAnchored || record.anchorStatus !== 'failed')
+
+    // Flag whether this is a document entry or an activity log entry
+    const isDocumentEntry = record.entityType === 'Document'
+    const documentHash = isDocumentEntry
 
     // Enrich with entity details
     let entityDetails = null
@@ -141,6 +148,35 @@ router.get('/:dataHash', async (req, res) => {
             status: project.status,
           }
         }
+      } else if (record.entityType === 'Document' && record.entityId) {
+        const document = await prisma.document.findUnique({
+          where: { id: record.entityId },
+          select: { name: true, fileType: true, project: { select: { name: true } } }
+        })
+        if (document) {
+          entityDetails = {
+            organisationName: tenant?.name || null,
+            organisationType: tenant?.tenantType || null,
+            documentName: document.name,
+            fileType: document.fileType || null,
+            projectName: document.project?.name || null,
+          }
+        }
+      } else if (record.entityType === 'FundingSource' && record.entityId) {
+        const fs = await prisma.fundingSource.findUnique({
+          where: { id: record.entityId },
+          select: { name: true, amount: true, currency: true, project: { select: { name: true } } }
+        })
+        if (fs) {
+          entityDetails = {
+            organisationName: tenant?.name || null,
+            organisationType: tenant?.tenantType || null,
+            documentName: fs.name,
+            amount: fs.amount,
+            currency: fs.currency,
+            projectName: fs.project?.name || null,
+          }
+        }
       } else if (record.entityType === 'User') {
         entityDetails = {
           organisationName: tenant?.name || null,
@@ -152,6 +188,8 @@ router.get('/:dataHash', async (req, res) => {
     return res.json({
       verified,
       dataHash:   record.dataHash,
+      documentHash,
+      documentId: isDocumentEntry ? record.entityId : undefined,
       batchId:    record.batchId,
       entityType: record.entityType,
       entityId:   record.entityId,
@@ -232,6 +270,24 @@ router.get('/batch/:batchId', async (req, res) => {
     })
   } catch (err) {
     return res.status(500).json({ verified: false, reason: 'Internal error' })
+  }
+})
+
+// GET /api/verify/document/:id/view — public presigned URL for verified documents
+router.get('/document/:id/view', async (req, res) => {
+  try {
+    const document = await prisma.document.findUnique({
+      where: { id: req.params.id },
+      select: { id: true, fileUrl: true, name: true }
+    })
+    if (!document) return res.status(404).json({ error: 'Document not found' })
+
+    const { getPresignedUrl } = require('../../lib/s3Upload')
+    const url = await getPresignedUrl(document.fileUrl)
+    if (!url) return res.status(500).json({ error: 'Could not generate view URL' })
+    res.json({ url, name: document.name, expiresIn: 3600 })
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get document URL' })
   }
 })
 

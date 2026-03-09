@@ -28,8 +28,7 @@ exports.getProjects = async (req, res) => {
         take,
         include: {
           fundingSources: true,
-          expenses:       true,
-          _count: { select: { documents: true } }
+          _count: { select: { documents: true, expenses: true } }
         },
         orderBy: { createdAt: 'desc' }
       }),

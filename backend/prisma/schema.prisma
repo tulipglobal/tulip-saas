@@ -237,6 +237,7 @@ model Expense {
   fundingSource   FundingSource? @relation(fields: [fundingSourceId], references: [id])
   project         Project       @relation(fields: [projectId], references: [id])
   tenant          Tenant        @relation(fields: [tenantId], references: [id])
+  documents       Document[]
 
   @@index([tenantId])
   @@index([projectId])
@@ -245,21 +246,30 @@ model Expense {
 }
 
 model Document {
-  id           String   @id @default(uuid())
-  name         String
-  fileUrl      String
-  fileType     String?
-  projectId    String?
-  tenantId     String
-  uploadedById String?
-  uploadedAt   DateTime @default(now())
-  project      Project? @relation(fields: [projectId], references: [id])
-  tenant       Tenant   @relation(fields: [tenantId], references: [id])
-  uploadedBy   User?    @relation(fields: [uploadedById], references: [id])
+  id            String   @id @default(uuid())
+  name          String
+  description   String?
+  fileUrl       String
+  fileType      String?
+  fileSize      Int?
+  sha256Hash    String?
+  documentType  String?
+  documentLevel String?
+  projectId     String?
+  expenseId     String?
+  tenantId      String
+  uploadedById  String?
+  uploadedAt    DateTime @default(now())
+  project       Project? @relation(fields: [projectId], references: [id])
+  expense       Expense? @relation(fields: [expenseId], references: [id])
+  tenant        Tenant   @relation(fields: [tenantId], references: [id])
+  uploadedBy    User?    @relation(fields: [uploadedById], references: [id])
 
   @@index([tenantId])
   @@index([projectId])
+  @@index([expenseId])
   @@index([uploadedById])
+  @@index([sha256Hash])
 }
 
 model AuditLog {

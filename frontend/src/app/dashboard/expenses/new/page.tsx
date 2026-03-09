@@ -7,22 +7,28 @@ import { ArrowLeft, Save } from 'lucide-react'
 import { apiGet, apiPost } from '@/lib/api'
 
 interface Project { id: string; name: string }
+interface FundingAgreement { id: string; title: string; currency: string; totalAmount: number; donor: { name: string } | null }
 
 export default function NewExpensePage() {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [projects, setProjects] = useState<Project[]>([])
+  const [agreements, setAgreements] = useState<FundingAgreement[]>([])
   const [form, setForm] = useState({
     title: '', amount: '', currency: 'USD', category: '',
     vendor: '', expenseDate: new Date().toISOString().split('T')[0],
-    projectId: '', notes: ''
+    projectId: '', fundingAgreementId: '', notes: ''
   })
 
   useEffect(() => {
     apiGet('/api/projects?limit=100')
       .then(r => r.ok ? r.json() : { items: [] })
       .then(d => setProjects(d.data ?? d.items ?? []))
+      .catch(() => {})
+    apiGet('/api/funding-agreements?limit=100')
+      .then(r => r.ok ? r.json() : { data: [] })
+      .then(d => setAgreements(d.data ?? []))
       .catch(() => {})
   }, [])
 
@@ -41,6 +47,7 @@ export default function NewExpensePage() {
         vendor: form.vendor || null,
         expenseDate: form.expenseDate,
         projectId: form.projectId || null,
+        fundingAgreementId: form.fundingAgreementId || null,
         notes: form.notes || null,
       })
       if (res.ok) { router.push('/dashboard/expenses') }
@@ -123,6 +130,14 @@ export default function NewExpensePage() {
               {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </div>
+        </div>
+
+        <div>
+          <label className={labelCls}>Funding Source</label>
+          <select value={form.fundingAgreementId} onChange={e => set('fundingAgreementId', e.target.value)} className={inputCls}>
+            <option value="">No funding source</option>
+            {agreements.map(a => <option key={a.id} value={a.id}>{a.title}{a.donor ? ` (${a.donor.name})` : ''}</option>)}
+          </select>
         </div>
 
         <div>

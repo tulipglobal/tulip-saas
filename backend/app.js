@@ -16,7 +16,7 @@ const logger       = require('./lib/logger')
 
 const app = express()
 const cors = require('cors')
-app.use(cors({ origin: ['http://localhost:3000', 'https://tulipds.com', 'https://www.tulipds.com', 'https://donor.tulipds.com'], credentials: true }))
+app.use(cors({ origin: ['http://localhost:3000', 'https://tulipds.com', 'https://www.tulipds.com', 'https://app.tulipds.com', 'https://donor.tulipds.com'], credentials: true }))
 app.set('trust proxy', 1)
 app.use(express.json())
 app.use(require('./middleware/requestLogger'))

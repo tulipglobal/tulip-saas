@@ -33,6 +33,90 @@ function hashRecord(record) {
   return crypto.createHash('sha256').update(canonical).digest('hex')
 }
 
+// ── Static / multi-segment routes MUST come before /:dataHash catch-all ──
+
+// GET /api/verify/document/:id/view — public presigned URL for verified documents
+router.get('/document/:id/view', async (req, res) => {
+  try {
+    const document = await prisma.document.findUnique({
+      where: { id: req.params.id },
+      select: { id: true, fileUrl: true, name: true }
+    })
+    if (!document) return res.status(404).json({ error: 'Document not found' })
+
+    const { getPresignedUrl } = require('../../lib/s3Upload')
+    const url = await getPresignedUrl(document.fileUrl)
+    if (!url) return res.status(500).json({ error: 'Could not generate view URL' })
+    res.json({ url, name: document.name, expiresIn: 3600 })
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get document URL' })
+  }
+})
+
+/**
+ * @openapi
+ * /api/verify/batch/{batchId}:
+ *   get:
+ *     tags: [Verify]
+ *     summary: Verify all entries in an anchor batch
+ *     description: |
+ *       Public endpoint — no authentication required.
+ *       Checks chain integrity across all records in the batch
+ *       and confirms the shared blockchain TX on Polygon.
+ *     security: []
+ *     parameters:
+ *       - name: batchId
+ *         in: path
+ *         required: true
+ *         description: Merkle root hash used as the batch identifier
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Batch verification result
+ */
+router.get('/batch/:batchId', async (req, res) => {
+  const { batchId } = req.params
+  try {
+    const records = await prisma.auditLog.findMany({
+      where:   { batchId },
+      orderBy: { createdAt: 'asc' },
+      select:  { id:true, dataHash:true, prevHash:true, entityType:true, entityId:true,
+                 action:true, anchorStatus:true, blockchainTx:true, blockNumber:true,
+                 blockHash:true, ancheredAt:true, createdAt:true },
+    })
+
+    if (records.length === 0) return res.json({ verified: false, reason: 'Batch not found', batchId })
+
+    let chainBroken = false
+    for (let i = 1; i < records.length; i++) {
+      if (records[i].prevHash !== records[i-1].dataHash) { chainBroken = true; break }
+    }
+
+    const allConfirmed = records.every(r => r.anchorStatus === 'confirmed')
+
+    return res.json({
+      verified: allConfirmed && !chainBroken,
+      batchId,
+      recordCount:  records.length,
+      anchorStatus: allConfirmed ? 'confirmed' : 'partial',
+      chainIntact:  !chainBroken,
+      blockchain: {
+        txHash: records[0].blockchainTx, blockNumber: records[0].blockNumber,
+        blockHash: records[0].blockHash, ancheredAt: records[0].ancheredAt,
+      },
+      records: records.map(r => ({
+        id: r.id, dataHash: r.dataHash, entityType: r.entityType,
+        entityId: r.entityId, action: r.action, anchorStatus: r.anchorStatus, createdAt: r.createdAt,
+      })),
+    })
+  } catch (err) {
+    return res.status(500).json({ verified: false, reason: 'Internal error' })
+  }
+})
+
+// ── Catch-all hash lookup (must be LAST single-param route) ──
+
 /**
  * @openapi
  * /api/verify/{dataHash}:
@@ -208,86 +292,6 @@ router.get('/:dataHash', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ verified: false, reason: 'Internal error',
       error: process.env.NODE_ENV === 'development' ? err.message : undefined })
-  }
-})
-
-/**
- * @openapi
- * /api/verify/batch/{batchId}:
- *   get:
- *     tags: [Verify]
- *     summary: Verify all entries in an anchor batch
- *     description: |
- *       Public endpoint — no authentication required.
- *       Checks chain integrity across all records in the batch
- *       and confirms the shared blockchain TX on Polygon.
- *     security: []
- *     parameters:
- *       - name: batchId
- *         in: path
- *         required: true
- *         description: Merkle root hash used as the batch identifier
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Batch verification result
- */
-router.get('/batch/:batchId', async (req, res) => {
-  const { batchId } = req.params
-  try {
-    const records = await prisma.auditLog.findMany({
-      where:   { batchId },
-      orderBy: { createdAt: 'asc' },
-      select:  { id:true, dataHash:true, prevHash:true, entityType:true, entityId:true,
-                 action:true, anchorStatus:true, blockchainTx:true, blockNumber:true,
-                 blockHash:true, ancheredAt:true, createdAt:true },
-    })
-
-    if (records.length === 0) return res.json({ verified: false, reason: 'Batch not found', batchId })
-
-    let chainBroken = false
-    for (let i = 1; i < records.length; i++) {
-      if (records[i].prevHash !== records[i-1].dataHash) { chainBroken = true; break }
-    }
-
-    const allConfirmed = records.every(r => r.anchorStatus === 'confirmed')
-
-    return res.json({
-      verified: allConfirmed && !chainBroken,
-      batchId,
-      recordCount:  records.length,
-      anchorStatus: allConfirmed ? 'confirmed' : 'partial',
-      chainIntact:  !chainBroken,
-      blockchain: {
-        txHash: records[0].blockchainTx, blockNumber: records[0].blockNumber,
-        blockHash: records[0].blockHash, ancheredAt: records[0].ancheredAt,
-      },
-      records: records.map(r => ({
-        id: r.id, dataHash: r.dataHash, entityType: r.entityType,
-        entityId: r.entityId, action: r.action, anchorStatus: r.anchorStatus, createdAt: r.createdAt,
-      })),
-    })
-  } catch (err) {
-    return res.status(500).json({ verified: false, reason: 'Internal error' })
-  }
-})
-
-// GET /api/verify/document/:id/view — public presigned URL for verified documents
-router.get('/document/:id/view', async (req, res) => {
-  try {
-    const document = await prisma.document.findUnique({
-      where: { id: req.params.id },
-      select: { id: true, fileUrl: true, name: true }
-    })
-    if (!document) return res.status(404).json({ error: 'Document not found' })
-
-    const { getPresignedUrl } = require('../../lib/s3Upload')
-    const url = await getPresignedUrl(document.fileUrl)
-    if (!url) return res.status(500).json({ error: 'Could not generate view URL' })
-    res.json({ url, name: document.name, expiresIn: 3600 })
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to get document URL' })
   }
 })
 

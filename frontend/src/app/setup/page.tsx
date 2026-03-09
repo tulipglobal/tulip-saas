@@ -47,10 +47,11 @@ export default function SetupWizardPage() {
     if (!token) { router.push('/login'); return }
 
     // Fetch current status — non-critical, wizard works without it
-    fetch(`${API}/api/setup/status`, { headers: authHeaders() })
+    fetch(`${API}/api/setup/status`, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+    })
       .then(r => {
-        if (r.status === 401) { router.push('/login'); return null }
-        if (!r.ok) return null // ignore server errors, wizard still works
+        if (!r.ok) return null // 401, 500, etc — wizard still works without status
         return r.json()
       })
       .then(data => {
@@ -63,7 +64,7 @@ export default function SetupWizardPage() {
         if (data.registrationNumber) setOrgForm(f => ({ ...f, registrationNumber: data.registrationNumber }))
         if (data.logoUrl) setLogoPreview(data.logoUrl)
       })
-      .catch(() => {}) // network errors are non-critical
+      .catch(() => {}) // network/CORS errors are non-critical
   }, [router])
 
   const handleOrgSubmit = async () => {

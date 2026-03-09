@@ -6,7 +6,7 @@ import Link from 'next/link'
 import {
   Shield, CheckCircle, Clock, AlertTriangle,
   TrendingUp, FileCheck, FolderOpen, Receipt,
-  ArrowUpRight, ExternalLink, Copy, Check
+  ArrowUpRight, ExternalLink, Copy, Check, Sparkles
 } from 'lucide-react'
 
 // ── Types ──────────────────────────────────────────────────
@@ -86,8 +86,14 @@ function StatCard({ icon: Icon, label, value, sub, color }: {
 export default function DashboardPage() {
   const [stats, setStats] = useState<StatsData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [trial, setTrial] = useState<{ active: boolean; daysLeft: number; plan: string } | null>(null)
 
   useEffect(() => {
+    // Fetch trial/plan status
+    apiGet('/api/auth/me').then(r => r.ok ? r.json() : null).then(data => {
+      if (data) setTrial({ active: data.trialActive, daysLeft: data.trialDaysLeft, plan: data.plan })
+    }).catch(() => {})
+
     const API = process.env.NEXT_PUBLIC_API_URL
     Promise.all([
       apiGet('/api/audit?limit=100').then(r => r.ok ? r.json() : null),
@@ -127,6 +133,46 @@ export default function DashboardPage() {
           Public Verifier
         </Link>
       </div>
+
+      {/* Trial banner */}
+      {trial?.active && trial.plan === 'FREE' && (
+        <div className="rounded-xl border p-4 flex items-center gap-4"
+          style={{ background: 'rgba(12,122,237,0.06)', borderColor: 'rgba(12,122,237,0.2)' }}>
+          <Sparkles size={20} className="text-[#369bff] shrink-0" />
+          <div className="flex-1">
+            <div className="text-sm font-medium text-white">
+              {trial.daysLeft} day{trial.daysLeft !== 1 ? 's' : ''} left in your free trial
+            </div>
+            <div className="text-xs text-white/40 mt-0.5">
+              Upgrade to unlock more documents, users, and features
+            </div>
+          </div>
+          <Link href="/dashboard/billing"
+            className="px-4 py-2 rounded-lg text-sm font-semibold text-white shrink-0"
+            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+            Upgrade
+          </Link>
+        </div>
+      )}
+
+      {/* Trial expired banner */}
+      {trial && !trial.active && trial.plan === 'FREE' && (
+        <div className="rounded-xl border p-4 flex items-center gap-4"
+          style={{ background: 'rgba(239,68,68,0.06)', borderColor: 'rgba(239,68,68,0.2)' }}>
+          <AlertTriangle size={20} className="text-red-400 shrink-0" />
+          <div className="flex-1">
+            <div className="text-sm font-medium text-white">Your free trial has expired</div>
+            <div className="text-xs text-white/40 mt-0.5">
+              You are limited to 5 documents. Upgrade to continue using all features.
+            </div>
+          </div>
+          <Link href="/dashboard/billing"
+            className="px-4 py-2 rounded-lg text-sm font-semibold text-white shrink-0"
+            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+            Upgrade Now
+          </Link>
+        </div>
+      )}
 
       {/* Integrity banner */}
       <div className="rounded-xl border p-4 flex items-center gap-4"

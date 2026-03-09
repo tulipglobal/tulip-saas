@@ -18,6 +18,11 @@ const app = express()
 const cors = require('cors')
 app.use(cors({ origin: ['http://localhost:3000', 'https://tulipds.com', 'https://www.tulipds.com', 'https://app.tulipds.com', 'https://donor.tulipds.com'], credentials: true }))
 app.set('trust proxy', 1)
+
+// Stripe webhook needs raw body BEFORE express.json() parses it
+const { handleWebhook } = require('./controllers/billingController')
+app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), handleWebhook)
+
 app.use(express.json())
 app.use(require('./middleware/requestLogger'))
 
@@ -44,6 +49,7 @@ const timestampRoutes     = require('./routes/timestampRoutes')
 const verifyRouter        = require('./src/routes/verify')
 const tenantPublicRoutes  = require('./routes/tenantPublicRoutes')
 const setupRoutes         = require('./routes/setupRoutes')
+const billingRoutes       = require('./routes/billingRoutes')
 
 app.get('/', (req, res) => res.send('Tulip API Running'))
 
@@ -83,6 +89,7 @@ app.use("/api/funding-agreements",  apiLimiter,     authenticate, tenantScope, f
 app.use("/api/donor-invites",  apiLimiter, donorInviteRoutes)
 app.use('/api/donor-auth',     authLimiter, donorAuthRoutes)
 app.use('/api/setup',          apiLimiter,  setupRoutes)
+app.use('/api/billing',        apiLimiter,  billingRoutes)
 
 app.use((err, req, res, next) => {
   logger.error('Unhandled error', { error: err.message, path: req.path })

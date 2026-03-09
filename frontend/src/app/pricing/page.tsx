@@ -11,7 +11,7 @@ const plans = [
     price: { monthly: 0, annual: 0 },
     description: 'For small NGOs getting started with verified transparency.',
     cta: 'Start free',
-    ctaHref: '/login',
+    ctaHref: '/register',
     highlight: false,
     features: [
       '1 project',
@@ -30,7 +30,7 @@ const plans = [
     price: { monthly: 19, annual: 15 },
     description: 'For growing NGOs managing up to 10 projects with donor reporting.',
     cta: 'Start 14-day trial',
-    ctaHref: '/login',
+    ctaHref: '/register',
     highlight: false,
     badge: null,
     features: [
@@ -52,7 +52,7 @@ const plans = [
     price: { monthly: 49, annual: 39 },
     description: 'For active NGOs managing multiple projects and donor reporting.',
     cta: 'Start 14-day trial',
-    ctaHref: '/login',
+    ctaHref: '/register',
     highlight: true,
     badge: 'Most popular',
     features: [
@@ -160,7 +160,7 @@ export default function PricingPage() {
         <div className="flex items-center gap-4">
           <Link href="/docs" className="text-sm text-white/50 hover:text-white transition-colors">API Docs</Link>
           <Link href="/donors" className="text-sm text-white/50 hover:text-white transition-colors">Donor Portal</Link>
-          <Link href="/login"
+          <Link href="/register"
             className="px-4 py-1.5 rounded-lg text-sm font-medium text-white"
             style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
             Get started
@@ -391,7 +391,7 @@ export default function PricingPage() {
             Free to start. No credit card required. Your first blockchain anchor in under 5 minutes.
           </p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
-            <Link href="/login"
+            <Link href="/register"
               className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium text-white"
               style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
               Start free <ArrowRight size={15} />

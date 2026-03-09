@@ -22,6 +22,11 @@ model Tenant {
   registrationNumber String?
   logoUrl            String?
   completedSetup     Boolean            @default(false)
+  stripeCustomerId     String?          @unique
+  stripeSubscriptionId String?
+  plan                 String           @default("FREE")
+  planStatus           String           @default("active")
+  trialEndsAt          DateTime?
   apiKeys            ApiKey[]
   auditLogs          AuditLog[]
   documents          Document[]

@@ -50,7 +50,8 @@ exports.register = async (req, res) => {
     const existingTenant = await prisma.tenant.findUnique({ where: { slug: baseSlug } })
     const slug = existingTenant ? `${baseSlug}-${Date.now()}` : baseSlug
 
-    // Create tenant
+    // Create tenant with 14-day free trial
+    const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
     const tenant = await prisma.tenant.create({
       data: {
         code,
@@ -61,6 +62,8 @@ exports.register = async (req, res) => {
         status: 'active',
         country: country || null,
         completedSetup: false,
+        plan: 'FREE',
+        trialEndsAt,
       }
     })
 
@@ -221,10 +224,14 @@ exports.me = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where:   { id: req.user.userId },
-      include: { roles: { include: { role: true } }, tenant: { select: { name: true, completedSetup: true } } }
+      include: { roles: { include: { role: true } }, tenant: { select: { name: true, completedSetup: true, plan: true, planStatus: true, trialEndsAt: true } } }
     })
     if (!user || user.deletedAt) return res.status(404).json({ error: 'User not found' })
-    res.json({ id: user.id, email: user.email, name: user.name, tenantId: user.tenantId, tenantName: user.tenant?.name || null, completedSetup: user.tenant?.completedSetup ?? true, createdAt: user.createdAt, roles: user.roles.map(r => r.role.name) })
+    const trialActive = user.tenant?.trialEndsAt && new Date(user.tenant.trialEndsAt) > new Date()
+    const trialDaysLeft = trialActive
+      ? Math.ceil((new Date(user.tenant.trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+      : 0
+    res.json({ id: user.id, email: user.email, name: user.name, tenantId: user.tenantId, tenantName: user.tenant?.name || null, completedSetup: user.tenant?.completedSetup ?? true, plan: user.tenant?.plan || 'FREE', planStatus: user.tenant?.planStatus || 'active', trialEndsAt: user.tenant?.trialEndsAt || null, trialActive, trialDaysLeft, createdAt: user.createdAt, roles: user.roles.map(r => r.role.name) })
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch user' })
   }

@@ -225,6 +225,7 @@ export default function BillingPage() {
                  data?.planStatus === 'past_due' ? 'Payment overdue' :
                  data?.subscription ? `Renews ${new Date(data.subscription.currentPeriodEnd * 1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` :
                  data?.trialActive ? `Trial ends ${new Date(data.trialEndsAt!).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` :
+                 currentPlan !== 'FREE' && data?.planStatus === 'active' ? 'Active' :
                  'No active subscription'}
               </div>
             </div>

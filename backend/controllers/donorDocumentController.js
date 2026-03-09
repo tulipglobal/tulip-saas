@@ -143,6 +143,34 @@ exports.getDocument = async (req, res) => {
   }
 }
 
+// GET /api/donor/documents/:id/view — returns presigned URL for donor to view the file
+exports.viewDocument = async (req, res) => {
+  try {
+    const { donorId } = req.donorUser
+    const tenantIds = await getDonorTenantIds(donorId)
+
+    const document = await prisma.document.findFirst({
+      where: {
+        id: req.params.id,
+        tenantId: { in: tenantIds },
+      },
+      select: { id: true, fileUrl: true },
+    })
+
+    if (!document) return res.status(404).json({ error: 'Document not found' })
+    if (!document.fileUrl) return res.status(404).json({ error: 'No file attached' })
+
+    const { getPresignedUrl } = require('../lib/s3Upload')
+    const url = await getPresignedUrl(document.fileUrl)
+    if (!url) return res.status(500).json({ error: 'Could not generate view URL' })
+
+    res.json({ url, expiresIn: 3600 })
+  } catch (err) {
+    console.error('[donor/documents] view error:', err)
+    res.status(500).json({ error: 'Failed to get document URL' })
+  }
+}
+
 // GET /api/donor/documents/stats
 exports.getStats = async (req, res) => {
   try {

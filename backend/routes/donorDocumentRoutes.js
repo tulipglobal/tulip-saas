@@ -7,6 +7,7 @@ const ctrl = require('../controllers/donorDocumentController')
 router.use(donorAuth)
 
 router.get('/stats', ctrl.getStats)
+router.get('/:id/view', ctrl.viewDocument)
 router.get('/:id', ctrl.getDocument)
 router.get('/', ctrl.listDocuments)
 

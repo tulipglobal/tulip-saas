@@ -23,12 +23,23 @@ export default function DonorLoginPage() {
       const res = await fetch(`${apiUrl}/api/donor-auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
       })
-      const data = await res.json()
+
+      let data
+      const text = await res.text()
+      try { data = JSON.parse(text) } catch { data = { error: text || `Server returned ${res.status}` } }
+
+      console.log('[donor-login] status:', res.status, 'response:', data)
 
       if (!res.ok) {
-        setError(data.error || 'Login failed')
+        setError(data.error || `Login failed (${res.status})`)
+        setLoading(false)
+        return
+      }
+
+      if (!data.token) {
+        setError('No token in response')
         setLoading(false)
         return
       }
@@ -36,8 +47,9 @@ export default function DonorLoginPage() {
       localStorage.setItem('donor_token', data.token)
       localStorage.setItem('donor_user', JSON.stringify(data.user))
       router.push('/donor/dashboard')
-    } catch {
-      setError('Unable to connect to server')
+    } catch (err) {
+      console.error('[donor-login] error:', err)
+      setError('Unable to connect to server. Check browser console for details.')
     } finally {
       setLoading(false)
     }

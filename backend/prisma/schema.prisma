@@ -7,25 +7,27 @@ datasource db {
 }
 
 model Tenant {
-  id             String          @id @default(uuid())
-  name           String
-  slug           String          @unique
-  status         String          @default("active")
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  code           String          @unique
-  sequence       Int
-  tenantType     String          @default("NGO")
-  apiKeys        ApiKey[]
-  auditLogs      AuditLog[]
-  documents      Document[]
-  expenses       Expense[]
-  fundingSources FundingSource[]
-  projects       Project[]
-  refreshTokens  RefreshToken[]
-  roles          Role[]
-  users          User[]
-  userRoles      UserRole[]
+  id                String             @id @default(uuid())
+  name              String
+  slug              String             @unique
+  status            String             @default("active")
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  code              String             @unique
+  sequence          Int
+  tenantType        String             @default("NGO")
+  apiKeys           ApiKey[]
+  auditLogs         AuditLog[]
+  documents         Document[]
+  expenses          Expense[]
+  fundingSources    FundingSource[]
+  projects          Project[]
+  refreshTokens     RefreshToken[]
+  roles             Role[]
+  users             User[]
+  userRoles         UserRole[]
+  fundingAgreements FundingAgreement[]
+  donorInvites      DonorInvite[]
 
   @@index([code])
   @@index([tenantType])
@@ -55,6 +57,7 @@ model User {
   refreshTokens     RefreshToken[]
   tenant            Tenant         @relation(fields: [tenantId], references: [id])
   roles             UserRole[]
+  donorInvites      DonorInvite[]
 
   @@index([tenantId])
 }
@@ -190,23 +193,26 @@ model UserRole {
 }
 
 model Project {
-  id             String          @id @default(uuid())
+  id             String           @id @default(uuid())
   name           String
   description    String?
   budget         Float?
   tenantId       String
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  status         String          @default("active")
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  status         String           @default("active")
   documents      Document[]
   expenses       Expense[]
   fundingSources FundingSource[]
-  tenant         Tenant          @relation(fields: [tenantId], references: [id])
+  tenant         Tenant           @relation(fields: [tenantId], references: [id])
+  projectFunding ProjectFunding[]
+  donorInvites   DonorInvite[]
 
   @@index([tenantId])
   @@index([createdAt])
 }
 
+// @deprecated — use FundingAgreement instead. Kept for backward compatibility.
 model FundingSource {
   id          String    @id @default(uuid())
   name        String
@@ -226,22 +232,25 @@ model FundingSource {
 }
 
 model Expense {
-  id              String        @id @default(uuid())
-  description     String
-  amount          Float
-  currency        String
-  projectId       String
-  fundingSourceId String?
-  tenantId        String
-  createdAt       DateTime      @default(now())
-  fundingSource   FundingSource? @relation(fields: [fundingSourceId], references: [id])
-  project         Project       @relation(fields: [projectId], references: [id])
-  tenant          Tenant        @relation(fields: [tenantId], references: [id])
-  documents       Document[]
+  id                 String            @id @default(uuid())
+  description        String
+  amount             Float
+  currency           String
+  projectId          String
+  fundingSourceId    String?
+  fundingAgreementId String?
+  tenantId           String
+  createdAt          DateTime          @default(now())
+  documents          Document[]
+  fundingSource      FundingSource?    @relation(fields: [fundingSourceId], references: [id])
+  fundingAgreement   FundingAgreement? @relation("ExpenseFundingAgreement", fields: [fundingAgreementId], references: [id])
+  project            Project           @relation(fields: [projectId], references: [id])
+  tenant             Tenant            @relation(fields: [tenantId], references: [id])
 
   @@index([tenantId])
   @@index([projectId])
   @@index([fundingSourceId])
+  @@index([fundingAgreementId])
   @@index([createdAt])
 }
 
@@ -249,19 +258,19 @@ model Document {
   id            String   @id @default(uuid())
   name          String
   description   String?
+  documentType  String?
+  documentLevel String   @default("project")
   fileUrl       String
   fileType      String?
   fileSize      Int?
   sha256Hash    String?
-  documentType  String?
-  documentLevel String?
-  projectId     String?
   expenseId     String?
+  projectId     String?
   tenantId      String
   uploadedById  String?
   uploadedAt    DateTime @default(now())
-  project       Project? @relation(fields: [projectId], references: [id])
   expense       Expense? @relation(fields: [expenseId], references: [id])
+  project       Project? @relation(fields: [projectId], references: [id])
   tenant        Tenant   @relation(fields: [tenantId], references: [id])
   uploadedBy    User?    @relation(fields: [uploadedById], references: [id])
 
@@ -300,4 +309,123 @@ model AuditLog {
   @@index([userId])
   @@index([batchId])
   @@index([anchorStatus])
+}
+
+// ─── Phase 6.5: Donor & Funding Model ──────────────────────
+
+model Donor {
+  id                 String             @id @default(uuid())
+  name               String
+  organisationName   String?
+  type               String             @default("FOUNDATION")
+  email              String?
+  country            String?
+  website            String?
+  registrationNumber String?
+  logoUrl            String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  donorUsers         DonorUser[]
+  fundingAgreements  FundingAgreement[]
+
+  @@index([type])
+  @@index([email])
+}
+
+model DonorUser {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  donorId      String
+  firstName    String
+  lastName     String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  donor        Donor    @relation(fields: [donorId], references: [id])
+
+  @@index([donorId])
+}
+
+model FundingAgreement {
+  id             String              @id @default(uuid())
+  donorId        String?
+  tenantId       String
+  title          String
+  type           String              @default("GRANT")
+  totalAmount    Float
+  currency       String              @default("USD")
+  startDate      DateTime?
+  endDate        DateTime?
+  interestRate   Float?
+  repayable      Boolean             @default(false)
+  status         String              @default("DRAFT")
+  notes          String?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  donor          Donor?              @relation(fields: [donorId], references: [id])
+  tenant         Tenant              @relation(fields: [tenantId], references: [id])
+  repayments     RepaymentSchedule[]
+  projectFunding ProjectFunding[]
+  expenses       Expense[]           @relation("ExpenseFundingAgreement")
+
+  @@index([donorId])
+  @@index([tenantId])
+  @@index([status])
+  @@index([type])
+}
+
+model RepaymentSchedule {
+  id                 String           @id @default(uuid())
+  fundingAgreementId String
+  dueDate            DateTime
+  amount             Float
+  status             String           @default("PENDING")
+  paidAt             DateTime?
+  notes              String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  fundingAgreement   FundingAgreement @relation(fields: [fundingAgreementId], references: [id])
+
+  @@index([fundingAgreementId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+model DonorInvite {
+  id              String   @id @default(uuid())
+  token           String   @unique
+  email           String
+  invitedByUserId String
+  inviteType      String   @default("NGO_INVITES_DONOR")
+  tenantId        String
+  projectId       String?
+  status          String   @default("PENDING")
+  expiresAt       DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  invitedBy       User     @relation(fields: [invitedByUserId], references: [id])
+  tenant          Tenant   @relation(fields: [tenantId], references: [id])
+  project         Project? @relation(fields: [projectId], references: [id])
+
+  @@index([token])
+  @@index([tenantId])
+  @@index([email])
+  @@index([status])
+}
+
+model ProjectFunding {
+  id                 String           @id @default(uuid())
+  projectId          String
+  fundingAgreementId String
+  allocatedAmount    Float
+  notes              String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  project            Project          @relation(fields: [projectId], references: [id])
+  fundingAgreement   FundingAgreement @relation(fields: [fundingAgreementId], references: [id])
+
+  @@unique([projectId, fundingAgreementId])
+  @@index([projectId])
+  @@index([fundingAgreementId])
 }

@@ -22,7 +22,7 @@ interface Document {
 
 function HashCell({ hash }: { hash: string }) {
   const [copied, setCopied] = useState(false)
-  const copy = () => { navigator.clipboard.writeText(hash); setCopied(true); setTimeout(() => setCopied(false), 1500) }
+  const copy = (e: React.MouseEvent) => { e.stopPropagation(); navigator.clipboard.writeText(hash); setCopied(true); setTimeout(() => setCopied(false), 1500) }
   return (
     <div className="flex items-center gap-1.5 group">
       <span className="hash-mono text-white/30" style={{ fontSize: 11 }}>{hash.slice(0, 10)}…{hash.slice(-6)}</span>
@@ -58,6 +58,15 @@ export default function DocumentsPage() {
       .then(d => { setDocs(d.data ?? d.items ?? []); setLoading(false) })
       .catch(() => setLoading(false))
   }, [])
+
+  const openDoc = async (docId: string) => {
+    const token = localStorage.getItem('tulip_token')
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/documents/${docId}/view`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    const data = await res.json()
+    if (data.url) window.open(data.url, '_blank')
+  }
 
   const filtered = docs.filter(d =>
     d.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -102,30 +111,31 @@ export default function DocumentsPage() {
           <div className="divide-y divide-white/5">
             {filtered.map(doc => (
               <div key={doc.id} className="grid grid-cols-[2fr_80px_1fr_1fr_1fr_60px] gap-4 items-center px-5 py-3.5 hover:bg-white/2 transition-colors">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 cursor-pointer" onClick={() => openDoc(doc.id)}>
                   <div className="w-8 h-8 rounded-lg bg-[#0c7aed]/10 flex items-center justify-center shrink-0">
                     <FileCheck size={14} className="text-[#369bff]" />
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-white/80 truncate">{doc.name}</div>
-                    {doc.fileSize && <div className="text-xs text-white/30">{(doc.fileSize / 1024).toFixed(1)} KB</div>}
+                    <div className="text-sm font-medium text-white/80 truncate hover:text-[#369bff] transition-colors">{doc.name}</div>
+                    {doc.description && <div className="text-xs text-white/30 truncate">{doc.description}</div>}
+                    {doc.fileSize && <div className="text-xs text-white/20">{(doc.fileSize / 1024).toFixed(1)} KB</div>}
                   </div>
                 </div>
                 <FileTypeBadge type={doc.fileType} />
-                <div>{doc.sha256Hash ? <HashCell hash={doc.sha256Hash} /> : <span className="text-white/20 text-xs">Pending</span>}</div>
+                <div
+                  className="cursor-pointer"
+                  onClick={() => doc.sha256Hash && window.open(`/verify?hash=${doc.sha256Hash}`, '_blank')}
+                  title="Click to verify this hash"
+                >
+                  {doc.sha256Hash ? <HashCell hash={doc.sha256Hash} /> : <span className="text-white/20 text-xs">Pending</span>}
+                </div>
                 <div className="text-xs text-white/40 truncate">{doc.project?.name ?? '—'}</div>
                 <div className="text-xs text-white/30">
                   {new Date(doc.uploadedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={async () => {
-                      const token = localStorage.getItem('tulip_token')
-                      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/documents/${doc.id}/view`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                      })
-                      const data = await res.json()
-                      if (data.url) window.open(data.url, '_blank')
-                    }} className="text-white/20 hover:text-[#34d399] transition-colors cursor-pointer bg-transparent border-none p-0" title="View document">
+                  <button onClick={() => openDoc(doc.id)}
+                    className="text-white/20 hover:text-[#34d399] transition-colors cursor-pointer bg-transparent border-none p-0" title="View document">
                     <ExternalLink size={13} />
                   </button>
                   {doc.sha256Hash && (

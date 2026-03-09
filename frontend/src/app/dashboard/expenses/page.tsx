@@ -3,7 +3,16 @@
 import { useState, useEffect } from 'react'
 import { apiGet } from '@/lib/api'
 import Link from 'next/link'
-import { Receipt, Plus, Search, ExternalLink, Copy, Check } from 'lucide-react'
+import { Receipt, Plus, Search, ExternalLink, Shield, Copy, Check, ChevronDown, ChevronUp, FileCheck, Upload } from 'lucide-react'
+import DocumentUploadSection from '@/components/DocumentUploadSection'
+
+interface Document {
+  id: string
+  name: string
+  sha256Hash: string | null
+  fileType: string | null
+  uploadedAt: string
+}
 
 interface Expense {
   id: string
@@ -18,14 +27,15 @@ interface Expense {
   dataHash: string | null
   blockchainTx: string | null
   project?: { id: string; name: string }
+  documents?: Document[]
 }
 
 function HashCell({ hash }: { hash: string }) {
   const [copied, setCopied] = useState(false)
-  const copy = () => { navigator.clipboard.writeText(hash); setCopied(true); setTimeout(() => setCopied(false), 1500) }
+  const copy = (e: React.MouseEvent) => { e.stopPropagation(); navigator.clipboard.writeText(hash); setCopied(true); setTimeout(() => setCopied(false), 1500) }
   return (
-    <div className="flex items-center gap-2 group">
-      <span className="hash-mono text-white/30 truncate max-w-[140px]">{hash}</span>
+    <div className="flex items-center gap-1.5 group">
+      <span className="hash-mono text-white/30" style={{ fontSize: 11 }}>{hash.slice(0, 10)}…{hash.slice(-6)}</span>
       <button onClick={copy} className="opacity-0 group-hover:opacity-100 transition-opacity">
         {copied ? <Check size={11} className="text-green-400" /> : <Copy size={11} className="text-white/30" />}
       </button>
@@ -42,8 +52,121 @@ function AnchorBadge({ status }: { status: string }) {
   }
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border font-medium capitalize ${map[status] ?? map.pending}`}>
-      {status}
+      {status || 'pending'}
     </span>
+  )
+}
+
+function ExpenseRow({ expense, onRefresh }: { expense: Expense; onRefresh: () => void }) {
+  const [expanded, setExpanded] = useState(false)
+
+  return (
+    <>
+      <div
+        className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_60px] gap-4 items-center px-5 py-3.5 hover:bg-white/2 transition-colors cursor-pointer"
+        onClick={() => setExpanded(e => !e)}
+      >
+        <div>
+          <Link href={`/dashboard/expenses/${expense.id}`} className="text-sm font-medium text-white/80 hover:text-cyan-400 transition-colors">{expense.title ?? expense.description}</Link>
+          <div className="flex items-center gap-2 mt-0.5">
+            {expense.project && (
+              <span className="text-xs text-[#369bff]/70">{expense.project.name}</span>
+            )}
+            {expense.vendor && <span className="text-xs text-white/30">{expense.vendor}</span>}
+            {!expense.project && !expense.vendor && expense.category && (
+              <span className="text-xs text-white/30">{expense.category}</span>
+            )}
+            {(expense.documents?.length ?? 0) > 0 && (
+              <span className="flex items-center gap-1 text-xs text-white/30">
+                <FileCheck size={10} /> {expense.documents!.length} doc{expense.documents!.length !== 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="text-sm font-medium text-white">
+          {expense.currency} {expense.amount.toLocaleString()}
+        </div>
+        <div className="text-xs text-white/40 truncate">
+          {expense.project?.name ?? '—'}
+        </div>
+        <div onClick={e => e.stopPropagation()}>
+          {expense.dataHash ? <HashCell hash={expense.dataHash} /> : <span className="text-white/20 text-xs">—</span>}
+        </div>
+        <AnchorBadge status={expense.anchorStatus} />
+        <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+          {expense.dataHash && (
+            <Link href={`/verify?hash=${expense.dataHash}`} target="_blank"
+              className="text-white/20 hover:text-[#369bff] transition-colors" title="Verify on blockchain">
+              <Shield size={13} />
+            </Link>
+          )}
+          {expense.blockchainTx && (
+            <Link href={`https://amoy.polygonscan.com/tx/${expense.blockchainTx}`} target="_blank"
+              className="text-white/20 hover:text-[#34d399] transition-colors" title="View on Polygonscan">
+              <ExternalLink size={13} />
+            </Link>
+          )}
+          <span className="text-white/20">
+            {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+          </span>
+        </div>
+      </div>
+
+      {/* Expanded panel */}
+      {expanded && (
+        <div className="px-5 pb-5 bg-white/1 border-t border-white/5">
+          <div className="pt-4 space-y-4">
+
+            {/* Documents list */}
+            {(expense.documents?.length ?? 0) > 0 && (
+              <div className="rounded-lg border border-white/8 overflow-hidden">
+                <div className="grid grid-cols-[2fr_80px_1fr_1fr_40px] gap-3 px-4 py-2 border-b border-white/8 text-xs text-white/30 uppercase tracking-wide">
+                  <span>Document</span><span>Type</span><span>Hash</span><span>Date</span><span></span>
+                </div>
+                {expense.documents!.map(doc => (
+                  <div key={doc.id} className="grid grid-cols-[2fr_80px_1fr_1fr_40px] gap-3 items-center px-4 py-2.5 border-b border-white/5 last:border-0 hover:bg-white/2">
+                    <div className="flex items-center gap-2">
+                      <FileCheck size={12} className="text-[#369bff]" />
+                      <span className="text-sm text-white/70">{doc.name}</span>
+                    </div>
+                    <span className="text-xs text-white/40 uppercase">{doc.fileType ?? '—'}</span>
+                    <div>
+                      {doc.sha256Hash
+                        ? <span className="hash-mono text-white/30" style={{ fontSize: 11 }}>{doc.sha256Hash.slice(0, 10)}…{doc.sha256Hash.slice(-6)}</span>
+                        : <span className="text-white/20 text-xs">—</span>
+                      }
+                    </div>
+                    <span className="text-xs text-white/30">{new Date(doc.uploadedAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                    <div className="flex items-center gap-2">
+                      <button onClick={async (e) => {
+                        e.stopPropagation()
+                        const token = localStorage.getItem('tulip_token')
+                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/documents/${doc.id}/view`, {
+                          headers: { Authorization: `Bearer ${token}` }
+                        })
+                        const data = await res.json()
+                        if (data.url) window.open(data.url, '_blank')
+                      }} className="text-white/20 hover:text-[#34d399] transition-colors" title="View document">
+                        <ExternalLink size={12} />
+                      </button>
+                      {doc.sha256Hash && (
+                        <Link href={`/verify?hash=${doc.sha256Hash}`} target="_blank"
+                          className="text-white/20 hover:text-[#369bff] transition-colors" title="Verify hash">
+                          <Shield size={12} />
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Upload new document */}
+            <DocumentUploadSection entityType="expense" entityId={expense.id} onUploaded={onRefresh} />
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 
@@ -52,17 +175,20 @@ export default function ExpensesPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
 
-  useEffect(() => {
+  const load = () => {
     apiGet('/api/expenses?limit=50')
       .then(r => r.ok ? r.json() : { items: [] })
       .then(d => { setExpenses(d.data ?? d.items ?? []); setLoading(false) })
       .catch(() => setLoading(false))
-  }, [])
+  }
+
+  useEffect(() => { load() }, [])
 
   const filtered = expenses.filter(e =>
-    ( e.title ?? e.description ?? '').toLowerCase().includes(search.toLowerCase()) ||
+    (e.title ?? e.description ?? '').toLowerCase().includes(search.toLowerCase()) ||
     (e.vendor ?? '').toLowerCase().includes(search.toLowerCase()) ||
-    (e.category ?? '').toLowerCase().includes(search.toLowerCase())
+    (e.category ?? '').toLowerCase().includes(search.toLowerCase()) ||
+    (e.project?.name ?? '').toLowerCase().includes(search.toLowerCase())
   )
 
   const total = filtered.reduce((sum, e) => sum + e.amount, 0)
@@ -81,16 +207,14 @@ export default function ExpensesPage() {
         </Link>
       </div>
 
-      {/* Summary */}
       {filtered.length > 0 && (
         <div className="grid grid-cols-3 gap-4">
           {[
-            { label: 'Total Logged',   value: `$${total.toLocaleString()}` },
-            { label: 'Anchored',       value: filtered.filter(e => e.anchorStatus === 'confirmed').length },
+            { label: 'Total Logged', value: `$${total.toLocaleString()}` },
+            { label: 'Anchored', value: filtered.filter(e => e.anchorStatus === 'confirmed').length },
             { label: 'Pending Anchor', value: filtered.filter(e => e.anchorStatus === 'pending').length },
           ].map(({ label, value }) => (
-            <div key={label} className="rounded-xl border border-white/8 px-5 py-4"
-              style={{ background: 'rgba(255,255,255,0.02)' }}>
+            <div key={label} className="rounded-xl border border-white/8 px-5 py-4" style={{ background: 'rgba(255,255,255,0.02)' }}>
               <div className="text-xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>{value}</div>
               <div className="text-xs text-white/40 mt-1">{label}</div>
             </div>
@@ -104,10 +228,9 @@ export default function ExpensesPage() {
           placeholder="Search expenses..." className="bg-transparent text-sm text-white/70 placeholder-white/30 outline-none w-full" />
       </div>
 
-      <div className="rounded-xl border border-white/8 overflow-hidden"
-        style={{ background: 'rgba(255,255,255,0.02)' }}>
-        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_40px] gap-4 px-5 py-3 border-b border-white/8 text-xs text-white/30 uppercase tracking-wide font-medium">
-          <span>Expense</span><span>Amount</span><span>Project</span><span>Hash</span><span>Status</span><span/>
+      <div className="rounded-xl border border-white/8 overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)' }}>
+        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_60px] gap-4 px-5 py-3 border-b border-white/8 text-xs text-white/30 uppercase tracking-wide font-medium">
+          <span>Expense</span><span>Amount</span><span>Project</span><span>Hash</span><span>Status</span><span>Actions</span>
         </div>
 
         {loading ? (
@@ -121,30 +244,12 @@ export default function ExpensesPage() {
         ) : (
           <div className="divide-y divide-white/5">
             {filtered.map(expense => (
-              <div key={expense.id} className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_40px] gap-4 items-center px-5 py-3.5 hover:bg-white/2 transition-colors">
-                <div>
-                  <Link href={`/dashboard/expenses/${expense.id}`} className="text-sm font-medium text-white/80 hover:text-cyan-400 transition-colors">{expense.title ?? expense.description}</Link>
-                  <div className="text-xs text-white/30 mt-0.5">{expense.vendor ?? expense.category ?? '—'}</div>
-                </div>
-                <div className="text-sm font-medium text-white">
-                  {expense.currency} {expense.amount.toLocaleString()}
-                </div>
-                <div className="text-xs text-white/40 truncate">
-                  {expense.project?.name ?? '—'}
-                </div>
-                <div>{expense.dataHash ? <HashCell hash={expense.dataHash} /> : <span className="text-white/20 text-xs">—</span>}</div>
-                <AnchorBadge status={expense.anchorStatus} />
-                {expense.blockchainTx ? (
-                  <Link href={`https://amoy.polygonscan.com/tx/${expense.blockchainTx}`} target="_blank"
-                    className="text-white/20 hover:text-[#369bff] transition-colors">
-                    <ExternalLink size={13} />
-                  </Link>
-                ) : <span />}
-              </div>
+              <ExpenseRow key={expense.id} expense={expense} onRefresh={load} />
             ))}
           </div>
         )}
       </div>
+      <p className="text-xs text-white/20 text-center">Click any expense row to view documents and upload receipts</p>
     </div>
   )
 }

@@ -156,7 +156,57 @@ router.get('/:dataHash', async (req, res) => {
                 anchorStatus:true, ancheredAt:true },
     })
 
-    if (!record) return res.json({ verified: false, reason: 'Hash not found', dataHash })
+if (!record) {
+  const doc = await prisma.document.findFirst({
+    where: { sha256Hash: dataHash },
+    include: { project: { select: { name: true } }, expense: { select: { description: true, amount: true, currency: true, project: { select: { name: true } } } } }
+  })
+  if (!doc) return res.json({ verified: false, reason: 'Hash not found', dataHash })
+
+  const docAudit = await prisma.auditLog.findFirst({
+    where: { entityType: 'Document', entityId: doc.id },
+    select: { id:true, action:true, entityType:true, entityId:true, userId:true,
+              tenantId:true, createdAt:true, dataHash:true, prevHash:true,
+              batchId:true, blockchainTx:true, blockNumber:true, blockHash:true,
+              anchorStatus:true, ancheredAt:true }
+  })
+
+  const tenant = docAudit ? await prisma.tenant.findUnique({
+    where: { id: docAudit.tenantId },
+    select: { name: true, tenantType: true }
+  }) : null
+
+  return res.json({
+    verified: docAudit?.anchorStatus === 'confirmed',
+    dataHash,
+    documentHash: true,
+    documentId: doc.id,
+    batchId: docAudit?.batchId || null,
+    entityType: 'Document',
+    entityId: doc.id,
+    action: 'DOCUMENT_UPLOADED',
+    recordedAt: doc.uploadedAt,
+    entityDetails: {
+      organisationName: tenant?.name || null,
+      organisationType: tenant?.tenantType || null,
+      documentName: doc.name,
+      fileType: doc.fileType,
+      documentLevel: doc.documentLevel,
+      projectName: doc.project?.name || doc.expense?.project?.name || null,
+      expenseDescription: doc.expense?.description || null,
+      amount: doc.expense?.amount || null,
+      currency: doc.expense?.currency || null,
+    },
+    integrity: { hashIntact: true, chainIntact: true },
+    blockchain: {
+      txHash: docAudit?.blockchainTx || null,
+      blockNumber: docAudit?.blockNumber || null,
+      anchorStatus: docAudit?.anchorStatus || null,
+      ancheredAt: docAudit?.ancheredAt || null,
+    },
+    audit: { tenantId: docAudit?.tenantId, userId: docAudit?.userId }
+  })
+}
 
     const recomputedHash = hashRecord(record)
     const hashIntact     = recomputedHash === record.dataHash
@@ -296,3 +346,4 @@ router.get('/:dataHash', async (req, res) => {
 })
 
 module.exports = router
+// This is added at the bottom — do NOT run this

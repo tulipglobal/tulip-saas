@@ -208,7 +208,11 @@ export default function DashboardPage() {
                   <HashCell hash={entry.dataHash} />
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
-                  <StatusBadge status={entry.anchorStatus} />
+                  {entry.anchorStatus === 'confirmed' && entry.dataHash ? (
+                    <Link href={`/verify?hash=${entry.dataHash}`} target="_blank">
+                      <StatusBadge status={entry.anchorStatus} />
+                    </Link>
+                  ) : <StatusBadge status={entry.anchorStatus} />}
                   {entry.blockchainTx && (
                     <Link href={`https://amoy.polygonscan.com/tx/${entry.blockchainTx}`} target="_blank"
                       className="text-white/20 hover:text-[#369bff] transition-colors">

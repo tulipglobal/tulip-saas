@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { apiGet } from '@/lib/api'
+import DocumentUploadSection from '@/components/DocumentUploadSection'
 import {
   ArrowLeft, FolderOpen, DollarSign, FileText, Activity,
   CheckCircle, Clock, AlertTriangle, XCircle, ExternalLink,
@@ -271,40 +272,53 @@ export default function ProjectDetailPage() {
       )}
 
       {tab === 'documents' && (
-        <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
-          {(!project.documents || project.documents.length === 0) ? (
-            <div className="flex flex-col items-center justify-center py-16 text-white/30 gap-3">
-              <FileText size={36} className="text-white/10" />
-              <p className="text-sm">No documents uploaded yet</p>
-              <Link href="/dashboard/documents" className="text-cyan-400 hover:text-cyan-300 text-xs">+ Upload document</Link>
-            </div>
-          ) : (
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-white/10">
-                  <th className="text-left text-xs text-white/30 font-normal px-4 py-3">NAME</th>
-                  <th className="text-left text-xs text-white/30 font-normal px-4 py-3">HASH</th>
-                  <th className="text-left text-xs text-white/30 font-normal px-4 py-3">STATUS</th>
-                  <th className="text-left text-xs text-white/30 font-normal px-4 py-3">DATE</th>
-                </tr>
-              </thead>
-              <tbody>
-                {project.documents.map((doc: any) => (
-                  <tr key={doc.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                    <td className="px-4 py-3 text-sm text-white/80">{doc.name ?? doc.filename}</td>
-                    <td className="px-4 py-3">
-                      {doc.fileHash
-                        ? <span className="text-xs font-mono text-white/30">{doc.fileHash.slice(0, 12)}…</span>
-                        : <span className="text-xs text-white/20">—</span>
-                      }
-                    </td>
-                    <td className="px-4 py-3">{anchorBadge(doc.anchorStatus ?? '')}</td>
-                    <td className="px-4 py-3 text-xs text-white/30">{new Date(doc.createdAt).toLocaleDateString()}</td>
+        <div className="space-y-4">
+          <DocumentUploadSection entityType="project" entityId={id} onUploaded={() => {
+            apiGet(`/api/projects/${id}`).then(r => r.ok ? r.json() : null).then(p => { if (p) setProject(p) })
+          }} />
+          <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+            {(!project.documents || project.documents.length === 0) ? (
+              <div className="flex flex-col items-center justify-center py-12 text-white/30 gap-2">
+                <FileText size={32} className="text-white/10" />
+                <p className="text-sm">No documents yet — upload one above</p>
+              </div>
+            ) : (
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-white/10">
+                    <th className="text-left text-xs text-white/30 font-normal px-4 py-3">NAME</th>
+                    <th className="text-left text-xs text-white/30 font-normal px-4 py-3">TYPE</th>
+                    <th className="text-left text-xs text-white/30 font-normal px-4 py-3">HASH</th>
+                    <th className="text-left text-xs text-white/30 font-normal px-4 py-3">DATE</th>
+                    <th className="text-left text-xs text-white/30 font-normal px-4 py-3"></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+                </thead>
+                <tbody>
+                  {project.documents.map((doc: any) => (
+                    <tr key={doc.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                      <td className="px-4 py-3 text-sm text-white/80">{doc.name}</td>
+                      <td className="px-4 py-3 text-xs text-white/40 uppercase">{doc.fileType ?? '—'}</td>
+                      <td className="px-4 py-3">
+                        {doc.sha256Hash
+                          ? <span className="text-xs font-mono text-white/30">{doc.sha256Hash.slice(0, 12)}…</span>
+                          : <span className="text-xs text-white/20">—</span>
+                        }
+                      </td>
+                      <td className="px-4 py-3 text-xs text-white/30">{new Date(doc.uploadedAt ?? doc.createdAt).toLocaleDateString()}</td>
+                      <td className="px-4 py-3">
+                        {doc.sha256Hash && (
+                          <a href={`/verify?hash=${doc.sha256Hash}`} target="_blank"
+                            className="text-white/20 hover:text-[#369bff] transition-colors" title="Verify hash">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                          </a>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       )}
 

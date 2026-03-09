@@ -4,12 +4,14 @@ import { useState } from 'react'
 import { apiPost } from '@/lib/api'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Save } from 'lucide-react'
+import { ArrowLeft, Save, CheckCircle } from 'lucide-react'
+import DocumentUploadSection from '@/components/DocumentUploadSection'
 
 export default function NewProjectPage() {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [savedProjectId, setSavedProjectId] = useState<string | null>(null)
   const [form, setForm] = useState({
     name: '', description: '', status: 'active',
     budget: '', currency: 'USD', startDate: '', endDate: ''
@@ -22,17 +24,17 @@ export default function NewProjectPage() {
     setSaving(true); setError('')
     try {
       const res = await apiPost('/api/projects', {
-          name: form.name.trim(),
-          description: form.description || null,
-          status: form.status,
-          budget: form.budget ? parseFloat(form.budget) : null,
-          currency: form.currency,
-          startDate: form.startDate || null,
-          endDate: form.endDate || null,
+        name: form.name.trim(),
+        description: form.description || null,
+        status: form.status,
+        budget: form.budget ? parseFloat(form.budget) : null,
+        currency: form.currency,
+        startDate: form.startDate || null,
+        endDate: form.endDate || null,
       })
       if (res.ok) {
         const data = await res.json()
-        router.push('/dashboard/projects')
+        setSavedProjectId(data.id)
       } else {
         const d = await res.json()
         setError(d.message ?? 'Failed to create project')
@@ -56,78 +58,102 @@ export default function NewProjectPage() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-white/8 p-6 space-y-5"
-        style={{ background: 'rgba(255,255,255,0.02)' }}>
+      <div className="space-y-4">
+        {!savedProjectId ? (
+          <div className="rounded-xl border border-white/8 p-6 space-y-5"
+            style={{ background: 'rgba(255,255,255,0.02)' }}>
 
-        <div>
-          <label className={labelCls}>Project Name *</label>
-          <input value={form.name} onChange={e => set('name', e.target.value)}
-            placeholder="e.g. Clean Water Initiative 2026" className={inputCls} />
-        </div>
+            <div>
+              <label className={labelCls}>Project Name *</label>
+              <input value={form.name} onChange={e => set('name', e.target.value)}
+                placeholder="e.g. Clean Water Initiative 2026" className={inputCls} />
+            </div>
 
-        <div>
-          <label className={labelCls}>Description</label>
-          <textarea value={form.description} onChange={e => set('description', e.target.value)}
-            placeholder="Brief description of the project..." rows={3}
-            className={inputCls + ' resize-none'} />
-        </div>
+            <div>
+              <label className={labelCls}>Description</label>
+              <textarea value={form.description} onChange={e => set('description', e.target.value)}
+                placeholder="Brief description of the project..." rows={3}
+                className={inputCls + ' resize-none'} />
+            </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className={labelCls}>Status</label>
-            <select value={form.status} onChange={e => set('status', e.target.value)} className={inputCls}>
-              <option value="active">Active</option>
-              <option value="draft">Draft</option>
-              <option value="completed">Completed</option>
-              <option value="archived">Archived</option>
-            </select>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelCls}>Status</label>
+                <select value={form.status} onChange={e => set('status', e.target.value)} className={inputCls}>
+                  <option value="active">Active</option>
+                  <option value="draft">Draft</option>
+                  <option value="completed">Completed</option>
+                  <option value="archived">Archived</option>
+                </select>
+              </div>
+              <div>
+                <label className={labelCls}>Currency</label>
+                <select value={form.currency} onChange={e => set('currency', e.target.value)} className={inputCls}>
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="GBP">GBP</option>
+                  <option value="AED">AED</option>
+                  <option value="OMR">OMR</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className={labelCls}>Budget</label>
+              <input type="number" value={form.budget} onChange={e => set('budget', e.target.value)}
+                placeholder="0.00" className={inputCls} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelCls}>Start Date</label>
+                <input type="date" value={form.startDate} onChange={e => set('startDate', e.target.value)} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>End Date</label>
+                <input type="date" value={form.endDate} onChange={e => set('endDate', e.target.value)} className={inputCls} />
+              </div>
+            </div>
+
+            {error && (
+              <div className="rounded-lg bg-red-400/10 border border-red-400/20 px-4 py-3 text-sm text-red-400">{error}</div>
+            )}
+
+            <div className="flex items-center gap-3 pt-2">
+              <button onClick={submit} disabled={saving}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white disabled:opacity-50 transition-all"
+                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                <Save size={15} />
+                {saving ? 'Creating…' : 'Create Project'}
+              </button>
+              <Link href="/dashboard/projects" className="px-5 py-2.5 rounded-lg text-sm text-white/50 hover:text-white transition-colors">
+                Cancel
+              </Link>
+            </div>
           </div>
-          <div>
-            <label className={labelCls}>Currency</label>
-            <select value={form.currency} onChange={e => set('currency', e.target.value)} className={inputCls}>
-              <option value="USD">USD</option>
-              <option value="EUR">EUR</option>
-              <option value="GBP">GBP</option>
-              <option value="AED">AED</option>
-              <option value="OMR">OMR</option>
-            </select>
-          </div>
-        </div>
-
-        <div>
-          <label className={labelCls}>Budget</label>
-          <input type="number" value={form.budget} onChange={e => set('budget', e.target.value)}
-            placeholder="0.00" className={inputCls} />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className={labelCls}>Start Date</label>
-            <input type="date" value={form.startDate} onChange={e => set('startDate', e.target.value)} className={inputCls} />
-          </div>
-          <div>
-            <label className={labelCls}>End Date</label>
-            <input type="date" value={form.endDate} onChange={e => set('endDate', e.target.value)} className={inputCls} />
-          </div>
-        </div>
-
-        {error && (
-          <div className="rounded-lg bg-red-400/10 border border-red-400/20 px-4 py-3 text-sm text-red-400">
-            {error}
+        ) : (
+          <div className="rounded-xl border border-green-500/20 bg-green-500/5 px-5 py-4 flex items-center gap-3">
+            <CheckCircle size={16} className="text-green-400" />
+            <p className="text-sm text-green-400 font-medium">Project created and anchored to blockchain ✓</p>
           </div>
         )}
 
-        <div className="flex items-center gap-3 pt-2">
-          <button onClick={submit} disabled={saving}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white disabled:opacity-50 transition-all"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
-            <Save size={15} />
-            {saving ? 'Creating…' : 'Create Project'}
-          </button>
-          <Link href="/dashboard/projects" className="px-5 py-2.5 rounded-lg text-sm text-white/50 hover:text-white transition-colors">
-            Cancel
-          </Link>
-        </div>
+        {savedProjectId && (
+          <>
+            <DocumentUploadSection entityType="project" entityId={savedProjectId} />
+            <div className="flex items-center gap-3">
+              <button onClick={() => router.push(`/dashboard/projects/${savedProjectId}`)}
+                className="px-5 py-2.5 rounded-lg text-sm font-medium text-white"
+                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                View Project
+              </button>
+              <button onClick={() => router.push('/dashboard/projects/new')}
+                className="px-5 py-2.5 rounded-lg text-sm text-white/50 hover:text-white transition-colors">
+                Create Another
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

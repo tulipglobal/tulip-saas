@@ -164,7 +164,7 @@ async function generateCertificate(result: VerifyResult, fileName?: string) {
 
   const org = result.entityDetails?.organisationName || '—'
   const project = result.entityDetails?.projectName || '—'
-  const docName = fileName || result.entityDetails?.documentName || result.entityDetails?.expenseDescription || result.action || '—'
+  const docName = result.entityDetails?.documentName || fileName || result.entityDetails?.expenseDescription || result.action || '—'
   const dateStr = result.recordedAt ? new Date(result.recordedAt).toLocaleString('en-GB', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' }) : '—'
 
   const rowY = y
@@ -511,7 +511,7 @@ function VerifyPageInner() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
                     {/* File / record name */}
-                    {(fileName || details?.documentName || details?.expenseDescription || result.action) && (
+                    {(details?.documentName || fileName || details?.expenseDescription || result.action) && (
                       <div className="sm:col-span-2">
                         <p className="text-white/30 text-xs font-medium uppercase tracking-wider mb-1.5">
                           {result.documentHash ? 'Document' : 'Record'}
@@ -519,7 +519,7 @@ function VerifyPageInner() {
                         <div className="flex items-center gap-2.5">
                           <FileText className="w-5 h-5 text-[#369bff] flex-shrink-0" />
                           <span className="text-white text-base font-medium truncate">
-                            {fileName || details?.documentName || details?.expenseDescription || result.action?.replace(/_/g, ' ')}
+                            {details?.documentName || fileName || details?.expenseDescription || result.action?.replace(/_/g, ' ')}
                           </span>
                         </div>
                       </div>
@@ -588,7 +588,7 @@ function VerifyPageInner() {
                     <button onClick={async () => {
                       try {
                         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.tulipds.com'
-                        const res = await fetch(`${apiUrl}/api/verify/document/${result.documentId}/view`)
+                        const res = await fetch(`${apiUrl}/api/documents/${result.documentId}/view/public`)
                         const data = await res.json()
                         if (data.url) window.open(data.url, '_blank')
                       } catch {}

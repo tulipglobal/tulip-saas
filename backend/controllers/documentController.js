@@ -1,4 +1,5 @@
 const tenantClient = require('../lib/tenantClient')
+const prisma = require('../lib/client')
 const { uploadToS3, computeSHA256 } = require('../lib/s3Upload')
 const { createAuditLog } = require('../services/auditService')
 const { notifyDocumentUploaded, notifyDonorsNewDocument } = require('../services/emailNotificationService')
@@ -93,6 +94,12 @@ exports.createDocument = async (req, res) => {
       if (!expense) return res.status(404).json({ error: 'Expense not found' })
     }
 
+    // Check if user is admin — admins get auto-approved docs
+    const adminRole = await prisma.userRole.findFirst({
+      where: { userId: req.user.userId, tenantId: req.user.tenantId, role: { name: 'admin' } },
+    })
+    const isUserAdmin = !!adminRole
+
     const document = await db.document.create({
       data: {
         name,
@@ -108,12 +115,28 @@ exports.createDocument = async (req, res) => {
         uploadedById: req.user.userId,
         category: category || null,
         expiryDate: (category && isKeyCategory(category) && expiryDate) ? new Date(expiryDate) : null,
+        approvalStatus: isUserAdmin ? 'approved' : 'pending_review',
       },
       include: {
         project: { select: { id: true, name: true } },
         expense: { select: { id: true, description: true, amount: true } }
       }
     })
+
+    // Non-admin uploads: create workflow task for approval
+    if (!isUserAdmin) {
+      prisma.workflowTask.create({
+        data: {
+          tenantId: req.user.tenantId,
+          type: 'document_approval',
+          title: `Document approval: ${name}`,
+          description: `New document "${name}" uploaded and requires review.`,
+          entityId: document.id,
+          entityType: 'document',
+          submittedBy: req.user.userId,
+        },
+      }).catch(err => console.error('[workflow] auto-create task failed:', err.message))
+    }
 
     // Create audit log entry for blockchain anchoring
     await createAuditLog({

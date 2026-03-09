@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { apiGet } from '@/lib/api'
 import {
   LayoutDashboard, FolderOpen, FileCheck, Receipt, Banknote,
   Key, Webhook, BarChart3, Settings, LogOut, Code2, CreditCard, Users,
-  ChevronLeft, ChevronRight, Shield, Bell, Search, Menu, X
+  ChevronLeft, ChevronRight, Shield, Bell, Search, Menu, X, ListChecks
 } from 'lucide-react'
 import { clsx } from 'clsx'
 
@@ -18,6 +19,7 @@ const nav = [
   { label: 'Expenses',  href: '/dashboard/expenses',  icon: Receipt },
   { label: 'Audit Log', href: '/dashboard/audit',     icon: Shield },
   { label: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+  { label: 'Workflow',  href: '/dashboard/workflow',  icon: ListChecks },
   { label: 'Billing',   href: '/dashboard/billing',   icon: CreditCard },
   { label: 'Team',      href: '/dashboard/team',      icon: Users },
   { label: 'API Keys',  href: '/dashboard/api-keys',  icon: Key },
@@ -29,8 +31,17 @@ const nav = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [pendingCount, setPendingCount] = useState(0)
   const pathname = usePathname()
   const router = useRouter()
+
+  // Fetch workflow pending count
+  useEffect(() => {
+    apiGet('/api/workflow/summary')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setPendingCount((d.pending || 0) + (d.inReview || 0)) })
+      .catch(() => {})
+  }, [pathname])
 
   // Close mobile sidebar on route change
   useEffect(() => { setMobileOpen(false) }, [pathname])
@@ -94,14 +105,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
           return (
             <Link key={href} href={href} className={clsx(
-              'flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg mb-0.5 transition-all group',
+              'relative flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg mb-0.5 transition-all group',
               active
                 ? 'bg-[#0c7aed]/20 text-[#369bff]'
                 : 'text-white/50 hover:text-white hover:bg-white/5'
             )}>
               <Icon size={18} className="shrink-0" />
               {(!collapsed || mobileOpen) && <span className="text-sm font-medium">{label}</span>}
-              {active && (!collapsed || mobileOpen) && (
+              {label === 'Workflow' && pendingCount > 0 && (!collapsed || mobileOpen) && (
+                <span className="ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-yellow-400/15 text-yellow-400 leading-none">{pendingCount}</span>
+              )}
+              {label === 'Workflow' && pendingCount > 0 && collapsed && !mobileOpen && (
+                <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-yellow-400" />
+              )}
+              {active && (!collapsed || mobileOpen) && label !== 'Workflow' && (
+                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#369bff]" />
+              )}
+              {active && (!collapsed || mobileOpen) && label === 'Workflow' && pendingCount === 0 && (
                 <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#369bff]" />
               )}
             </Link>

@@ -25,8 +25,25 @@ interface Document {
   sha256Hash: string | null
   fileUrl: string
   uploadedAt: string
+  approvalStatus?: string
   project?: { id: string; name: string }
   expense?: { id: string; description: string; amount: number; currency: string } | null
+}
+
+function ApprovalBadge({ status }: { status?: string }) {
+  if (!status || status === 'approved') return null
+  const map: Record<string, string> = {
+    pending_review: 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20',
+    rejected: 'bg-red-400/10 text-red-400 border-red-400/20',
+  }
+  const labels: Record<string, string> = {
+    pending_review: 'Pending Review', rejected: 'Rejected',
+  }
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] border font-medium ${map[status] ?? 'bg-white/5 text-white/40 border-white/10'}`}>
+      {labels[status] ?? status}
+    </span>
+  )
 }
 
 function HashCell({ hash }: { hash: string }) {
@@ -165,11 +182,15 @@ export default function DocumentsPage() {
                     <FileCheck size={14} className="text-[#369bff]" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium text-white/80 truncate hover:text-[#369bff] transition-colors">{doc.name}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-white/80 truncate hover:text-[#369bff] transition-colors">{doc.name}</span>
+                      <span className="hidden lg:inline-flex"><ApprovalBadge status={doc.approvalStatus} /></span>
+                    </div>
                     {doc.description && <div className="text-xs text-white/30 truncate">{doc.description}</div>}
                     {/* Mobile-only meta row */}
                     <div className="flex flex-wrap items-center gap-2 mt-1 lg:hidden">
                       <FileTypeBadge type={doc.fileType} />
+                      <ApprovalBadge status={doc.approvalStatus} />
                       <CategoryBadge category={doc.category} />
                       <ExpiryCell doc={doc} />
                       {doc.project?.name && <span className="text-xs text-white/40">{doc.project.name}</span>}

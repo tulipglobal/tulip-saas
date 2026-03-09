@@ -1,6 +1,7 @@
 const { createAuditLog } = require('../services/auditService')
 const { notifyExpenseAdded } = require('../services/emailNotificationService')
 const { dispatch: webhookDispatch } = require('../services/webhookService')
+const prisma = require('../lib/client')
 // ─────────────────────────────────────────────────────────────
 //  controllers/expenseController.js — v2
 //  ✔ Paginated list with ?page, ?limit, ?projectId filter
@@ -62,9 +63,23 @@ exports.createExpense = async (req, res) => {
         currency:        currency || 'USD',
         projectId:       projectId || null,
         fundingSourceId: fundingSourceId || null,
+        approvalStatus:  'pending_review',
       }
     })
     await createAuditLog({ action: 'EXPENSE_CREATED', entityType: 'Expense', entityId: expense.id, userId: req.user.id, tenantId: req.user.tenantId }).catch(() => {})
+
+    // Auto-create workflow task for expense approval
+    prisma.workflowTask.create({
+      data: {
+        tenantId: req.user.tenantId,
+        type: 'expense_approval',
+        title: `Expense approval: ${expenseTitle}`,
+        description: `New expense of ${currency || 'USD'} ${parseFloat(amount).toLocaleString()} requires review.`,
+        entityId: expense.id,
+        entityType: 'expense',
+        submittedBy: req.user.userId,
+      },
+    }).catch(err => console.error('[workflow] auto-create expense task failed:', err.message))
 
     // Notify admin (non-blocking)
     notifyExpenseAdded({

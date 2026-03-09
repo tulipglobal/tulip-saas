@@ -24,10 +24,27 @@ interface Expense {
   vendor: string | null
   expenseDate: string
   anchorStatus: string
+  approvalStatus?: string
   dataHash: string | null
   blockchainTx: string | null
   project?: { id: string; name: string }
   documents?: Document[]
+}
+
+function ApprovalBadge({ status }: { status?: string }) {
+  if (!status || status === 'approved') return null
+  const map: Record<string, string> = {
+    pending_review: 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20',
+    rejected: 'bg-red-400/10 text-red-400 border-red-400/20',
+  }
+  const labels: Record<string, string> = {
+    pending_review: 'Pending Review', rejected: 'Rejected',
+  }
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] border font-medium ${map[status] ?? 'bg-white/5 text-white/40 border-white/10'}`}>
+      {labels[status] ?? status}
+    </span>
+  )
 }
 
 function HashCell({ hash }: { hash: string }) {
@@ -93,6 +110,7 @@ function ExpenseRow({ expense, onRefresh }: { expense: Expense; onRefresh: () =>
           </div>
           {/* Mobile-only status row */}
           <div className="flex items-center gap-2 mt-1.5 lg:hidden">
+            <ApprovalBadge status={expense.approvalStatus} />
             <AnchorBadge status={expense.anchorStatus} />
             {expense.dataHash && (
               <Link href={`/verify?hash=${expense.dataHash}`} target="_blank"
@@ -117,7 +135,10 @@ function ExpenseRow({ expense, onRefresh }: { expense: Expense; onRefresh: () =>
         <div className="hidden lg:block" onClick={e => e.stopPropagation()}>
           {expense.dataHash ? <HashCell hash={expense.dataHash} /> : <span className="text-white/20 text-xs">—</span>}
         </div>
-        <div className="hidden lg:block"><AnchorBadge status={expense.anchorStatus} /></div>
+        <div className="hidden lg:flex lg:items-center lg:gap-1.5">
+          <ApprovalBadge status={expense.approvalStatus} />
+          <AnchorBadge status={expense.anchorStatus} />
+        </div>
         <div className="hidden lg:flex items-center gap-2" onClick={e => e.stopPropagation()}>
           {expense.dataHash && (
             <Link href={`/verify?hash=${expense.dataHash}`} target="_blank"

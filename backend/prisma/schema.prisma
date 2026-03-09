@@ -39,6 +39,7 @@ model Tenant {
   userRoles          UserRole[]
   fundingAgreements  FundingAgreement[]
   donorInvites       DonorInvite[]
+  workflowTasks      WorkflowTask[]
 
   @@index([code])
   @@index([tenantType])
@@ -251,6 +252,7 @@ model Expense {
   fundingSourceId    String?
   fundingAgreementId String?
   tenantId           String
+  approvalStatus     String            @default("pending_review")
   createdAt          DateTime          @default(now())
   documents          Document[]
   fundingSource      FundingSource?    @relation(fields: [fundingSourceId], references: [id])
@@ -284,6 +286,7 @@ model Document {
   projectId          String?
   tenantId           String
   uploadedById       String?
+  approvalStatus     String    @default("approved")
   uploadedAt         DateTime  @default(now())
   expense            Expense?  @relation(fields: [expenseId], references: [id])
   project            Project?  @relation(fields: [projectId], references: [id])
@@ -445,4 +448,38 @@ model ProjectFunding {
   @@unique([projectId, fundingAgreementId])
   @@index([projectId])
   @@index([fundingAgreementId])
+}
+
+model WorkflowTask {
+  id          String            @id @default(uuid())
+  tenantId    String
+  type        String
+  status      String            @default("pending")
+  title       String
+  description String?
+  assignedTo  String?
+  submittedBy String
+  entityId    String
+  entityType  String
+  comments    WorkflowComment[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  resolvedAt  DateTime?
+  tenant      Tenant            @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([entityId])
+  @@index([assignedTo])
+}
+
+model WorkflowComment {
+  id        String       @id @default(uuid())
+  taskId    String
+  userId    String
+  comment   String
+  createdAt DateTime     @default(now())
+  task      WorkflowTask @relation(fields: [taskId], references: [id])
+
+  @@index([taskId])
 }

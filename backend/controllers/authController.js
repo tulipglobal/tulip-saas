@@ -220,6 +220,57 @@ exports.logout = async (req, res) => {
   }
 }
 
+// ── PATCH /api/auth/profile ────────────────────────────────────
+exports.updateProfile = async (req, res) => {
+  try {
+    const { name, email } = req.body
+    const data = {}
+    if (name !== undefined) data.name = name.trim()
+    if (email !== undefined) {
+      const existing = await prisma.user.findUnique({ where: { email } })
+      if (existing && existing.id !== req.user.userId) {
+        return res.status(400).json({ error: 'Email already in use' })
+      }
+      data.email = email.trim().toLowerCase()
+    }
+    if (Object.keys(data).length === 0) return res.status(400).json({ error: 'Nothing to update' })
+
+    const user = await prisma.user.update({
+      where: { id: req.user.userId },
+      data,
+      select: { id: true, name: true, email: true, tenantId: true, createdAt: true },
+    })
+    res.json(user)
+  } catch (err) {
+    console.error('[auth/profile]', err)
+    res.status(500).json({ error: 'Failed to update profile' })
+  }
+}
+
+// ── PATCH /api/auth/password ──────────────────────────────────
+exports.updatePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body
+    if (!currentPassword || !newPassword) return res.status(400).json({ error: 'currentPassword and newPassword are required' })
+    if (newPassword.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters' })
+
+    const user = await prisma.user.findUnique({ where: { id: req.user.userId } })
+    if (!user) return res.status(404).json({ error: 'User not found' })
+
+    const valid = await bcrypt.compare(currentPassword, user.password)
+    if (!valid) return res.status(401).json({ error: 'Current password is incorrect' })
+
+    const hashed = await bcrypt.hash(newPassword, 10)
+    await prisma.user.update({ where: { id: req.user.userId }, data: { password: hashed } })
+    await createAuditLog({ action: 'PASSWORD_CHANGED', entityType: 'User', entityId: user.id, userId: user.id, tenantId: user.tenantId }).catch(() => {})
+
+    res.json({ success: true })
+  } catch (err) {
+    console.error('[auth/password]', err)
+    res.status(500).json({ error: 'Failed to update password' })
+  }
+}
+
 exports.me = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({

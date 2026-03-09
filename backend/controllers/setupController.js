@@ -12,9 +12,10 @@ const { uploadToS3 } = require('../lib/s3Upload')
 exports.updateOrganisation = async (req, res) => {
   try {
     const { tenantId } = req.user
-    const { description, website, registrationNumber, country } = req.body
+    const { name, description, website, registrationNumber, country } = req.body
 
     const data = {}
+    if (name !== undefined) data.name = name.trim()
     if (description !== undefined) data.description = description
     if (website !== undefined) data.website = website
     if (registrationNumber !== undefined) data.registrationNumber = registrationNumber

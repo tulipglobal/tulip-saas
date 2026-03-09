@@ -42,6 +42,10 @@ export function apiPut(path: string, body: object) {
   return apiFetch(path, { method: 'PUT', body: JSON.stringify(body) })
 }
 
+export function apiPatch(path: string, body: object) {
+  return apiFetch(path, { method: 'PATCH', body: JSON.stringify(body) })
+}
+
 export function apiDelete(path: string) {
   return apiFetch(path, { method: 'DELETE' })
 }

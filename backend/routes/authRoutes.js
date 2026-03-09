@@ -8,7 +8,7 @@
 const express      = require('express')
 const router       = express.Router()
 const authenticate = require('../middleware/authenticate')
-const { register, login, logout, me, refresh } = require('../controllers/authController')
+const { register, login, logout, me, refresh, updateProfile, updatePassword } = require('../controllers/authController')
 
 /**
  * @openapi
@@ -67,8 +67,10 @@ router.post('/login',    login)
 router.post('/refresh',  refresh)
 
 router.post('/register', register)
-router.post('/logout',   authenticate, logout)
-router.get('/me',        authenticate, me)
+router.post('/logout',      authenticate, logout)
+router.get('/me',           authenticate, me)
+router.patch('/profile',    authenticate, updateProfile)
+router.patch('/password',   authenticate, updatePassword)
 
 module.exports = router
 

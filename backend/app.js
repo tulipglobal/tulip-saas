@@ -50,6 +50,7 @@ const verifyRouter        = require('./src/routes/verify')
 const tenantPublicRoutes  = require('./routes/tenantPublicRoutes')
 const setupRoutes         = require('./routes/setupRoutes')
 const billingRoutes       = require('./routes/billingRoutes')
+const teamRoutes          = require('./routes/teamRoutes')
 
 app.get('/', (req, res) => res.send('Tulip API Running'))
 
@@ -90,6 +91,7 @@ app.use("/api/donor-invites",  apiLimiter, donorInviteRoutes)
 app.use('/api/donor-auth',     authLimiter, donorAuthRoutes)
 app.use('/api/setup',          apiLimiter,  setupRoutes)
 app.use('/api/billing',        apiLimiter,  billingRoutes)
+app.use('/api/team',           apiLimiter,  teamRoutes)
 
 app.use((err, req, res, next) => {
   logger.error('Unhandled error', { error: err.message, path: req.path })

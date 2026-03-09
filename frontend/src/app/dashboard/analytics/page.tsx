@@ -462,7 +462,7 @@ export default function AnalyticsPage() {
           </ChartCard>
 
           {/* Chart 4 — Expenses by Category (donut) */}
-          <ChartCard title="Expenses by Category" subtitle="All time">
+          <ChartCard title="Expenses by Project" subtitle="All time">
             {data.expensesByCategory.length === 0 ? (
               <div className="h-48 flex items-center justify-center text-white/20 text-sm">No expenses recorded yet</div>
             ) : (

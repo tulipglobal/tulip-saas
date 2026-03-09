@@ -8,29 +8,35 @@ const router = express.Router()
 const prisma = require('../lib/client')
 
 router.get('/summary', async (req, res) => {
-  try {
-    const tenantId = req.user.tenantId
-    const rangeDays = parseInt(req.query.range) || 30
-    const now = new Date()
-    const rangeStart = new Date(now)
-    rangeStart.setDate(rangeStart.getDate() - rangeDays)
+  const tenantId = req.user.tenantId
+  const rangeDays = parseInt(req.query.range) || 30
+  const now = new Date()
+  const rangeStart = new Date(now)
+  rangeStart.setDate(rangeStart.getDate() - rangeDays)
 
-    // ── Documents over time ──────────────────────────────────
+  // Each section wrapped in try/catch — one failure won't crash the rest
+
+  // ── Documents over time ──────────────────────────────────
+  let documentsOverTime = []
+  try {
     const docs = await prisma.document.findMany({
       where: { tenantId, uploadedAt: { gte: rangeStart } },
       select: { uploadedAt: true },
       orderBy: { uploadedAt: 'asc' },
     })
-
     const docsByDate = {}
     for (const d of docs) {
       const date = d.uploadedAt.toISOString().slice(0, 10)
       docsByDate[date] = (docsByDate[date] || 0) + 1
     }
-    const documentsOverTime = Object.entries(docsByDate).map(([date, count]) => ({ date, count }))
+    documentsOverTime = Object.entries(docsByDate).map(([date, count]) => ({ date, count }))
+  } catch (err) {
+    console.error('[analytics] documentsOverTime failed:', err.message)
+  }
 
-    // ── Blockchain verifications ─────────────────────────────
-    // Documents that have a matching confirmed AuditLog entry
+  // ── Blockchain verifications ─────────────────────────────
+  let blockchainVerifications = []
+  try {
     const verifiedLogs = await prisma.auditLog.findMany({
       where: {
         tenantId,
@@ -41,15 +47,19 @@ router.get('/summary', async (req, res) => {
       select: { ancheredAt: true },
       orderBy: { ancheredAt: 'asc' },
     })
-
     const verByDate = {}
     for (const v of verifiedLogs) {
       const date = v.ancheredAt.toISOString().slice(0, 10)
       verByDate[date] = (verByDate[date] || 0) + 1
     }
-    const blockchainVerifications = Object.entries(verByDate).map(([date, count]) => ({ date, count }))
+    blockchainVerifications = Object.entries(verByDate).map(([date, count]) => ({ date, count }))
+  } catch (err) {
+    console.error('[analytics] blockchainVerifications failed:', err.message)
+  }
 
-    // ── Funding vs Spent (last 6 months) ─────────────────────
+  // ── Funding vs Spent (last 6 months) ─────────────────────
+  let fundingVsSpent = []
+  try {
     const sixMonthsAgo = new Date(now)
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
 
@@ -85,84 +95,110 @@ router.get('/summary', async (req, res) => {
       if (spentByMonth[key] !== undefined) spentByMonth[key] += e.amount
     }
 
-    const fundingVsSpent = monthLabels.map(({ key, label }) => ({
+    fundingVsSpent = monthLabels.map(({ key, label }) => ({
       month: label,
       received: Math.round(fundingByMonth[key] || 0),
       spent: Math.round(spentByMonth[key] || 0),
     }))
+  } catch (err) {
+    console.error('[analytics] fundingVsSpent failed:', err.message)
+  }
 
-    // ── Expenses by category ─────────────────────────────────
-    const expenseCats = await prisma.expense.groupBy({
-      by: ['category'],
+  // ── Expenses by project ──────────────────────────────────
+  // Expense model has no category field — group by project instead
+  let expensesByCategory = []
+  try {
+    const expByProject = await prisma.expense.groupBy({
+      by: ['projectId'],
       where: { tenantId },
       _sum: { amount: true },
     })
-    const expensesByCategory = expenseCats
-      .filter(e => e.category)
-      .map(e => ({ category: e.category, amount: Math.round(e._sum.amount || 0) }))
-      .sort((a, b) => b.amount - a.amount)
 
-    // ── Donor engagement (best effort) ───────────────────────
-    // DonorUser has no tenantId — resolve via FundingAgreement
-    let donorEngagement = []
-    try {
-      const donorIds = await prisma.fundingAgreement.findMany({
-        where: { tenantId },
-        select: { donorId: true },
-        distinct: ['donorId'],
+    if (expByProject.length > 0) {
+      const projectIds = expByProject.map(e => e.projectId).filter(Boolean)
+      const projects = await prisma.project.findMany({
+        where: { id: { in: projectIds } },
+        select: { id: true, name: true },
       })
-      const ids = donorIds.map(d => d.donorId).filter(Boolean)
+      const nameMap = {}
+      for (const p of projects) nameMap[p.id] = p.name
 
-      if (ids.length > 0) {
-        const donorUsers = await prisma.donorUser.findMany({
-          where: { donorId: { in: ids } },
-          select: { createdAt: true },
-        })
-        // Use DonorUser createdAt as a proxy for logins (best we have)
-        const engByDate = {}
-        for (const du of donorUsers) {
-          const date = du.createdAt.toISOString().slice(0, 10)
-          engByDate[date] = (engByDate[date] || 0) + 1
-        }
-        donorEngagement = Object.entries(engByDate).map(([date, logins]) => ({
-          date, logins, views: 0,
+      expensesByCategory = expByProject
+        .filter(e => e.projectId)
+        .map(e => ({
+          category: nameMap[e.projectId] || 'Unknown',
+          amount: Math.round(e._sum.amount || 0),
         }))
-      }
-    } catch {
-      // Don't fail if DonorUser table doesn't exist
+        .sort((a, b) => b.amount - a.amount)
     }
+  } catch (err) {
+    console.error('[analytics] expensesByCategory failed:', err.message)
+  }
 
-    // ── Totals ───────────────────────────────────────────────
-    const [totalDocs, totalVerified, totalExpenseSum] = await Promise.all([
+  // ── Donor engagement (best effort) ───────────────────────
+  let donorEngagement = []
+  try {
+    const donorIds = await prisma.fundingAgreement.findMany({
+      where: { tenantId },
+      select: { donorId: true },
+      distinct: ['donorId'],
+    })
+    const ids = donorIds.map(d => d.donorId).filter(Boolean)
+
+    if (ids.length > 0) {
+      const donorUsers = await prisma.donorUser.findMany({
+        where: { donorId: { in: ids } },
+        select: { createdAt: true },
+      })
+      const engByDate = {}
+      for (const du of donorUsers) {
+        const date = du.createdAt.toISOString().slice(0, 10)
+        engByDate[date] = (engByDate[date] || 0) + 1
+      }
+      donorEngagement = Object.entries(engByDate).map(([date, logins]) => ({
+        date, logins, views: 0,
+      }))
+    }
+  } catch (err) {
+    console.error('[analytics] donorEngagement failed:', err.message)
+  }
+
+  // ── Totals ───────────────────────────────────────────────
+  let totals = {
+    totalDocuments: 0,
+    totalVerified: 0,
+    totalFundingReceived: 0,
+    totalFundingSpent: 0,
+    totalExpenses: 0,
+    totalDonorLogins: 0,
+  }
+  try {
+    const [totalDocs, totalVerified, totalExpenseSum, allAgreements] = await Promise.all([
       prisma.document.count({ where: { tenantId } }),
       prisma.auditLog.count({ where: { tenantId, entityType: 'Document', anchorStatus: 'confirmed' } }),
       prisma.expense.aggregate({ where: { tenantId }, _sum: { amount: true } }),
+      prisma.fundingAgreement.aggregate({ where: { tenantId }, _sum: { totalAmount: true } }),
     ])
-
-    const allAgreements = await prisma.fundingAgreement.aggregate({
-      where: { tenantId },
-      _sum: { totalAmount: true },
-    })
-
-    res.json({
-      documentsOverTime,
-      blockchainVerifications,
-      fundingVsSpent,
-      expensesByCategory,
-      donorEngagement,
-      totals: {
-        totalDocuments: totalDocs,
-        totalVerified,
-        totalFundingReceived: Math.round(allAgreements._sum.totalAmount || 0),
-        totalFundingSpent: Math.round(totalExpenseSum._sum.amount || 0),
-        totalExpenses: Math.round(totalExpenseSum._sum.amount || 0),
-        totalDonorLogins: donorEngagement.reduce((s, d) => s + d.logins, 0),
-      },
-    })
+    totals = {
+      totalDocuments: totalDocs,
+      totalVerified,
+      totalFundingReceived: Math.round(allAgreements._sum.totalAmount || 0),
+      totalFundingSpent: Math.round(totalExpenseSum._sum.amount || 0),
+      totalExpenses: Math.round(totalExpenseSum._sum.amount || 0),
+      totalDonorLogins: donorEngagement.reduce((s, d) => s + d.logins, 0),
+    }
   } catch (err) {
-    console.error('[analytics/summary]', err)
-    res.status(500).json({ error: 'Failed to fetch analytics' })
+    console.error('[analytics] totals failed:', err.message)
   }
+
+  res.json({
+    documentsOverTime,
+    blockchainVerifications,
+    fundingVsSpent,
+    expensesByCategory,
+    donorEngagement,
+    totals,
+  })
 })
 
 module.exports = router

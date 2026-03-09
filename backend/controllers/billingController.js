@@ -145,7 +145,9 @@ exports.getSubscription = async (req, res) => {
       }
     }
 
-    const trialActive = tenant.trialEndsAt && new Date(tenant.trialEndsAt) > new Date()
+    // Trial is only relevant for FREE plan — paid plans are never "on trial"
+    const isPaidPlan = tenant.plan !== 'FREE' && tenant.plan !== null
+    const trialActive = !isPaidPlan && tenant.trialEndsAt && new Date(tenant.trialEndsAt) > new Date()
     const trialDaysLeft = trialActive
       ? Math.ceil((new Date(tenant.trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
       : 0
@@ -198,6 +200,45 @@ exports.createPortalSession = async (req, res) => {
   }
 }
 
+// ── Helper: resolve plan name from Stripe price ID ───────────
+function resolvePlanFromPriceId(priceId) {
+  if (!priceId) return null
+  if (priceId === process.env.STRIPE_STARTER_PRICE_ID) return 'STARTER'
+  if (priceId === process.env.STRIPE_PRO_PRICE_ID) return 'PRO'
+  return null
+}
+
+// ── Helper: find tenantId from metadata or Stripe customer ───
+async function resolveTenantId(metadata, customerId) {
+  // Try metadata first
+  if (metadata?.tenantId) return metadata.tenantId
+
+  // Fallback: look up by stripeCustomerId
+  if (customerId) {
+    const tenant = await prisma.tenant.findFirst({ where: { stripeCustomerId: customerId } })
+    if (tenant) {
+      console.log(`[billing/webhook] Resolved tenantId from customerId=${customerId}: ${tenant.id}`)
+      return tenant.id
+    }
+  }
+  return null
+}
+
+// ── Helper: resolve plan from metadata, price ID, or subscription items ──
+function resolvePlan(metadata, subscription) {
+  // 1. Try metadata
+  if (metadata?.plan) return metadata.plan
+
+  // 2. Try price ID from subscription items
+  if (subscription?.items?.data?.length > 0) {
+    const priceId = subscription.items.data[0].price?.id
+    const mapped = resolvePlanFromPriceId(priceId)
+    if (mapped) return mapped
+  }
+
+  return 'STARTER' // safe default
+}
+
 // ── POST /api/billing/webhook ────────────────────────────────
 exports.handleWebhook = async (req, res) => {
   const sig = req.headers['stripe-signature']
@@ -210,14 +251,18 @@ exports.handleWebhook = async (req, res) => {
     return res.status(400).json({ error: 'Webhook signature verification failed' })
   }
 
+  console.log(`[billing/webhook] Received event: ${event.type} (${event.id})`)
+
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object
+        console.log('[billing/webhook] checkout.session.completed — mode:', session.mode, 'subscription:', session.subscription, 'customer:', session.customer, 'metadata:', JSON.stringify(session.metadata))
+
         if (session.mode === 'subscription' && session.subscription) {
           const sub = await stripe.subscriptions.retrieve(session.subscription)
-          const tenantId = session.metadata?.tenantId || sub.metadata?.tenantId
-          const plan = session.metadata?.plan || sub.metadata?.plan || 'STARTER'
+          const tenantId = await resolveTenantId(session.metadata, session.customer) || await resolveTenantId(sub.metadata, session.customer)
+          const plan = resolvePlan(session.metadata, sub) || resolvePlan(sub.metadata, sub)
 
           if (tenantId) {
             await prisma.tenant.update({
@@ -227,17 +272,44 @@ exports.handleWebhook = async (req, res) => {
                 stripeCustomerId: session.customer,
                 plan,
                 planStatus: 'active',
+                trialEndsAt: null,
               },
             })
-            console.log(`[billing/webhook] Subscription activated: tenant=${tenantId} plan=${plan}`)
+            console.log(`[billing/webhook] ✅ Subscription activated: tenant=${tenantId} plan=${plan} subId=${sub.id}`)
+          } else {
+            console.error('[billing/webhook] ❌ Could not resolve tenantId for checkout session:', session.id)
           }
+        }
+        break
+      }
+
+      case 'customer.subscription.created': {
+        const sub = event.data.object
+        console.log('[billing/webhook] customer.subscription.created — id:', sub.id, 'customer:', sub.customer, 'metadata:', JSON.stringify(sub.metadata))
+
+        const tenantId = await resolveTenantId(sub.metadata, sub.customer)
+        const plan = resolvePlan(sub.metadata, sub)
+
+        if (tenantId && sub.status === 'active') {
+          await prisma.tenant.update({
+            where: { id: tenantId },
+            data: {
+              stripeSubscriptionId: sub.id,
+              plan,
+              planStatus: 'active',
+              trialEndsAt: null,
+            },
+          })
+          console.log(`[billing/webhook] ✅ Subscription created: tenant=${tenantId} plan=${plan}`)
         }
         break
       }
 
       case 'customer.subscription.updated': {
         const sub = event.data.object
-        const tenantId = sub.metadata?.tenantId
+        console.log('[billing/webhook] customer.subscription.updated — id:', sub.id, 'status:', sub.status, 'metadata:', JSON.stringify(sub.metadata))
+
+        const tenantId = await resolveTenantId(sub.metadata, sub.customer)
         if (tenantId) {
           const updateData = { planStatus: sub.status }
 
@@ -245,20 +317,23 @@ exports.handleWebhook = async (req, res) => {
             updateData.planStatus = 'cancelling'
           } else if (sub.status === 'active') {
             updateData.planStatus = 'active'
+            // Also update plan from price in case it changed
+            const plan = resolvePlan(sub.metadata, sub)
+            if (plan) updateData.plan = plan
           }
 
           await prisma.tenant.update({
             where: { id: tenantId },
             data: updateData,
           })
-          console.log(`[billing/webhook] Subscription updated: tenant=${tenantId} status=${sub.status}`)
+          console.log(`[billing/webhook] ✅ Subscription updated: tenant=${tenantId} status=${sub.status}`)
         }
         break
       }
 
       case 'customer.subscription.deleted': {
         const sub = event.data.object
-        const tenantId = sub.metadata?.tenantId
+        const tenantId = await resolveTenantId(sub.metadata, sub.customer)
         if (tenantId) {
           await prisma.tenant.update({
             where: { id: tenantId },
@@ -268,7 +343,34 @@ exports.handleWebhook = async (req, res) => {
               stripeSubscriptionId: null,
             },
           })
-          console.log(`[billing/webhook] Subscription cancelled: tenant=${tenantId}`)
+          console.log(`[billing/webhook] ✅ Subscription cancelled: tenant=${tenantId}`)
+        }
+        break
+      }
+
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object
+        console.log('[billing/webhook] invoice.payment_succeeded — subscription:', invoice.subscription, 'customer:', invoice.customer, 'amount:', invoice.amount_paid)
+
+        if (invoice.subscription) {
+          const sub = await stripe.subscriptions.retrieve(invoice.subscription)
+          const tenantId = await resolveTenantId(sub.metadata, invoice.customer)
+          const plan = resolvePlan(sub.metadata, sub)
+
+          if (tenantId) {
+            await prisma.tenant.update({
+              where: { id: tenantId },
+              data: {
+                plan,
+                planStatus: 'active',
+                stripeSubscriptionId: sub.id,
+                trialEndsAt: null,
+              },
+            })
+            console.log(`[billing/webhook] ✅ Payment succeeded, plan confirmed: tenant=${tenantId} plan=${plan}`)
+          } else {
+            console.error('[billing/webhook] ❌ Could not resolve tenantId for invoice:', invoice.id)
+          }
         }
         break
       }
@@ -277,15 +379,13 @@ exports.handleWebhook = async (req, res) => {
         const invoice = event.data.object
         if (invoice.subscription) {
           const sub = await stripe.subscriptions.retrieve(invoice.subscription)
-          const tenantId = sub.metadata?.tenantId
+          const tenantId = await resolveTenantId(sub.metadata, invoice.customer)
           if (tenantId) {
             const tenant = await prisma.tenant.update({
               where: { id: tenantId },
               data: { planStatus: 'past_due' },
             })
-            console.log(`[billing/webhook] Payment failed: tenant=${tenantId}`)
-
-            // Notify admin immediately (non-blocking)
+            console.log(`[billing/webhook] ⚠️ Payment failed: tenant=${tenantId}`)
             notifyPaymentFailed({ tenantId, tenantName: tenant.name }).catch(() => {})
           }
         }
@@ -298,7 +398,7 @@ exports.handleWebhook = async (req, res) => {
 
     res.json({ received: true })
   } catch (err) {
-    console.error('[billing/webhook] Processing error:', err)
+    console.error('[billing/webhook] Processing error:', err.message, err.stack)
     res.status(500).json({ error: 'Webhook processing failed' })
   }
 }

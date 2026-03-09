@@ -278,7 +278,8 @@ exports.me = async (req, res) => {
       include: { roles: { include: { role: true } }, tenant: { select: { name: true, completedSetup: true, plan: true, planStatus: true, trialEndsAt: true } } }
     })
     if (!user || user.deletedAt) return res.status(404).json({ error: 'User not found' })
-    const trialActive = user.tenant?.trialEndsAt && new Date(user.tenant.trialEndsAt) > new Date()
+    const isPaidPlan = user.tenant?.plan && user.tenant.plan !== 'FREE'
+    const trialActive = !isPaidPlan && user.tenant?.trialEndsAt && new Date(user.tenant.trialEndsAt) > new Date()
     const trialDaysLeft = trialActive
       ? Math.ceil((new Date(user.tenant.trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
       : 0

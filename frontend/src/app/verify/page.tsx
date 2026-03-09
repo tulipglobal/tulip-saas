@@ -588,7 +588,7 @@ function VerifyPageInner() {
                     <button onClick={async () => {
                       try {
                         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.tulipds.com'
-                        const res = await fetch(`${apiUrl}/api/documents/${result.documentId}/view/public`)
+                        const res = await fetch(`${apiUrl}/api/verify/document/${result.documentId}/view`)
                         const data = await res.json()
                         if (data.url) window.open(data.url, '_blank')
                       } catch {}

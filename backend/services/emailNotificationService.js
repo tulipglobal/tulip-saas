@@ -251,6 +251,63 @@ async function notifyPaymentFailed({ tenantId, tenantName }) {
   }
 }
 
+// ── 8. New document uploaded — notify linked donors ──────────
+async function notifyDonorsNewDocument({ tenantId, documentName, projectName, category }) {
+  try {
+    // Find all donors linked to this tenant via funding agreements
+    const agreements = await prisma.fundingAgreement.findMany({
+      where: { tenantId, donorId: { not: null } },
+      select: { donorId: true },
+      distinct: ['donorId'],
+    })
+    if (agreements.length === 0) return
+
+    const donorIds = agreements.map(a => a.donorId)
+    const donorUsers = await prisma.donorUser.findMany({
+      where: { donorId: { in: donorIds }, isActive: true },
+      select: { email: true, firstName: true },
+    })
+    if (donorUsers.length === 0) return
+
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { name: true },
+    })
+    const orgName = tenant?.name || 'Your NGO partner'
+    const DONOR_URL = process.env.DONOR_URL || 'https://donor.tulipds.com'
+
+    const categoryLabels = {
+      licence: 'Licence', certificate: 'Certificate', contract: 'Contract',
+      permit: 'Permit', insurance: 'Insurance', visa: 'Visa',
+      id_document: 'ID Document', mou: 'MOU',
+    }
+
+    for (const du of donorUsers) {
+      await sendEmail({
+        to: du.email,
+        subject: `New Document Available — ${documentName}`,
+        html: wrap(`
+          <h2 style="color: #1e293b; font-size: 18px; margin: 0 0 12px;">New Document Shared</h2>
+          <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+            Hi ${du.firstName}, <strong>${orgName}</strong> has added a new document.
+          </p>
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 16px 0;">
+            <p style="color: #1e293b; font-size: 14px; margin: 0 0 4px;"><strong>${documentName}</strong></p>
+            ${category && categoryLabels[category] ? `<p style="color: #64748b; font-size: 13px; margin: 0 0 4px;">Category: ${categoryLabels[category]}</p>` : ''}
+            ${projectName ? `<p style="color: #64748b; font-size: 13px; margin: 0;">Project: ${projectName}</p>` : ''}
+          </div>
+          <p style="color: #64748b; font-size: 13px;">This document will be SHA-256 hashed and anchored to the blockchain for verification.</p>
+          ${button('View in Donor Portal', `${DONOR_URL}/donor/dashboard`)}
+        `),
+      }).catch(err => {
+        console.error(`[email-notify] donorNewDoc failed for ${du.email}:`, err.message)
+      })
+    }
+  } catch (err) {
+    console.error('[email-notify] notifyDonorsNewDocument failed:', err.message)
+  }
+}
+
 // ── Trial check cron — find tenants with trials expiring in 3 days or expired today
 async function checkTrialExpirations() {
   const now = new Date()
@@ -303,5 +360,6 @@ module.exports = {
   notifyTrialExpiringSoon,
   notifyTrialExpired,
   notifyPaymentFailed,
+  notifyDonorsNewDocument,
   checkTrialExpirations,
 }

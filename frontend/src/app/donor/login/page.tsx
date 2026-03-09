@@ -149,8 +149,7 @@ export default function DonorLoginPage() {
           </form>
 
           <p className="text-center text-white/20 text-xs mt-6">
-            Don&apos;t have an account?{' '}
-            <a href="/register" className="text-emerald-400 hover:underline">Register here</a>
+            <Link href="/donor" className="text-emerald-400 hover:underline">Back to Donor Portal</Link>
           </p>
         </div>
       </div>

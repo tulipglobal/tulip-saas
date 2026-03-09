@@ -3,7 +3,7 @@ import { apiGet } from '@/lib/api'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { FileCheck, Plus, Search, ExternalLink, Copy, Check, Shield, AlertTriangle } from 'lucide-react'
+import { FileCheck, Plus, Search, ExternalLink, Copy, Check, Shield, AlertTriangle, Users } from 'lucide-react'
 
 const KEY_DOCUMENT_CATEGORIES = ['licence','certificate','contract','permit','insurance','visa','id_document','mou']
 const CATEGORY_LABELS: Record<string, string> = {
@@ -125,6 +125,13 @@ export default function DocumentsPage() {
           style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
           <Plus size={16} /> Add Document
         </Link>
+      </div>
+
+      {/* Donor sharing info banner */}
+      <div className="rounded-xl border p-3.5 flex items-center gap-3"
+        style={{ background: 'rgba(16,185,129,0.05)', borderColor: 'rgba(16,185,129,0.15)' }}>
+        <Users size={16} className="text-emerald-400 shrink-0" />
+        <p className="text-white/50 text-xs">All documents are automatically visible to your linked donors via the Donor Portal</p>
       </div>
 
       <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 max-w-sm">

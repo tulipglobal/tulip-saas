@@ -1,7 +1,7 @@
 const tenantClient = require('../lib/tenantClient')
 const { uploadToS3, computeSHA256 } = require('../lib/s3Upload')
 const { createAuditLog } = require('../services/auditService')
-const { notifyDocumentUploaded } = require('../services/emailNotificationService')
+const { notifyDocumentUploaded, notifyDonorsNewDocument } = require('../services/emailNotificationService')
 const { KEY_DOCUMENT_CATEGORIES, isKeyCategory } = require('../lib/documentCategories')
 const multer = require('multer')
 
@@ -138,6 +138,14 @@ exports.createDocument = async (req, res) => {
       documentName: document.name,
       uploaderName: req.user.name || null,
       projectName: document.project?.name || null,
+    }).catch(() => {})
+
+    // Notify linked donors (non-blocking)
+    notifyDonorsNewDocument({
+      tenantId: req.user.tenantId,
+      documentName: document.name,
+      projectName: document.project?.name || null,
+      category: document.category || null,
     }).catch(() => {})
 
     res.status(201).json(document)

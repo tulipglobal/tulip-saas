@@ -19,7 +19,18 @@ exports.login = async (req, res) => {
 
     const donorUser = await prisma.donorUser.findUnique({
       where: { email: email.toLowerCase().trim() },
-      include: { donor: { select: { id: true, name: true, organisationName: true, type: true, logoUrl: true } } }
+      include: {
+        donor: {
+          select: {
+            id: true, name: true, organisationName: true, type: true, logoUrl: true,
+            fundingAgreements: {
+              select: { tenantId: true, tenant: { select: { name: true } } },
+              distinct: ['tenantId'],
+              take: 1,
+            },
+          },
+        },
+      },
     })
 
     if (!donorUser) return res.status(401).json({ error: 'Invalid email or password' })
@@ -34,6 +45,7 @@ exports.login = async (req, res) => {
       { expiresIn: JWT_EXPIRES }
     )
 
+    const linkedTenant = donorUser.donor?.fundingAgreements?.[0]
     res.json({
       token,
       user: {
@@ -42,7 +54,14 @@ exports.login = async (req, res) => {
         firstName: donorUser.firstName,
         lastName: donorUser.lastName,
         donorId: donorUser.donorId,
-        donor: donorUser.donor,
+        donor: {
+          id: donorUser.donor.id,
+          name: donorUser.donor.name,
+          organisationName: donorUser.donor.organisationName,
+          type: donorUser.donor.type,
+          logoUrl: donorUser.donor.logoUrl,
+        },
+        tenantName: linkedTenant?.tenant?.name || null,
       }
     })
   } catch (err) {
@@ -55,17 +74,36 @@ exports.me = async (req, res) => {
   try {
     const donorUser = await prisma.donorUser.findUnique({
       where: { id: req.donorUser.donorUserId },
-      include: { donor: { select: { id: true, name: true, organisationName: true, type: true, logoUrl: true } } }
+      include: {
+        donor: {
+          select: {
+            id: true, name: true, organisationName: true, type: true, logoUrl: true,
+            fundingAgreements: {
+              select: { tenant: { select: { name: true } } },
+              distinct: ['tenantId'],
+              take: 1,
+            },
+          },
+        },
+      },
     })
     if (!donorUser || !donorUser.isActive) return res.status(404).json({ error: 'User not found' })
 
+    const tenantName = donorUser.donor?.fundingAgreements?.[0]?.tenant?.name || null
     res.json({
       id: donorUser.id,
       email: donorUser.email,
       firstName: donorUser.firstName,
       lastName: donorUser.lastName,
       donorId: donorUser.donorId,
-      donor: donorUser.donor,
+      donor: {
+        id: donorUser.donor.id,
+        name: donorUser.donor.name,
+        organisationName: donorUser.donor.organisationName,
+        type: donorUser.donor.type,
+        logoUrl: donorUser.donor.logoUrl,
+      },
+      tenantName,
     })
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch user' })

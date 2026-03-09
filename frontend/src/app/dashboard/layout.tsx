@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, FolderOpen, FileCheck, Receipt, Banknote,
-  Key, Webhook, BarChart3, Settings, LogOut,
+  Key, Webhook, BarChart3, Settings, LogOut, Code2,
   ChevronLeft, ChevronRight, Shield, Bell, Search
 } from 'lucide-react'
 import { clsx } from 'clsx'
@@ -20,6 +20,7 @@ const nav = [
   { label: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
   { label: 'API Keys',  href: '/dashboard/api-keys',  icon: Key },
   { label: 'Webhooks',  href: '/dashboard/webhooks',  icon: Webhook },
+  { label: 'Embed',     href: '/dashboard/embed',     icon: Code2 },
   { label: 'Settings',  href: '/dashboard/settings',  icon: Settings },
 ]
 

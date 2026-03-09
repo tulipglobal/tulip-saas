@@ -1,0 +1,153 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { Shield, Mail, Lock, Eye, EyeOff } from 'lucide-react'
+
+export default function DonorLoginPage() {
+  const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    setLoading(true)
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.tulipds.com'
+      const res = await fetch(`${apiUrl}/api/donor-auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error || 'Login failed')
+        setLoading(false)
+        return
+      }
+
+      localStorage.setItem('donor_token', data.token)
+      localStorage.setItem('donor_user', JSON.stringify(data.user))
+      router.push('/donor/dashboard')
+    } catch {
+      setError('Unable to connect to server')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-[#040f1f] flex flex-col" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+
+      {/* Nav */}
+      <nav className="border-b border-white/8 bg-[#07224a]/80 backdrop-blur-md">
+        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+              <Shield className="w-4 h-4 text-white" />
+            </div>
+            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px', color: 'white' }}>
+              tulip<span style={{ color: '#369bff' }}>ds</span>
+            </span>
+            <span className="text-white/20 text-sm ml-1">| Donor Portal</span>
+          </Link>
+          <Link href="/login" className="text-white/40 text-sm hover:text-white/60 transition-colors">
+            NGO Login
+          </Link>
+        </div>
+      </nav>
+
+      {/* Login form */}
+      <div className="flex-1 flex items-center justify-center px-4 py-16">
+        <div className="w-full max-w-sm">
+
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
+              <Shield className="w-7 h-7 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>
+              Donor Portal
+            </h1>
+            <p className="text-white/40 text-sm mt-2">
+              Sign in to view your funded projects and verified documents
+            </p>
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div className="mb-4 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20">
+              <p className="text-red-400 text-sm">{error}</p>
+            </div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="text-white/40 text-xs font-medium uppercase tracking-wider mb-1.5 block">Email</label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="donor@example.com"
+                  required
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white placeholder-white/20 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/30 transition-all"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-white/40 text-xs font-medium uppercase tracking-wider mb-1.5 block">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  required
+                  className="w-full pl-11 pr-11 py-3 rounded-xl border border-white/10 bg-white/5 text-white placeholder-white/20 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/30 transition-all"
+                />
+                <button type="button" onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/20 hover:text-white/40 transition-colors">
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" disabled={loading || !email || !password}
+              className="w-full py-3 rounded-xl text-white font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
+              {loading
+                ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                : 'Sign in as Donor'
+              }
+            </button>
+          </form>
+
+          <p className="text-center text-white/20 text-xs mt-6">
+            Don&apos;t have an account? Ask your NGO partner to send you an invite.
+          </p>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="border-t border-white/5 py-4">
+        <p className="text-center text-white/15 text-xs">
+          Tulip DS &middot; Bright Bytes Technology &middot; Dubai, UAE
+        </p>
+      </footer>
+    </div>
+  )
+}

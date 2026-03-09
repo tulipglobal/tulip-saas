@@ -37,6 +37,7 @@ const metricsRoutes       = require('./routes/metricsRoutes')
 const donorRoutes             = require("./routes/donorRoutes")
 const fundingAgreementRoutes  = require("./routes/fundingAgreementRoutes")
 const donorInviteRoutes       = require("./routes/donorInviteRoutes")
+const donorAuthRoutes     = require('./routes/donorAuthRoutes')
 const apiKeyRoutes        = require('./routes/apiKeyRoutes')
 const archiveRoutes       = require('./routes/archiveRoutes')
 const timestampRoutes     = require('./routes/timestampRoutes')
@@ -79,6 +80,7 @@ app.use('/api/metrics',                    authenticate, tenantScope, metricsRou
 app.use("/api/donors",              apiLimiter,     authenticate, tenantScope, donorRoutes)
 app.use("/api/funding-agreements",  apiLimiter,     authenticate, tenantScope, fundingAgreementRoutes)
 app.use("/api/donor-invites",  apiLimiter, donorInviteRoutes)
+app.use('/api/donor-auth',     authLimiter, donorAuthRoutes)
 
 app.use((err, req, res, next) => {
   logger.error('Unhandled error', { error: err.message, path: req.path })

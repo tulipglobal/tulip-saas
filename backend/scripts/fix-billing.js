@@ -3,13 +3,12 @@
 // Usage: node scripts/fix-billing.js
 
 require('dotenv').config()
-const { PrismaClient } = require('@prisma/client')
-const prisma = new PrismaClient()
+const prisma = require('../lib/client')
 
 async function fix() {
   const user = await prisma.user.findFirst({
     where: { email: 'benzerbright@gmail.com' },
-    include: { tenant: { select: { id: true, name: true, plan: true, planStatus: true, stripeSubscriptionId: true, trialEndsAt: true } } }
+    include: { tenant: { select: { id: true, name: true, plan: true, planStatus: true, stripeSubscriptionId: true, stripeCustomerId: true, trialEndsAt: true } } }
   })
 
   if (!user) {

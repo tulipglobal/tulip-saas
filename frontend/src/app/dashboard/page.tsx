@@ -1,88 +1,129 @@
 'use client'
-import { apiGet } from '@/lib/api'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import { apiGet } from '@/lib/api'
 import {
-  Shield, CheckCircle, Clock, AlertTriangle,
-  TrendingUp, FileCheck, FolderOpen, Receipt,
-  ArrowUpRight, ExternalLink, Copy, Check, Sparkles, X
+  Shield, FolderOpen, DollarSign, Link2, FileText, Users,
+  Receipt, ArrowUpRight, Sparkles, AlertTriangle, X,
+  Upload, Clock, CheckCircle2, XCircle, ExternalLink
 } from 'lucide-react'
+import {
+  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+} from 'recharts'
 
-// ── Types ──────────────────────────────────────────────────
-interface StatsData {
-  totalDocuments: number
-  verifiedDocuments: number
-  pendingDocuments: number
-  totalProjects: number
-  totalExpenses: number
-  recentAuditLogs: AuditEntry[]
-}
-
-interface AuditEntry {
-  id: string
-  action: string
-  entityType: string
-  dataHash: string
-  anchorStatus: string
-  blockchainTx: string | null
-  createdAt: string
-}
-
-// ── Hash copy button ────────────────────────────────────────
-function HashCell({ hash }: { hash: string }) {
-  const [copied, setCopied] = useState(false)
-  const copy = () => {
-    navigator.clipboard.writeText(hash)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
+// ── Types ─────────────────────────────────────────────────────
+interface OverviewData {
+  user: { name: string; role: string }
+  stats: {
+    totalVerified: number
+    totalFunding: number
+    totalFundingCurrency: string
+    activeProjects: number
+    completedProjects: number
+    totalBlockchainTx: number
+    documentsThisMonth: number
+    fundingAgreementsCount: number
   }
-  return (
-    <div className="flex items-center gap-2 group">
-      <span className="hash-mono text-white/40 truncate max-w-[180px]">{hash}</span>
-      <button onClick={copy} className="opacity-0 group-hover:opacity-100 transition-opacity">
-        {copied ? <Check size={12} className="text-green-400" /> : <Copy size={12} className="text-white/30" />}
-      </button>
-    </div>
-  )
+  projects: {
+    id: string; name: string; status: string; budget: number
+    totalFunding: number; totalExpenses: number
+    startDate: string | null; endDate: string | null
+  }[]
+  activityFeed: {
+    id: string; action: string; entityType: string
+    createdAt: string; userName: string
+    anchorStatus: string | null; blockchainTx: string | null
+  }[]
+  chartData: { month: string; documents: number; funding: number }[]
 }
 
-// ── Status badge ────────────────────────────────────────────
-function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, { label: string; cls: string }> = {
-    confirmed:  { label: 'Anchored',  cls: 'bg-green-400/10 text-green-400 border-green-400/20' },
-    pending:    { label: 'Pending',   cls: 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20' },
-    processing: { label: 'Processing',cls: 'bg-blue-400/10 text-blue-400 border-blue-400/20' },
-    failed:     { label: 'Failed',    cls: 'bg-red-400/10 text-red-400 border-red-400/20' },
+// ── Greeting helper ───────────────────────────────────────────
+function getGreeting() {
+  const h = new Date().getHours()
+  if (h < 12) return 'Good morning'
+  if (h < 17) return 'Good afternoon'
+  return 'Good evening'
+}
+
+// ── Animated counter hook ─────────────────────────────────────
+function useCountUp(target: number, duration = 2000) {
+  const [value, setValue] = useState(0)
+  const started = useRef(false)
+
+  useEffect(() => {
+    if (target === 0 || started.current) return
+    started.current = true
+    const startTime = Date.now()
+    const tick = () => {
+      const elapsed = Date.now() - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3)
+      setValue(Math.round(eased * target))
+      if (progress < 1) requestAnimationFrame(tick)
+    }
+    requestAnimationFrame(tick)
+  }, [target, duration])
+
+  return value
+}
+
+// ── Format currency ───────────────────────────────────────────
+function formatAmount(amount: number, currency: string) {
+  if (amount >= 1_000_000) return `${currency} ${(amount / 1_000_000).toFixed(1)}M`
+  if (amount >= 1_000) return `${currency} ${(amount / 1_000).toFixed(0)}K`
+  return `${currency} ${amount.toLocaleString()}`
+}
+
+// ── Time ago ──────────────────────────────────────────────────
+function timeAgo(dateStr: string) {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  return `${days}d ago`
+}
+
+// ── Action description ────────────────────────────────────────
+function actionLabel(action: string, entityType: string) {
+  const map: Record<string, string> = {
+    DOCUMENT_UPLOADED: 'uploaded a document',
+    EXPENSE_CREATED: 'logged an expense',
+    BATCH_ANCHORED: 'anchored records',
+    WORKFLOW_TASK_CREATED: 'submitted for review',
+    WORKFLOW_TASK_APPROVED: 'approved a task',
+    WORKFLOW_TASK_REJECTED: 'rejected a task',
   }
-  const s = map[status] ?? map.pending
-  return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border font-medium ${s.cls}`}>
-      {s.label}
-    </span>
-  )
+  return map[action] || `${action.toLowerCase().replace(/_/g, ' ')} (${entityType})`
 }
 
-// ── Stat card ───────────────────────────────────────────────
-function StatCard({ icon: Icon, label, value, sub, color }: {
-  icon: React.ElementType; label: string; value: string | number; sub?: string; color: string
-}) {
-  return (
-    <div className="rounded-xl border border-white/8 p-5 flex items-start gap-4"
-      style={{ background: 'rgba(255,255,255,0.03)' }}>
-      <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${color}`}>
-        <Icon size={18} />
-      </div>
-      <div>
-        <div className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>{value}</div>
-        <div className="text-sm text-white/50 mt-0.5">{label}</div>
-        {sub && <div className="text-xs text-white/30 mt-1">{sub}</div>}
-      </div>
-    </div>
-  )
+// ── Action icon ───────────────────────────────────────────────
+function ActionIcon({ action }: { action: string }) {
+  if (action.includes('DOCUMENT')) return <Upload size={14} className="text-emerald-400" />
+  if (action.includes('EXPENSE')) return <Receipt size={14} className="text-amber-400" />
+  if (action.includes('ANCHOR') || action.includes('BATCH')) return <Link2 size={14} className="text-[#369bff]" />
+  if (action.includes('APPROVED')) return <CheckCircle2 size={14} className="text-emerald-400" />
+  if (action.includes('REJECTED')) return <XCircle size={14} className="text-rose-400" />
+  return <Clock size={14} className="text-white/40" />
 }
 
-// ── Expiry alerts banner ─────────────────────────────────────
+// ── Progress bar color ────────────────────────────────────────
+function progressColor(pct: number) {
+  if (pct > 90) return '#F43F5E' // rose
+  if (pct > 70) return '#F59E0B' // amber
+  return '#10B981' // emerald
+}
+
+// ── Tooltip wrapper for recharts v3 ───────────────────────────
+function tooltipLabelFormatter(label: any) {
+  return String(label)
+}
+
+// ── Expiry alerts banner ──────────────────────────────────────
 function ExpiryAlertsBanner() {
   const [count, setCount] = useState(0)
   const [urgent, setUrgent] = useState(false)
@@ -91,34 +132,31 @@ function ExpiryAlertsBanner() {
   useEffect(() => {
     apiGet('/api/documents/expiring').then(r => r.ok ? r.json() : null).then(data => {
       if (!data?.data?.length) return
-      const docs = data.data
-      setCount(docs.length)
+      setCount(data.data.length)
       const now = new Date()
-      const hasUrgent = docs.some((d: { expiryDate: string }) => {
-        const diff = new Date(d.expiryDate).getTime() - now.getTime()
-        return Math.ceil(diff / (1000 * 60 * 60 * 24)) <= 7
-      })
-      setUrgent(hasUrgent)
+      setUrgent(data.data.some((d: { expiryDate: string }) => {
+        return Math.ceil((new Date(d.expiryDate).getTime() - now.getTime()) / 86400000) <= 7
+      }))
     }).catch(() => {})
   }, [])
 
   if (count === 0 || dismissed) return null
 
   return (
-    <div className={`rounded-xl border p-4 flex items-center gap-4 ${urgent ? 'border-red-500/20' : 'border-orange-500/20'}`}
-      style={{ background: urgent ? 'rgba(239,68,68,0.06)' : 'rgba(245,158,11,0.06)' }}>
-      <AlertTriangle size={20} className={urgent ? 'text-red-400 shrink-0' : 'text-orange-400 shrink-0'} />
+    <div className={`rounded-xl border p-4 flex items-center gap-4 ${urgent ? 'border-rose-500/20' : 'border-amber-500/20'}`}
+      style={{ background: urgent ? 'rgba(244,63,94,0.06)' : 'rgba(245,158,11,0.06)' }}>
+      <AlertTriangle size={20} className={urgent ? 'text-rose-400 shrink-0' : 'text-amber-400 shrink-0'} />
       <div className="flex-1">
         <div className="text-sm font-medium text-white">
           {count} document{count !== 1 ? 's' : ''} expiring soon
         </div>
         <div className="text-xs text-white/40 mt-0.5">
-          {urgent ? 'Some documents expire within 7 days' : 'Documents expiring within 30 days'}
+          {urgent ? 'Some expire within 7 days' : 'Expiring within 30 days'}
         </div>
       </div>
       <Link href="/dashboard/documents?filter=expiring"
         className="px-4 py-2 rounded-lg text-sm font-semibold text-white shrink-0"
-        style={{ background: urgent ? '#dc2626' : '#f59e0b' }}>
+        style={{ background: urgent ? '#F43F5E' : '#F59E0B' }}>
         View
       </Link>
       <button onClick={() => setDismissed(true)} className="text-white/30 hover:text-white/60 shrink-0"><X size={16} /></button>
@@ -126,202 +164,307 @@ function ExpiryAlertsBanner() {
   )
 }
 
-// ── Main page ───────────────────────────────────────────────
+// ── Main page ─────────────────────────────────────────────────
 export default function DashboardPage() {
-  const [stats, setStats] = useState<StatsData | null>(null)
+  const [data, setData] = useState<OverviewData | null>(null)
   const [loading, setLoading] = useState(true)
   const [trial, setTrial] = useState<{ active: boolean; daysLeft: number; plan: string } | null>(null)
 
   useEffect(() => {
-    // Fetch trial/plan status
-    apiGet('/api/auth/me').then(r => r.ok ? r.json() : null).then(data => {
-      if (data) setTrial({ active: data.trialActive, daysLeft: data.trialDaysLeft, plan: data.plan })
+    apiGet('/api/auth/me').then(r => r.ok ? r.json() : null).then(d => {
+      if (d) setTrial({ active: d.trialActive, daysLeft: d.trialDaysLeft, plan: d.plan })
     }).catch(() => {})
 
-    const API = process.env.NEXT_PUBLIC_API_URL
-    Promise.all([
-      apiGet('/api/audit?limit=100').then(r => r.ok ? r.json() : null),
-    ]).then(([audit]) => {
-      setStats({
-        totalDocuments: audit?.pagination?.total ?? audit?.total ?? 0,
-        verifiedDocuments: (audit?.data ?? audit?.items ?? []).filter((i: AuditEntry) => i.anchorStatus === 'confirmed').length,
-        pendingDocuments: (audit?.data ?? audit?.items ?? []).filter((i: AuditEntry) => i.anchorStatus === 'pending').length,
-        totalProjects: 0,
-        totalExpenses: 0,
-        recentAuditLogs: (audit?.data ?? audit?.items ?? []).slice(0, 8),
-      })
-      setLoading(false)
-    }).catch(() => setLoading(false))
+    apiGet('/api/overview')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setData(d); setLoading(false) })
+      .catch(() => setLoading(false))
   }, [])
 
-  const verified   = stats?.verifiedDocuments ?? 0
-  const total      = stats?.totalDocuments ?? 0
-  const pct        = total > 0 ? Math.round((verified / total) * 100) : 0
+  const s = data?.stats
+  const verifiedCount = useCountUp(s?.totalVerified ?? 0)
+  const blockchainCount = useCountUp(s?.totalBlockchainTx ?? 0, 2500)
+  const fundingCount = useCountUp(s?.totalFunding ?? 0, 1800)
+  const projectCount = useCountUp(s?.activeProjects ?? 0, 800)
+
+  const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
   return (
     <div className="p-4 md:p-6 space-y-6 animate-fade-up">
 
-      {/* Header */}
+      {/* ── HERO GREETING ──────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>
-            Overview
+            {getGreeting()}, {data?.user?.name?.split(' ')[0] ?? 'there'} 👋
           </h1>
           <p className="text-white/40 text-sm mt-1">
-            {new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            Here&apos;s your organisation&apos;s impact today — {today}
           </p>
         </div>
         <Link href="/verify" target="_blank"
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#369bff] border border-[#0c7aed]/30 hover:bg-[#0c7aed]/10 transition-all self-start">
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-emerald-400 border border-emerald-400/30 hover:bg-emerald-400/10 transition-all self-start">
           <ExternalLink size={14} />
           Public Verifier
         </Link>
       </div>
 
-      {/* Trial banner */}
+      {/* ── TRIAL BANNERS ──────────────────────────────────── */}
       {trial?.active && trial.plan === 'FREE' && (
         <div className="rounded-xl border p-4 flex items-center gap-4"
           style={{ background: 'rgba(12,122,237,0.06)', borderColor: 'rgba(12,122,237,0.2)' }}>
           <Sparkles size={20} className="text-[#369bff] shrink-0" />
           <div className="flex-1">
-            <div className="text-sm font-medium text-white">
-              {trial.daysLeft} day{trial.daysLeft !== 1 ? 's' : ''} left in your free trial
-            </div>
-            <div className="text-xs text-white/40 mt-0.5">
-              Upgrade to unlock more documents, users, and features
-            </div>
+            <div className="text-sm font-medium text-white">{trial.daysLeft} day{trial.daysLeft !== 1 ? 's' : ''} left in your free trial</div>
+            <div className="text-xs text-white/40 mt-0.5">Upgrade to unlock more features</div>
           </div>
-          <Link href="/dashboard/billing"
-            className="px-4 py-2 rounded-lg text-sm font-semibold text-white shrink-0"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
-            Upgrade
-          </Link>
+          <Link href="/dashboard/billing" className="px-4 py-2 rounded-lg text-sm font-semibold text-white shrink-0"
+            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>Upgrade</Link>
         </div>
       )}
-
-      {/* Trial expired banner */}
       {trial && !trial.active && trial.plan === 'FREE' && (
         <div className="rounded-xl border p-4 flex items-center gap-4"
-          style={{ background: 'rgba(239,68,68,0.06)', borderColor: 'rgba(239,68,68,0.2)' }}>
-          <AlertTriangle size={20} className="text-red-400 shrink-0" />
+          style={{ background: 'rgba(244,63,94,0.06)', borderColor: 'rgba(244,63,94,0.2)' }}>
+          <AlertTriangle size={20} className="text-rose-400 shrink-0" />
           <div className="flex-1">
             <div className="text-sm font-medium text-white">Your free trial has expired</div>
-            <div className="text-xs text-white/40 mt-0.5">
-              You are limited to 5 documents. Upgrade to continue using all features.
-            </div>
+            <div className="text-xs text-white/40 mt-0.5">Upgrade to continue using all features</div>
           </div>
-          <Link href="/dashboard/billing"
-            className="px-4 py-2 rounded-lg text-sm font-semibold text-white shrink-0"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
-            Upgrade Now
-          </Link>
+          <Link href="/dashboard/billing" className="px-4 py-2 rounded-lg text-sm font-semibold text-white shrink-0"
+            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>Upgrade Now</Link>
         </div>
       )}
 
-      {/* Expiry alerts banner */}
       <ExpiryAlertsBanner />
 
-      {/* Integrity banner */}
-      <div className="rounded-xl border p-4 flex items-center gap-4"
-        style={{
-          background: pct === 100 ? 'rgba(34,197,94,0.05)' : 'rgba(234,179,8,0.05)',
-          borderColor: pct === 100 ? 'rgba(34,197,94,0.2)' : 'rgba(234,179,8,0.2)'
-        }}>
-        {pct === 100
-          ? <CheckCircle size={20} className="text-green-400 shrink-0" />
-          : <AlertTriangle size={20} className="text-yellow-400 shrink-0" />
-        }
-        <div className="flex-1">
-          <div className="text-sm font-medium text-white">
-            {pct === 100 ? 'All records verified and blockchain anchored' : `${pct}% of records anchored to blockchain`}
-          </div>
-          <div className="text-xs text-white/40 mt-0.5">
-            {verified} of {total} audit entries confirmed on Polygon
-          </div>
-        </div>
-        <div className="text-2xl font-bold shrink-0"
-          style={{ fontFamily: 'Syne, sans-serif', color: pct === 100 ? '#4ade80' : '#facc15' }}>
-          {pct}%
-        </div>
-      </div>
-
-      {/* Stats grid */}
+      {/* ── HERO STAT CARDS ────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Shield}     label="Total Records"    value={loading ? '…' : total}     color="bg-blue-500/10 text-blue-400" />
-        <StatCard icon={CheckCircle}label="Anchored"         value={loading ? '…' : verified}  color="bg-green-500/10 text-green-400" />
-        <StatCard icon={Clock}      label="Pending"          value={loading ? '…' : stats?.pendingDocuments ?? 0} color="bg-yellow-500/10 text-yellow-400" />
-        <StatCard icon={TrendingUp} label="Integrity Score"  value={loading ? '…' : `${pct}%`} color="bg-purple-500/10 text-purple-400" />
+        {/* Documents Verified */}
+        <div className="rounded-xl border border-white/8 p-5 flex items-start gap-4" style={{ background: 'rgba(255,255,255,0.03)' }}>
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-emerald-500/10 text-emerald-400">
+            <Shield size={18} />
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>{loading ? '…' : verifiedCount.toLocaleString()}</div>
+            <div className="text-sm text-white/50 mt-0.5">Blockchain Verified</div>
+            <div className="text-xs text-emerald-400/60 mt-1">+{s?.documentsThisMonth ?? 0} this month</div>
+          </div>
+        </div>
+
+        {/* Total Funding */}
+        <div className="rounded-xl border border-white/8 p-5 flex items-start gap-4" style={{ background: 'rgba(255,255,255,0.03)' }}>
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-amber-500/10 text-amber-400">
+            <DollarSign size={18} />
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>
+              {loading ? '…' : formatAmount(fundingCount, s?.totalFundingCurrency ?? 'USD')}
+            </div>
+            <div className="text-sm text-white/50 mt-0.5">Funding Secured</div>
+            <div className="text-xs text-amber-400/60 mt-1">across {s?.fundingAgreementsCount ?? 0} agreements</div>
+          </div>
+        </div>
+
+        {/* Active Projects */}
+        <div className="rounded-xl border border-white/8 p-5 flex items-start gap-4" style={{ background: 'rgba(255,255,255,0.03)' }}>
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-blue-500/10 text-blue-400">
+            <FolderOpen size={18} />
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>{loading ? '…' : projectCount}</div>
+            <div className="text-sm text-white/50 mt-0.5">Active Projects</div>
+            <div className="text-xs text-blue-400/60 mt-1">{s?.completedProjects ?? 0} completed</div>
+          </div>
+        </div>
+
+        {/* Blockchain Transactions */}
+        <div className="rounded-xl border border-white/8 p-5 flex items-start gap-4" style={{ background: 'rgba(255,255,255,0.03)' }}>
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-emerald-500/10 text-emerald-400 relative">
+            <Link2 size={18} />
+            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping opacity-75" />
+            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400" />
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>{loading ? '…' : blockchainCount.toLocaleString()}</div>
+            <div className="text-sm text-white/50 mt-0.5">Transactions on Polygon</div>
+            <div className="text-xs text-emerald-400/60 mt-1">Immutable records</div>
+          </div>
+        </div>
       </div>
 
-      {/* Quick actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* ── IMPACT SUMMARY CHART ───────────────────────────── */}
+      <div className="rounded-xl border border-white/8 p-5" style={{ background: 'rgba(255,255,255,0.03)' }}>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="font-semibold text-white text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>Organisation Activity</h2>
+            <p className="text-xs text-white/30 mt-0.5">Last 6 months</p>
+          </div>
+          <div className="flex items-center gap-4 text-xs">
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-400" /> Documents</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> Funding</span>
+          </div>
+        </div>
+        {loading || !data?.chartData?.length ? (
+          <div className="h-52 flex items-center justify-center text-white/20 text-sm">
+            {loading ? 'Loading chart…' : 'No activity data yet'}
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={data.chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="emeraldGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="amberGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#F59E0B" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+              <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 12 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <Tooltip
+                labelFormatter={tooltipLabelFormatter}
+                contentStyle={{ background: '#0a1628', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 13, color: '#fff' }}
+                itemStyle={{ color: '#fff' }}
+                labelStyle={{ color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}
+              />
+              <Area type="monotone" dataKey="documents" name="Documents" stroke="#10B981" fill="url(#emeraldGrad)" strokeWidth={2} />
+              <Area type="monotone" dataKey="funding" name="Funding" stroke="#F59E0B" fill="url(#amberGrad)" strokeWidth={2} />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+
+      {/* ── QUICK ACTIONS ──────────────────────────────────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { icon: FolderOpen, label: 'New Project',  href: '/dashboard/projects/new',  color: 'text-blue-400' },
-          { icon: FileCheck,  label: 'Add Document', href: '/dashboard/documents/new', color: 'text-green-400' },
-          { icon: Receipt,    label: 'Log Expense',  href: '/dashboard/expenses/new',  color: 'text-orange-400' },
-        ].map(({ icon: Icon, label, href, color }) => (
+          { icon: FileText, label: 'Upload Document', href: '/dashboard/documents/new', color: 'text-emerald-400', bg: 'bg-emerald-500/10', hoverBorder: 'hover:border-emerald-400/30' },
+          { icon: FolderOpen, label: 'New Project', href: '/dashboard/projects/new', color: 'text-blue-400', bg: 'bg-blue-500/10', hoverBorder: 'hover:border-blue-400/30' },
+          { icon: Receipt, label: 'Add Expense', href: '/dashboard/expenses/new', color: 'text-amber-400', bg: 'bg-amber-500/10', hoverBorder: 'hover:border-amber-400/30' },
+          { icon: Users, label: 'Invite Member', href: '/dashboard/team', color: 'text-rose-400', bg: 'bg-rose-500/10', hoverBorder: 'hover:border-rose-400/30' },
+        ].map(({ icon: Icon, label, href, color, bg, hoverBorder }) => (
           <Link key={href} href={href}
-            className="flex items-center gap-3 p-4 rounded-xl border border-white/8 hover:border-white/15 hover:bg-white/3 transition-all group"
+            className={`flex flex-col items-center gap-2.5 p-5 rounded-xl border border-white/8 ${hoverBorder} hover:bg-white/3 transition-all group cursor-pointer`}
             style={{ background: 'rgba(255,255,255,0.02)' }}>
-            <Icon size={18} className={`${color} group-hover:scale-110 transition-transform`} />
-            <span className="text-sm font-medium text-white/70 group-hover:text-white transition-colors">{label}</span>
-            <ArrowUpRight size={14} className="ml-auto text-white/20 group-hover:text-white/50 transition-colors" />
+            <div className={`w-11 h-11 rounded-xl ${bg} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+              <Icon size={20} className={color} />
+            </div>
+            <span className="text-sm font-medium text-white/60 group-hover:text-white transition-colors text-center">{label}</span>
           </Link>
         ))}
       </div>
 
-      {/* Recent audit log */}
-      <div className="rounded-xl border border-white/8 overflow-hidden"
-        style={{ background: 'rgba(255,255,255,0.02)' }}>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/8">
-          <h2 className="font-semibold text-white text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>
-            Recent Audit Log
-          </h2>
-          <Link href="/dashboard/audit" className="text-xs text-[#369bff] hover:underline">
-            View all
-          </Link>
+      {/* ── PROJECT HEALTH + ACTIVITY (side by side on desktop) ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* Projects (2/3 width) */}
+        <div className="lg:col-span-2 space-y-4">
+          <div>
+            <h2 className="font-semibold text-white text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>Project Health</h2>
+            <p className="text-xs text-white/30 mt-0.5">Budget tracking</p>
+          </div>
+
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="rounded-xl border border-white/8 h-40 animate-pulse" style={{ background: 'rgba(255,255,255,0.02)' }} />
+              ))}
+            </div>
+          ) : !data?.projects?.length ? (
+            <div className="rounded-xl border border-white/8 flex flex-col items-center py-12 gap-3" style={{ background: 'rgba(255,255,255,0.02)' }}>
+              <FolderOpen size={32} className="text-white/10" />
+              <p className="text-white/30 text-sm">No active projects yet</p>
+              <Link href="/dashboard/projects/new" className="text-emerald-400 text-sm hover:underline">Create your first project</Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {data.projects.map(project => {
+                const budget = project.totalFunding || project.budget || 0
+                const spent = project.totalExpenses
+                const budgetPct = budget > 0 ? Math.min(Math.round((spent / budget) * 100), 100) : 0
+                const completionPct = budgetPct
+
+                return (
+                  <Link key={project.id} href={`/dashboard/projects/${project.id}`}
+                    className="rounded-xl border border-white/8 p-4 hover:border-white/15 hover:bg-white/2 transition-all group cursor-pointer"
+                    style={{ background: 'rgba(255,255,255,0.02)' }}>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm font-medium text-white/80 group-hover:text-white transition-colors truncate pr-2">{project.name}</span>
+                      <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium border shrink-0 ${
+                        project.status === 'active'
+                          ? 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20'
+                          : 'bg-amber-400/10 text-amber-400 border-amber-400/20'
+                      }`}>
+                        {project.status === 'active' ? 'Active' : project.status === 'on_hold' ? 'On Hold' : project.status}
+                      </span>
+                    </div>
+
+                    {/* Budget used */}
+                    <div className="mb-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] text-white/30 uppercase tracking-wide">Budget Used</span>
+                        <span className="text-xs text-white/50">{budgetPct}%</span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${budgetPct}%`, background: progressColor(budgetPct) }} />
+                      </div>
+                      <div className="text-[11px] text-white/30 mt-1">
+                        {data.stats.totalFundingCurrency} {spent.toLocaleString()} of {data.stats.totalFundingCurrency} {budget.toLocaleString()}
+                      </div>
+                    </div>
+
+                    {/* Completion badge */}
+                    <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                      <span className="text-[11px] text-white/30">Completion</span>
+                      <span className="text-sm font-bold" style={{ color: progressColor(completionPct), fontFamily: 'Syne, sans-serif' }}>
+                        {completionPct}%
+                      </span>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
         </div>
 
-        {loading ? (
-          <div className="p-8 text-center text-white/30 text-sm">Loading audit log…</div>
-        ) : stats?.recentAuditLogs.length === 0 ? (
-          <div className="p-8 text-center text-white/30 text-sm">No audit entries yet</div>
-        ) : (
-          <div className="divide-y divide-white/5">
-            {stats?.recentAuditLogs.map((entry) => (
-              <div key={entry.id} className="flex items-center gap-4 px-5 py-3 hover:bg-white/2 transition-colors">
-                <div className="w-8 h-8 rounded-lg bg-[#0c7aed]/10 flex items-center justify-center shrink-0">
-                  <Shield size={14} className="text-[#369bff]" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-white/80">{entry.action}</span>
-                    <span className="text-xs text-white/30">{entry.entityType}</span>
-                  </div>
-                  <HashCell hash={entry.dataHash} />
-                </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  {entry.anchorStatus === 'confirmed' && entry.dataHash ? (
-                    <Link href={`/verify?hash=${entry.dataHash}`} target="_blank">
-                      <StatusBadge status={entry.anchorStatus} />
-                    </Link>
-                  ) : <StatusBadge status={entry.anchorStatus} />}
-                  {entry.blockchainTx && (
-                    <Link href={`https://amoy.polygonscan.com/tx/${entry.blockchainTx}`} target="_blank"
-                      className="text-white/20 hover:text-[#369bff] transition-colors">
-                      <ExternalLink size={13} />
-                    </Link>
-                  )}
-                  <span className="text-xs text-white/25 hidden md:block">
-                    {new Date(entry.createdAt).toLocaleDateString('en-GB')}
-                  </span>
-                </div>
-              </div>
-            ))}
+        {/* Activity feed (1/3 width) */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-semibold text-white text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>Recent Activity</h2>
+              <p className="text-xs text-white/30 mt-0.5">Latest events</p>
+            </div>
+            <Link href="/dashboard/audit" className="text-xs text-[#369bff] hover:underline">View all</Link>
           </div>
-        )}
-      </div>
 
+          <div className="rounded-xl border border-white/8 overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)' }}>
+            {loading ? (
+              <div className="p-6 text-center text-white/20 text-sm">Loading…</div>
+            ) : !data?.activityFeed?.length ? (
+              <div className="p-6 text-center text-white/20 text-sm">No activity yet</div>
+            ) : (
+              <div className="divide-y divide-white/5">
+                {data.activityFeed.map(entry => (
+                  <div key={entry.id} className="flex items-start gap-3 px-4 py-3 hover:bg-white/2 transition-colors">
+                    <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center shrink-0 mt-0.5">
+                      <ActionIcon action={entry.action} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs text-white/60">
+                        <span className="font-medium text-white/70">{entry.userName}</span>{' '}
+                        {actionLabel(entry.action, entry.entityType)}
+                      </div>
+                      <div className="text-[11px] text-white/25 mt-0.5">{timeAgo(entry.createdAt)}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

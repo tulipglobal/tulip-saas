@@ -7,27 +7,33 @@ datasource db {
 }
 
 model Tenant {
-  id                String             @id @default(uuid())
-  name              String
-  slug              String             @unique
-  status            String             @default("active")
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  code              String             @unique
-  sequence          Int
-  tenantType        String             @default("NGO")
-  apiKeys           ApiKey[]
-  auditLogs         AuditLog[]
-  documents         Document[]
-  expenses          Expense[]
-  fundingSources    FundingSource[]
-  projects          Project[]
-  refreshTokens     RefreshToken[]
-  roles             Role[]
-  users             User[]
-  userRoles         UserRole[]
-  fundingAgreements FundingAgreement[]
-  donorInvites      DonorInvite[]
+  id                 String             @id @default(uuid())
+  name               String
+  slug               String             @unique
+  status             String             @default("active")
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  code               String             @unique
+  sequence           Int
+  tenantType         String             @default("NGO")
+  description        String?
+  country            String?
+  website            String?
+  registrationNumber String?
+  logoUrl            String?
+  completedSetup     Boolean            @default(false)
+  apiKeys            ApiKey[]
+  auditLogs          AuditLog[]
+  documents          Document[]
+  expenses           Expense[]
+  fundingSources     FundingSource[]
+  projects           Project[]
+  refreshTokens      RefreshToken[]
+  roles              Role[]
+  users              User[]
+  userRoles          UserRole[]
+  fundingAgreements  FundingAgreement[]
+  donorInvites       DonorInvite[]
 
   @@index([code])
   @@index([tenantType])

@@ -147,7 +147,8 @@ export default function RegisterPage() {
         if (data.user) localStorage.setItem('tulip_user', JSON.stringify(data.user))
       }
 
-      router.push(selectedProduct.redirect)
+      // NGO accounts go to setup wizard; others go to their dashboards
+      router.push(selectedProduct.type === 'NGO' ? '/setup' : selectedProduct.redirect)
     } catch {
       setError('Unable to connect to server. Please try again.')
       setLoading(false)

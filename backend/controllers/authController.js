@@ -15,10 +15,11 @@ const { buildCache }           = require('../services/permissionCacheService')
 const { createAuditLog }       = require('../services/auditService')
 const { emit: siemEmit }       = require('../services/siemService')
 const { issueTokenPair, rotateRefreshToken, revokeFamily } = require('../services/refreshTokenService')
+const { sendEmail } = require('../services/emailService')
 
 exports.register = async (req, res) => {
   try {
-    const { email, name, password, organisationName, tenantType = 'NGO' } = req.body
+    const { email, name, password, organisationName, tenantType = 'NGO', country } = req.body
 
     if (!email || !name || !password || !organisationName) {
       return res.status(400).json({ error: 'email, name, password and organisationName are required' })
@@ -57,7 +58,9 @@ exports.register = async (req, res) => {
         sequence: counter.count,
         name: organisationName,
         slug,
-        status: 'active'
+        status: 'active',
+        country: country || null,
+        completedSetup: false,
       }
     })
 
@@ -90,9 +93,46 @@ exports.register = async (req, res) => {
 
     const tokens = await issueTokenPair(user, req)
 
+    // Send welcome email (non-blocking)
+    const firstName = name.split(' ')[0]
+    sendEmail({
+      to: email,
+      subject: `Welcome to Tulip DS, ${firstName}!`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto;">
+          <div style="text-align: center; padding: 24px 0;">
+            <h1 style="color: #0c7aed; font-size: 24px; margin: 0;">Welcome to Tulip DS</h1>
+          </div>
+          <p>Hi ${firstName},</p>
+          <p>Your organisation <strong>${organisationName}</strong> has been created on Tulip DS. Your workspace code is <code>${code}</code>.</p>
+          <p>Here's what you can do next:</p>
+          <ol>
+            <li><strong>Complete your organisation profile</strong> — add your logo, website, and registration details</li>
+            <li><strong>Create your first project</strong> — start tracking expenses and documents</li>
+            <li><strong>Invite your team</strong> — add up to 3 colleagues to get started</li>
+          </ol>
+          <p style="margin-top: 24px;">
+            <a href="${process.env.APP_URL || 'https://app.tulipds.com'}/setup"
+               style="background: #0c7aed; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+              Complete Setup →
+            </a>
+          </p>
+          <p style="color: #64748b; font-size: 13px; margin-top: 32px;">
+            Every record you create is cryptographically verified and anchored to the blockchain — giving your donors proof they can trust.
+          </p>
+          <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+          <p style="color: #94a3b8; font-size: 12px;">Tulip DS · Bright Bytes Technology · Dubai, UAE</p>
+        </div>
+      `
+    }).then(() => {
+      console.log('[auth/register] welcome email sent to', email)
+    }).catch(err => {
+      console.error('[auth/register] welcome email FAILED for', email, ':', err.message, err.stack)
+    })
+
     res.status(201).json({
       ...tokens,
-      user: { id: user.id, email: user.email, name: user.name, tenantId: tenant.id, tenantCode: tenant.code }
+      user: { id: user.id, email: user.email, name: user.name, tenantId: tenant.id, tenantCode: tenant.code, completedSetup: false }
     })
   } catch (err) {
     console.error('[auth/register]', err)
@@ -180,10 +220,10 @@ exports.me = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where:   { id: req.user.userId },
-      include: { roles: { include: { role: true } }, tenant: { select: { name: true } } }
+      include: { roles: { include: { role: true } }, tenant: { select: { name: true, completedSetup: true } } }
     })
     if (!user || user.deletedAt) return res.status(404).json({ error: 'User not found' })
-    res.json({ id: user.id, email: user.email, name: user.name, tenantId: user.tenantId, tenantName: user.tenant?.name || null, createdAt: user.createdAt, roles: user.roles.map(r => r.role.name) })
+    res.json({ id: user.id, email: user.email, name: user.name, tenantId: user.tenantId, tenantName: user.tenant?.name || null, completedSetup: user.tenant?.completedSetup ?? true, createdAt: user.createdAt, roles: user.roles.map(r => r.role.name) })
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch user' })
   }

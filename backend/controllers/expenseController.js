@@ -1,4 +1,5 @@
 const { createAuditLog } = require('../services/auditService')
+const { notifyExpenseAdded } = require('../services/emailNotificationService')
 // ─────────────────────────────────────────────────────────────
 //  controllers/expenseController.js — v2
 //  ✔ Paginated list with ?page, ?limit, ?projectId filter
@@ -63,6 +64,16 @@ exports.createExpense = async (req, res) => {
       }
     })
     await createAuditLog({ action: 'EXPENSE_CREATED', entityType: 'Expense', entityId: expense.id, userId: req.user.id, tenantId: req.user.tenantId }).catch(() => {})
+
+    // Notify admin (non-blocking)
+    notifyExpenseAdded({
+      tenantId: req.user.tenantId,
+      description: expenseTitle,
+      amount: parseFloat(amount),
+      currency: currency || 'USD',
+      creatorName: req.user.name || null,
+    }).catch(() => {})
+
     res.status(201).json(expense)
   } catch (err) {
     console.error('createExpense error:', err)

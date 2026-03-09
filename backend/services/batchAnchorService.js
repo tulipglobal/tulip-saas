@@ -14,6 +14,7 @@ const { dispatch }         = require('./webhookService')
 const { emit: siemEmit }   = require('./siemService')
 const { archiveBatch }     = require('./archiveService')
 const logger               = require('../lib/logger')
+const { notifyDocumentAnchored } = require('./emailNotificationService')
 
 function getProvider() {
   try   { return new ethers.JsonRpcProvider(process.env.POLYGON_RPC_PRIMARY || process.env.RPC_URL) }
@@ -138,6 +139,37 @@ async function anchorBatch() {
     recordCount: logs.length,
     batchId,
   })
+
+  // ── Notify uploaders of anchored documents ────────────────
+  try {
+    const anchoredLogs = await prisma.auditLog.findMany({
+      where: { batchId, action: 'DOCUMENT_UPLOADED' },
+      select: { entityId: true, tenantId: true },
+    })
+    for (const log of anchoredLogs) {
+      const doc = await prisma.document.findUnique({
+        where: { id: log.entityId },
+        select: { name: true, uploadedById: true, tenantId: true },
+      })
+      if (doc?.uploadedById) {
+        const uploader = await prisma.user.findUnique({
+          where: { id: doc.uploadedById },
+          select: { email: true, name: true },
+        })
+        if (uploader) {
+          notifyDocumentAnchored({
+            tenantId: doc.tenantId,
+            documentName: doc.name,
+            uploaderEmail: uploader.email,
+            uploaderName: uploader.name,
+            txHash: tx.hash,
+          }).catch(() => {})
+        }
+      }
+    }
+  } catch (err) {
+    logger.error('[anchor] Document notification failed', { error: err.message })
+  }
 
   // ── Archive to S3 ─────────────────────────────────────────
   try {

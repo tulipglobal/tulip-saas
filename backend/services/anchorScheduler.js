@@ -10,6 +10,7 @@ const { anchorBatch }             = require('./batchAnchorService')
 const { retryFailed: retryFailedDeliveries } = require('./webhookService')
 const { cleanupExpiredTokens }    = require('./refreshTokenService')
 const { stampPendingLogs }        = require('./timestampService')
+const { checkTrialExpirations }  = require('./emailNotificationService')
 const logger  = require('../lib/logger')
 
 function startAnchorScheduler() {
@@ -43,10 +44,22 @@ function startAnchorScheduler() {
     try { await cleanupExpiredTokens() } catch (err) { logger.error('Token cleanup failed', { error: err.message }) }
   })
 
+  // Trial expiration check — daily at 9am
+  cron.schedule('0 9 * * *', async () => {
+    logger.info('Running trial expiration check...')
+    try {
+      const result = await checkTrialExpirations()
+      if (result.expiringSoon > 0 || result.justExpired > 0) {
+        logger.info('[trial-check] Complete', result)
+      }
+    } catch (err) { logger.error('Trial check failed', { error: err.message }) }
+  })
+
   logger.info('Blockchain anchor scheduler started (every 5 minutes)')
   logger.info('Webhook retry worker started (every 5 minutes)')
   logger.info('RFC 3161 timestamp job started (every 10 minutes)')
   logger.info('Refresh token cleanup scheduled (daily 3am)')
+  logger.info('Trial expiration check scheduled (daily 9am)')
 }
 
 module.exports = { startAnchorScheduler }

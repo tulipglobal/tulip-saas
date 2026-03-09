@@ -1,6 +1,7 @@
 const tenantClient = require('../lib/tenantClient')
 const { uploadToS3, computeSHA256 } = require('../lib/s3Upload')
 const { createAuditLog } = require('../services/auditService')
+const { notifyDocumentUploaded } = require('../services/emailNotificationService')
 const multer = require('multer')
 
 // Multer — memory storage (buffer for SHA-256 + S3)
@@ -127,6 +128,14 @@ exports.createDocument = async (req, res) => {
         expenseId: document.expenseId,
       }
     })
+
+    // Notify admin (non-blocking)
+    notifyDocumentUploaded({
+      tenantId: req.user.tenantId,
+      documentName: document.name,
+      uploaderName: req.user.name || null,
+      projectName: document.project?.name || null,
+    }).catch(() => {})
 
     res.status(201).json(document)
   } catch (err) {

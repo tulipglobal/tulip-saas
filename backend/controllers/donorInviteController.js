@@ -7,6 +7,7 @@ const prisma = require('../lib/client')
 const tenantClient = require('../lib/tenantClient')
 const { sendEmail } = require('../services/emailService')
 const { createAuditLog } = require('../services/auditService')
+const { notifyMemberJoined } = require('../services/emailNotificationService')
 
 exports.createInvite = async (req, res) => {
   try {
@@ -125,6 +126,13 @@ exports.acceptInvite = async (req, res) => {
 
     // Mark invite as accepted
     await prisma.donorInvite.update({ where: { id: invite.id }, data: { status: 'ACCEPTED' } })
+
+    // Notify tenant admin (non-blocking)
+    notifyMemberJoined({
+      tenantId: invite.tenantId,
+      memberName: `${firstName} ${lastName}`,
+      memberEmail: invite.email,
+    }).catch(() => {})
 
     res.status(201).json({ donor, donorUser: { id: donorUser.id, email: donorUser.email, firstName, lastName } })
   } catch (err) {

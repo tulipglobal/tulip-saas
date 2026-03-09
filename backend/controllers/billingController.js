@@ -6,6 +6,7 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 const prisma = require('../prisma/client')
 const { createAuditLog } = require('../services/auditService')
+const { notifyPaymentFailed } = require('../services/emailNotificationService')
 
 const PLANS = {
   STARTER: {
@@ -278,11 +279,14 @@ exports.handleWebhook = async (req, res) => {
           const sub = await stripe.subscriptions.retrieve(invoice.subscription)
           const tenantId = sub.metadata?.tenantId
           if (tenantId) {
-            await prisma.tenant.update({
+            const tenant = await prisma.tenant.update({
               where: { id: tenantId },
               data: { planStatus: 'past_due' },
             })
             console.log(`[billing/webhook] Payment failed: tenant=${tenantId}`)
+
+            // Notify admin immediately (non-blocking)
+            notifyPaymentFailed({ tenantId, tenantName: tenant.name }).catch(() => {})
           }
         }
         break

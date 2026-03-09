@@ -7,6 +7,7 @@ const crypto = require('crypto')
 const prisma = require('../prisma/client')
 const { createAuditLog } = require('../services/auditService')
 const { sendEmail } = require('../services/emailService')
+const { dispatch: webhookDispatch } = require('../services/webhookService')
 
 // GET /api/team — list all team members for this tenant
 exports.list = async (req, res) => {
@@ -143,6 +144,11 @@ exports.invite = async (req, res) => {
     await createAuditLog({
       action: 'TEAM_MEMBER_INVITED', entityType: 'User', entityId: user.id,
       userId, tenantId
+    }).catch(() => {})
+
+    // Webhook: member.invited (non-blocking)
+    webhookDispatch(tenantId, 'member.invited', {
+      email: cleanEmail, role: targetRole,
     }).catch(() => {})
 
     res.status(201).json({

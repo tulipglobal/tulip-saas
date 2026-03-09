@@ -8,6 +8,7 @@ const prisma = require('../prisma/client')
 const { sendEmail } = require('../services/emailService')
 const { KEY_DOCUMENT_CATEGORIES } = require('../lib/documentCategories')
 const logger = require('../lib/logger')
+const { dispatch: webhookDispatch } = require('../services/webhookService')
 
 const APP_URL = process.env.APP_URL || 'https://app.tulipds.com'
 
@@ -119,6 +120,9 @@ async function checkDocumentExpiry() {
     if (daysLeft <= 30 && !doc.expiryAlertSent30) {
       await sendExpiryEmail({ doc, daysLeft: Math.max(daysLeft, 0), adminEmails, projectName: doc.project?.name })
       await prisma.document.update({ where: { id: doc.id }, data: { expiryAlertSent30: true } })
+      webhookDispatch(doc.tenantId, 'document.expiring', {
+        id: doc.id, name: doc.name, expiryDate: doc.expiryDate, daysLeft: Math.max(daysLeft, 0),
+      }).catch(() => {})
       alertsSent++
     }
 

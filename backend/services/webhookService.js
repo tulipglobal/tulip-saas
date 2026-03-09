@@ -14,6 +14,14 @@
 //    anchor.failed         — blockchain TX failed
 //    gdpr.export           — data export requested
 //    gdpr.erasure          — user erased
+//    document.created      — new document uploaded
+//    document.verified     — document blockchain anchored
+//    document.expiring     — document expiring within 30 days
+//    expense.created       — new expense added
+//    funding.created       — new funding agreement created
+//    member.invited        — team member invited
+//    member.joined         — team member accepted invite
+//    webhook.test          — test event
 // ─────────────────────────────────────────────────────────────
 
 const crypto = require('crypto')

@@ -1,5 +1,6 @@
 const { createAuditLog } = require('../services/auditService')
 const { notifyExpenseAdded } = require('../services/emailNotificationService')
+const { dispatch: webhookDispatch } = require('../services/webhookService')
 // ─────────────────────────────────────────────────────────────
 //  controllers/expenseController.js — v2
 //  ✔ Paginated list with ?page, ?limit, ?projectId filter
@@ -72,6 +73,11 @@ exports.createExpense = async (req, res) => {
       amount: parseFloat(amount),
       currency: currency || 'USD',
       creatorName: req.user.name || null,
+    }).catch(() => {})
+
+    // Webhook: expense.created (non-blocking)
+    webhookDispatch(req.user.tenantId, 'expense.created', {
+      id: expense.id, description: expenseTitle, amount: parseFloat(amount), currency: currency || 'USD',
     }).catch(() => {})
 
     res.status(201).json(expense)

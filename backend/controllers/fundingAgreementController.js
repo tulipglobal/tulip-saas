@@ -7,6 +7,7 @@ const tenantClient = require('../lib/tenantClient')
 const prisma = require('../lib/client')
 const { createAuditLog } = require('../services/auditService')
 const { sendEmail } = require('../services/emailService')
+const { dispatch: webhookDispatch } = require('../services/webhookService')
 const { parsePagination, paginatedResponse } = require('../lib/paginate')
 
 exports.list = async (req, res) => {
@@ -98,6 +99,12 @@ exports.create = async (req, res) => {
     })
 
     await createAuditLog({ action: 'FUNDING_AGREEMENT_CREATED', entityType: 'FundingAgreement', entityId: agreement.id, userId: req.user.userId || req.user.id, tenantId: req.user.tenantId }).catch(() => {})
+
+    // Webhook: funding.created (non-blocking)
+    webhookDispatch(req.user.tenantId, 'funding.created', {
+      id: agreement.id, title: agreement.title, amount: agreement.totalAmount,
+      currency: agreement.currency, type: agreement.type,
+    }).catch(() => {})
 
     // Auto-send donor invite email if donor has an email address
     if (agreement.donorId) {

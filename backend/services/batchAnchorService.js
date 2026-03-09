@@ -166,6 +166,10 @@ async function anchorBatch() {
           }).catch(() => {})
         }
       }
+      // Webhook: document.verified
+      dispatch(doc.tenantId, 'document.verified', {
+        id: log.entityId, name: doc.name, blockchainTx: tx.hash,
+      }).catch(() => {})
     }
   } catch (err) {
     logger.error('[anchor] Document notification failed', { error: err.message })

@@ -2,6 +2,7 @@ const tenantClient = require('../lib/tenantClient')
 const { uploadToS3, computeSHA256 } = require('../lib/s3Upload')
 const { createAuditLog } = require('../services/auditService')
 const { notifyDocumentUploaded, notifyDonorsNewDocument } = require('../services/emailNotificationService')
+const { dispatch: webhookDispatch } = require('../services/webhookService')
 const { KEY_DOCUMENT_CATEGORIES, isKeyCategory } = require('../lib/documentCategories')
 const multer = require('multer')
 
@@ -138,6 +139,12 @@ exports.createDocument = async (req, res) => {
       documentName: document.name,
       uploaderName: req.user.name || null,
       projectName: document.project?.name || null,
+    }).catch(() => {})
+
+    // Webhook: document.created (non-blocking)
+    webhookDispatch(req.user.tenantId, 'document.created', {
+      id: document.id, name: document.name, category: document.category || null,
+      sha256Hash, projectId: document.projectId, fileType: document.fileType,
     }).catch(() => {})
 
     // Notify linked donors (non-blocking)

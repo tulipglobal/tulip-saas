@@ -46,10 +46,11 @@ export default function SetupWizardPage() {
     const token = localStorage.getItem('tulip_token')
     if (!token) { router.push('/login'); return }
 
-    // Fetch current status
+    // Fetch current status — non-critical, wizard works without it
     fetch(`${API}/api/setup/status`, { headers: authHeaders() })
       .then(r => {
         if (r.status === 401) { router.push('/login'); return null }
+        if (!r.ok) return null // ignore server errors, wizard still works
         return r.json()
       })
       .then(data => {
@@ -62,7 +63,7 @@ export default function SetupWizardPage() {
         if (data.registrationNumber) setOrgForm(f => ({ ...f, registrationNumber: data.registrationNumber }))
         if (data.logoUrl) setLogoPreview(data.logoUrl)
       })
-      .catch(() => {})
+      .catch(() => {}) // network errors are non-critical
   }, [router])
 
   const handleOrgSubmit = async () => {
@@ -87,7 +88,12 @@ export default function SetupWizardPage() {
         headers: authHeaders(),
         body: JSON.stringify(orgForm)
       })
-      if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Failed') }
+      if (!res.ok) {
+        const text = await res.text()
+        let msg = 'Failed to save'
+        try { msg = JSON.parse(text).error || msg } catch {}
+        throw new Error(msg)
+      }
 
       setStep(2)
     } catch (err: unknown) {
@@ -107,7 +113,12 @@ export default function SetupWizardPage() {
         headers: authHeaders(),
         body: JSON.stringify(projectForm)
       })
-      if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Failed') }
+      if (!res.ok) {
+        const text = await res.text()
+        let msg = 'Failed to create project'
+        try { msg = JSON.parse(text).error || msg } catch {}
+        throw new Error(msg)
+      }
       setStep(3)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to create project')
@@ -304,7 +315,7 @@ export default function SetupWizardPage() {
             </div>
 
             <div className="flex items-center justify-between mt-8 pt-6 border-t border-white/6">
-              <button onClick={() => { setStep(2) }}
+              <button onClick={() => { setError(''); setStep(2) }}
                 className="text-white/30 text-sm hover:text-white/50 flex items-center gap-1 transition-colors">
                 <SkipForward className="w-3.5 h-3.5" /> Skip this step
               </button>
@@ -361,7 +372,7 @@ export default function SetupWizardPage() {
             </div>
 
             <div className="flex items-center justify-between mt-8 pt-6 border-t border-white/6">
-              <button onClick={() => setStep(3)}
+              <button onClick={() => { setError(''); setStep(3) }}
                 className="text-white/30 text-sm hover:text-white/50 flex items-center gap-1 transition-colors">
                 <SkipForward className="w-3.5 h-3.5" /> Skip this step
               </button>
@@ -413,7 +424,7 @@ export default function SetupWizardPage() {
             </div>
 
             <div className="flex items-center justify-between mt-8 pt-6 border-t border-white/6">
-              <button onClick={() => setStep(4)}
+              <button onClick={() => { setError(''); setStep(4) }}
                 className="text-white/30 text-sm hover:text-white/50 flex items-center gap-1 transition-colors">
                 <SkipForward className="w-3.5 h-3.5" /> Skip this step
               </button>

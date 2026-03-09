@@ -95,6 +95,7 @@ exports.register = async (req, res) => {
 
     // Send welcome email (non-blocking)
     const firstName = name.split(' ')[0]
+    console.log('[auth/register] SENDING welcome email to', email, '- firstName:', firstName, '- org:', organisationName)
     sendEmail({
       to: email,
       subject: `Welcome to Tulip DS, ${firstName}!`,

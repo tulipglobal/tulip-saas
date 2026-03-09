@@ -154,8 +154,8 @@ export default function LoginPage() {
           <div className="mt-6 text-center animate-fade-up-delay-2">
             <p style={{ color: '#64748b', fontSize: '14px' }}>
               Don't have an account?{' '}
-              <a href="#" style={{ color: '#0c7aed', fontWeight: 500 }} className="hover:underline">
-                Contact us
+              <a href="/register" style={{ color: '#0c7aed', fontWeight: 500 }} className="hover:underline">
+                Register here
               </a>
             </p>
           </div>

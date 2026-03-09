@@ -149,7 +149,8 @@ export default function DonorLoginPage() {
           </form>
 
           <p className="text-center text-white/20 text-xs mt-6">
-            Don&apos;t have an account? Ask your NGO partner to send you an invite.
+            Don&apos;t have an account?{' '}
+            <a href="/register" className="text-emerald-400 hover:underline">Register here</a>
           </p>
         </div>
       </div>

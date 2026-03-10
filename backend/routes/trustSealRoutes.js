@@ -33,16 +33,21 @@ router.post('/issue', upload.single('file'), async (req, res) => {
     })
 
     // Hash the file content and upload to S3
+    const MIME_MAP = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp', tiff: 'image/tiff', tif: 'image/tiff', svg: 'image/svg+xml', pdf: 'application/pdf', doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
     let rawHash, s3Key = null, fileType = null
     if (req.file) {
       rawHash = crypto.createHash('sha256').update(req.file.buffer).digest('hex')
       const s3Result = await uploadToS3(req.file.buffer, req.file.originalname, req.user.tenantId, 'seals')
       s3Key = s3Result.key
-      fileType = req.file.mimetype || req.file.originalname.split('.').pop()
+      const ext = (req.file.originalname.split('.').pop() || '').toLowerCase()
+      fileType = req.file.mimetype || MIME_MAP[ext] || 'application/octet-stream'
     } else if (fileBase64) {
       const buf = Buffer.from(fileBase64, 'base64')
       rawHash = crypto.createHash('sha256').update(buf).digest('hex')
-      const s3Result = await uploadToS3(buf, `seal-${Date.now()}.bin`, req.user.tenantId, 'seals')
+      const fileName = req.body.fileName || `seal-${Date.now()}.bin`
+      const ext = (fileName.split('.').pop() || '').toLowerCase()
+      fileType = MIME_MAP[ext] || req.body.fileType || 'application/octet-stream'
+      const s3Result = await uploadToS3(buf, fileName, req.user.tenantId, 'seals')
       s3Key = s3Result.key
     } else {
       // Hash the document metadata as fallback

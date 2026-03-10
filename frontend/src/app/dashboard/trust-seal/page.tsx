@@ -37,6 +37,7 @@ export default function TrustSealPage() {
   // Create modal
   const [showCreate, setShowCreate] = useState(false)
   const [creating, setCreating] = useState(false)
+  const [createError, setCreateError] = useState('')
   const [formTitle, setFormTitle] = useState('')
   const [formType, setFormType] = useState('CERTIFICATE')
   const [formTo, setFormTo] = useState('')
@@ -102,6 +103,7 @@ export default function TrustSealPage() {
   const handleCreate = async () => {
     if (!formTitle.trim() || !formTo.trim()) return
     setCreating(true)
+    setCreateError('')
     try {
       const formData = new FormData()
       formData.append('documentTitle', formTitle)
@@ -119,26 +121,48 @@ export default function TrustSealPage() {
       if (Object.keys(meta).length > 0) formData.append('metadata', JSON.stringify(meta))
 
       const token = localStorage.getItem('tulip_token')
-      const r = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/trust-seal/issue`, {
+      if (!token) {
+        setCreateError('Not authenticated. Please log in again.')
+        setCreating(false)
+        return
+      }
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      if (!apiUrl) {
+        setCreateError('API URL not configured.')
+        setCreating(false)
+        return
+      }
+
+      const r = await fetch(`${apiUrl}/api/trust-seal/issue`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData,
       })
-      if (r.ok) {
-        const seal = await r.json()
-        setCreatedSeal(seal)
-        setShowCreate(false)
-        setFormTitle('')
-        setFormType('CERTIFICATE')
-        setFormTo('')
-        setFormToEmail('')
-        setFormBy('')
-        setFormFile(null)
-        setMetadataKeys([''])
-        setMetadataVals([''])
-        fetchSeals()
+
+      if (!r.ok) {
+        const errData = await r.json().catch(() => null)
+        setCreateError(errData?.error || errData?.message || `Failed to issue seal (${r.status})`)
+        setCreating(false)
+        return
       }
-    } catch {
+
+      const seal = await r.json()
+      setCreatedSeal(seal)
+      setShowCreate(false)
+      setCreateError('')
+      setFormTitle('')
+      setFormType('CERTIFICATE')
+      setFormTo('')
+      setFormToEmail('')
+      setFormBy('')
+      setFormFile(null)
+      setMetadataKeys([''])
+      setMetadataVals([''])
+      fetchSeals()
+    } catch (err: any) {
+      console.error('Trust seal issue failed:', err)
+      setCreateError(err?.message || 'Network error — could not reach API')
     } finally {
       setCreating(false)
     }
@@ -165,7 +189,7 @@ export default function TrustSealPage() {
           <h1 className="text-2xl font-bold text-white">Trust Seal</h1>
           <p className="text-sm text-white/50 mt-1">Issue tamper-proof digital seals with QR codes for instant verification</p>
         </div>
-        <button onClick={() => setShowCreate(true)}
+        <button onClick={() => { setShowCreate(true); setCreateError('') }}
           className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90"
           style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
           <Plus size={16} /> Issue New Seal
@@ -272,6 +296,11 @@ export default function TrustSealPage() {
               <button onClick={() => setShowCreate(false)} className="text-white/40 hover:text-white"><X size={18} /></button>
             </div>
             <div className="p-5 space-y-4">
+              {createError && (
+                <div className="p-3 rounded-lg bg-red-400/10 border border-red-400/20 text-red-400 text-sm">
+                  {createError}
+                </div>
+              )}
               <div>
                 <label className="text-xs font-medium text-white/60 mb-1.5 block">Document Title *</label>
                 <input value={formTitle} onChange={e => setFormTitle(e.target.value)} placeholder="e.g. Bachelor of Science Degree"
@@ -336,9 +365,10 @@ export default function TrustSealPage() {
               <button onClick={() => setShowCreate(false)}
                 className="px-4 py-2 rounded-lg text-sm text-white/60 hover:text-white transition-colors">Cancel</button>
               <button onClick={handleCreate} disabled={creating || !formTitle.trim() || !formTo.trim()}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-white disabled:opacity-40 transition-all hover:opacity-90"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white disabled:opacity-40 transition-all hover:opacity-90"
                 style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
-                {creating ? 'Issuing...' : 'Issue Seal'}
+                {creating && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                {creating ? 'Issuing Seal...' : 'Issue Seal'}
               </button>
             </div>
           </div>

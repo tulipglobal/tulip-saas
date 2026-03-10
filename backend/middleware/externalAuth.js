@@ -5,29 +5,48 @@
 const { validateApiKey } = require('../services/apiKeyService')
 const prisma = require('../lib/client')
 const logger = require('../lib/logger')
+const jwt = require('jsonwebtoken')
 
 /**
- * Authenticate external API requests via API key.
- * Accepts both:
- *   Authorization: Bearer tl_live_...
- *   Authorization: ApiKey tl_live_...
+ * Authenticate external API requests via API key OR JWT token.
+ * Accepts:
+ *   Authorization: Bearer tl_live_...   (API key)
+ *   Authorization: ApiKey tl_live_...   (API key)
+ *   Authorization: Bearer <jwt>         (JWT — fallback for dashboard users)
  */
 async function externalAuth(req, res, next) {
   const start = Date.now()
   const authHeader = req.headers['authorization']
 
   if (!authHeader) {
-    return res.status(401).json({ error: 'Missing Authorization header. Use: Bearer <api_key>' })
+    return res.status(401).json({ error: 'Missing Authorization header. Use: Bearer <api_key> or Bearer <jwt>' })
   }
 
   let rawKey = null
+  let jwtToken = null
   if (authHeader.startsWith('ApiKey ')) {
     rawKey = authHeader.slice(7).trim()
   } else if (authHeader.startsWith('Bearer ')) {
     const token = authHeader.slice(7).trim()
-    // Only treat as API key if it starts with tl_live_
     if (token.startsWith('tl_live_')) {
       rawKey = token
+    } else {
+      jwtToken = token
+    }
+  }
+
+  // JWT fallback — allow dashboard users to call external routes
+  if (!rawKey && jwtToken) {
+    try {
+      const decoded = jwt.verify(jwtToken, process.env.JWT_SECRET)
+      req.user = {
+        userId: decoded.userId,
+        tenantId: decoded.tenantId,
+        authMethod: 'jwt',
+      }
+      return next()
+    } catch {
+      return res.status(401).json({ error: 'Invalid or expired token' })
     }
   }
 

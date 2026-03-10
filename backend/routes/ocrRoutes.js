@@ -24,12 +24,13 @@ const upload = multer({
 })
 
 // ── POST /api/ocr/process ─────────────────────────────────────────────────────
-// Full OCR pipeline: extract → normalise → assess → hash → (queue anchor)
 router.post('/process', can('documents:write'), upload.single('file'), async (req, res) => {
   const tenantId = req.user.tenantId
   const userId   = req.user.userId
 
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' })
+
+  logger.info({ tenantId, userId, filename: req.file.originalname, size: req.file.size, mimetype: req.file.mimetype }, 'OCR process started')
 
   let job
   try {
@@ -45,16 +46,18 @@ router.post('/process', can('documents:write'), upload.single('file'), async (re
       }
     })
 
+    logger.info({ jobId: job.id }, 'OCR job record created')
+
     // Return immediately so the UI shows the job
     res.status(201).json({ data: job })
 
     // 2. Process in background (don't block response)
     processOcrJob(job.id, tenantId, userId, req.file).catch(err => {
-      logger.error({ err, jobId: job.id }, 'OCR background processing failed')
+      logger.error({ err: err.message, stack: err.stack, jobId: job.id }, 'OCR background processing failed')
     })
 
   } catch (err) {
-    logger.error({ err, jobId: job?.id }, 'OCR upload failed')
+    logger.error({ err: err.message, stack: err.stack, code: err.code, jobId: job?.id }, 'OCR upload/create failed')
 
     if (job?.id) {
       await prisma.ocrJob.update({
@@ -148,7 +151,7 @@ async function processOcrJob(jobId, tenantId, userId, file) {
     }).catch(() => {})
 
   } catch (err) {
-    logger.error({ err, jobId }, 'OCR pipeline error')
+    logger.error({ err: err.message, stack: err.stack, jobId }, 'OCR pipeline error')
     await prisma.ocrJob.update({
       where: { id: jobId },
       data: { status: 'failed' }
@@ -166,6 +169,7 @@ router.get('/jobs', can('documents:read'), async (req, res) => {
     })
     res.json({ data: jobs, total: jobs.length })
   } catch (err) {
+    logger.error({ err: err.message, stack: err.stack }, 'GET /api/ocr/jobs failed')
     res.status(500).json({ error: err.message })
   }
 })
@@ -179,6 +183,7 @@ router.get('/jobs/:id', can('documents:read'), async (req, res) => {
     if (!job) return res.status(404).json({ error: 'Job not found' })
     res.json({ data: job })
   } catch (err) {
+    logger.error({ err: err.message, stack: err.stack }, 'GET /api/ocr/jobs/:id failed')
     res.status(500).json({ error: err.message })
   }
 })
@@ -193,20 +198,22 @@ router.get('/jobs/:id/pdf', can('documents:read'), async (req, res) => {
 
     const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3')
     const { getSignedUrl } = require('@aws-sdk/s3-request-presigner')
-    const s3 = new S3Client({
+    const s3Client = new S3Client({
       region: process.env.AWS_REGION || 'ap-south-1',
       credentials: {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
       }
     })
-    const url = await getSignedUrl(s3, new GetObjectCommand({
-      Bucket: process.env.S3_BUCKET_NAME,
+    const bucket = process.env.S3_BUCKET || process.env.AWS_S3_BUCKET || 'tulipglobal.org'
+    const url = await getSignedUrl(s3Client, new GetObjectCommand({
+      Bucket: bucket,
       Key: job.normalisedPdfS3
     }), { expiresIn: 300 })
 
     res.json({ url })
   } catch (err) {
+    logger.error({ err: err.message, stack: err.stack }, 'GET /api/ocr/jobs/:id/pdf failed')
     res.status(500).json({ error: err.message })
   }
 })

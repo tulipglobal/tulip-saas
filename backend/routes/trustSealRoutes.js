@@ -72,20 +72,19 @@ router.post('/issue', upload.single('file'), async (req, res) => {
     }
 
     // Create the seal record
-    const seal = await db.trustSeal.create({
-      data: {
-        documentTitle,
-        documentType: documentType || 'CERTIFICATE',
-        issuedTo,
-        issuedToEmail: issuedToEmail || null,
-        issuedBy: issuedBy || tenant?.name || 'Unknown',
-        metadata: parsedMetadata,
-        rawHash,
-        s3Key,
-        fileType,
-        status: 'issued',
-      },
-    })
+    const sealData = {
+      documentTitle,
+      documentType: documentType || 'CERTIFICATE',
+      issuedTo,
+      issuedBy: issuedBy || tenant?.name || 'Unknown',
+      metadata: parsedMetadata,
+      rawHash,
+      s3Key,
+      fileType,
+      status: 'issued',
+    }
+    if (issuedToEmail) sealData.issuedToEmail = issuedToEmail
+    const seal = await db.trustSeal.create({ data: sealData })
 
     // Generate QR code pointing to verify.tulipds.com/seal/[id]
     const verifyUrl = `https://verify.tulipds.com/seal/${seal.id}`

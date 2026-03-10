@@ -170,7 +170,23 @@ async function anchorBatch() {
 
   // ── 6. Wait for confirmation ────────────────────────────────
   logger.info('Waiting for confirmation...')
-  const receipt = await tx.wait(2)
+  let receipt
+  try {
+    receipt = await tx.wait(2)
+  } catch (waitErr) {
+    // TRANSACTION_REPLACED: ethers throws when a tx is replaced (speed-up, same nonce).
+    // If the replacement tx succeeded (status=1), treat as success.
+    if (waitErr.code === 'TRANSACTION_REPLACED' && waitErr.receipt && waitErr.receipt.status === 1) {
+      logger.info('TX replaced but replacement succeeded', {
+        originalHash: tx.hash,
+        replacementHash: waitErr.receipt.hash,
+      })
+      receipt = waitErr.receipt
+    } else {
+      // Re-throw any other wait error (genuinely failed tx, network error, etc.)
+      throw waitErr
+    }
+  }
 
   if (!receipt || receipt.status === 0) {
     const failOps = []
@@ -194,6 +210,8 @@ async function anchorBatch() {
     return
   }
 
+  // Use receipt.hash — may differ from tx.hash if transaction was replaced
+  const confirmedTxHash = receipt.hash || tx.hash
   const block      = await provider.getBlock(receipt.blockNumber)
   const ancheredAt = new Date(block.timestamp * 1000)
 
@@ -203,14 +221,14 @@ async function anchorBatch() {
   if (allChainUpdates.length > 0) {
     confirmOps.push(prisma.auditLog.updateMany({
       where: { batchId },
-      data: { blockNumber: receipt.blockNumber, blockHash: receipt.blockHash, anchorStatus: 'confirmed', ancheredAt },
+      data: { blockchainTx: confirmedTxHash, blockNumber: receipt.blockNumber, blockHash: receipt.blockHash, anchorStatus: 'confirmed', ancheredAt },
     }))
   }
 
   if (pendingOcrJobs.length > 0) {
     confirmOps.push(prisma.ocrJob.updateMany({
       where: { id: { in: pendingOcrJobs.map(j => j.id) } },
-      data: { anchorTxHash: tx.hash, anchoredAt: ancheredAt },
+      data: { anchorTxHash: confirmedTxHash, anchoredAt: ancheredAt },
     }))
     logger.info(`[anchor] ${pendingOcrJobs.length} OCR job(s) anchored`)
   }
@@ -218,7 +236,7 @@ async function anchorBatch() {
   if (pendingBundleJobs.length > 0) {
     confirmOps.push(prisma.bundleJob.updateMany({
       where: { id: { in: pendingBundleJobs.map(b => b.id) } },
-      data: { anchorTxHash: tx.hash, anchoredAt: ancheredAt },
+      data: { anchorTxHash: confirmedTxHash, anchoredAt: ancheredAt },
     }))
     logger.info(`[anchor] ${pendingBundleJobs.length} bundle(s) anchored`)
   }
@@ -226,7 +244,7 @@ async function anchorBatch() {
   if (pendingSeals.length > 0) {
     confirmOps.push(prisma.trustSeal.updateMany({
       where: { id: { in: pendingSeals.map(s => s.id) } },
-      data: { anchorTxHash: tx.hash, anchoredAt: ancheredAt, blockNumber: receipt.blockNumber, status: 'anchored' },
+      data: { anchorTxHash: confirmedTxHash, anchoredAt: ancheredAt, blockNumber: receipt.blockNumber, status: 'anchored' },
     }))
     logger.info(`[anchor] ${pendingSeals.length} trust seal(s) anchored`)
   }
@@ -264,13 +282,13 @@ async function anchorBatch() {
             documentName: doc.name,
             uploaderEmail: uploader.email,
             uploaderName: uploader.name,
-            txHash: tx.hash,
+            txHash: confirmedTxHash,
           }).catch(() => {})
         }
       }
       // Webhook: document.verified
       dispatch(doc.tenantId, 'document.verified', {
-        id: log.entityId, name: doc.name, blockchainTx: tx.hash,
+        id: log.entityId, name: doc.name, blockchainTx: confirmedTxHash,
       }).catch(() => {})
     }
   } catch (err) {
@@ -308,7 +326,7 @@ async function anchorBatch() {
   // Dispatch webhook + SIEM
   dispatch(tenantId, 'anchor.confirmed', {
     batchId,
-    txHash:      tx.hash,
+    txHash:      confirmedTxHash,
     blockNumber: receipt.blockNumber,
     blockHash:   receipt.blockHash,
     ancheredAt:  ancheredAt.toISOString(),
@@ -318,7 +336,7 @@ async function anchorBatch() {
   siemEmit('anchor.confirmed', {
     tenantId,
     batchId,
-    txHash:      tx.hash,
+    txHash:      confirmedTxHash,
     blockNumber: receipt.blockNumber,
     recordCount: totalPending,
   }).catch(() => {})

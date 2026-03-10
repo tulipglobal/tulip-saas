@@ -217,6 +217,39 @@ if (!record) {
     })
   }
 
+  // Check TrustSeal.rawHash
+  const trustSeal = await prisma.trustSeal.findFirst({
+    where: { rawHash: dataHash },
+    include: { tenant: { select: { name: true, tenantType: true } } }
+  })
+  if (trustSeal) {
+    return res.json({
+      verified: true,
+      status: 'verified',
+      dataHash,
+      source: 'seal',
+      documentType: trustSeal.documentType || 'CERTIFICATE',
+      entityType: 'TrustSeal',
+      entityId: trustSeal.id,
+      recordedAt: trustSeal.createdAt,
+      anchoredAt: trustSeal.anchoredAt || trustSeal.createdAt,
+      organisationName: trustSeal.tenant?.name || null,
+      organisationType: trustSeal.tenant?.tenantType || null,
+      entityDetails: {
+        organisationName: trustSeal.tenant?.name || null,
+        organisationType: trustSeal.tenant?.tenantType || null,
+        documentName: trustSeal.documentTitle,
+      },
+      blockchain: {
+        network: 'Polygon',
+        txHash: trustSeal.anchorTxHash || null,
+        blockNumber: trustSeal.blockNumber || null,
+        anchorStatus: trustSeal.anchorTxHash ? 'confirmed' : 'pending',
+        ancheredAt: trustSeal.anchoredAt || null,
+      },
+    })
+  }
+
   const doc = await prisma.document.findFirst({
     where: { sha256Hash: dataHash },
     include: { project: { select: { name: true } }, expense: { select: { description: true, amount: true, currency: true, project: { select: { name: true } } } } }

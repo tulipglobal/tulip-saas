@@ -86,6 +86,14 @@ module.exports = function tenantClient(tenantId) {
       count:     (args = {}) => prisma.verificationCase.count({ ...args, where: { ...args.where, tenantId } }),
     },
 
+    trustSeal: {
+      findMany:  (args = {}) => prisma.trustSeal.findMany({ ...args, where: { ...args.where, tenantId } }),
+      findFirst: (args = {}) => prisma.trustSeal.findFirst({ ...args, where: { ...args.where, tenantId } }),
+      create:    (args = {}) => prisma.trustSeal.create({ ...args, data: { ...args.data, tenantId } }),
+      update:    (args = {}) => prisma.trustSeal.update(args),
+      count:     (args = {}) => prisma.trustSeal.count({ ...args, where: { ...args.where, tenantId } }),
+    },
+
     bundleJob: {
       findMany:  (args = {}) => prisma.bundleJob.findMany({ ...args, where: { ...args.where, tenantId } }),
       findFirst: (args = {}) => prisma.bundleJob.findFirst({ ...args, where: { ...args.where, tenantId } }),

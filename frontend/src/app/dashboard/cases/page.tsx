@@ -386,14 +386,72 @@ export default function CasesPage() {
                       <span className="text-xs text-yellow-400/60 whitespace-nowrap">Pending</span>
                     )}
                   </div>
-                  {bundle.crossAnalysisJson && (
-                    <div className="mt-3 ml-14 p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-                      <div className="text-xs font-medium text-white/60 mb-1">Cross-Analysis</div>
-                      <pre className="text-xs text-white/40 whitespace-pre-wrap max-h-40 overflow-y-auto">
-                        {typeof bundle.crossAnalysisJson === 'string' ? bundle.crossAnalysisJson : JSON.stringify(bundle.crossAnalysisJson, null, 2)}
-                      </pre>
-                    </div>
-                  )}
+                  {bundle.crossAnalysisJson && (() => {
+                    const analysis = typeof bundle.crossAnalysisJson === 'string'
+                      ? (() => { try { return JSON.parse(bundle.crossAnalysisJson) } catch { return null } })()
+                      : bundle.crossAnalysisJson
+                    if (!analysis) return null
+                    const severityColor = (s: string) => {
+                      const sl = (s || '').toLowerCase()
+                      if (sl === 'critical' || sl === 'high') return 'bg-red-400/15 text-red-400 border-red-400/20'
+                      if (sl === 'medium' || sl === 'warning') return 'bg-yellow-400/15 text-yellow-400 border-yellow-400/20'
+                      return 'bg-green-400/15 text-green-400 border-green-400/20'
+                    }
+                    return (
+                      <div className="mt-3 ml-14 space-y-3">
+                        {analysis.summary && (
+                          <div className="p-3 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                            <div className="text-xs font-medium text-white/60 mb-1.5">Summary</div>
+                            <div className="text-sm text-white/70 leading-relaxed">{analysis.summary}</div>
+                          </div>
+                        )}
+                        {analysis.findings && Array.isArray(analysis.findings) && analysis.findings.length > 0 && (
+                          <div className="p-3 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                            <div className="text-xs font-medium text-white/60 mb-2">Findings</div>
+                            <div className="space-y-2">
+                              {analysis.findings.map((f: any, idx: number) => (
+                                <div key={idx} className="flex items-start gap-2">
+                                  <span className={`shrink-0 mt-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase border ${severityColor(f.severity || f.level || 'low')}`}>
+                                    {f.severity || f.level || 'info'}
+                                  </span>
+                                  <span className="text-xs text-white/50 leading-relaxed">{f.description || f.message || f.text || JSON.stringify(f)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {analysis.inconsistencies && Array.isArray(analysis.inconsistencies) && analysis.inconsistencies.length > 0 && (
+                          <div className="p-3 rounded-lg bg-red-400/5 border border-red-400/10">
+                            <div className="text-xs font-medium text-red-400/80 mb-2">Inconsistencies Detected</div>
+                            <div className="space-y-1.5">
+                              {analysis.inconsistencies.map((inc: any, idx: number) => (
+                                <div key={idx} className="flex items-start gap-2 text-xs text-red-400/60">
+                                  <span className="shrink-0 mt-0.5">&#x26A0;</span>
+                                  <span>{typeof inc === 'string' ? inc : inc.description || inc.message || JSON.stringify(inc)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {analysis.missingDocuments && Array.isArray(analysis.missingDocuments) && analysis.missingDocuments.length > 0 && (
+                          <div className="p-3 rounded-lg bg-yellow-400/5 border border-yellow-400/10">
+                            <div className="text-xs font-medium text-yellow-400/80 mb-2">Missing Documents</div>
+                            <div className="space-y-1 text-xs text-yellow-400/60">
+                              {analysis.missingDocuments.map((doc: any, idx: number) => (
+                                <div key={idx}>&#x2022; {typeof doc === 'string' ? doc : doc.name || doc.type || JSON.stringify(doc)}</div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {!analysis.summary && !analysis.findings && !analysis.inconsistencies && (
+                          <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                            <div className="text-xs font-medium text-white/60 mb-1">Cross-Analysis</div>
+                            <div className="text-xs text-white/40 whitespace-pre-wrap">{JSON.stringify(analysis, null, 2)}</div>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })()}
                 </div>
               ))}
             </div>

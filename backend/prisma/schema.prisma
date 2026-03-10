@@ -31,6 +31,7 @@ model Tenant {
   ocrJobs  OcrJob[]
   bundleJobs BundleJob[]
   verificationCases VerificationCase[]
+  trustSeals         TrustSeal[]
   auditLogs          AuditLog[]
   documents          Document[]
   expenses           Expense[]
@@ -594,4 +595,29 @@ model BundleJob {
   @@index([status])
   @@index([createdAt])
   @@index([caseId])
+}
+
+model TrustSeal {
+  id             String    @id @default(uuid())
+  tenantId       String
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  documentTitle  String
+  documentType   String    @default("CERTIFICATE")
+  issuedTo       String
+  issuedToEmail  String?
+  issuedBy       String
+  metadata       Json?
+  rawHash        String
+  anchorTxHash   String?
+  anchoredAt     DateTime?
+  blockNumber    Int?
+  qrCodeUrl      String?
+  status         String    @default("issued")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([tenantId])
+  @@index([rawHash])
+  @@index([status])
+  @@index([createdAt])
 }

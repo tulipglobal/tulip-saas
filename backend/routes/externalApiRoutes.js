@@ -106,9 +106,19 @@ async function processExternalOcrJob(jobId, tenantId, userId, file) {
       }
     })
 
-    logger.info({ jobId, hashValue }, 'External OCR job completed')
+    // Also hash the original uploaded file for independent verification
+    const originalHash = crypto.createHash('sha256').update(file.buffer).digest('hex')
 
-    createAuditLog({ action: 'ocr.external_processed', entityType: 'OcrJob', entityId: jobId, userId, tenantId }).catch(() => {})
+    logger.info({ jobId, hashValue, originalHash }, 'External OCR job completed')
+
+    createAuditLog({
+      action: 'ocr.external_processed',
+      entityType: 'OcrJob',
+      entityId: jobId,
+      userId,
+      tenantId,
+      details: { hashValue, originalHash },
+    }).catch(() => {})
   } catch (err) {
     logger.error({ err: err.message, stack: err.stack, jobId }, 'External OCR pipeline error')
     await prisma.ocrJob.update({ where: { id: jobId }, data: { status: 'failed' } }).catch(() => {})
@@ -127,7 +137,7 @@ router.get('/ocr/jobs/:id', async (req, res) => {
     })
     if (!job) return res.status(404).json({ error: 'Job not found' })
     // Flat response — frontend reads data.status, data.result directly
-    res.json({
+    const response = {
       id: job.id,
       status: job.status,
       result: job.status === 'completed' ? {
@@ -137,7 +147,21 @@ router.get('/ocr/jobs/:id', async (req, res) => {
         normalizedData: job.normalisedJson,
       } : undefined,
       error: job.status === 'failed' ? 'Processing failed' : undefined,
-    })
+    }
+    // Include hash and blockchain info when available
+    if (job.hashValue) {
+      response.hash = job.hashValue
+      response.verifyUrl = `https://verify.tulipds.com/verify?hash=${job.hashValue}`
+    }
+    response.anchorStatus = job.anchorTxHash ? 'confirmed' : (job.status === 'completed' ? 'pending' : null)
+    if (job.anchorTxHash) {
+      response.blockchain = {
+        network: 'Polygon',
+        txHash: job.anchorTxHash,
+        anchoredAt: job.anchoredAt,
+      }
+    }
+    res.json(response)
   } catch (err) {
     logger.error({ err: err.message, stack: err.stack }, 'External GET job failed')
     res.status(500).json({ error: err.message })

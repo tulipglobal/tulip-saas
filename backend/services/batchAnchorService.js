@@ -54,15 +54,39 @@ async function buildHashChain(records, tenantId) {
 }
 
 async function anchorBatch() {
+  // ── 1. Gather all pending items ─────────────────────────────
   const logs = await prisma.auditLog.findMany({
     where:   { blockchainTx: null },
     take:    20,
     orderBy: { createdAt: 'asc' },
   })
 
-  if (logs.length === 0) { logger.info('No logs to anchor'); return }
-  logger.info(`Anchoring ${logs.length} log(s)...`)
+  const pendingOcrJobs = await prisma.ocrJob.findMany({
+    where: { status: 'completed', hashValue: { not: null }, anchorTxHash: null },
+    take: 20,
+    orderBy: { createdAt: 'asc' },
+    select: { id: true, hashValue: true, tenantId: true },
+  })
 
+  const pendingBundleJobs = await prisma.bundleJob.findMany({
+    where: { status: 'completed', bundleHash: { not: null }, anchorTxHash: null },
+    take: 20,
+    orderBy: { createdAt: 'asc' },
+    select: { id: true, bundleHash: true, tenantId: true },
+  })
+
+  const pendingSeals = await prisma.trustSeal.findMany({
+    where: { anchorTxHash: null, rawHash: { not: '' } },
+    take: 20,
+    orderBy: { createdAt: 'asc' },
+    select: { id: true, rawHash: true, tenantId: true },
+  })
+
+  const totalPending = logs.length + pendingOcrJobs.length + pendingBundleJobs.length + pendingSeals.length
+  if (totalPending === 0) { logger.info('No items to anchor'); return }
+  logger.info(`Anchoring ${logs.length} log(s), ${pendingOcrJobs.length} OCR job(s), ${pendingBundleJobs.length} bundle(s), ${pendingSeals.length} seal(s)...`)
+
+  // ── 2. Build hash chain for audit logs ──────────────────────
   const byTenant = logs.reduce((acc, l) => {
     if (!acc[l.tenantId]) acc[l.tenantId] = []
     acc[l.tenantId].push(l)
@@ -75,11 +99,19 @@ async function anchorBatch() {
     allChainUpdates.push(...updates)
   }
 
-  const hashes     = allChainUpdates.map(u => u.dataHash)
+  // ── 3. Build combined Merkle root from ALL hashes ───────────
+  const hashes = [
+    ...allChainUpdates.map(u => u.dataHash),
+    ...pendingOcrJobs.map(j => j.hashValue),
+    ...pendingBundleJobs.map(b => b.bundleHash),
+    ...pendingSeals.map(s => s.rawHash),
+  ]
+
   const merkleRoot = buildMerkleRoot(hashes)
   const batchId    = merkleRoot
-  const tenantId   = logs[0].tenantId
+  const tenantId   = logs[0]?.tenantId || pendingOcrJobs[0]?.tenantId || pendingBundleJobs[0]?.tenantId || pendingSeals[0]?.tenantId
 
+  // ── 4. Submit transaction ───────────────────────────────────
   const provider   = getProvider()
   const wallet     = new ethers.Wallet(process.env.ANCHOR_WALLET_KEY || process.env.BLOCKCHAIN_PRIVATE_KEY, provider)
   const anchorData = ethers.hexlify(ethers.toUtf8Bytes(`tulip:${batchId}:${merkleRoot}`))
@@ -99,23 +131,64 @@ async function anchorBatch() {
 
   logger.info('TX submitted', { txHash: tx.hash, batchId })
 
-  await prisma.$transaction(
-    allChainUpdates.map(u => prisma.auditLog.update({
+  // ── 5. Mark all items as pending ────────────────────────────
+  const txOps = []
+
+  // Audit logs
+  if (allChainUpdates.length > 0) {
+    txOps.push(...allChainUpdates.map(u => prisma.auditLog.update({
       where: { id: u.id },
       data:  { dataHash: u.dataHash, prevHash: u.prevHash, batchId, blockchainTx: tx.hash, anchorStatus: 'pending' },
-    }))
-  )
+    })))
+  }
 
+  // OCR jobs
+  if (pendingOcrJobs.length > 0) {
+    txOps.push(prisma.ocrJob.updateMany({
+      where: { id: { in: pendingOcrJobs.map(j => j.id) } },
+      data: { anchorTxHash: tx.hash },
+    }))
+  }
+
+  // Bundle jobs
+  if (pendingBundleJobs.length > 0) {
+    txOps.push(prisma.bundleJob.updateMany({
+      where: { id: { in: pendingBundleJobs.map(b => b.id) } },
+      data: { anchorTxHash: tx.hash },
+    }))
+  }
+
+  // Trust seals
+  if (pendingSeals.length > 0) {
+    txOps.push(prisma.trustSeal.updateMany({
+      where: { id: { in: pendingSeals.map(s => s.id) } },
+      data: { anchorTxHash: tx.hash, status: 'anchoring' },
+    }))
+  }
+
+  if (txOps.length > 0) await prisma.$transaction(txOps)
+
+  // ── 6. Wait for confirmation ────────────────────────────────
   logger.info('Waiting for confirmation...')
   const receipt = await tx.wait(2)
 
   if (!receipt || receipt.status === 0) {
-    await prisma.auditLog.updateMany({
-      where: { batchId },
-      data:  { anchorStatus: 'failed' },
-    })
-    logger.error('TX failed on chain', { txHash: tx.hash })
+    const failOps = []
+    if (allChainUpdates.length > 0) {
+      failOps.push(prisma.auditLog.updateMany({ where: { batchId }, data: { anchorStatus: 'failed' } }))
+    }
+    if (pendingOcrJobs.length > 0) {
+      failOps.push(prisma.ocrJob.updateMany({ where: { id: { in: pendingOcrJobs.map(j => j.id) } }, data: { anchorTxHash: null } }))
+    }
+    if (pendingBundleJobs.length > 0) {
+      failOps.push(prisma.bundleJob.updateMany({ where: { id: { in: pendingBundleJobs.map(b => b.id) } }, data: { anchorTxHash: null } }))
+    }
+    if (pendingSeals.length > 0) {
+      failOps.push(prisma.trustSeal.updateMany({ where: { id: { in: pendingSeals.map(s => s.id) } }, data: { anchorTxHash: null, status: 'issued' } }))
+    }
+    if (failOps.length > 0) await prisma.$transaction(failOps)
 
+    logger.error('TX failed on chain', { txHash: tx.hash })
     dispatch(tenantId, 'anchor.failed', { batchId, txHash: tx.hash, reason: 'TX reverted' }).catch(() => {})
     siemEmit('anchor.failed', { tenantId, batchId, txHash: tx.hash }).catch(() => {})
     return
@@ -124,19 +197,48 @@ async function anchorBatch() {
   const block      = await provider.getBlock(receipt.blockNumber)
   const ancheredAt = new Date(block.timestamp * 1000)
 
-  await prisma.auditLog.updateMany({
-    where: { batchId },
-    data: {
-      blockNumber:  receipt.blockNumber,
-      blockHash:    receipt.blockHash,
-      anchorStatus: 'confirmed',
-      ancheredAt,
-    },
-  })
+  // ── 7. Mark all items as confirmed ──────────────────────────
+  const confirmOps = []
+
+  if (allChainUpdates.length > 0) {
+    confirmOps.push(prisma.auditLog.updateMany({
+      where: { batchId },
+      data: { blockNumber: receipt.blockNumber, blockHash: receipt.blockHash, anchorStatus: 'confirmed', ancheredAt },
+    }))
+  }
+
+  if (pendingOcrJobs.length > 0) {
+    confirmOps.push(prisma.ocrJob.updateMany({
+      where: { id: { in: pendingOcrJobs.map(j => j.id) } },
+      data: { anchorTxHash: tx.hash, anchoredAt: ancheredAt },
+    }))
+    logger.info(`[anchor] ${pendingOcrJobs.length} OCR job(s) anchored`)
+  }
+
+  if (pendingBundleJobs.length > 0) {
+    confirmOps.push(prisma.bundleJob.updateMany({
+      where: { id: { in: pendingBundleJobs.map(b => b.id) } },
+      data: { anchorTxHash: tx.hash, anchoredAt: ancheredAt },
+    }))
+    logger.info(`[anchor] ${pendingBundleJobs.length} bundle(s) anchored`)
+  }
+
+  if (pendingSeals.length > 0) {
+    confirmOps.push(prisma.trustSeal.updateMany({
+      where: { id: { in: pendingSeals.map(s => s.id) } },
+      data: { anchorTxHash: tx.hash, anchoredAt: ancheredAt, blockNumber: receipt.blockNumber, status: 'anchored' },
+    }))
+    logger.info(`[anchor] ${pendingSeals.length} trust seal(s) anchored`)
+  }
+
+  if (confirmOps.length > 0) await prisma.$transaction(confirmOps)
 
   logger.info(`Batch confirmed`, {
     blockNumber: receipt.blockNumber,
-    recordCount: logs.length,
+    auditLogs: logs.length,
+    ocrJobs: pendingOcrJobs.length,
+    bundles: pendingBundleJobs.length,
+    seals: pendingSeals.length,
     batchId,
   })
 
@@ -210,7 +312,7 @@ async function anchorBatch() {
     blockNumber: receipt.blockNumber,
     blockHash:   receipt.blockHash,
     ancheredAt:  ancheredAt.toISOString(),
-    recordCount: logs.length,
+    recordCount: totalPending,
   }).catch(() => {})
 
   siemEmit('anchor.confirmed', {
@@ -218,7 +320,7 @@ async function anchorBatch() {
     batchId,
     txHash:      tx.hash,
     blockNumber: receipt.blockNumber,
-    recordCount: logs.length,
+    recordCount: totalPending,
   }).catch(() => {})
 }
 

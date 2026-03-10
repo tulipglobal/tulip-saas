@@ -125,6 +125,53 @@ async function processExternalOcrJob(jobId, tenantId, userId, file) {
   }
 }
 
+// ── GET /api/external/ocr/jobs — list jobs for tenant ─────────────────────
+router.get('/ocr/jobs', async (req, res) => {
+  if (req.user.authMethod === 'apikey' && !req.user.permissions?.includes('documents:read')) {
+    return res.status(403).json({ error: 'API key lacks documents:read permission' })
+  }
+
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 50, 100)
+    const jobs = await prisma.ocrJob.findMany({
+      where: { tenantId: req.user.tenantId },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      select: {
+        id: true,
+        originalFilename: true,
+        status: true,
+        documentType: true,
+        assessmentScore: true,
+        assessmentResult: true,
+        normalisedJson: true,
+        hashValue: true,
+        anchorTxHash: true,
+        anchoredAt: true,
+        createdAt: true,
+      },
+    })
+
+    res.json(jobs.map(job => ({
+      id: job.id,
+      fileName: job.originalFilename,
+      status: job.status === 'pending' ? 'processing' : job.status,
+      createdAt: job.createdAt,
+      result: (job.status === 'completed') ? {
+        documentType: job.documentType,
+        riskScore: job.assessmentScore,
+        riskLevel: job.assessmentResult,
+        normalizedData: job.normalisedJson,
+      } : undefined,
+      hash: job.hashValue || undefined,
+      anchorStatus: job.anchorTxHash ? 'confirmed' : (job.status === 'completed' ? 'pending' : null),
+    })))
+  } catch (err) {
+    logger.error({ err: err.message, stack: err.stack }, 'External list jobs failed')
+    res.status(500).json({ error: err.message })
+  }
+})
+
 // ── GET /api/external/ocr/jobs/:id ──────────────────────────────────────────
 router.get('/ocr/jobs/:id', async (req, res) => {
   if (req.user.authMethod === 'apikey' && !req.user.permissions?.includes('documents:read')) {

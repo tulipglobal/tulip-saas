@@ -55,6 +55,7 @@ const teamRoutes          = require('./routes/teamRoutes')
 const analyticsRoutes     = require('./routes/analyticsRoutes')
 const workflowRoutes      = require('./routes/workflowRoutes')
 const overviewRoutes      = require('./routes/overviewRoutes')
+const ocrRoutes = require('./routes/ocrRoutes')
 
 app.get('/', (req, res) => res.send('Tulip API Running'))
 
@@ -99,6 +100,7 @@ app.use('/api/billing',        apiLimiter,  billingRoutes)
 app.use('/api/team',           apiLimiter,  teamRoutes)
 app.use('/api/analytics',     apiLimiter,  authenticate, tenantScope, analyticsRoutes)
 app.use('/api/workflow',      apiLimiter,  authenticate, tenantScope, workflowRoutes)
+app.use('/api/ocr', apiLimiter, ocrRoutes)
 app.use('/api/overview',      apiLimiter,  authenticate, tenantScope, overviewRoutes)
 
 app.use((err, req, res, next) => {

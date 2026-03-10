@@ -28,6 +28,7 @@ model Tenant {
   planStatus           String           @default("active")
   trialEndsAt          DateTime?
   apiKeys            ApiKey[]
+  ocrJobs  OcrJob[]
   auditLogs          AuditLog[]
   documents          Document[]
   expenses           Expense[]
@@ -129,6 +130,7 @@ model ApiKey {
   creator     User      @relation("ApiKeyCreator", fields: [createdBy], references: [id])
   tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
+  OcrJob  OcrJob[]
   @@index([tenantId])
   @@index([createdBy])
 }
@@ -482,4 +484,33 @@ model WorkflowComment {
   task      WorkflowTask @relation(fields: [taskId], references: [id])
 
   @@index([taskId])
+}
+
+model OcrJob {
+  id               String    @id @default(uuid())
+  tenantId         String
+  tenant           Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  apiKeyId         String?
+  apiKey           ApiKey?   @relation(fields: [apiKeyId], references: [id])
+  originalFilename String
+  fileType         String
+  fileSize         Int
+  s3Key            String
+  detectedLanguage String?
+  status           String    @default("pending")
+  rawText          String?   @db.Text
+  confidence       Float?
+  documentType     String?
+  normalisedJson   Json?
+  normalisedPdfS3  String?
+  assessmentScore  Int?
+  assessmentResult String?
+  assessmentNotes  String?   @db.Text
+  flags            Json?
+  hashValue        String?
+  anchorTxHash     String?
+  anchoredAt       DateTime?
+  proofBundleS3    String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 }

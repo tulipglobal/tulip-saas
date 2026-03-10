@@ -25,12 +25,17 @@ const upload = multer({
 })
 
 // ── POST /api/external/ocr/process ──────────────────────────────────────────
-router.post('/ocr/process', upload.single('file'), async (req, res) => {
+router.post('/ocr/process', (req, res, next) => {
+  upload.single('document')(req, res, (err) => {
+    if (err) return res.status(400).json({ error: err.message })
+    next()
+  })
+}, async (req, res) => {
   const tenantId = req.user.tenantId
   const userId   = req.user.userId
 
-  // Check permission
-  if (!req.user.permissions?.includes('documents:write')) {
+  // Check permission (skip for JWT-authenticated dashboard users)
+  if (req.user.authMethod === 'apikey' && !req.user.permissions?.includes('documents:write')) {
     return res.status(403).json({ error: 'API key lacks documents:write permission' })
   }
 
@@ -112,7 +117,7 @@ async function processExternalOcrJob(jobId, tenantId, userId, file) {
 
 // ── GET /api/external/ocr/jobs/:id ──────────────────────────────────────────
 router.get('/ocr/jobs/:id', async (req, res) => {
-  if (!req.user.permissions?.includes('documents:read')) {
+  if (req.user.authMethod === 'apikey' && !req.user.permissions?.includes('documents:read')) {
     return res.status(403).json({ error: 'API key lacks documents:read permission' })
   }
 
@@ -145,7 +150,7 @@ router.post('/ocr/bundle', (req, res, next) => {
     next()
   })
 }, async (req, res) => {
-  if (!req.user.permissions?.includes('documents:write')) {
+  if (req.user.authMethod === 'apikey' && !req.user.permissions?.includes('documents:write')) {
     return res.status(403).json({ error: 'API key lacks documents:write permission' })
   }
 
@@ -259,7 +264,7 @@ async function processExternalBundle(bundleId, tenantId, userId, ocrJobs) {
 
 // ── GET /api/external/ocr/bundles/:id ───────────────────────────────────────
 router.get('/ocr/bundles/:id', async (req, res) => {
-  if (!req.user.permissions?.includes('documents:read')) {
+  if (req.user.authMethod === 'apikey' && !req.user.permissions?.includes('documents:read')) {
     return res.status(403).json({ error: 'API key lacks documents:read permission' })
   }
 

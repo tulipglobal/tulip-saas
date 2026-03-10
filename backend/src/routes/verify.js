@@ -157,6 +157,66 @@ router.get('/:dataHash', async (req, res) => {
     })
 
 if (!record) {
+  // Check OcrJob.hashValue
+  const ocrJob = await prisma.ocrJob.findFirst({
+    where: { hashValue: dataHash },
+    include: { tenant: { select: { name: true, tenantType: true } } }
+  })
+  if (ocrJob) {
+    return res.json({
+      verified: true,
+      status: 'verified',
+      dataHash,
+      source: 'ocr',
+      documentType: ocrJob.documentType || 'document',
+      detectedLanguage: ocrJob.detectedLanguage,
+      entityType: 'OcrJob',
+      entityId: ocrJob.id,
+      recordedAt: ocrJob.createdAt,
+      anchoredAt: ocrJob.anchoredAt || ocrJob.createdAt,
+      organisationName: ocrJob.tenant?.name || null,
+      organisationType: ocrJob.tenant?.tenantType || null,
+      assessmentScore: ocrJob.assessmentScore,
+      assessmentResult: ocrJob.assessmentResult,
+      blockchain: {
+        network: 'Polygon',
+        txHash: ocrJob.anchorTxHash || null,
+        anchorStatus: ocrJob.anchorTxHash ? 'confirmed' : 'pending',
+        ancheredAt: ocrJob.anchoredAt || null,
+      },
+    })
+  }
+
+  // Check BundleJob.bundleHash
+  const bundleJob = await prisma.bundleJob.findFirst({
+    where: { bundleHash: dataHash },
+    include: { tenant: { select: { name: true, tenantType: true } } }
+  })
+  if (bundleJob) {
+    return res.json({
+      verified: true,
+      status: 'verified',
+      dataHash,
+      source: 'bundle',
+      documentType: 'bundle_verification',
+      entityType: 'BundleJob',
+      entityId: bundleJob.id,
+      recordedAt: bundleJob.createdAt,
+      anchoredAt: bundleJob.anchoredAt || bundleJob.createdAt,
+      organisationName: bundleJob.tenant?.name || null,
+      organisationType: bundleJob.tenant?.tenantType || null,
+      fileCount: bundleJob.fileCount,
+      overallRiskScore: bundleJob.overallRiskScore,
+      overallRiskLevel: bundleJob.overallRiskLevel,
+      blockchain: {
+        network: 'Polygon',
+        txHash: bundleJob.anchorTxHash || null,
+        anchorStatus: bundleJob.anchorTxHash ? 'confirmed' : 'pending',
+        ancheredAt: bundleJob.anchoredAt || null,
+      },
+    })
+  }
+
   const doc = await prisma.document.findFirst({
     where: { sha256Hash: dataHash },
     include: { project: { select: { name: true } }, expense: { select: { description: true, amount: true, currency: true, project: { select: { name: true } } } } }

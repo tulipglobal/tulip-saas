@@ -16,7 +16,7 @@ const logger       = require('./lib/logger')
 
 const app = express()
 const cors = require('cors')
-app.use(cors({ origin: ['http://localhost:3000', 'https://tulipds.com', 'https://www.tulipds.com', 'https://app.tulipds.com', 'https://donor.tulipds.com'], credentials: true }))
+app.use(cors({ origin: ['http://localhost:3000', 'http://localhost:3001', 'https://tulipds.com', 'https://www.tulipds.com', 'https://app.tulipds.com', 'https://donor.tulipds.com', 'https://verify.tulipds.com'], credentials: true }))
 app.set('trust proxy', 1)
 
 // Stripe webhook needs raw body BEFORE express.json() parses it

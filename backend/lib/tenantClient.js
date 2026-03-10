@@ -68,5 +68,13 @@ module.exports = function tenantClient(tenantId) {
       create:    (args = {}) => prisma.role.create({ ...args, data: { ...args.data, tenantId } }),
       delete:    (args = {}) => prisma.role.delete(args),
     },
+
+    ocrJob: {
+      findMany:  (args = {}) => prisma.ocrJob.findMany({ ...args, where: { ...args.where, tenantId } }),
+      findFirst: (args = {}) => prisma.ocrJob.findFirst({ ...args, where: { ...args.where, tenantId } }),
+      create:    (args = {}) => prisma.ocrJob.create({ ...args, data: { ...args.data, tenantId } }),
+      update:    (args = {}) => prisma.ocrJob.update(args),
+      count:     (args = {}) => prisma.ocrJob.count({ ...args, where: { ...args.where, tenantId } }),
+    },
   }
 }

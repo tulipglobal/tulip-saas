@@ -130,7 +130,7 @@ model ApiKey {
   creator     User      @relation("ApiKeyCreator", fields: [createdBy], references: [id])
   tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
-  OcrJob  OcrJob[]
+  ocrJobs OcrJob[]
   @@index([tenantId])
   @@index([createdBy])
 }
@@ -513,4 +513,8 @@ model OcrJob {
   proofBundleS3    String?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([createdAt])
 }

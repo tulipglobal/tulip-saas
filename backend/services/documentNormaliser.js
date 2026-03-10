@@ -4,6 +4,12 @@ const logger = require('../lib/logger')
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
+/** Strip markdown code fences (```json ... ```) before JSON.parse */
+function parseJsonResponse(text) {
+  const cleaned = text.trim().replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?\s*```$/i, '')
+  return JSON.parse(cleaned)
+}
+
 /**
  * Normalise raw OCR text into a structured clean document using Claude AI
  * Works for any language — Claude will detect and process accordingly
@@ -80,7 +86,7 @@ Respond with a JSON object only (no markdown, no explanation) in this exact form
     })
 
     const text = response.content[0].text.trim()
-    const parsed = JSON.parse(text)
+    const parsed = parseJsonResponse(text)
     
     logger.info({ documentType: parsed.documentType, language: parsed.detectedLanguage }, 'Document normalised')
     return parsed
@@ -150,7 +156,7 @@ Respond with JSON only (no markdown) in this exact format:
     })
 
     const text = response.content[0].text.trim()
-    const parsed = JSON.parse(text)
+    const parsed = parseJsonResponse(text)
 
     logger.info({ riskScore: parsed.riskScore, riskLevel: parsed.riskLevel }, 'Document assessed')
     return parsed

@@ -608,6 +608,8 @@ model TrustSeal {
   issuedBy       String
   metadata       Json?
   rawHash        String
+  s3Key          String?
+  fileType       String?
   anchorTxHash   String?
   anchoredAt     DateTime?
   blockNumber    Int?

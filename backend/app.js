@@ -63,6 +63,7 @@ const caseRoutes         = require('./routes/caseRoutes')
 const casePublicRoutes   = require('./routes/casePublicRoutes')
 const trustSealRoutes    = require('./routes/trustSealRoutes')
 const sealPublicRoutes   = require('./routes/sealPublicRoutes')
+const ocrPublicRoutes    = require('./routes/ocrPublicRoutes')
 
 app.get('/', (req, res) => res.send('Tulip API Running'))
 
@@ -114,6 +115,7 @@ app.use('/api/cases',        apiLimiter,  authenticate, tenantScope, caseRoutes)
 app.use('/api/trust-seal',   apiLimiter,  authenticate, tenantScope, trustSealRoutes)
 app.use('/api/public/cases', apiLimiter,  casePublicRoutes)
 app.use('/api/public/seal',  apiLimiter,  sealPublicRoutes)
+app.use('/api/public/ocr',   apiLimiter,  ocrPublicRoutes)
 app.use('/api/external',     apiLimiter,  externalAuth, externalApiRoutes)
 
 app.use((err, req, res, next) => {

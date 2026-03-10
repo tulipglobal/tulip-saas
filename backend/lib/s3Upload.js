@@ -65,4 +65,14 @@ async function getPresignedUrl(fileUrl, expiresIn = 3600) {
   }
 }
 
-module.exports = { uploadToS3, computeSHA256, getPresignedUrl }
+async function getPresignedUrlFromKey(key, expiresIn = 3600) {
+  try {
+    const command = new GetObjectCommand({ Bucket: BUCKET, Key: key })
+    return await getSignedUrl(s3, command, { expiresIn })
+  } catch (err) {
+    console.error('Presign error:', err)
+    return null
+  }
+}
+
+module.exports = { uploadToS3, computeSHA256, getPresignedUrl, getPresignedUrlFromKey }

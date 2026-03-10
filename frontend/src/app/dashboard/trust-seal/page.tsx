@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { apiFetch, apiGet } from '@/lib/api'
 import {
   ShieldCheck, Plus, Search, Copy, ExternalLink, X, Download,
-  FileCheck, Clock, CheckCircle, QrCode
+  FileCheck, Clock, CheckCircle, QrCode, Eye
 } from 'lucide-react'
 
 interface Seal {
@@ -49,6 +49,28 @@ export default function TrustSealPage() {
   // Success modal
   const [createdSeal, setCreatedSeal] = useState<(Seal & { verifyUrl?: string; qrCode?: string }) | null>(null)
   const [copied, setCopied] = useState(false)
+
+  // Preview modal
+  const [previewSeal, setPreviewSeal] = useState<Seal | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
+
+  const openPreview = async (seal: Seal) => {
+    setPreviewSeal(seal)
+    setPreviewUrl(null)
+    setPreviewLoading(true)
+    try {
+      const token = localStorage.getItem('tulip_token')
+      const r = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/public/seal/${seal.id}/document`, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      })
+      if (r.ok) {
+        const d = await r.json()
+        if (d.url) setPreviewUrl(d.url)
+      }
+    } catch {}
+    setPreviewLoading(false)
+  }
 
   const fetchSeals = useCallback(async () => {
     try {
@@ -212,6 +234,11 @@ export default function TrustSealPage() {
 
               {/* Actions */}
               <div className="flex items-center gap-1">
+                <button onClick={() => openPreview(seal)}
+                  className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/30 hover:text-white hover:bg-white/10 transition-all"
+                  title="Preview document">
+                  <Eye size={14} />
+                </button>
                 <button onClick={() => copyUrl(seal.id)}
                   className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/30 hover:text-white hover:bg-white/10 transition-all"
                   title="Copy verify URL">
@@ -313,6 +340,96 @@ export default function TrustSealPage() {
                 style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
                 {creating ? 'Issuing...' : 'Issue Seal'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Preview Modal */}
+      {previewSeal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setPreviewSeal(null)}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="relative bg-[#0a1929] border border-white/10 rounded-xl w-full max-w-2xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
+              <h3 className="font-semibold text-white text-lg truncate pr-4">{previewSeal.documentTitle}</h3>
+              <button onClick={() => setPreviewSeal(null)} className="text-white/40 hover:text-white shrink-0"><X size={18} /></button>
+            </div>
+            <div className="p-5 space-y-4">
+              {/* Document preview */}
+              {previewLoading ? (
+                <div className="flex items-center justify-center py-16 bg-white/[0.02] rounded-xl border border-white/[0.06]">
+                  <div className="w-6 h-6 border-2 border-[#0c7aed] border-t-transparent rounded-full animate-spin" />
+                  <span className="ml-3 text-sm text-white/40">Loading document...</span>
+                </div>
+              ) : previewUrl ? (
+                <div className="rounded-xl overflow-hidden border border-white/[0.06] bg-white">
+                  {previewSeal.documentType?.includes('image') || previewUrl.match(/\.(jpg|jpeg|png|gif|webp)/i) ? (
+                    <img src={previewUrl} alt={previewSeal.documentTitle} className="max-h-[400px] w-full object-contain" />
+                  ) : (
+                    <iframe src={previewUrl} className="w-full h-[400px]" title="Document preview" />
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center py-12 bg-white/[0.02] rounded-xl border border-white/[0.06]">
+                  <span className="text-sm text-white/30">No document attached to this seal</span>
+                </div>
+              )}
+
+              {/* Seal details */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3">
+                  <div className="text-[10px] text-white/40 uppercase font-medium mb-1">Issued To</div>
+                  <div className="text-sm text-white">{previewSeal.issuedTo}</div>
+                </div>
+                <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3">
+                  <div className="text-[10px] text-white/40 uppercase font-medium mb-1">Document Type</div>
+                  <div className="text-sm text-white">{previewSeal.documentType}</div>
+                </div>
+                <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3">
+                  <div className="text-[10px] text-white/40 uppercase font-medium mb-1">Status</div>
+                  <div className="text-sm flex items-center gap-1.5">
+                    {previewSeal.anchorTxHash ? (
+                      <span className="text-green-400 flex items-center gap-1"><CheckCircle size={12} /> Anchored</span>
+                    ) : (
+                      <span className="text-yellow-400 flex items-center gap-1"><Clock size={12} /> Pending</span>
+                    )}
+                  </div>
+                </div>
+                <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3">
+                  <div className="text-[10px] text-white/40 uppercase font-medium mb-1">Issued</div>
+                  <div className="text-sm text-white">{new Date(previewSeal.createdAt).toLocaleDateString()}</div>
+                </div>
+              </div>
+
+              {/* Hash */}
+              <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3">
+                <div className="text-[10px] text-white/40 uppercase font-medium mb-1">SHA-256 Hash</div>
+                <code className="text-xs text-white/60 font-mono break-all">{previewSeal.rawHash}</code>
+              </div>
+
+              {/* Polygon link */}
+              {previewSeal.anchorTxHash && (
+                <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3">
+                  <div className="text-[10px] text-white/40 uppercase font-medium mb-1">Polygon Transaction</div>
+                  <a href={`https://polygonscan.com/tx/${previewSeal.anchorTxHash}`} target="_blank" rel="noopener noreferrer"
+                    className="text-xs text-[#369bff] hover:underline font-mono break-all">
+                    {previewSeal.anchorTxHash}
+                  </a>
+                </div>
+              )}
+            </div>
+            <div className="flex justify-end gap-3 p-5 border-t border-white/[0.06]">
+              {previewUrl && (
+                <a href={previewUrl} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 text-white/70 hover:bg-white/10 transition-all text-sm">
+                  <Download size={14} /> Download
+                </a>
+              )}
+              <a href={`https://verify.tulipds.com/seal/${previewSeal.id}`} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90"
+                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                <ExternalLink size={14} /> View Public Page
+              </a>
             </div>
           </div>
         </div>

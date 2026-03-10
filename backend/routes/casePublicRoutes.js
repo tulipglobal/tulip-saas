@@ -5,6 +5,7 @@
 const express = require('express')
 const router = express.Router()
 const prisma = require('../lib/client')
+const { getPresignedUrlFromKey } = require('../lib/s3Upload')
 
 // GET /api/public/cases/:shareToken — public case summary
 router.get('/:shareToken', async (req, res) => {
@@ -19,7 +20,7 @@ router.get('/:shareToken', async (req, res) => {
             id: true, originalFilename: true, status: true, documentType: true,
             assessmentScore: true, assessmentResult: true, hashValue: true,
             anchorTxHash: true, anchoredAt: true, createdAt: true,
-            detectedLanguage: true,
+            detectedLanguage: true, fileType: true,
           },
         },
         bundleJobs: {
@@ -65,6 +66,7 @@ router.get('/:shareToken', async (req, res) => {
         assessmentResult: job.assessmentResult,
         hashValue: job.hashValue,
         detectedLanguage: job.detectedLanguage,
+        fileType: job.fileType,
         blockchain: {
           network: 'Polygon',
           txHash: job.anchorTxHash || null,
@@ -96,6 +98,33 @@ router.get('/:shareToken', async (req, res) => {
     })
   } catch (err) {
     console.error('Failed to get public case:', err)
+    res.status(500).json({ error: 'Internal error' })
+  }
+})
+
+// GET /api/public/cases/:token/documents/:docId — presigned URL for document in case
+router.get('/:shareToken/documents/:docId', async (req, res) => {
+  try {
+    const caseRecord = await prisma.verificationCase.findUnique({
+      where: { shareToken: req.params.shareToken },
+      select: { id: true, status: true },
+    })
+    if (!caseRecord || caseRecord.status === 'ARCHIVED') {
+      return res.status(404).json({ error: 'Case not found' })
+    }
+
+    const job = await prisma.ocrJob.findFirst({
+      where: { id: req.params.docId, caseId: caseRecord.id },
+      select: { s3Key: true, fileType: true, originalFilename: true },
+    })
+    if (!job || !job.s3Key) return res.status(404).json({ error: 'Document not found' })
+
+    const url = await getPresignedUrlFromKey(job.s3Key, 3600)
+    if (!url) return res.status(500).json({ error: 'Could not generate URL' })
+
+    res.json({ url, fileType: job.fileType, name: job.originalFilename, expiresIn: 3600 })
+  } catch (err) {
+    console.error('Failed to get case document:', err)
     res.status(500).json({ error: 'Internal error' })
   }
 })

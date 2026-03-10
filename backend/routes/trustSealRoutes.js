@@ -11,6 +11,7 @@ const tenantClient = require('../lib/tenantClient')
 const prisma = require('../lib/client')
 const { parsePagination, paginatedResponse } = require('../lib/paginate')
 const { createAuditLog } = require('../services/auditService')
+const { uploadToS3 } = require('../lib/s3Upload')
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } })
 
@@ -30,13 +31,18 @@ router.post('/issue', upload.single('file'), async (req, res) => {
       select: { name: true }
     })
 
-    // Hash the file content
-    let rawHash
+    // Hash the file content and upload to S3
+    let rawHash, s3Key = null, fileType = null
     if (req.file) {
       rawHash = crypto.createHash('sha256').update(req.file.buffer).digest('hex')
+      const upload = await uploadToS3(req.file.buffer, req.file.originalname, req.user.tenantId, 'seals')
+      s3Key = upload.key
+      fileType = req.file.mimetype || req.file.originalname.split('.').pop()
     } else if (fileBase64) {
       const buf = Buffer.from(fileBase64, 'base64')
       rawHash = crypto.createHash('sha256').update(buf).digest('hex')
+      const upload = await uploadToS3(buf, `seal-${Date.now()}.bin`, req.user.tenantId, 'seals')
+      s3Key = upload.key
     } else {
       // Hash the document metadata as fallback
       const canonical = JSON.stringify({
@@ -69,6 +75,8 @@ router.post('/issue', upload.single('file'), async (req, res) => {
         issuedBy: issuedBy || tenant?.name || 'Unknown',
         metadata: parsedMetadata,
         rawHash,
+        s3Key,
+        fileType,
         status: 'issued',
       },
     })

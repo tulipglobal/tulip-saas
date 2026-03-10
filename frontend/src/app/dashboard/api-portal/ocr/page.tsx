@@ -74,6 +74,8 @@ export default function OcrPage() {
   const [error, setError] = useState<string | null>(null)
   const [selectedJob, setSelectedJob] = useState<OcrJob | null>(null)
   const [dragActive, setDragActive] = useState(false)
+  const [docPreviewUrl, setDocPreviewUrl] = useState<string | null>(null)
+  const [docPreviewLoading, setDocPreviewLoading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -112,6 +114,28 @@ export default function OcrPage() {
     }
     return () => { if (pollRef.current) clearInterval(pollRef.current) }
   }, [jobs, fetchJobs])
+
+  // Load document preview when job is selected
+  useEffect(() => {
+    if (!selectedJob || selectedJob.status !== 'completed') {
+      setDocPreviewUrl(null)
+      return
+    }
+    let cancelled = false
+    setDocPreviewLoading(true)
+    setDocPreviewUrl(null)
+    ;(async () => {
+      try {
+        const res = await apiGet(`/api/public/ocr/${selectedJob.id}/document`)
+        if (res.ok && !cancelled) {
+          const d = await res.json()
+          if (d.url) setDocPreviewUrl(d.url)
+        }
+      } catch {}
+      if (!cancelled) setDocPreviewLoading(false)
+    })()
+    return () => { cancelled = true }
+  }, [selectedJob?.id, selectedJob?.status])
 
   const handleUpload = async (file: File) => {
     setUploading(true)
@@ -351,6 +375,34 @@ export default function OcrPage() {
                   </button>
                 )}
               </div>
+
+              {/* Original document preview */}
+              {selectedJob.status === 'completed' && (
+                <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
+                  <h4 className="font-semibold text-sm text-white/60 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <Eye size={14} className="text-[#0c7aed]" />
+                    Original Document
+                  </h4>
+                  {docPreviewLoading ? (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 size={20} className="animate-spin text-[#0c7aed]" />
+                      <span className="ml-3 text-sm text-white/40">Loading preview...</span>
+                    </div>
+                  ) : docPreviewUrl ? (
+                    <div className="rounded-xl overflow-hidden border border-white/8 bg-white">
+                      {selectedJob.originalFilename.match(/\.(jpg|jpeg|png|gif|webp|tif|tiff)$/i) ? (
+                        <img src={docPreviewUrl} alt={selectedJob.originalFilename} className="max-h-[400px] w-full object-contain" />
+                      ) : (
+                        <iframe src={docPreviewUrl} className="w-full h-[400px]" title="Original document" />
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center py-8 text-sm text-white/30">
+                      Preview not available
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Risk assessment */}
               {selectedJob.assessmentResult && (

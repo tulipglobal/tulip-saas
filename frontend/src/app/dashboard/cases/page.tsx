@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { apiFetch, apiGet } from '@/lib/api'
 import {
   Briefcase, Plus, Search, Copy, ExternalLink, ChevronRight, X,
-  FileCheck, FolderSearch, AlertTriangle, CheckCircle, Clock, Archive
+  FileCheck, FolderSearch, AlertTriangle, CheckCircle, Clock, Archive, Eye, Download
 } from 'lucide-react'
 
 interface Case {
@@ -104,6 +104,25 @@ export default function CasesPage() {
   const [showAddBundle, setShowAddBundle] = useState(false)
   const [availableJobs, setAvailableJobs] = useState<OcrJob[]>([])
   const [availableBundles, setAvailableBundles] = useState<BundleJob[]>([])
+
+  // Document preview modal
+  const [previewDoc, setPreviewDoc] = useState<OcrJob | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
+
+  const openDocPreview = async (job: OcrJob) => {
+    setPreviewDoc(job)
+    setPreviewUrl(null)
+    setPreviewLoading(true)
+    try {
+      const r = await apiGet(`/api/public/ocr/${job.id}/document`)
+      if (r.ok) {
+        const d = await r.json()
+        if (d.url) setPreviewUrl(d.url)
+      }
+    } catch {}
+    setPreviewLoading(false)
+  }
 
   const fetchCases = useCallback(async () => {
     try {
@@ -344,6 +363,11 @@ export default function CasesPage() {
                   ) : (
                     <span className="text-xs text-yellow-400/60 whitespace-nowrap">Pending</span>
                   )}
+                  <button onClick={() => openDocPreview(job)}
+                    className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/30 hover:text-white hover:bg-white/10 transition-all shrink-0"
+                    title="Preview document">
+                    <Eye size={14} />
+                  </button>
                 </div>
               ))}
             </div>
@@ -457,6 +481,104 @@ export default function CasesPage() {
             </div>
           )}
         </div>
+
+        {/* Document Preview Modal */}
+        {previewDoc && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setPreviewDoc(null)}>
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <div className="relative bg-[#0a1929] border border-white/10 rounded-xl w-full max-w-2xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
+                <h3 className="font-semibold text-white text-lg truncate pr-4">{previewDoc.originalFilename}</h3>
+                <button onClick={() => setPreviewDoc(null)} className="text-white/40 hover:text-white shrink-0"><X size={18} /></button>
+              </div>
+              <div className="p-5 space-y-4">
+                {/* Document preview */}
+                {previewLoading ? (
+                  <div className="flex items-center justify-center py-16 bg-white/[0.02] rounded-xl border border-white/[0.06]">
+                    <div className="w-6 h-6 border-2 border-[#0c7aed] border-t-transparent rounded-full animate-spin" />
+                    <span className="ml-3 text-sm text-white/40">Loading document...</span>
+                  </div>
+                ) : previewUrl ? (
+                  <div className="rounded-xl overflow-hidden border border-white/[0.06] bg-white">
+                    {previewUrl.match(/\.(jpg|jpeg|png|gif|webp)/i) || previewDoc.originalFilename.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                      <img src={previewUrl} alt={previewDoc.originalFilename} className="max-h-[400px] w-full object-contain" />
+                    ) : (
+                      <iframe src={previewUrl} className="w-full h-[400px]" title="Document preview" />
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center py-12 bg-white/[0.02] rounded-xl border border-white/[0.06]">
+                    <span className="text-sm text-white/30">Document preview not available</span>
+                  </div>
+                )}
+
+                {/* Details */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3">
+                    <div className="text-[10px] text-white/40 uppercase font-medium mb-1">Document Type</div>
+                    <div className="text-sm text-white">{previewDoc.documentType || 'Unknown'}</div>
+                  </div>
+                  <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3">
+                    <div className="text-[10px] text-white/40 uppercase font-medium mb-1">Risk Score</div>
+                    <div className={`text-sm font-semibold ${riskColor(previewDoc.assessmentScore)}`}>
+                      {previewDoc.assessmentScore !== null ? `${previewDoc.assessmentScore}/100` : 'N/A'}
+                    </div>
+                    {previewDoc.assessmentResult && (
+                      <div className="text-xs text-white/40 mt-0.5">{previewDoc.assessmentResult}</div>
+                    )}
+                  </div>
+                  <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3">
+                    <div className="text-[10px] text-white/40 uppercase font-medium mb-1">Blockchain</div>
+                    {previewDoc.anchorTxHash ? (
+                      <a href={`https://polygonscan.com/tx/${previewDoc.anchorTxHash}`} target="_blank" rel="noopener noreferrer"
+                        className="text-xs text-green-400 hover:underline flex items-center gap-1">
+                        <CheckCircle size={12} /> Anchored
+                      </a>
+                    ) : (
+                      <span className="text-xs text-yellow-400 flex items-center gap-1"><Clock size={12} /> Pending</span>
+                    )}
+                  </div>
+                  <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3">
+                    <div className="text-[10px] text-white/40 uppercase font-medium mb-1">Processed</div>
+                    <div className="text-sm text-white">{new Date(previewDoc.createdAt).toLocaleDateString()}</div>
+                  </div>
+                </div>
+
+                {/* Hash */}
+                {previewDoc.hashValue && (
+                  <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3">
+                    <div className="text-[10px] text-white/40 uppercase font-medium mb-1">SHA-256 Hash</div>
+                    <code className="text-xs text-white/60 font-mono break-all">{previewDoc.hashValue}</code>
+                  </div>
+                )}
+
+                {/* Polygon TX */}
+                {previewDoc.anchorTxHash && (
+                  <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3">
+                    <div className="text-[10px] text-white/40 uppercase font-medium mb-1">Polygon Transaction</div>
+                    <a href={`https://polygonscan.com/tx/${previewDoc.anchorTxHash}`} target="_blank" rel="noopener noreferrer"
+                      className="text-xs text-[#369bff] hover:underline font-mono break-all">
+                      {previewDoc.anchorTxHash}
+                    </a>
+                  </div>
+                )}
+              </div>
+              <div className="flex justify-end gap-3 p-5 border-t border-white/[0.06]">
+                {previewUrl && (
+                  <a href={previewUrl} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 text-white/70 hover:bg-white/10 transition-all text-sm">
+                    <Download size={14} /> Download
+                  </a>
+                )}
+                <button onClick={() => setPreviewDoc(null)}
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90"
+                  style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Add Document Modal */}
         {showAddDoc && (

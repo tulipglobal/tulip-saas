@@ -56,6 +56,9 @@ const analyticsRoutes     = require('./routes/analyticsRoutes')
 const workflowRoutes      = require('./routes/workflowRoutes')
 const overviewRoutes      = require('./routes/overviewRoutes')
 const ocrRoutes = require('./routes/ocrRoutes')
+const developerRoutes    = require('./routes/developerRoutes')
+const externalApiRoutes  = require('./routes/externalApiRoutes')
+const externalAuth       = require('./middleware/externalAuth')
 
 app.get('/', (req, res) => res.send('Tulip API Running'))
 
@@ -102,6 +105,8 @@ app.use('/api/analytics',     apiLimiter,  authenticate, tenantScope, analyticsR
 app.use('/api/workflow',      apiLimiter,  authenticate, tenantScope, workflowRoutes)
 app.use('/api/ocr',          apiLimiter,  authenticate, tenantScope, ocrRoutes)
 app.use('/api/overview',      apiLimiter,  authenticate, tenantScope, overviewRoutes)
+app.use('/api/developer',    apiLimiter,  authenticate, tenantScope, developerRoutes)
+app.use('/api/external',     apiLimiter,  externalAuth, externalApiRoutes)
 
 app.use((err, req, res, next) => {
   logger.error('Unhandled error', { error: err.message, path: req.path })

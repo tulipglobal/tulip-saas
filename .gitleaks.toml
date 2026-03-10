@@ -1,0 +1,93 @@
+title = "Tulip DS Gitleaks Config"
+
+[allowlist]
+paths = [
+  '''node_modules''',
+  '''\.lock$''',
+  '''package-lock\.json''',
+  '''\.min\.js$''',
+]
+
+[[rules]]
+id = "aws-access-key"
+description = "AWS Access Key ID"
+regex = '''AKIA[0-9A-Z]{16}'''
+tags = ["aws", "credentials"]
+
+[[rules]]
+id = "aws-secret-key"
+description = "AWS Secret Access Key (assignment)"
+regex = '''(?i)(aws_secret_access_key|secret_access_key)\s*=\s*["\']?[A-Za-z0-9/+=]{40}'''
+tags = ["aws", "credentials"]
+
+[[rules]]
+id = "stripe-live-key"
+description = "Stripe Live Secret Key"
+regex = '''sk_live_[a-zA-Z0-9]{24,}'''
+tags = ["stripe", "credentials"]
+
+[[rules]]
+id = "stripe-test-key"
+description = "Stripe Test Secret Key"
+regex = '''sk_test_[a-zA-Z0-9]{24,}'''
+tags = ["stripe", "credentials"]
+
+[[rules]]
+id = "private-key"
+description = "Private Key File"
+regex = '''-----BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----'''
+tags = ["crypto", "private-key"]
+
+[[rules]]
+id = "pgp-private-key"
+description = "PGP Private Key"
+regex = '''-----BEGIN PGP PRIVATE KEY BLOCK-----'''
+tags = ["crypto", "private-key"]
+
+[[rules]]
+id = "github-pat"
+description = "GitHub Personal Access Token"
+regex = '''ghp_[a-zA-Z0-9]{36}'''
+tags = ["github", "credentials"]
+
+[[rules]]
+id = "github-oauth"
+description = "GitHub OAuth Token"
+regex = '''gho_[a-zA-Z0-9]{36}'''
+tags = ["github", "credentials"]
+
+[[rules]]
+id = "github-fine-grained"
+description = "GitHub Fine-grained PAT"
+regex = '''github_pat_[a-zA-Z0-9_]{22,}'''
+tags = ["github", "credentials"]
+
+[[rules]]
+id = "slack-token"
+description = "Slack Token"
+regex = '''xox[bporas]-[a-zA-Z0-9-]{10,}'''
+tags = ["slack", "credentials"]
+
+[[rules]]
+id = "database-url"
+description = "Database Connection String"
+regex = '''(?i)DATABASE_URL\s*=\s*postgres'''
+tags = ["database", "credentials"]
+
+[[rules]]
+id = "mongodb-url"
+description = "MongoDB Connection String"
+regex = '''mongodb(\+srv)?://[^\s]{10,}'''
+tags = ["database", "credentials"]
+
+[[rules]]
+id = "jwt-secret-assignment"
+description = "JWT Secret Assignment"
+regex = '''(?i)JWT_SECRET\s*=\s*["\'][^"\']{8,}'''
+tags = ["jwt", "credentials"]
+
+[[rules]]
+id = "private-key-assignment"
+description = "Private Key Assignment"
+regex = '''(?i)PRIVATE_KEY\s*=\s*["\'][^"\']{10,}'''
+tags = ["crypto", "credentials"]

@@ -205,6 +205,9 @@ function resolvePlanFromPriceId(priceId) {
   if (!priceId) return null
   if (priceId === process.env.STRIPE_STARTER_PRICE_ID) return 'STARTER'
   if (priceId === process.env.STRIPE_PRO_PRICE_ID) return 'PRO'
+  // Verify.tulipds.com price IDs
+  if (priceId === 'price_1T9SPbBmaBA59eijDIOim7cX') return 'STARTER'
+  if (priceId === 'price_1T9SQVBmaBA59eijmXjfiHvK') return 'PRO'
   return null
 }
 
@@ -418,3 +421,95 @@ function getPlanLimits(plan) {
 }
 
 exports.getPlanLimits = getPlanLimits
+
+// ═══════════════════════════════════════════════════════════════
+//  Verify.tulipds.com billing endpoints
+// ═══════════════════════════════════════════════════════════════
+
+const VERIFY_PLANS = {
+  STARTER: { priceId: 'price_1T9SPbBmaBA59eijDIOim7cX', sealsPerMonth: 50 },
+  PRO:     { priceId: 'price_1T9SQVBmaBA59eijmXjfiHvK', sealsPerMonth: -1 },  // unlimited
+}
+
+function resolveVerifyPlanFromPriceId(priceId) {
+  if (priceId === VERIFY_PLANS.STARTER.priceId) return 'STARTER'
+  if (priceId === VERIFY_PLANS.PRO.priceId) return 'PRO'
+  return null
+}
+
+function getVerifySealLimit(plan) {
+  if (plan === 'PRO') return -1
+  if (plan === 'STARTER') return 50
+  return 5 // FREE
+}
+
+// ── POST /api/billing/verify-checkout ─────────────────────────
+exports.verifyCheckout = async (req, res) => {
+  try {
+    const { tenantId, userId } = req.user
+    const { plan } = req.body
+
+    if (!plan || !VERIFY_PLANS[plan]) {
+      return res.status(400).json({ error: 'Invalid plan. Use STARTER or PRO' })
+    }
+
+    const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } })
+    const user = await prisma.user.findUnique({ where: { id: userId } })
+    if (!tenant || !user) return res.status(404).json({ error: 'Account not found' })
+
+    const customerId = await getOrCreateCustomer(tenant, user)
+
+    const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      mode: 'subscription',
+      line_items: [{ price: VERIFY_PLANS[plan].priceId, quantity: 1 }],
+      success_url: 'https://verify.tulipds.com/dashboard?upgraded=true',
+      cancel_url: 'https://verify.tulipds.com/pricing',
+      subscription_data: {
+        metadata: { tenantId, plan, source: 'verify' },
+      },
+      metadata: { tenantId, plan, source: 'verify' },
+    })
+
+    res.json({ url: session.url })
+  } catch (err) {
+    console.error('[billing/verify-checkout]', err)
+    res.status(500).json({ error: 'Failed to create checkout session' })
+  }
+}
+
+// ── GET /api/billing/verify-subscription ──────────────────────
+exports.verifySubscription = async (req, res) => {
+  try {
+    const { tenantId } = req.user
+
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { id: true, plan: true, planStatus: true, stripeSubscriptionId: true },
+    })
+    if (!tenant) return res.status(404).json({ error: 'Account not found' })
+
+    // Count seals used this month
+    const now = new Date()
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+    const sealsUsed = await prisma.trustSeal.count({
+      where: { tenantId, createdAt: { gte: monthStart } },
+    })
+
+    const sealLimit = getVerifySealLimit(tenant.plan)
+
+    res.json({
+      plan: tenant.plan || 'FREE',
+      planStatus: tenant.planStatus || 'active',
+      sealsUsed,
+      sealLimit,
+      sealsRemaining: sealLimit === -1 ? -1 : Math.max(0, sealLimit - sealsUsed),
+    })
+  } catch (err) {
+    console.error('[billing/verify-subscription]', err)
+    res.status(500).json({ error: 'Failed to get subscription' })
+  }
+}
+
+exports.resolveVerifyPlanFromPriceId = resolveVerifyPlanFromPriceId
+exports.getVerifySealLimit = getVerifySealLimit

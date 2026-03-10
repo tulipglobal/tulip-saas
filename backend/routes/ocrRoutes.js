@@ -5,10 +5,11 @@ const crypto  = require('crypto')
 const path    = require('path')
 const router  = express.Router()
 const prisma  = require('../lib/client')
-const { authenticate } = require('../middleware/auth')
+const { can } = require('../middleware/permission')
 const { extractText, uploadToS3 } = require('../services/ocrService')
 const { normaliseDocument, assessDocument } = require('../services/documentNormaliser')
 const { generateOcrPdf } = require('../services/ocrPdfService')
+const { createAuditLog } = require('../services/auditService')
 const logger  = require('../lib/logger')
 
 // Multer — memory storage, max 20MB
@@ -24,9 +25,9 @@ const upload = multer({
 
 // ── POST /api/ocr/process ─────────────────────────────────────────────────────
 // Full OCR pipeline: extract → normalise → assess → hash → (queue anchor)
-router.post('/process', authenticate, upload.single('file'), async (req, res) => {
+router.post('/process', can('documents:write'), upload.single('file'), async (req, res) => {
   const tenantId = req.user.tenantId
-  const userId   = req.user.id
+  const userId   = req.user.userId
 
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' })
 
@@ -44,111 +45,16 @@ router.post('/process', authenticate, upload.single('file'), async (req, res) =>
       }
     })
 
-    // 2. Upload original to S3
-    const s3Key = `ocr/${tenantId}/${job.id}/original${path.extname(req.file.originalname)}`
-    await uploadToS3(req.file.buffer, s3Key, req.file.mimetype)
+    // Return immediately so the UI shows the job
+    res.status(201).json({ data: job })
 
-    await prisma.ocrJob.update({
-      where: { id: job.id },
-      data: { s3Key }
-    })
-
-    // 3. Extract text via Textract
-    logger.info({ jobId: job.id }, 'Starting OCR extraction')
-    const ocrResult = await extractText(s3Key)
-
-    // 4. Normalise via Claude AI
-    logger.info({ jobId: job.id }, 'Normalising document')
-    const normalisedDoc = await normaliseDocument(
-      ocrResult.rawText,
-      ocrResult.keyValuePairs,
-      ocrResult.tables,
-      req.file.originalname
-    )
-
-    // 5. Assess via Claude AI
-    logger.info({ jobId: job.id }, 'Assessing document')
-    const assessment = await assessDocument(normalisedDoc, ocrResult.rawText, {
-      projectName: req.body.projectName,
-      projectBudget: req.body.projectBudget
-    })
-
-    // 6. Generate clean normalised PDF
-    logger.info({ jobId: job.id }, 'Generating normalised PDF')
-    const pdfBuffer = await generateOcrPdf(normalisedDoc, assessment, job.id)
-    const pdfS3Key = `ocr/${tenantId}/${job.id}/normalised.pdf`
-    await uploadToS3(pdfBuffer, pdfS3Key, 'application/pdf')
-
-    // 7. Hash the normalised PDF
-    const hashValue = crypto.createHash('sha256').update(pdfBuffer).digest('hex')
-
-    // 8. Update job with all results
-    const completed = await prisma.ocrJob.update({
-      where: { id: job.id },
-      data: {
-        status: 'completed',
-        rawText: ocrResult.rawText,
-        confidence: ocrResult.confidence,
-        documentType: normalisedDoc.documentType,
-        detectedLanguage: normalisedDoc.detectedLanguage,
-        normalisedJson: normalisedDoc,
-        normalisedPdfS3: pdfS3Key,
-        assessmentScore: assessment.riskScore,
-        assessmentResult: assessment.riskLevel,
-        assessmentNotes: assessment.summary,
-        flags: assessment.flags || [],
-        hashValue,
-      }
-    })
-
-    // 9. Queue blockchain anchor (will be picked up by scheduler)
-    // We store hashValue and it gets anchored in the next batch
-    logger.info({ jobId: job.id, hashValue }, 'OCR job completed, queued for anchoring')
-
-    // 10. Log audit
-    await prisma.auditLog.create({
-      data: {
-        tenantId,
-        userId,
-        action: 'ocr.processed',
-        entityType: 'OcrJob',
-        entityId: job.id,
-        metadata: {
-          filename: req.file.originalname,
-          documentType: normalisedDoc.documentType,
-          language: normalisedDoc.detectedLanguage,
-          riskLevel: assessment.riskLevel,
-          riskScore: assessment.riskScore
-        }
-      }
-    })
-
-    res.json({
-      jobId: job.id,
-      status: 'completed',
-      documentType: normalisedDoc.documentType,
-      detectedLanguage: normalisedDoc.detectedLanguage,
-      confidence: ocrResult.confidence,
-      normalisedDocument: normalisedDoc,
-      assessment: {
-        riskScore: assessment.riskScore,
-        riskLevel: assessment.riskLevel,
-        summary: assessment.summary,
-        purpose: assessment.purpose,
-        positives: assessment.positives,
-        flags: assessment.flags,
-        mathCheck: assessment.mathCheck,
-        completenessScore: assessment.completenessScore,
-        recommendation: assessment.recommendation,
-        recommendationReason: assessment.recommendationReason
-      },
-      hash: hashValue,
-      anchorStatus: 'queued',
-      rawTextPreview: ocrResult.rawText.substring(0, 500)
+    // 2. Process in background (don't block response)
+    processOcrJob(job.id, tenantId, userId, req.file).catch(err => {
+      logger.error({ err, jobId: job.id }, 'OCR background processing failed')
     })
 
   } catch (err) {
-    logger.error({ err, jobId: job?.id }, 'OCR processing failed')
+    logger.error({ err, jobId: job?.id }, 'OCR upload failed')
 
     if (job?.id) {
       await prisma.ocrJob.update({
@@ -161,49 +67,124 @@ router.post('/process', authenticate, upload.single('file'), async (req, res) =>
   }
 })
 
+// Background pipeline
+async function processOcrJob(jobId, tenantId, userId, file) {
+  try {
+    // 1. Upload original to S3
+    const s3Key = `ocr/${tenantId}/${jobId}/original${path.extname(file.originalname)}`
+    await uploadToS3(file.buffer, s3Key, file.mimetype)
+
+    await prisma.ocrJob.update({
+      where: { id: jobId },
+      data: { s3Key, status: 'extracting' }
+    })
+
+    // 2. Extract text via Textract
+    logger.info({ jobId }, 'Starting OCR extraction')
+    const ocrResult = await extractText(s3Key)
+
+    await prisma.ocrJob.update({
+      where: { id: jobId },
+      data: { rawText: ocrResult.rawText, confidence: ocrResult.confidence, status: 'normalising' }
+    })
+
+    // 3. Normalise via Claude AI
+    logger.info({ jobId }, 'Normalising document')
+    const normalisedDoc = await normaliseDocument(
+      ocrResult.rawText,
+      ocrResult.keyValuePairs,
+      ocrResult.tables,
+      file.originalname
+    )
+
+    await prisma.ocrJob.update({
+      where: { id: jobId },
+      data: { documentType: normalisedDoc.documentType, detectedLanguage: normalisedDoc.detectedLanguage, normalisedJson: normalisedDoc, status: 'assessing' }
+    })
+
+    // 4. Assess via Claude AI
+    logger.info({ jobId }, 'Assessing document')
+    const assessment = await assessDocument(normalisedDoc, ocrResult.rawText)
+
+    await prisma.ocrJob.update({
+      where: { id: jobId },
+      data: {
+        assessmentScore: assessment.riskScore,
+        assessmentResult: assessment.riskLevel,
+        assessmentNotes: assessment.summary,
+        flags: assessment.flags || [],
+        status: 'generating_pdf'
+      }
+    })
+
+    // 5. Generate clean normalised PDF
+    logger.info({ jobId }, 'Generating normalised PDF')
+    const pdfBuffer = await generateOcrPdf(normalisedDoc, assessment, jobId)
+    const pdfS3Key = `ocr/${tenantId}/${jobId}/normalised.pdf`
+    await uploadToS3(pdfBuffer, pdfS3Key, 'application/pdf')
+
+    // 6. Hash the normalised PDF
+    const hashValue = crypto.createHash('sha256').update(pdfBuffer).digest('hex')
+
+    // 7. Mark complete
+    await prisma.ocrJob.update({
+      where: { id: jobId },
+      data: {
+        status: 'completed',
+        normalisedPdfS3: pdfS3Key,
+        hashValue,
+      }
+    })
+
+    logger.info({ jobId, hashValue }, 'OCR job completed')
+
+    // 8. Audit log
+    createAuditLog({
+      action: 'ocr.processed',
+      entityType: 'OcrJob',
+      entityId: jobId,
+      userId,
+      tenantId,
+    }).catch(() => {})
+
+  } catch (err) {
+    logger.error({ err, jobId }, 'OCR pipeline error')
+    await prisma.ocrJob.update({
+      where: { id: jobId },
+      data: { status: 'failed' }
+    }).catch(() => {})
+  }
+}
+
 // ── GET /api/ocr/jobs ─────────────────────────────────────────────────────────
-router.get('/jobs', authenticate, async (req, res) => {
+router.get('/jobs', can('documents:read'), async (req, res) => {
   try {
     const jobs = await prisma.ocrJob.findMany({
       where: { tenantId: req.user.tenantId },
       orderBy: { createdAt: 'desc' },
       take: 50,
-      select: {
-        id: true,
-        originalFilename: true,
-        documentType: true,
-        detectedLanguage: true,
-        status: true,
-        confidence: true,
-        assessmentScore: true,
-        assessmentResult: true,
-        hashValue: true,
-        anchorTxHash: true,
-        anchoredAt: true,
-        createdAt: true
-      }
     })
-    res.json(jobs)
+    res.json({ data: jobs, total: jobs.length })
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
 })
 
 // ── GET /api/ocr/jobs/:id ─────────────────────────────────────────────────────
-router.get('/jobs/:id', authenticate, async (req, res) => {
+router.get('/jobs/:id', can('documents:read'), async (req, res) => {
   try {
     const job = await prisma.ocrJob.findFirst({
       where: { id: req.params.id, tenantId: req.user.tenantId }
     })
     if (!job) return res.status(404).json({ error: 'Job not found' })
-    res.json(job)
+    res.json({ data: job })
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
 })
 
 // ── GET /api/ocr/jobs/:id/pdf ─────────────────────────────────────────────────
-router.get('/jobs/:id/pdf', authenticate, async (req, res) => {
+router.get('/jobs/:id/pdf', can('documents:read'), async (req, res) => {
   try {
     const job = await prisma.ocrJob.findFirst({
       where: { id: req.params.id, tenantId: req.user.tenantId }

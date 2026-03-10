@@ -1,42 +1,50 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { apiFetch, apiGet } from '@/lib/api'
+import { apiGet } from '@/lib/api'
 import {
   ScanLine, Upload, FileText, Loader2, CheckCircle2, XCircle,
-  RefreshCw, Download, Eye, Clock, AlertTriangle, Sparkles
+  RefreshCw, Download, Eye, Clock, AlertTriangle, Sparkles, Hash
 } from 'lucide-react'
 
 interface OcrJob {
   id: string
   status: string
-  fileName: string
+  originalFilename: string
   fileType: string | null
   fileSize: number | null
   rawText: string | null
-  normalised: Record<string, unknown> | null
-  assessment: Record<string, unknown> | null
-  pdfUrl: string | null
-  errorMessage: string | null
+  confidence: number | null
+  documentType: string | null
+  detectedLanguage: string | null
+  normalisedJson: Record<string, unknown> | null
+  normalisedPdfS3: string | null
+  assessmentScore: number | null
+  assessmentResult: string | null
+  assessmentNotes: string | null
+  flags: Array<{ severity: string; field: string; issue: string; recommendation?: string }> | null
+  hashValue: string | null
+  anchorTxHash: string | null
+  anchoredAt: string | null
   createdAt: string
-  completedAt: string | null
+  updatedAt: string
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof Loader2 }> = {
-  pending:           { label: 'Pending',       color: 'text-white/40 bg-white/5 border-white/10',       icon: Clock },
-  uploaded:          { label: 'Uploaded',       color: 'text-blue-400 bg-blue-400/10 border-blue-400/20', icon: Upload },
-  extracting:        { label: 'Extracting',     color: 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20', icon: Loader2 },
-  normalising:       { label: 'Normalising',    color: 'text-purple-400 bg-purple-400/10 border-purple-400/20', icon: Sparkles },
-  assessing:         { label: 'Assessing',      color: 'text-indigo-400 bg-indigo-400/10 border-indigo-400/20', icon: Sparkles },
-  generating_report: { label: 'Generating PDF', color: 'text-cyan-400 bg-cyan-400/10 border-cyan-400/20', icon: FileText },
-  completed:         { label: 'Completed',      color: 'text-green-400 bg-green-400/10 border-green-400/20', icon: CheckCircle2 },
-  failed:            { label: 'Failed',         color: 'text-red-400 bg-red-400/10 border-red-400/20',   icon: XCircle },
+  pending:         { label: 'Pending',        color: 'text-white/40 bg-white/5 border-white/10',              icon: Clock },
+  processing:      { label: 'Processing',     color: 'text-blue-400 bg-blue-400/10 border-blue-400/20',      icon: Loader2 },
+  extracting:      { label: 'Extracting',     color: 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20', icon: Loader2 },
+  normalising:     { label: 'Normalising',    color: 'text-purple-400 bg-purple-400/10 border-purple-400/20', icon: Sparkles },
+  assessing:       { label: 'Assessing',      color: 'text-indigo-400 bg-indigo-400/10 border-indigo-400/20', icon: Sparkles },
+  generating_pdf:  { label: 'Generating PDF', color: 'text-cyan-400 bg-cyan-400/10 border-cyan-400/20',      icon: FileText },
+  completed:       { label: 'Completed',      color: 'text-green-400 bg-green-400/10 border-green-400/20',   icon: CheckCircle2 },
+  failed:          { label: 'Failed',         color: 'text-red-400 bg-red-400/10 border-red-400/20',         icon: XCircle },
 }
 
 function StatusBadge({ status }: { status: string }) {
   const config = STATUS_CONFIG[status] || STATUS_CONFIG.pending
   const Icon = config.icon
-  const spinning = ['extracting', 'normalising', 'assessing', 'generating_report'].includes(status)
+  const spinning = ['processing', 'extracting', 'normalising', 'assessing', 'generating_pdf'].includes(status)
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${config.color}`}>
       <Icon size={12} className={spinning ? 'animate-spin' : ''} />
@@ -45,16 +53,16 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
-function RiskBadge({ level }: { level: string }) {
+function RiskBadge({ level, score }: { level: string; score: number | null }) {
   const map: Record<string, string> = {
     low: 'bg-green-400/10 text-green-400 border-green-400/20',
     medium: 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20',
     high: 'bg-red-400/10 text-red-400 border-red-400/20',
   }
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${map[level] ?? 'bg-white/5 text-white/40 border-white/10'}`}>
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase border ${map[level] ?? 'bg-white/5 text-white/40 border-white/10'}`}>
       {level === 'high' && <AlertTriangle size={10} />}
-      {level}
+      {level} risk{score != null ? ` · ${score}/100` : ''}
     </span>
   )
 }
@@ -63,6 +71,7 @@ export default function OcrPage() {
   const [jobs, setJobs] = useState<OcrJob[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [selectedJob, setSelectedJob] = useState<OcrJob | null>(null)
   const [dragActive, setDragActive] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -72,8 +81,15 @@ export default function OcrPage() {
     try {
       const res = await apiGet('/api/ocr/jobs')
       if (res.ok) {
-        const { data } = await res.json()
-        setJobs(data)
+        const json = await res.json()
+        const data = json.data ?? json
+        setJobs(Array.isArray(data) ? data : [])
+        // Update selectedJob if it's in the new data
+        setSelectedJob(prev => {
+          if (!prev) return null
+          const updated = (Array.isArray(data) ? data : []).find((j: OcrJob) => j.id === prev.id)
+          return updated ?? prev
+        })
       }
     } catch {
       // silent
@@ -89,16 +105,17 @@ export default function OcrPage() {
   // Poll for in-progress jobs
   useEffect(() => {
     const hasActive = jobs.some((j) =>
-      ['uploaded', 'extracting', 'normalising', 'assessing', 'generating_report', 'pending'].includes(j.status)
+      ['pending', 'processing', 'extracting', 'normalising', 'assessing', 'generating_pdf'].includes(j.status)
     )
     if (hasActive) {
-      pollRef.current = setInterval(fetchJobs, 5000)
+      pollRef.current = setInterval(fetchJobs, 3000)
     }
     return () => { if (pollRef.current) clearInterval(pollRef.current) }
   }, [jobs, fetchJobs])
 
   const handleUpload = async (file: File) => {
     setUploading(true)
+    setError(null)
     try {
       const formData = new FormData()
       formData.append('file', file)
@@ -110,12 +127,18 @@ export default function OcrPage() {
         body: formData,
       })
 
-      if (res.ok) {
-        const { data } = await res.json()
-        setJobs((prev) => [data, ...prev])
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Upload failed' }))
+        setError(err.error || err.details || `Upload failed (${res.status})`)
+        return
       }
-    } catch {
-      // silent
+
+      const json = await res.json()
+      const job = json.data ?? json
+      setJobs((prev) => [job, ...prev])
+      setSelectedJob(job)
+    } catch (err) {
+      setError('Network error — could not reach API')
     } finally {
       setUploading(false)
     }
@@ -139,8 +162,20 @@ export default function OcrPage() {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   }
 
-  const norm = selectedJob?.normalised as Record<string, unknown> | null
-  const assess = selectedJob?.assessment as Record<string, unknown> | null
+  const handleDownloadPdf = async (jobId: string) => {
+    try {
+      const res = await apiGet(`/api/ocr/jobs/${jobId}/pdf`)
+      if (res.ok) {
+        const { url } = await res.json()
+        window.open(url, '_blank')
+      }
+    } catch {
+      // silent
+    }
+  }
+
+  const norm = selectedJob?.normalisedJson as Record<string, unknown> | null
+  const flags = selectedJob?.flags
 
   return (
     <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
@@ -177,7 +212,7 @@ export default function OcrPage() {
         onDrop={onDrop}
         onClick={() => fileRef.current?.click()}
       >
-        <input ref={fileRef} type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png,.tiff,.tif" onChange={onFileChange} />
+        <input ref={fileRef} type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png,.tiff,.tif,.webp" onChange={onFileChange} />
 
         {uploading ? (
           <div className="flex flex-col items-center gap-3">
@@ -191,11 +226,18 @@ export default function OcrPage() {
             </div>
             <div>
               <p className="text-white/70 font-medium">Drop a document here or click to upload</p>
-              <p className="text-white/30 text-xs mt-1">PDF, JPG, PNG, TIFF — up to 20MB</p>
+              <p className="text-white/30 text-xs mt-1">PDF, JPG, PNG, TIFF, WEBP — up to 20MB</p>
             </div>
           </div>
         )}
       </div>
+
+      {error && (
+        <div className="p-3 rounded-xl bg-red-400/10 border border-red-400/20 text-red-400 text-sm flex items-center gap-2">
+          <XCircle size={16} />
+          {error}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Jobs list */}
@@ -227,7 +269,7 @@ export default function OcrPage() {
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-white/90 truncate">{job.fileName}</p>
+                  <p className="text-sm font-medium text-white/90 truncate">{job.originalFilename}</p>
                   <p className="text-xs text-white/30 mt-0.5">
                     {new Date(job.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                     {' · '}{formatSize(job.fileSize)}
@@ -235,8 +277,10 @@ export default function OcrPage() {
                 </div>
                 <StatusBadge status={job.status} />
               </div>
-              {job.errorMessage && (
-                <p className="text-xs text-red-400/70 mt-2 truncate">{job.errorMessage}</p>
+              {job.assessmentResult && (
+                <div className="mt-2">
+                  <RiskBadge level={job.assessmentResult} score={job.assessmentScore} />
+                </div>
               )}
             </button>
           ))}
@@ -256,169 +300,162 @@ export default function OcrPage() {
               {/* Job header */}
               <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-lg">{selectedJob.fileName}</h3>
+                  <h3 className="font-semibold text-lg truncate pr-3">{selectedJob.originalFilename}</h3>
                   <StatusBadge status={selectedJob.status} />
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                   <div>
                     <span className="text-white/30">Type</span>
-                    <p className="text-white/70 mt-0.5">{selectedJob.fileType || '—'}</p>
+                    <p className="text-white/70 mt-0.5">{selectedJob.documentType || selectedJob.fileType || '—'}</p>
                   </div>
                   <div>
                     <span className="text-white/30">Size</span>
                     <p className="text-white/70 mt-0.5">{formatSize(selectedJob.fileSize)}</p>
                   </div>
                   <div>
-                    <span className="text-white/30">Created</span>
-                    <p className="text-white/70 mt-0.5">{new Date(selectedJob.createdAt).toLocaleString()}</p>
+                    <span className="text-white/30">Language</span>
+                    <p className="text-white/70 mt-0.5 uppercase">{selectedJob.detectedLanguage || '—'}</p>
                   </div>
                   <div>
-                    <span className="text-white/30">Completed</span>
-                    <p className="text-white/70 mt-0.5">{selectedJob.completedAt ? new Date(selectedJob.completedAt).toLocaleString() : '—'}</p>
+                    <span className="text-white/30">Confidence</span>
+                    <p className="text-white/70 mt-0.5">{selectedJob.confidence != null ? `${selectedJob.confidence}%` : '—'}</p>
                   </div>
                 </div>
-                {selectedJob.pdfUrl && (
-                  <a
-                    href={selectedJob.pdfUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all"
+
+                {/* Hash */}
+                {selectedJob.hashValue && (
+                  <div className="mt-3 p-3 rounded-lg bg-white/[0.03] border border-white/8">
+                    <div className="flex items-center gap-2 text-xs">
+                      <Hash size={12} className="text-[#0c7aed]" />
+                      <span className="text-white/30">SHA-256</span>
+                      <code className="text-white/50 font-mono text-[11px] break-all">{selectedJob.hashValue}</code>
+                    </div>
+                    {selectedJob.anchorTxHash && (
+                      <div className="flex items-center gap-2 text-xs mt-1">
+                        <span className="text-white/30 ml-5">Polygon TX</span>
+                        <code className="text-green-400/70 font-mono text-[11px]">{selectedJob.anchorTxHash}</code>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* PDF download */}
+                {selectedJob.normalisedPdfS3 && (
+                  <button
+                    onClick={() => handleDownloadPdf(selectedJob.id)}
+                    className="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90"
                     style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}
                   >
                     <Download size={14} />
-                    Download PDF Report
-                  </a>
+                    Download Normalised PDF
+                  </button>
                 )}
               </div>
+
+              {/* Risk assessment */}
+              {selectedJob.assessmentResult && (
+                <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
+                  <h4 className="font-semibold text-sm text-white/60 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <AlertTriangle size={14} className="text-yellow-400" />
+                    Risk Assessment
+                  </h4>
+                  <div className="flex items-center gap-4 mb-3">
+                    <RiskBadge level={selectedJob.assessmentResult} score={selectedJob.assessmentScore} />
+                  </div>
+                  {selectedJob.assessmentNotes ? (
+                    <p className="text-sm text-white/60">{selectedJob.assessmentNotes}</p>
+                  ) : null}
+
+                  {/* Flags */}
+                  {Array.isArray(flags) && flags.length > 0 ? (
+                    <div className="mt-4 space-y-2">
+                      <span className="text-white/30 text-xs uppercase tracking-wider">Flags</span>
+                      {flags.map((flag, i) => {
+                        const sevColor = flag.severity === 'high' ? 'text-red-400' : flag.severity === 'medium' ? 'text-yellow-400' : 'text-white/40'
+                        return (
+                          <div key={i} className="p-3 rounded-lg bg-white/[0.03] border border-white/8">
+                            <div className="flex items-center gap-2">
+                              <span className={`text-[10px] font-bold uppercase ${sevColor}`}>{flag.severity}</span>
+                              <span className="text-xs text-white/50">{flag.field}</span>
+                            </div>
+                            <p className="text-sm text-white/70 mt-1">{flag.issue}</p>
+                            {flag.recommendation ? (
+                              <p className="text-xs text-white/40 mt-1">{'→ '}{flag.recommendation}</p>
+                            ) : null}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : null}
+                </div>
+              )}
 
               {/* Normalised data */}
               {norm && (
                 <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
                   <h4 className="font-semibold text-sm text-white/60 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <Sparkles size={14} className="text-purple-400" />
-                    AI-Extracted Data
+                    Extracted Document Data
                   </h4>
                   <div className="grid grid-cols-2 gap-3 text-sm">
-                    {norm.title ? (
-                      <div className="col-span-2">
-                        <span className="text-white/30 text-xs">Title</span>
-                        <p className="text-white/80">{String(norm.title)}</p>
-                      </div>
-                    ) : null}
-                    {norm.documentType ? (
+                    {norm.documentNumber ? (
                       <div>
-                        <span className="text-white/30 text-xs">Document Type</span>
-                        <p className="text-white/80 capitalize">{String(norm.documentType).replace('_', ' ')}</p>
+                        <span className="text-white/30 text-xs">Doc Number</span>
+                        <p className="text-white/80">{String(norm.documentNumber)}</p>
                       </div>
                     ) : null}
-                    {norm.date ? (
+                    {norm.documentDate ? (
                       <div>
                         <span className="text-white/30 text-xs">Date</span>
-                        <p className="text-white/80">{String(norm.date)}</p>
+                        <p className="text-white/80">{String(norm.documentDate)}</p>
                       </div>
                     ) : null}
-                    {norm.language ? (
+                    {norm.currency ? (
                       <div>
-                        <span className="text-white/30 text-xs">Language</span>
-                        <p className="text-white/80 uppercase">{String(norm.language)}</p>
+                        <span className="text-white/30 text-xs">Currency</span>
+                        <p className="text-white/80">{String(norm.currency)}</p>
                       </div>
                     ) : null}
-                    {norm.confidence != null ? (
+                    {norm.total != null ? (
                       <div>
-                        <span className="text-white/30 text-xs">Confidence</span>
-                        <div className="flex items-center gap-2 mt-1">
-                          <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
-                            <div
-                              className="h-full rounded-full bg-[#0c7aed]"
-                              style={{ width: `${Number(norm.confidence) * 100}%` }}
-                            />
-                          </div>
-                          <span className="text-white/60 text-xs">{(Number(norm.confidence) * 100).toFixed(0)}%</span>
-                        </div>
+                        <span className="text-white/30 text-xs">Total</span>
+                        <p className="text-white/80 font-mono">{String(norm.currency || '')} {Number(norm.total).toLocaleString()}</p>
                       </div>
                     ) : null}
-                    {norm.summary ? (
-                      <div className="col-span-2">
-                        <span className="text-white/30 text-xs">Summary</span>
-                        <p className="text-white/60 text-sm mt-0.5">{String(norm.summary)}</p>
+                    {norm.vendor ? (
+                      <div>
+                        <span className="text-white/30 text-xs">Vendor</span>
+                        <p className="text-white/80">{String((norm.vendor as Record<string, unknown>)?.name || '—')}</p>
                       </div>
                     ) : null}
-                    {Array.isArray(norm.parties) && norm.parties.length > 0 ? (
-                      <div className="col-span-2">
-                        <span className="text-white/30 text-xs">Parties</span>
-                        <div className="flex flex-wrap gap-1.5 mt-1">
-                          {(norm.parties as string[]).map((p: string, i: number) => (
-                            <span key={i} className="px-2 py-0.5 rounded-full text-xs bg-white/5 border border-white/10 text-white/60">{p}</span>
-                          ))}
-                        </div>
+                    {norm.buyer ? (
+                      <div>
+                        <span className="text-white/30 text-xs">Buyer</span>
+                        <p className="text-white/80">{String((norm.buyer as Record<string, unknown>)?.name || '—')}</p>
                       </div>
                     ) : null}
-                    {Array.isArray(norm.amounts) && norm.amounts.length > 0 ? (
+                    {norm.paymentTerms ? (
                       <div className="col-span-2">
-                        <span className="text-white/30 text-xs">Amounts</span>
-                        <div className="flex flex-wrap gap-2 mt-1">
-                          {(norm.amounts as Array<{ value: number; currency: string }>).map((a, i: number) => (
-                            <span key={i} className="px-2 py-1 rounded-lg text-sm font-mono bg-green-400/10 text-green-400 border border-green-400/20">
-                              {a.currency} {a.value.toLocaleString()}
-                            </span>
+                        <span className="text-white/30 text-xs">Payment Terms</span>
+                        <p className="text-white/60">{String(norm.paymentTerms)}</p>
+                      </div>
+                    ) : null}
+                    {Array.isArray(norm.lineItems) && norm.lineItems.length > 0 ? (
+                      <div className="col-span-2">
+                        <span className="text-white/30 text-xs">Line Items ({norm.lineItems.length})</span>
+                        <div className="mt-2 space-y-1">
+                          {(norm.lineItems as Array<Record<string, unknown>>).slice(0, 10).map((item, i) => (
+                            <div key={i} className="flex justify-between text-xs p-2 rounded bg-white/[0.03]">
+                              <span className="text-white/60 truncate flex-1">{String(item.description || '—')}</span>
+                              <span className="text-white/80 font-mono ml-4">
+                                {item.total != null ? `${norm.currency || ''} ${Number(item.total).toLocaleString()}` : '—'}
+                              </span>
+                            </div>
                           ))}
                         </div>
                       </div>
                     ) : null}
                   </div>
-                </div>
-              )}
-
-              {/* Assessment */}
-              {assess && (
-                <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
-                  <h4 className="font-semibold text-sm text-white/60 uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <AlertTriangle size={14} className="text-yellow-400" />
-                    Compliance Assessment
-                  </h4>
-                  <div className="flex items-center gap-4 mb-4">
-                    {assess.riskLevel ? <RiskBadge level={String(assess.riskLevel)} /> : null}
-                    {assess.transparencyScore != null ? (
-                      <div className="flex items-center gap-2">
-                        <span className="text-white/30 text-xs">Transparency</span>
-                        <span className="text-lg font-bold">{String(assess.transparencyScore)}</span>
-                        <span className="text-white/30 text-xs">/100</span>
-                      </div>
-                    ) : null}
-                  </div>
-                  {Array.isArray(assess.complianceFlags) && assess.complianceFlags.length > 0 ? (
-                    <div className="mb-3">
-                      <span className="text-white/30 text-xs">Compliance Flags</span>
-                      <ul className="mt-1 space-y-1">
-                        {(assess.complianceFlags as string[]).map((f: string, i: number) => (
-                          <li key={i} className="text-sm text-yellow-400/80 flex items-start gap-2">
-                            <AlertTriangle size={12} className="mt-0.5 shrink-0" />
-                            {f}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
-                  {Array.isArray(assess.recommendations) && assess.recommendations.length > 0 ? (
-                    <div className="mb-3">
-                      <span className="text-white/30 text-xs">Recommendations</span>
-                      <ul className="mt-1 space-y-1">
-                        {(assess.recommendations as string[]).map((r: string, i: number) => (
-                          <li key={i} className="text-sm text-white/60">{'→ '}{r}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
-                  {Array.isArray(assess.missingElements) && assess.missingElements.length > 0 ? (
-                    <div>
-                      <span className="text-white/30 text-xs">Missing Elements</span>
-                      <div className="flex flex-wrap gap-1.5 mt-1">
-                        {(assess.missingElements as string[]).map((m: string, i: number) => (
-                          <span key={i} className="px-2 py-0.5 rounded-full text-xs bg-red-400/10 text-red-400/70 border border-red-400/20">{m}</span>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
                 </div>
               )}
 

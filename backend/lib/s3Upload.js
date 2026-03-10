@@ -1,4 +1,5 @@
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3')
+const { S3Client, PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3')
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner')
 const crypto = require('crypto')
 const path = require('path')
 
@@ -47,16 +48,10 @@ function getContentType(ext) {
   return map[ext] || 'application/octet-stream'
 }
 
-module.exports = { uploadToS3, computeSHA256 }
-
-const { GetObjectCommand } = require('@aws-sdk/client-s3')
-const { getSignedUrl } = require('@aws-sdk/s3-request-presigner')
-
 async function getPresignedUrl(fileUrl, expiresIn = 3600) {
   try {
-    // Extract key from URL
     const url = new URL(fileUrl)
-    const key = url.pathname.substring(1) // remove leading /
+    const key = url.pathname.substring(1)
     const command = new GetObjectCommand({ Bucket: BUCKET, Key: key })
     return await getSignedUrl(s3, command, { expiresIn })
   } catch (err) {

@@ -119,7 +119,9 @@ router.get('/:shareToken/documents/:docId', async (req, res) => {
     })
     if (!job || !job.s3Key) return res.status(404).json({ error: 'Document not found' })
 
-    const url = await getPresignedUrlFromKey(job.s3Key, 3600)
+    const url = await getPresignedUrlFromKey(job.s3Key, 3600, {
+      contentType: job.fileType || 'application/octet-stream',
+    })
     if (!url) return res.status(500).json({ error: 'Could not generate URL' })
 
     res.json({ url, fileType: job.fileType, name: job.originalFilename, expiresIn: 3600 })

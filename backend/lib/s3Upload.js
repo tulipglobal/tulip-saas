@@ -44,6 +44,11 @@ function getContentType(ext) {
     '.jpg': 'image/jpeg',
     '.jpeg': 'image/jpeg',
     '.png': 'image/png',
+    '.gif': 'image/gif',
+    '.webp': 'image/webp',
+    '.tiff': 'image/tiff',
+    '.tif': 'image/tiff',
+    '.svg': 'image/svg+xml',
   }
   return map[ext] || 'application/octet-stream'
 }
@@ -60,9 +65,14 @@ async function getPresignedUrl(fileUrl, expiresIn = 3600) {
   }
 }
 
-async function getPresignedUrlFromKey(key, expiresIn = 3600) {
+async function getPresignedUrlFromKey(key, expiresIn = 3600, options = {}) {
   try {
-    const command = new GetObjectCommand({ Bucket: BUCKET, Key: key })
+    const params = { Bucket: BUCKET, Key: key }
+    if (options.contentType) {
+      params.ResponseContentType = options.contentType
+      params.ResponseContentDisposition = 'inline'
+    }
+    const command = new GetObjectCommand(params)
     return await getSignedUrl(s3, command, { expiresIn })
   } catch (err) {
     console.error('Presign error:', err)

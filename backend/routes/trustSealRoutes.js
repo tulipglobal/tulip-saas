@@ -26,11 +26,29 @@ router.post('/issue', upload.single('file'), async (req, res) => {
       return res.status(400).json({ error: 'documentTitle and issuedTo are required' })
     }
 
-    // Get org name for issuedBy fallback
+    // Get org name for issuedBy fallback + plan for usage check
     const tenant = await prisma.tenant.findUnique({
       where: { id: req.user.tenantId },
-      select: { name: true }
+      select: { name: true, plan: true }
     })
+
+    // Enforce seal usage limits per plan
+    const plan = tenant?.plan || 'FREE'
+    const SEAL_LIMITS = { FREE: 5, STARTER: 50, PRO: -1, ENTERPRISE: -1 }
+    const limit = SEAL_LIMITS[plan] ?? 5
+    if (limit !== -1) {
+      const now = new Date()
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+      const sealsThisMonth = await db.trustSeal.count({ where: { createdAt: { gte: monthStart } } })
+      if (sealsThisMonth >= limit) {
+        return res.status(403).json({
+          error: `Seal limit reached (${limit}/month on ${plan} plan). Upgrade for more.`,
+          sealsUsed: sealsThisMonth,
+          sealLimit: limit,
+          plan,
+        })
+      }
+    }
 
     // Hash the file content and upload to S3
     const MIME_MAP = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp', tiff: 'image/tiff', tif: 'image/tiff', svg: 'image/svg+xml', pdf: 'application/pdf', doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }

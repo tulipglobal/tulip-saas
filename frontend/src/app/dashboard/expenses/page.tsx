@@ -119,7 +119,7 @@ function ExpenseRow({ expense, onRefresh }: { expense: Expense; onRefresh: () =>
               </Link>
             )}
             {expense.blockchainTx && (
-              <Link href={`https://amoy.polygonscan.com/tx/${expense.blockchainTx}`} target="_blank"
+              <Link href={`https://polygonscan.com/tx/${expense.blockchainTx}`} target="_blank"
                 className="text-white/20 hover:text-[#34d399] transition-colors" title="Polygonscan" onClick={e => e.stopPropagation()}>
                 <ExternalLink size={13} />
               </Link>
@@ -147,7 +147,7 @@ function ExpenseRow({ expense, onRefresh }: { expense: Expense; onRefresh: () =>
             </Link>
           )}
           {expense.blockchainTx && (
-            <Link href={`https://amoy.polygonscan.com/tx/${expense.blockchainTx}`} target="_blank"
+            <Link href={`https://polygonscan.com/tx/${expense.blockchainTx}`} target="_blank"
               className="text-white/20 hover:text-[#34d399] transition-colors" title="View on Polygonscan">
               <ExternalLink size={13} />
             </Link>

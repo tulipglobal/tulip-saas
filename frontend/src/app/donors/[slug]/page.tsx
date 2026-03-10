@@ -311,7 +311,7 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
                         </Link>
                       )}
                       {expense.blockchainTx && (
-                        <Link href={`https://amoy.polygonscan.com/tx/${expense.blockchainTx}`} target="_blank"
+                        <Link href={`https://polygonscan.com/tx/${expense.blockchainTx}`} target="_blank"
                           className="text-white/20 hover:text-[#369bff] transition-colors" title="View on Polygonscan">
                           <ExternalLink size={14} />
                         </Link>

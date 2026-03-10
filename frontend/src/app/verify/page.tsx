@@ -906,7 +906,7 @@ function VerifyPageInner() {
                               <button onClick={() => copyText(bc.txHash!, 'tx')} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
                                 {copied === 'tx' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-white/20" />}
                               </button>
-                              <a href={`https://amoy.polygonscan.com/tx/${bc.txHash}`} target="_blank" rel="noopener noreferrer"
+                              <a href={`https://polygonscan.com/tx/${bc.txHash}`} target="_blank" rel="noopener noreferrer"
                                 className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
                                 <ExternalLink className="w-3.5 h-3.5 text-white/20" />
                               </a>

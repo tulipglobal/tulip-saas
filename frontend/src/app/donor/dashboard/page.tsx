@@ -341,7 +341,7 @@ function DocumentRow({ doc, token, compact = false }: { doc: Document; token: st
       <div>
         {doc.anchorStatus === 'confirmed' && doc.blockchainTx ? (
           <a
-            href={`https://amoy.polygonscan.com/tx/${doc.blockchainTx}`}
+            href={`https://polygonscan.com/tx/${doc.blockchainTx}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 hover:bg-emerald-400/15 transition-colors"

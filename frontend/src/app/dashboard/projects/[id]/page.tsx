@@ -349,7 +349,7 @@ export default function ProjectDetailPage() {
                     </td>
                     <td className="px-4 py-3">
                       {entry.blockchainTx
-                        ? <a href={`https://amoy.polygonscan.com/tx/${entry.blockchainTx}`} target="_blank" rel="noopener noreferrer"
+                        ? <a href={`https://polygonscan.com/tx/${entry.blockchainTx}`} target="_blank" rel="noopener noreferrer"
                             className="text-xs font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1">
                             {entry.blockchainTx.slice(0, 10)}… <ExternalLink size={10} />
                           </a>

@@ -169,7 +169,7 @@ export default function ExpenseDetailPage() {
                 <Calendar size={11} /> {new Date(expense.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
               </span>
               {expense.blockchainTx && (
-                <a href={`https://amoy.polygonscan.com/tx/${expense.blockchainTx}`} target="_blank" rel="noopener noreferrer"
+                <a href={`https://polygonscan.com/tx/${expense.blockchainTx}`} target="_blank" rel="noopener noreferrer"
                   className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1">
                   Polygonscan <ExternalLink size={10} />
                 </a>

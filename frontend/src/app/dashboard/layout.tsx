@@ -7,7 +7,7 @@ import { apiGet } from '@/lib/api'
 import {
   LayoutDashboard, FolderOpen, FileCheck, Receipt, Banknote,
   Key, Webhook, BarChart3, Settings, LogOut, Code2, CreditCard, Users,
-  ChevronLeft, ChevronRight, Shield, Bell, Search, Menu, X, ListChecks, ScanLine, FolderSearch
+  ChevronLeft, ChevronRight, Shield, Bell, Search, Menu, X, ListChecks, ScanLine, FolderSearch, Briefcase
 } from 'lucide-react'
 import { clsx } from 'clsx'
 
@@ -24,6 +24,7 @@ const nav = [
   { label: 'Team',      href: '/dashboard/team',      icon: Users },
   { label: 'API Keys',  href: '/dashboard/api-keys',  icon: Key },
   { label: 'Webhooks',  href: '/dashboard/webhooks',  icon: Webhook },
+  { label: 'Cases',      href: '/dashboard/cases',          icon: Briefcase },
   { label: 'OCR Engine', href: '/dashboard/api-portal/ocr', icon: ScanLine },
   { label: 'Bundle Verify', href: '/dashboard/api-portal/bundle', icon: FolderSearch },
   { label: 'Developer API', href: '/dashboard/api-portal/developer', icon: Code2 },

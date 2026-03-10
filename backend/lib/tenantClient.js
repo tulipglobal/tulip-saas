@@ -77,6 +77,15 @@ module.exports = function tenantClient(tenantId) {
       count:     (args = {}) => prisma.ocrJob.count({ ...args, where: { ...args.where, tenantId } }),
     },
 
+    verificationCase: {
+      findMany:  (args = {}) => prisma.verificationCase.findMany({ ...args, where: { ...args.where, tenantId } }),
+      findFirst: (args = {}) => prisma.verificationCase.findFirst({ ...args, where: { ...args.where, tenantId } }),
+      create:    (args = {}) => prisma.verificationCase.create({ ...args, data: { ...args.data, tenantId } }),
+      update:    (args = {}) => prisma.verificationCase.update(args),
+      delete:    (args = {}) => prisma.verificationCase.delete(args),
+      count:     (args = {}) => prisma.verificationCase.count({ ...args, where: { ...args.where, tenantId } }),
+    },
+
     bundleJob: {
       findMany:  (args = {}) => prisma.bundleJob.findMany({ ...args, where: { ...args.where, tenantId } }),
       findFirst: (args = {}) => prisma.bundleJob.findFirst({ ...args, where: { ...args.where, tenantId } }),

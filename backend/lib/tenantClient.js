@@ -76,5 +76,13 @@ module.exports = function tenantClient(tenantId) {
       update:    (args = {}) => prisma.ocrJob.update(args),
       count:     (args = {}) => prisma.ocrJob.count({ ...args, where: { ...args.where, tenantId } }),
     },
+
+    bundleJob: {
+      findMany:  (args = {}) => prisma.bundleJob.findMany({ ...args, where: { ...args.where, tenantId } }),
+      findFirst: (args = {}) => prisma.bundleJob.findFirst({ ...args, where: { ...args.where, tenantId } }),
+      create:    (args = {}) => prisma.bundleJob.create({ ...args, data: { ...args.data, tenantId } }),
+      update:    (args = {}) => prisma.bundleJob.update(args),
+      count:     (args = {}) => prisma.bundleJob.count({ ...args, where: { ...args.where, tenantId } }),
+    },
   }
 }

@@ -29,6 +29,7 @@ model Tenant {
   trialEndsAt          DateTime?
   apiKeys            ApiKey[]
   ocrJobs  OcrJob[]
+  bundleJobs BundleJob[]
   auditLogs          AuditLog[]
   documents          Document[]
   expenses           Expense[]
@@ -130,9 +131,28 @@ model ApiKey {
   creator     User      @relation("ApiKeyCreator", fields: [createdBy], references: [id])
   tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
-  ocrJobs OcrJob[]
+  ocrJobs    OcrJob[]
+  usageLogs  ApiUsageLog[]
   @@index([tenantId])
   @@index([createdBy])
+}
+
+model ApiUsageLog {
+  id           String   @id @default(uuid())
+  apiKeyId     String
+  apiKey       ApiKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  tenantId     String
+  endpoint     String
+  method       String   @default("POST")
+  statusCode   Int
+  responseTime Int      @default(0)
+  errorMessage String?
+  createdAt    DateTime @default(now())
+
+  @@index([apiKeyId])
+  @@index([tenantId])
+  @@index([createdAt])
+  @@index([endpoint])
 }
 
 model RefreshToken {
@@ -511,6 +531,33 @@ model OcrJob {
   anchorTxHash     String?
   anchoredAt       DateTime?
   proofBundleS3    String?
+  bundleJobId      String?
+  bundleJob        BundleJob? @relation(fields: [bundleJobId], references: [id])
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([bundleJobId])
+}
+
+model BundleJob {
+  id               String    @id @default(uuid())
+  tenantId         String
+  tenant           Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name             String
+  status           String    @default("pending")
+  fileCount        Int       @default(0)
+  completedCount   Int       @default(0)
+  overallRiskScore Int?
+  overallRiskLevel String?
+  crossAnalysisJson Json?
+  masterReportS3   String?
+  bundleHash       String?
+  anchorTxHash     String?
+  anchoredAt       DateTime?
+  ocrJobs          OcrJob[]
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 

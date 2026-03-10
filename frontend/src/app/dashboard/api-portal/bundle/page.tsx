@@ -1,0 +1,552 @@
+'use client'
+
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { apiGet } from '@/lib/api'
+import {
+  FolderSearch, Upload, FileText, Loader2, CheckCircle2, XCircle,
+  RefreshCw, Download, Eye, Clock, AlertTriangle, Sparkles, Hash,
+  ArrowRightLeft, FileWarning, ShieldCheck
+} from 'lucide-react'
+
+interface OcrJobSummary {
+  id: string
+  originalFilename: string
+  status: string
+  documentType: string | null
+  assessmentResult: string | null
+  assessmentScore: number | null
+}
+
+interface CrossCheck {
+  checkType: string
+  severity: string
+  documents: number[]
+  finding: string
+  recommendation?: string
+}
+
+interface DocRelationship {
+  doc1: number
+  doc2: number
+  relationship: string
+  confidence: string
+}
+
+interface CrossAnalysis {
+  bundleRiskScore: number
+  bundleRiskLevel: string
+  summary: string
+  consistencyScore: number
+  crossChecks: CrossCheck[]
+  documentRelationships: DocRelationship[]
+  missingDocuments: string[]
+  overallRecommendation: string
+  overallRecommendationReason: string
+}
+
+interface BundleJob {
+  id: string
+  name: string
+  status: string
+  fileCount: number
+  completedCount: number
+  overallRiskScore: number | null
+  overallRiskLevel: string | null
+  crossAnalysisJson: CrossAnalysis | null
+  masterReportS3: string | null
+  bundleHash: string | null
+  anchorTxHash: string | null
+  anchoredAt: string | null
+  ocrJobs: OcrJobSummary[]
+  createdAt: string
+  updatedAt: string
+}
+
+const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof Loader2 }> = {
+  pending:           { label: 'Pending',          color: 'text-white/40 bg-white/5 border-white/10',              icon: Clock },
+  processing:        { label: 'Processing',       color: 'text-blue-400 bg-blue-400/10 border-blue-400/20',      icon: Loader2 },
+  processing_docs:   { label: 'Processing Docs',  color: 'text-blue-400 bg-blue-400/10 border-blue-400/20',      icon: Loader2 },
+  cross_analysing:   { label: 'Cross-Analysing',  color: 'text-purple-400 bg-purple-400/10 border-purple-400/20', icon: Sparkles },
+  generating_report: { label: 'Generating Report', color: 'text-cyan-400 bg-cyan-400/10 border-cyan-400/20',     icon: FileText },
+  completed:         { label: 'Completed',        color: 'text-green-400 bg-green-400/10 border-green-400/20',   icon: CheckCircle2 },
+  failed:            { label: 'Failed',           color: 'text-red-400 bg-red-400/10 border-red-400/20',         icon: XCircle },
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const config = STATUS_CONFIG[status] || STATUS_CONFIG.pending
+  const Icon = config.icon
+  const spinning = ['processing', 'processing_docs', 'cross_analysing', 'generating_report'].includes(status)
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${config.color}`}>
+      <Icon size={12} className={spinning ? 'animate-spin' : ''} />
+      {config.label}
+    </span>
+  )
+}
+
+function RiskBadge({ level, score }: { level: string; score: number | null }) {
+  const map: Record<string, string> = {
+    low: 'bg-green-400/10 text-green-400 border-green-400/20',
+    medium: 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20',
+    high: 'bg-red-400/10 text-red-400 border-red-400/20',
+  }
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase border ${map[level] ?? 'bg-white/5 text-white/40 border-white/10'}`}>
+      {level === 'high' ? <AlertTriangle size={10} /> : null}
+      {level} risk{score != null ? ` · ${score}/100` : ''}
+    </span>
+  )
+}
+
+function SeverityBadge({ severity }: { severity: string }) {
+  const map: Record<string, string> = {
+    low: 'text-white/40',
+    medium: 'text-yellow-400',
+    high: 'text-red-400',
+  }
+  return <span className={`text-[10px] font-bold uppercase ${map[severity] ?? 'text-white/40'}`}>{severity}</span>
+}
+
+export default function BundlePage() {
+  const [bundles, setBundles] = useState<BundleJob[]>([])
+  const [loading, setLoading] = useState(true)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [selectedBundle, setSelectedBundle] = useState<BundleJob | null>(null)
+  const [dragActive, setDragActive] = useState(false)
+  const [bundleName, setBundleName] = useState('')
+  const fileRef = useRef<HTMLInputElement>(null)
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const fetchBundles = useCallback(async () => {
+    try {
+      const res = await apiGet('/api/ocr/bundles')
+      if (res.ok) {
+        const json = await res.json()
+        const data = json.data ?? json
+        setBundles(Array.isArray(data) ? data : [])
+        setSelectedBundle(prev => {
+          if (!prev) return null
+          const updated = (Array.isArray(data) ? data : []).find((b: BundleJob) => b.id === prev.id)
+          return updated ?? prev
+        })
+      }
+    } catch {
+      // silent
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchBundles()
+  }, [fetchBundles])
+
+  // Poll for in-progress bundles
+  useEffect(() => {
+    const hasActive = bundles.some((b) =>
+      ['pending', 'processing', 'processing_docs', 'cross_analysing', 'generating_report'].includes(b.status)
+    )
+    if (hasActive) {
+      pollRef.current = setInterval(fetchBundles, 3000)
+    }
+    return () => { if (pollRef.current) clearInterval(pollRef.current) }
+  }, [bundles, fetchBundles])
+
+  const handleUpload = async (files: FileList) => {
+    if (files.length === 0) return
+    if (files.length > 20) {
+      setError('Maximum 20 files per bundle')
+      return
+    }
+
+    setUploading(true)
+    setError(null)
+    try {
+      const formData = new FormData()
+      for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i])
+      }
+      formData.append('name', bundleName || `Bundle ${new Date().toISOString().slice(0, 10)}`)
+
+      const token = localStorage.getItem('tulip_token')
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/ocr/bundle/process`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      })
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Upload failed' }))
+        setError(err.error || err.details || `Upload failed (${res.status})`)
+        return
+      }
+
+      const json = await res.json()
+      const bundle = json.data ?? json
+      setBundles((prev) => [bundle, ...prev])
+      setSelectedBundle(bundle)
+      setBundleName('')
+    } catch {
+      setError('Network error — could not reach API')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) handleUpload(e.target.files)
+    e.target.value = ''
+  }
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragActive(false)
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) handleUpload(e.dataTransfer.files)
+  }
+
+  const handleDownloadPdf = async (bundleId: string) => {
+    try {
+      const res = await apiGet(`/api/ocr/bundles/${bundleId}/pdf`)
+      if (res.ok) {
+        const { url } = await res.json()
+        window.open(url, '_blank')
+      }
+    } catch {
+      // silent
+    }
+  }
+
+  const cross = selectedBundle?.crossAnalysisJson as CrossAnalysis | null
+
+  return (
+    <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+              <FolderSearch size={20} />
+            </div>
+            Bundle Verify
+          </h1>
+          <p className="text-white/40 text-sm mt-1">
+            Upload multiple documents for cross-analysis and inconsistency detection.
+          </p>
+        </div>
+        <button onClick={fetchBundles}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white/60 hover:text-white hover:bg-white/10 transition-all">
+          <RefreshCw size={14} />
+          Refresh
+        </button>
+      </div>
+
+      {/* Upload zone */}
+      <div className="space-y-3">
+        <input
+          type="text"
+          value={bundleName}
+          onChange={(e) => setBundleName(e.target.value)}
+          placeholder="Bundle name (optional)"
+          className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-sm text-white/80 placeholder-white/25 outline-none focus:border-[#0c7aed]/40 transition-all"
+        />
+        <div
+          className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${
+            dragActive
+              ? 'border-[#0c7aed] bg-[#0c7aed]/5'
+              : 'border-white/10 hover:border-white/20 bg-white/[0.02]'
+          }`}
+          onDragOver={(e) => { e.preventDefault(); setDragActive(true) }}
+          onDragLeave={() => setDragActive(false)}
+          onDrop={onDrop}
+          onClick={() => fileRef.current?.click()}
+        >
+          <input ref={fileRef} type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png,.tiff,.tif,.webp" multiple onChange={onFileChange} />
+
+          {uploading ? (
+            <div className="flex flex-col items-center gap-3">
+              <Loader2 size={32} className="text-[#0c7aed] animate-spin" />
+              <p className="text-white/60 text-sm">Uploading bundle and starting processing...</p>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-14 h-14 rounded-2xl bg-[#0c7aed]/10 flex items-center justify-center">
+                <Upload size={24} className="text-[#0c7aed]" />
+              </div>
+              <div>
+                <p className="text-white/70 font-medium">Drop multiple documents here or click to upload</p>
+                <p className="text-white/30 text-xs mt-1">Up to 20 files — PDF, JPG, PNG, TIFF, WEBP — 20MB each</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {error ? (
+        <div className="p-3 rounded-xl bg-red-400/10 border border-red-400/20 text-red-400 text-sm flex items-center gap-2">
+          <XCircle size={16} />
+          {error}
+        </div>
+      ) : null}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Bundle list */}
+        <div className="lg:col-span-1 space-y-3">
+          <h2 className="text-sm font-semibold text-white/50 uppercase tracking-wider">Bundles ({bundles.length})</h2>
+
+          {loading ? (
+            <div className="text-center py-8 text-white/30">
+              <Loader2 size={20} className="animate-spin mx-auto mb-2" />
+              Loading...
+            </div>
+          ) : null}
+
+          {!loading && bundles.length === 0 ? (
+            <div className="text-center py-8 text-white/30 text-sm">
+              No bundles yet. Upload documents to get started.
+            </div>
+          ) : null}
+
+          {bundles.map((bundle) => (
+            <button
+              key={bundle.id}
+              onClick={() => setSelectedBundle(bundle)}
+              className={`w-full text-left p-4 rounded-xl border transition-all ${
+                selectedBundle?.id === bundle.id
+                  ? 'bg-[#0c7aed]/10 border-[#0c7aed]/30'
+                  : 'bg-white/[0.02] border-white/8 hover:bg-white/[0.04]'
+              }`}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-white/90 truncate">{bundle.name}</p>
+                  <p className="text-xs text-white/30 mt-0.5">
+                    {new Date(bundle.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    {' · '}{bundle.fileCount} files
+                  </p>
+                  {bundle.status === 'processing_docs' ? (
+                    <div className="mt-1.5">
+                      <div className="w-full h-1.5 rounded-full bg-white/5 overflow-hidden">
+                        <div className="h-full rounded-full bg-blue-400 transition-all duration-500"
+                          style={{ width: `${bundle.fileCount > 0 ? (bundle.completedCount / bundle.fileCount) * 100 : 0}%` }} />
+                      </div>
+                      <p className="text-[10px] text-white/30 mt-0.5">{bundle.completedCount}/{bundle.fileCount} docs processed</p>
+                    </div>
+                  ) : null}
+                </div>
+                <StatusBadge status={bundle.status} />
+              </div>
+              {bundle.overallRiskLevel ? (
+                <div className="mt-2">
+                  <RiskBadge level={bundle.overallRiskLevel} score={bundle.overallRiskScore} />
+                </div>
+              ) : null}
+            </button>
+          ))}
+        </div>
+
+        {/* Detail panel */}
+        <div className="lg:col-span-2">
+          {!selectedBundle ? (
+            <div className="flex items-center justify-center h-64 rounded-2xl border border-white/8 bg-white/[0.02]">
+              <div className="text-center text-white/30">
+                <Eye size={32} className="mx-auto mb-2 opacity-40" />
+                <p className="text-sm">Select a bundle to view results</p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Bundle header */}
+              <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-lg truncate pr-3">{selectedBundle.name}</h3>
+                  <StatusBadge status={selectedBundle.status} />
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                  <div>
+                    <span className="text-white/30">Files</span>
+                    <p className="text-white/70 mt-0.5">{selectedBundle.fileCount}</p>
+                  </div>
+                  <div>
+                    <span className="text-white/30">Processed</span>
+                    <p className="text-white/70 mt-0.5">{selectedBundle.completedCount}/{selectedBundle.fileCount}</p>
+                  </div>
+                  <div>
+                    <span className="text-white/30">Risk Level</span>
+                    <p className="text-white/70 mt-0.5 uppercase">{selectedBundle.overallRiskLevel || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="text-white/30">Risk Score</span>
+                    <p className="text-white/70 mt-0.5">{selectedBundle.overallRiskScore != null ? `${selectedBundle.overallRiskScore}/100` : '—'}</p>
+                  </div>
+                </div>
+
+                {/* Progress bar for active processing */}
+                {['processing', 'processing_docs'].includes(selectedBundle.status) ? (
+                  <div className="mt-3">
+                    <div className="w-full h-2 rounded-full bg-white/5 overflow-hidden">
+                      <div className="h-full rounded-full bg-blue-400 transition-all duration-500"
+                        style={{ width: `${selectedBundle.fileCount > 0 ? (selectedBundle.completedCount / selectedBundle.fileCount) * 100 : 0}%` }} />
+                    </div>
+                    <p className="text-xs text-white/30 mt-1">Processing documents... {selectedBundle.completedCount}/{selectedBundle.fileCount} complete</p>
+                  </div>
+                ) : null}
+
+                {/* Hash */}
+                {selectedBundle.bundleHash ? (
+                  <div className="mt-3 p-3 rounded-lg bg-white/[0.03] border border-white/8">
+                    <div className="flex items-center gap-2 text-xs">
+                      <Hash size={12} className="text-[#0c7aed]" />
+                      <span className="text-white/30">SHA-256</span>
+                      <code className="text-white/50 font-mono text-[11px] break-all">{selectedBundle.bundleHash}</code>
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* PDF download */}
+                {selectedBundle.masterReportS3 ? (
+                  <button
+                    onClick={() => handleDownloadPdf(selectedBundle.id)}
+                    className="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90"
+                    style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}
+                  >
+                    <Download size={14} />
+                    Download Master Report
+                  </button>
+                ) : null}
+              </div>
+
+              {/* Documents in bundle */}
+              {selectedBundle.ocrJobs && selectedBundle.ocrJobs.length > 0 ? (
+                <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
+                  <h4 className="font-semibold text-sm text-white/60 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <FileText size={14} className="text-blue-400" />
+                    Documents ({selectedBundle.ocrJobs.length})
+                  </h4>
+                  <div className="space-y-2">
+                    {selectedBundle.ocrJobs.map((job, i) => (
+                      <div key={job.id} className="flex items-center justify-between p-3 rounded-lg bg-white/[0.03] border border-white/8">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <span className="text-white/20 text-xs font-mono w-5 text-right">{i + 1}</span>
+                          <span className="text-sm text-white/80 truncate">{job.originalFilename}</span>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {job.documentType ? (
+                            <span className="text-[10px] text-white/30 uppercase">{job.documentType}</span>
+                          ) : null}
+                          {job.assessmentResult ? (
+                            <RiskBadge level={job.assessmentResult} score={job.assessmentScore} />
+                          ) : (
+                            <StatusBadge status={job.status} />
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Cross-analysis results */}
+              {cross ? (
+                <>
+                  {/* Summary & scores */}
+                  <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
+                    <h4 className="font-semibold text-sm text-white/60 uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <ShieldCheck size={14} className="text-green-400" />
+                      Cross-Analysis Results
+                    </h4>
+                    <div className="flex items-center gap-4 mb-3">
+                      <RiskBadge level={cross.bundleRiskLevel} score={cross.bundleRiskScore} />
+                      <span className="text-xs text-white/30">
+                        Consistency: {cross.consistencyScore}/100
+                      </span>
+                      <span className={`text-xs font-semibold uppercase ${
+                        cross.overallRecommendation === 'approve' ? 'text-green-400' :
+                        cross.overallRecommendation === 'review' ? 'text-yellow-400' : 'text-red-400'
+                      }`}>
+                        {cross.overallRecommendation}
+                      </span>
+                    </div>
+                    <p className="text-sm text-white/60">{cross.summary}</p>
+                    {cross.overallRecommendationReason ? (
+                      <p className="text-xs text-white/40 mt-2">Reason: {cross.overallRecommendationReason}</p>
+                    ) : null}
+                  </div>
+
+                  {/* Cross-check findings */}
+                  {cross.crossChecks && cross.crossChecks.length > 0 ? (
+                    <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
+                      <h4 className="font-semibold text-sm text-white/60 uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <AlertTriangle size={14} className="text-yellow-400" />
+                        Cross-Check Findings ({cross.crossChecks.length})
+                      </h4>
+                      <div className="space-y-3">
+                        {cross.crossChecks.map((check, i) => (
+                          <div key={i} className="p-3 rounded-lg bg-white/[0.03] border border-white/8">
+                            <div className="flex items-center gap-2 mb-1">
+                              <SeverityBadge severity={check.severity} />
+                              <span className="text-xs text-white/40 uppercase">{check.checkType}</span>
+                              <span className="text-xs text-white/20">Docs: {check.documents?.join(', ')}</span>
+                            </div>
+                            <p className="text-sm text-white/70">{check.finding}</p>
+                            {check.recommendation ? (
+                              <p className="text-xs text-white/40 mt-1">{'→ '}{check.recommendation}</p>
+                            ) : null}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {/* Document relationships */}
+                  {cross.documentRelationships && cross.documentRelationships.length > 0 ? (
+                    <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
+                      <h4 className="font-semibold text-sm text-white/60 uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <ArrowRightLeft size={14} className="text-indigo-400" />
+                        Document Relationships
+                      </h4>
+                      <div className="space-y-2">
+                        {cross.documentRelationships.map((rel, i) => {
+                          const d1 = selectedBundle.ocrJobs[rel.doc1 - 1]?.originalFilename || `Doc ${rel.doc1}`
+                          const d2 = selectedBundle.ocrJobs[rel.doc2 - 1]?.originalFilename || `Doc ${rel.doc2}`
+                          return (
+                            <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] border border-white/8 text-sm">
+                              <span className="text-white/70 truncate flex-1">{d1}</span>
+                              <span className="text-white/20">↔</span>
+                              <span className="text-white/70 truncate flex-1">{d2}</span>
+                              <span className="text-xs text-white/30 shrink-0">{rel.relationship}</span>
+                              <span className="text-[10px] text-white/20 shrink-0">{rel.confidence}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {/* Missing documents */}
+                  {cross.missingDocuments && cross.missingDocuments.length > 0 ? (
+                    <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
+                      <h4 className="font-semibold text-sm text-white/60 uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <FileWarning size={14} className="text-orange-400" />
+                        Missing Documents
+                      </h4>
+                      <div className="space-y-1.5">
+                        {cross.missingDocuments.map((doc, i) => (
+                          <div key={i} className="flex items-center gap-2 text-sm text-yellow-400/80">
+                            <AlertTriangle size={12} />
+                            {doc}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </>
+              ) : null}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}

@@ -167,4 +167,84 @@ Respond with JSON only (no markdown) in this exact format:
   }
 }
 
-module.exports = { normaliseDocument, assessDocument }
+/**
+ * Cross-analyse multiple documents in a bundle for inconsistencies
+ */
+async function crossAnalyseBundle(documents, bundleName) {
+  try {
+    const docSummaries = documents.map((d, i) => ({
+      index: i + 1,
+      filename: d.filename,
+      documentType: d.normalised?.documentType,
+      vendor: d.normalised?.vendor,
+      buyer: d.normalised?.buyer,
+      total: d.normalised?.total,
+      currency: d.normalised?.currency,
+      documentDate: d.normalised?.documentDate,
+      documentNumber: d.normalised?.documentNumber,
+      lineItems: d.normalised?.lineItems,
+      riskScore: d.assessment?.riskScore,
+      riskLevel: d.assessment?.riskLevel,
+    }))
+
+    const prompt = `You are an expert forensic document analyst performing cross-document verification for a bundle called "${bundleName}".
+
+You have ${documents.length} documents that were submitted together. Analyse them collectively for:
+1. IDENTITY CONSISTENCY — Do names, addresses, phone numbers, emails match across documents?
+2. FINANCIAL CONSISTENCY — Do amounts, totals, line items align logically? Does an invoice match its receipt?
+3. DATE CONSISTENCY — Are dates in logical order? Is a receipt dated before its invoice?
+4. VENDOR/BUYER CONSISTENCY — Same vendor across docs? Any spelling variations that suggest fraud?
+5. MATHEMATICAL CROSS-CHECK — Do subtotals from multiple invoices add up to a summary total?
+6. DUPLICATE DETECTION — Are any documents duplicates or near-duplicates?
+7. MISSING DOCUMENTS — Based on what's present, are expected supporting documents missing?
+
+DOCUMENTS IN BUNDLE:
+${JSON.stringify(docSummaries, null, 2)}
+
+Respond with JSON only (no markdown) in this exact format:
+{
+  "bundleRiskScore": 0-100,
+  "bundleRiskLevel": "low|medium|high",
+  "summary": "2-3 sentence overview of the bundle and cross-analysis findings",
+  "consistencyScore": 0-100,
+  "crossChecks": [
+    {
+      "checkType": "identity|financial|date|vendor|math|duplicate|missing",
+      "severity": "low|medium|high",
+      "documents": [1, 2],
+      "finding": "description of the inconsistency or finding",
+      "recommendation": "what to do about it"
+    }
+  ],
+  "documentRelationships": [
+    {
+      "doc1": 1,
+      "doc2": 2,
+      "relationship": "invoice-receipt|quote-invoice|duplicate|related|unrelated",
+      "confidence": "high|medium|low"
+    }
+  ],
+  "missingDocuments": ["list of expected but missing document types"],
+  "overallRecommendation": "approve|review|reject",
+  "overallRecommendationReason": "brief reason"
+}`
+
+    const response = await client.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 4000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+
+    const text = response.content[0].text.trim()
+    const parsed = parseJsonResponse(text)
+
+    logger.info({ bundleName, bundleRiskScore: parsed.bundleRiskScore, crossChecks: parsed.crossChecks?.length }, 'Bundle cross-analysis complete')
+    return parsed
+
+  } catch (err) {
+    logger.error({ err: err.message, stack: err.stack }, 'Bundle cross-analysis failed')
+    throw err
+  }
+}
+
+module.exports = { normaliseDocument, assessDocument, crossAnalyseBundle }

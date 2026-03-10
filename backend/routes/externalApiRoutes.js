@@ -57,8 +57,8 @@ router.post('/ocr/process', (req, res, next) => {
       }
     })
 
-    // Return job immediately
-    res.status(201).json({ data: { id: job.id, status: 'processing' }, message: 'OCR job created. Poll GET /api/external/ocr/jobs/:id for status.' })
+    // Return job immediately — flat shape so frontend can read data.jobId directly
+    res.status(201).json({ jobId: job.id, id: job.id, status: 'processing', message: 'OCR job created. Poll GET /api/external/ocr/jobs/:id for status.' })
 
     // Process in background
     processExternalOcrJob(job.id, tenantId, userId, req.file).catch(err => {
@@ -126,7 +126,18 @@ router.get('/ocr/jobs/:id', async (req, res) => {
       where: { id: req.params.id, tenantId: req.user.tenantId }
     })
     if (!job) return res.status(404).json({ error: 'Job not found' })
-    res.json({ data: job })
+    // Flat response — frontend reads data.status, data.result directly
+    res.json({
+      id: job.id,
+      status: job.status,
+      result: job.status === 'completed' ? {
+        documentType: job.documentType,
+        riskScore: job.assessmentScore,
+        riskLevel: job.assessmentResult,
+        normalizedData: job.normalisedJson,
+      } : undefined,
+      error: job.status === 'failed' ? 'Processing failed' : undefined,
+    })
   } catch (err) {
     logger.error({ err: err.message, stack: err.stack }, 'External GET job failed')
     res.status(500).json({ error: err.message })

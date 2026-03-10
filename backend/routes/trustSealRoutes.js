@@ -11,6 +11,7 @@ const tenantClient = require('../lib/tenantClient')
 const prisma = require('../lib/client')
 const { parsePagination, paginatedResponse } = require('../lib/paginate')
 const { createAuditLog } = require('../services/auditService')
+const { trackEvent } = require('../services/engagementService')
 const { uploadToS3 } = require('../lib/s3Upload')
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } })
@@ -102,6 +103,8 @@ router.post('/issue', upload.single('file'), async (req, res) => {
       userId: req.user.userId,
       tenantId: req.user.tenantId,
     }).catch(() => {})
+
+    trackEvent(req.user.tenantId, 'seal_issued', { sealId: seal.id, documentTitle }, req.user.userId).catch(() => {})
 
     res.status(201).json({
       ...updatedSeal,

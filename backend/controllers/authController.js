@@ -16,6 +16,7 @@ const { createAuditLog }       = require('../services/auditService')
 const { emit: siemEmit }       = require('../services/siemService')
 const { issueTokenPair, rotateRefreshToken, revokeFamily } = require('../services/refreshTokenService')
 const { sendEmail } = require('../services/emailService')
+const { trackEvent } = require('../services/engagementService')
 
 exports.register = async (req, res) => {
   try {
@@ -93,6 +94,7 @@ exports.register = async (req, res) => {
     await buildCache(user.id, tenant.id)
     await createAuditLog({ action: 'USER_REGISTERED', entityType: 'User', entityId: user.id, userId: user.id, tenantId: tenant.id })
     siemEmit('auth.register', { userId: user.id, tenantId: tenant.id, email }, req).catch(() => {})
+    trackEvent(tenant.id, 'signup', { email, organisationName }, user.id).catch(() => {})
 
     const tokens = await issueTokenPair(user, req)
 

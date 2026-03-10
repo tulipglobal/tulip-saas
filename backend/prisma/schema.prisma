@@ -32,6 +32,7 @@ model Tenant {
   bundleJobs BundleJob[]
   verificationCases VerificationCase[]
   trustSeals         TrustSeal[]
+  engagementEvents   EngagementEvent[]
   auditLogs          AuditLog[]
   documents          Document[]
   expenses           Expense[]
@@ -621,5 +622,19 @@ model TrustSeal {
   @@index([tenantId])
   @@index([rawHash])
   @@index([status])
+  @@index([createdAt])
+}
+
+model EngagementEvent {
+  id        String   @id @default(uuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId    String?
+  eventType String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([eventType])
   @@index([createdAt])
 }

@@ -10,6 +10,7 @@ const { extractText, uploadToS3 } = require('../services/ocrService')
 const { normaliseDocument, assessDocument, crossAnalyseBundle } = require('../services/documentNormaliser')
 const { generateOcrPdf, generateBundlePdf } = require('../services/ocrPdfService')
 const { createAuditLog } = require('../services/auditService')
+const { trackEvent, hasEvent } = require('../services/engagementService')
 const logger  = require('../lib/logger')
 
 // Multer — memory storage, max 20MB
@@ -149,6 +150,13 @@ async function processOcrJob(jobId, tenantId, userId, file) {
       userId,
       tenantId,
     }).catch(() => {})
+
+    // 9. Engagement tracking
+    const isFirst = !(await hasEvent(tenantId, 'first_document'))
+    if (isFirst) {
+      trackEvent(tenantId, 'first_document', { jobId, filename: file.originalname }, userId).catch(() => {})
+    }
+    trackEvent(tenantId, 'daily_active', { action: 'ocr_processed' }, userId).catch(() => {})
 
   } catch (err) {
     logger.error({ err: err.message, stack: err.stack, jobId }, 'OCR pipeline error')
@@ -439,6 +447,8 @@ async function processBundleJob(bundleId, tenantId, userId, ocrJobs) {
       userId,
       tenantId,
     }).catch(() => {})
+
+    trackEvent(tenantId, 'bundle_processed', { bundleId, fileCount: ocrJobs.length }, userId).catch(() => {})
 
   } catch (err) {
     logger.error({ err: err.message, stack: err.stack, bundleId }, 'Bundle pipeline error')

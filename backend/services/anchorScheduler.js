@@ -12,6 +12,7 @@ const { cleanupExpiredTokens }    = require('./refreshTokenService')
 const { stampPendingLogs }        = require('./timestampService')
 const { checkTrialExpirations }  = require('./emailNotificationService')
 const { checkDocumentExpiry }   = require('../jobs/expiryAlerts')
+const { runEngagementEmails }  = require('./engagementEmailService')
 const logger  = require('../lib/logger')
 
 function startAnchorScheduler() {
@@ -67,12 +68,24 @@ function startAnchorScheduler() {
     } catch (err) { logger.error('Expiry alert job failed', { error: err.message }) }
   })
 
+  // Engagement email sequences — daily at 5am UTC (9am UAE)
+  cron.schedule('0 5 * * *', async () => {
+    logger.info('Running engagement email sequences...')
+    try {
+      const result = await runEngagementEmails()
+      if (result.nudge > 0 || result.upgrade > 0 || result.reEngagement > 0) {
+        logger.info('[engagement-emails] Complete', result)
+      }
+    } catch (err) { logger.error('Engagement email job failed', { error: err.message }) }
+  })
+
   logger.info('Blockchain anchor scheduler started (every 5 minutes)')
   logger.info('Webhook retry worker started (every 5 minutes)')
   logger.info('RFC 3161 timestamp job started (every 10 minutes)')
   logger.info('Refresh token cleanup scheduled (daily 3am)')
   logger.info('Trial expiration check scheduled (daily 9am)')
   logger.info('Document expiry alert check scheduled (daily 4am UTC / 8am UAE)')
+  logger.info('Engagement email sequences scheduled (daily 5am UTC / 9am UAE)')
 }
 
 module.exports = { startAnchorScheduler }

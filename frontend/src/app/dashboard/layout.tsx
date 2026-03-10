@@ -7,7 +7,7 @@ import { apiGet } from '@/lib/api'
 import {
   LayoutDashboard, FolderOpen, FileCheck, Receipt, Banknote,
   Key, Webhook, BarChart3, Settings, LogOut, Code2, CreditCard, Users,
-  ChevronLeft, ChevronRight, Shield, Bell, Search, Menu, X, ListChecks, ScanLine, FolderSearch, Briefcase, ShieldCheck
+  ChevronLeft, ChevronRight, Shield, Bell, Search, Menu, X, ListChecks, ScanLine, FolderSearch, Briefcase, ShieldCheck, Crown
 } from 'lucide-react'
 import { clsx } from 'clsx'
 
@@ -37,14 +37,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [pendingCount, setPendingCount] = useState(0)
+  const [isSuperadmin, setIsSuperadmin] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
 
-  // Fetch workflow pending count
+  // Fetch workflow pending count + superadmin check
   useEffect(() => {
     apiGet('/api/workflow/summary')
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d) setPendingCount((d.pending || 0) + (d.inReview || 0)) })
+      .catch(() => {})
+    apiGet('/api/admin/check')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.isSuperadmin) setIsSuperadmin(true) })
       .catch(() => {})
   }, [pathname])
 
@@ -136,6 +141,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Bottom */}
       <div className="border-t border-white/8 p-3 space-y-1">
+        {/* Admin — superadmin only */}
+        {isSuperadmin && (
+          <Link href="/dashboard/admin" className={clsx(
+            'flex items-center gap-3 w-full px-3 py-2.5 rounded-lg transition-all',
+            pathname === '/dashboard/admin'
+              ? 'bg-orange-400/15 text-orange-400'
+              : 'text-orange-400/60 hover:text-orange-400 hover:bg-orange-400/10'
+          )}>
+            <Crown size={18} className="shrink-0" />
+            {(!collapsed || mobileOpen) && <span className="text-sm font-medium">Admin</span>}
+          </Link>
+        )}
         {/* Collapse toggle — desktop only */}
         <button
           onClick={() => setCollapsed(!collapsed)}

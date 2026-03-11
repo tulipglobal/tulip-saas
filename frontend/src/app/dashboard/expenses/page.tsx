@@ -261,12 +261,20 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal }: { expense: Expense; onRe
                     <CheckCircle size={14} /> Receipt Sealed
                   </div>
                   <div className="text-xs text-white/30 font-mono break-all">SHA-256: {expense.receiptHash}</div>
-                  {expense.receiptHash && (
-                    <Link href={`/verify?hash=${expense.receiptHash}`} target="_blank"
-                      className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 w-fit" onClick={e => e.stopPropagation()}>
-                      <Shield size={11} /> Verify on blockchain
-                    </Link>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {expense.receiptSealId && (
+                      <button onClick={(e) => { e.stopPropagation(); onOpenSeal(expense.receiptSealId!) }}
+                        className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1">
+                        <Shield size={11} /> View Seal
+                      </button>
+                    )}
+                    {expense.blockchainTx && (
+                      <a href={`https://polygonscan.com/tx/${expense.blockchainTx}`} target="_blank" rel="noopener noreferrer"
+                        className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                        <ExternalLink size={11} /> View on Polygon
+                      </a>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <ReceiptUploader expenseId={expense.id} expenseTitle={expense.title ?? expense.description} onUploaded={onRefresh} />

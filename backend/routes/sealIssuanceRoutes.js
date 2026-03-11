@@ -8,6 +8,7 @@
 
 const express = require('express')
 const router = express.Router()
+router.use(express.json({ limit: '50mb' }))
 const crypto = require('crypto')
 const QRCode = require('qrcode')
 const prisma = require('../lib/client')
@@ -46,7 +47,7 @@ async function apiKeyAuth(req, res, next) {
 }
 
 // POST /api/seal/issue
-router.post('/issue', apiKeyAuth, express.json({ limit: '50mb' }), async (req, res) => {
+router.post('/issue', apiKeyAuth, async (req, res) => {
   try {
     const { pdf, document_type, issuer_reference, metadata } = req.body
 

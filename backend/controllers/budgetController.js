@@ -15,11 +15,14 @@ exports.list = async (req, res) => {
     const where = {}
     if (req.query.status) where.status = req.query.status
 
+    if (req.query.projectId) where.projectId = req.query.projectId
+
     const [budgets, total] = await Promise.all([
       db.budget.findMany({
         where, skip, take,
         include: {
           lines: { orderBy: { createdAt: 'asc' } },
+          project: { select: { id: true, name: true } },
           _count: { select: { fundingAgreements: true, expenses: true } }
         },
         orderBy: { createdAt: 'desc' }
@@ -59,6 +62,7 @@ exports.get = async (req, res) => {
       where: { id: req.params.id },
       include: {
         lines: { orderBy: { createdAt: 'asc' } },
+        project: { select: { id: true, name: true } },
         fundingAgreements: {
           select: {
             id: true, title: true, totalAmount: true, currency: true,
@@ -118,10 +122,13 @@ exports.get = async (req, res) => {
 exports.create = async (req, res) => {
   try {
     const db = tenantClient(req.user.tenantId)
-    const { name, periodFrom, periodTo, status, notes, lines } = req.body
+    const { name, periodFrom, periodTo, status, notes, lines, projectId } = req.body
 
     if (!name || !periodFrom || !periodTo) {
       return res.status(400).json({ error: 'name, periodFrom, and periodTo are required' })
+    }
+    if (!projectId) {
+      return res.status(400).json({ error: 'projectId is required' })
     }
     if (!lines || !Array.isArray(lines) || lines.length === 0) {
       return res.status(400).json({ error: 'At least one budget line is required' })
@@ -130,6 +137,7 @@ exports.create = async (req, res) => {
     const budget = await db.budget.create({
       data: {
         name,
+        projectId,
         periodFrom: new Date(periodFrom),
         periodTo: new Date(periodTo),
         status: status || 'DRAFT',

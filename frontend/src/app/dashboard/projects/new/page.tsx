@@ -27,8 +27,8 @@ export default function NewProjectPage() {
         name: form.name.trim(),
         description: form.description || null,
         status: form.status,
-        startDate: form.startDate || null,
-        endDate: form.endDate || null,
+        ...(form.startDate && { startDate: form.startDate }),
+        ...(form.endDate && { endDate: form.endDate }),
       })
       if (res.ok) {
         const data = await res.json()

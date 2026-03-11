@@ -118,7 +118,7 @@ exports.getProject = async (req, res) => {
     const db      = tenantClient(req.user.tenantId)
     const project = await db.project.findFirst({
       where:   { id: req.params.id },
-      include: { fundingSources: true, expenses: true, documents: true }
+      include: { fundingSources: true, expenses: true, documents: true, budgets: { include: { lines: true }, orderBy: { createdAt: 'desc' } } }
     })
     if (!project) return res.status(404).json({ error: 'Project not found' })
 
@@ -155,11 +155,16 @@ exports.getProject = async (req, res) => {
 exports.createProject = async (req, res) => {
   try {
     const db = tenantClient(req.user.tenantId)
-    const { name, description, budget } = req.body
+    const { name, description, budget, startDate, endDate } = req.body
     if (!name) return res.status(400).json({ error: 'name is required' })
 
     const project = await db.project.create({
-      data: { name, description, budget: budget ? parseFloat(budget) : null }
+      data: {
+        name, description,
+        budget: budget ? parseFloat(budget) : null,
+        startDate: startDate ? new Date(startDate) : null,
+        endDate: endDate ? new Date(endDate) : null,
+      }
     })
     await createAuditLog({ action: 'PROJECT_CREATED', entityType: 'Project', entityId: project.id, userId: req.user.id, tenantId: req.user.tenantId }).catch(() => {})
     res.status(201).json(project)
@@ -176,7 +181,7 @@ exports.updateProject = async (req, res) => {
     const existing = await db.project.findFirst({ where: { id: req.params.id } })
     if (!existing) return res.status(404).json({ error: 'Project not found' })
 
-    const { name, description, budget, status } = req.body
+    const { name, description, budget, status, startDate, endDate } = req.body
     const project = await db.project.update({
       where: { id: req.params.id },
       data: {
@@ -184,6 +189,8 @@ exports.updateProject = async (req, res) => {
         ...(description !== undefined && { description }),
         ...(budget      !== undefined && { budget: parseFloat(budget) }),
         ...(status      !== undefined && { status }),
+        ...(startDate   !== undefined && { startDate: startDate ? new Date(startDate) : null }),
+        ...(endDate     !== undefined && { endDate: endDate ? new Date(endDate) : null }),
       }
     })
     res.json(project)

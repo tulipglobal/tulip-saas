@@ -8,7 +8,7 @@ import DocumentUploadSection from '@/components/DocumentUploadSection'
 import {
   ArrowLeft, FolderOpen, DollarSign, FileText, Activity,
   CheckCircle, Clock, AlertTriangle, XCircle, ExternalLink,
-  Calendar, Tag, Hash, Plus
+  Calendar, Tag, Hash, Plus, Wallet
 } from 'lucide-react'
 
 interface BudgetSummary {
@@ -18,6 +18,15 @@ interface BudgetSummary {
   actualCapex: number
   actualOpex: number
   actualTotal: number
+}
+
+interface BudgetInfo {
+  id: string
+  name: string
+  status: string
+  periodFrom: string
+  periodTo: string
+  lines: { id: string; expenseType: string; category: string; approvedAmount: number }[]
 }
 
 interface Project {
@@ -34,6 +43,7 @@ interface Project {
   expenses: Expense[]
   documents: Document[]
   budgetSummary: BudgetSummary | null
+  budgets: BudgetInfo[]
 }
 
 interface Expense {
@@ -73,6 +83,13 @@ const statusColors: Record<string, string> = {
   draft:     'bg-white/10 text-white/50 border border-white/20',
 }
 
+const budgetStatusColors: Record<string, string> = {
+  DRAFT:    'bg-white/10 text-white/50',
+  APPROVED: 'bg-blue-500/20 text-blue-400',
+  ACTIVE:   'bg-emerald-500/20 text-emerald-400',
+  CLOSED:   'bg-white/5 text-white/30',
+}
+
 const anchorBadge = (status: string) => {
   switch (status) {
     case 'confirmed': return <span className="flex items-center gap-1 text-emerald-400 text-xs"><CheckCircle size={12} /> Confirmed</span>
@@ -81,6 +98,8 @@ const anchorBadge = (status: string) => {
     default:          return <span className="flex items-center gap-1 text-white/30 text-xs"><Clock size={12} /> —</span>
   }
 }
+
+type TabKey = 'expenses' | 'documents' | 'budgets' | 'audit'
 
 export default function ProjectDetailPage() {
   const params  = useParams()
@@ -91,7 +110,7 @@ export default function ProjectDetailPage() {
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [audit,    setAudit]    = useState<AuditEntry[]>([])
   const [loading,  setLoading]  = useState(true)
-  const [tab,      setTab]      = useState<'expenses' | 'documents' | 'audit'>('expenses')
+  const [tab,      setTab]      = useState<TabKey>('expenses')
   const [error,    setError]    = useState('')
 
   useEffect(() => {
@@ -104,7 +123,6 @@ export default function ProjectDetailPage() {
       if (!proj) { setError('Project not found'); setLoading(false); return }
       setProject(proj)
       setExpenses(exp.data ?? exp.items ?? [])
-      // filter audit to this project's entity
       const allAudit = aud.data ?? aud.items ?? []
       setAudit(allAudit.filter((a: AuditEntry) =>
         a.entityId === id || a.entityType === 'Project'
@@ -128,9 +146,9 @@ export default function ProjectDetailPage() {
   )
 
   const totalSpent    = expenses.reduce((s, e) => s + e.amount, 0)
-  const budgetPercent = project.budget ? Math.min((totalSpent / project.budget) * 100, 100) : 0
   const confirmedExp  = expenses.filter(e => e.anchorStatus === 'confirmed').length
   const pendingExp    = expenses.filter(e => e.anchorStatus === 'pending' || !e.anchorStatus).length
+  const hasBudgets    = project.budgets && project.budgets.length > 0
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white p-6 max-w-6xl mx-auto">
@@ -181,7 +199,7 @@ export default function ProjectDetailPage() {
       </div>
 
       {/* Budget summary card */}
-      {project.budgetSummary && project.budgetSummary.budgetTotal > 0 && (() => {
+      {project.budgetSummary && project.budgetSummary.budgetTotal > 0 ? (() => {
         const bs = project.budgetSummary
         const remaining = bs.budgetTotal - bs.actualTotal
         const pct = bs.budgetTotal > 0 ? Math.round((remaining / bs.budgetTotal) * 100) : 0
@@ -227,7 +245,17 @@ export default function ProjectDetailPage() {
             </div>
           </div>
         )
-      })()}
+      })() : (
+        <div className="bg-white/5 border border-dashed border-white/10 rounded-xl p-6 mb-8 flex flex-col items-center gap-3">
+          <Wallet size={28} className="text-white/15" />
+          <p className="text-white/40 text-sm">No budget created yet</p>
+          <Link href={`/dashboard/budgets/new?projectId=${id}`}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all"
+            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+            <Plus size={14} /> Create Budget
+          </Link>
+        </div>
+      )}
 
       {/* Blockchain summary */}
       <div className="grid grid-cols-3 gap-4 mb-8">
@@ -256,13 +284,18 @@ export default function ProjectDetailPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 mb-6 bg-white/5 p-1 rounded-lg w-fit">
-        {(['expenses', 'documents', 'audit'] as const).map(t => (
+        {([
+          { key: 'expenses' as TabKey, label: 'Expenses', count: expenses.length },
+          { key: 'documents' as TabKey, label: 'Documents', count: project.documents?.length ?? 0 },
+          { key: 'budgets' as TabKey, label: 'Budgets', count: project.budgets?.length ?? 0 },
+          { key: 'audit' as TabKey, label: 'Audit', count: audit.length },
+        ]).map(t => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`px-4 py-1.5 rounded-md text-sm capitalize transition-all ${tab === t ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70'}`}
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`px-4 py-1.5 rounded-md text-sm transition-all ${tab === t.key ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70'}`}
           >
-            {t} {t === 'expenses' ? `(${expenses.length})` : t === 'documents' ? `(${project.documents?.length ?? 0})` : `(${audit.length})`}
+            {t.label} ({t.count})
           </button>
         ))}
       </div>
@@ -294,7 +327,7 @@ export default function ProjectDetailPage() {
                     <td className="px-4 py-3 text-sm text-white font-medium">{exp.currency} {exp.amount.toLocaleString()}</td>
                     <td className="px-4 py-3">
                       {exp.dataHash
-                        ? <span className="text-xs font-mono text-white/30">{exp.dataHash.slice(0, 12)}…</span>
+                        ? <span className="text-xs font-mono text-white/30">{exp.dataHash.slice(0, 12)}...</span>
                         : <span className="text-xs text-white/20">—</span>
                       }
                     </td>
@@ -337,7 +370,7 @@ export default function ProjectDetailPage() {
                       <td className="px-4 py-3 text-xs text-white/40 uppercase">{doc.fileType ?? '—'}</td>
                       <td className="px-4 py-3">
                         {doc.sha256Hash
-                          ? <span className="text-xs font-mono text-white/30">{doc.sha256Hash.slice(0, 12)}…</span>
+                          ? <span className="text-xs font-mono text-white/30">{doc.sha256Hash.slice(0, 12)}...</span>
                           : <span className="text-xs text-white/20">—</span>
                         }
                       </td>
@@ -356,6 +389,54 @@ export default function ProjectDetailPage() {
               </table>
             )}
           </div>
+        </div>
+      )}
+
+      {tab === 'budgets' && (
+        <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+          {!hasBudgets ? (
+            <div className="flex flex-col items-center justify-center py-16 text-white/30 gap-3">
+              <Wallet size={36} className="text-white/10" />
+              <p className="text-sm">No budgets linked to this project</p>
+              <Link href={`/dashboard/budgets/new?projectId=${id}`} className="text-cyan-400 hover:text-cyan-300 text-xs">+ Create budget</Link>
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-white/10">
+                  <th className="text-left text-xs text-white/30 font-normal px-4 py-3">NAME</th>
+                  <th className="text-left text-xs text-white/30 font-normal px-4 py-3">STATUS</th>
+                  <th className="text-left text-xs text-white/30 font-normal px-4 py-3">PERIOD</th>
+                  <th className="text-left text-xs text-white/30 font-normal px-4 py-3">LINES</th>
+                  <th className="text-left text-xs text-white/30 font-normal px-4 py-3">TOTAL APPROVED</th>
+                  <th className="text-left text-xs text-white/30 font-normal px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {project.budgets.map((b) => {
+                  const total = b.lines.reduce((s, l) => s + l.approvedAmount, 0)
+                  return (
+                    <tr key={b.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                      <td className="px-4 py-3 text-sm text-white/80">{b.name}</td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${budgetStatusColors[b.status] ?? 'bg-white/10 text-white/50'}`}>
+                          {b.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-white/40">
+                        {new Date(b.periodFrom).toLocaleDateString()} — {new Date(b.periodTo).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-white/50">{b.lines.length}</td>
+                      <td className="px-4 py-3 text-sm text-white font-medium">${total.toLocaleString()}</td>
+                      <td className="px-4 py-3">
+                        <Link href={`/dashboard/budgets/${b.id}`} className="text-cyan-400 hover:text-cyan-300 text-xs">View</Link>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
       )}
 
@@ -382,13 +463,13 @@ export default function ProjectDetailPage() {
                   <tr key={entry.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
                     <td className="px-4 py-3 text-sm text-white/80">{entry.action.replace(/_/g, ' ')}</td>
                     <td className="px-4 py-3">
-                      <span className="text-xs font-mono text-white/30">{entry.dataHash?.slice(0, 12)}…</span>
+                      <span className="text-xs font-mono text-white/30">{entry.dataHash?.slice(0, 12)}...</span>
                     </td>
                     <td className="px-4 py-3">
                       {entry.blockchainTx
                         ? <a href={`https://polygonscan.com/tx/${entry.blockchainTx}`} target="_blank" rel="noopener noreferrer"
                             className="text-xs font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1">
-                            {entry.blockchainTx.slice(0, 10)}… <ExternalLink size={10} />
+                            {entry.blockchainTx.slice(0, 10)}... <ExternalLink size={10} />
                           </a>
                         : <span className="text-xs text-white/20">—</span>
                       }

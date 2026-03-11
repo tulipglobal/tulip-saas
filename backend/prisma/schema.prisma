@@ -236,12 +236,15 @@ model Project {
   description    String?
   budget         Float?
   tenantId       String
+  startDate      DateTime?
+  endDate        DateTime?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   status         String           @default("active")
   documents      Document[]
   expenses       Expense[]
   fundingSources FundingSource[]
+  budgets        Budget[]
   tenant         Tenant           @relation(fields: [tenantId], references: [id])
   projectFunding ProjectFunding[]
   donorInvites   DonorInvite[]
@@ -668,6 +671,7 @@ model EngagementEvent {
 model Budget {
   id          String       @id @default(uuid())
   tenantId    String
+  projectId   String?
   name        String
   periodFrom  DateTime
   periodTo    DateTime
@@ -676,11 +680,13 @@ model Budget {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   tenant      Tenant       @relation(fields: [tenantId], references: [id])
+  project     Project?     @relation(fields: [projectId], references: [id])
   lines       BudgetLine[]
   fundingAgreements FundingAgreement[] @relation("BudgetFunding")
   expenses    Expense[]    @relation("ExpenseBudget")
 
   @@index([tenantId])
+  @@index([projectId])
   @@index([status])
   @@index([periodFrom, periodTo])
 }

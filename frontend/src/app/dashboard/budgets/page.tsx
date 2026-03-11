@@ -25,6 +25,7 @@ interface Budget {
   lines: BudgetLine[]
   totalApproved: number
   spent: number
+  project: { id: string; name: string } | null
   _count: { fundingAgreements: number; expenses: number }
 }
 
@@ -128,6 +129,7 @@ export default function BudgetsPage() {
                       {b.name}
                     </Link>
                     <div className="text-xs text-white/30 mt-0.5">
+                      {b.project && <><Link href={`/dashboard/projects/${b.project.id}`} className="text-cyan-400/60 hover:text-cyan-400">{b.project.name}</Link> · </>}
                       {b._count.fundingAgreements} funding source{b._count.fundingAgreements !== 1 ? 's' : ''} · {b._count.expenses} expense{b._count.expenses !== 1 ? 's' : ''}
                     </div>
                     {/* Mobile meta */}

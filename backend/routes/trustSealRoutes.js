@@ -142,10 +142,9 @@ router.post('/issue', upload.single('file'), async (req, res) => {
 // GET /api/trust-seal — list seals for tenant
 router.get('/', async (req, res) => {
   try {
-    const db = tenantClient(req.user.tenantId)
     const { skip, take, page, limit } = parsePagination(req)
 
-    const where = {}
+    const where = { tenantId: req.user.tenantId }
     if (req.query.status) where.status = req.query.status
     if (req.query.search) {
       where.OR = [
@@ -155,8 +154,8 @@ router.get('/', async (req, res) => {
     }
 
     const [seals, total] = await Promise.all([
-      db.trustSeal.findMany({ where, skip, take, orderBy: { createdAt: 'desc' } }),
-      db.trustSeal.count({ where }),
+      prisma.trustSeal.findMany({ where, skip, take, orderBy: { createdAt: 'desc' } }),
+      prisma.trustSeal.count({ where }),
     ])
 
     res.json(paginatedResponse(seals, total, page, limit))
@@ -169,12 +168,11 @@ router.get('/', async (req, res) => {
 // POST /api/trust-seal/resolve — resolve hashes to seal info
 router.post('/resolve', async (req, res) => {
   try {
-    const db = tenantClient(req.user.tenantId)
     const { hashes } = req.body
     if (!Array.isArray(hashes) || hashes.length === 0) return res.json({})
 
-    const seals = await db.trustSeal.findMany({
-      where: { rawHash: { in: hashes.slice(0, 200) } },
+    const seals = await prisma.trustSeal.findMany({
+      where: { rawHash: { in: hashes.slice(0, 200) }, tenantId: req.user.tenantId },
       select: { id: true, rawHash: true, status: true, anchorTxHash: true, anchoredAt: true, documentType: true },
     })
 
@@ -192,9 +190,8 @@ router.post('/resolve', async (req, res) => {
 // GET /api/trust-seal/:id/preview-url — presigned S3 URL for document preview
 router.get('/:id/preview-url', async (req, res) => {
   try {
-    const db = tenantClient(req.user.tenantId)
-    const seal = await db.trustSeal.findFirst({
-      where: { id: req.params.id },
+    const seal = await prisma.trustSeal.findFirst({
+      where: { id: req.params.id, tenantId: req.user.tenantId },
       select: { s3Key: true, fileType: true },
     })
     if (!seal) return res.status(404).json({ error: 'Seal not found' })
@@ -221,8 +218,7 @@ router.get('/:id/preview-url', async (req, res) => {
 // GET /api/trust-seal/:id — get single seal
 router.get('/:id', async (req, res) => {
   try {
-    const db = tenantClient(req.user.tenantId)
-    const seal = await db.trustSeal.findFirst({ where: { id: req.params.id } })
+    const seal = await prisma.trustSeal.findFirst({ where: { id: req.params.id, tenantId: req.user.tenantId } })
     if (!seal) return res.status(404).json({ error: 'Seal not found' })
     res.json(seal)
   } catch (err) {

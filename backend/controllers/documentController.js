@@ -78,7 +78,7 @@ exports.createDocument = async (req, res) => {
     const sha256Hash = computeSHA256(req.file.buffer)
 
     // Upload to S3
-    const { fileUrl } = await uploadToS3(
+    const { fileUrl, key: s3FileKey } = await uploadToS3(
       req.file.buffer,
       req.file.originalname,
       req.user.tenantId,
@@ -167,7 +167,7 @@ exports.createDocument = async (req, res) => {
       issuedBy: orgName,
       issuedTo: orgName,
       tenantId: req.user.tenantId,
-      fileKey: fileUrl,
+      fileKey: s3FileKey,
       fileType: document.fileType,
       metadata: { source: 'document-upload', documentId: document.id, documentLevel: document.documentLevel },
     }).catch(err => console.error('[seal] auto-issue failed:', err.message))

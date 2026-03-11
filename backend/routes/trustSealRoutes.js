@@ -200,7 +200,16 @@ router.get('/:id/preview-url', async (req, res) => {
     if (!seal) return res.status(404).json({ error: 'Seal not found' })
     if (!seal.s3Key) return res.status(404).json({ error: 'No file attached to this seal' })
 
-    const previewUrl = await getPresignedUrlFromKey(seal.s3Key, 900)
+    // Handle legacy data where s3Key may be a full URL instead of a key
+    let key = seal.s3Key
+    if (key.startsWith('http')) {
+      try { key = new URL(key).pathname.substring(1) } catch {}
+    }
+
+    const previewUrl = await getPresignedUrlFromKey(key, 900, {
+      contentType: seal.fileType || undefined,
+    })
+    if (!previewUrl) return res.status(500).json({ error: 'Failed to generate presigned URL' })
     res.json({ previewUrl, fileType: seal.fileType })
   } catch (err) {
     console.error('Failed to get seal preview URL:', err)

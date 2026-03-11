@@ -30,6 +30,8 @@ export default function TrustSealCard({ sealId, onClose }: TrustSealCardProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [docUrl, setDocUrl] = useState<string | null>(null)
+  const [docLoading, setDocLoading] = useState(false)
+  const [docError, setDocError] = useState(false)
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
 
@@ -50,10 +52,20 @@ export default function TrustSealCard({ sealId, onClose }: TrustSealCardProps) {
 
         // Get document preview URL if file exists
         if (data.s3Key) {
+          setDocLoading(true)
           fetch(`${api}/api/trust-seal/${sealId}/preview-url`, { headers })
             .then(r => r.ok ? r.json() : null)
-            .then(d => { if (d?.previewUrl) setDocUrl(d.previewUrl) })
-            .catch(() => {})
+            .then(d => {
+              if (d?.previewUrl) {
+                console.log('[TrustSealCard] previewUrl:', d.previewUrl?.substring(0, 120), 'fileType:', d.fileType)
+                setDocUrl(d.previewUrl)
+              } else {
+                console.warn('[TrustSealCard] No previewUrl returned')
+                setDocError(true)
+              }
+              setDocLoading(false)
+            })
+            .catch((err) => { console.error('[TrustSealCard] preview fetch error:', err); setDocLoading(false); setDocError(true) })
         }
       })
       .catch(() => { setError('Failed to load seal'); setLoading(false) })
@@ -108,21 +120,42 @@ export default function TrustSealCard({ sealId, onClose }: TrustSealCardProps) {
           <>
             {/* LEFT — Document Preview */}
             <div className="md:w-[55%] bg-gray-50 border-b md:border-b-0 md:border-r border-gray-200 flex items-center justify-center min-h-[300px] p-6">
-              {docUrl && isPdf ? (
-                <iframe src={docUrl} className="w-full h-[500px] rounded-lg border border-gray-200" />
+              {docLoading ? (
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-xs text-gray-400">Loading preview…</p>
+                </div>
+              ) : docUrl && isPdf ? (
+                <iframe src={docUrl} className="w-full h-[500px] rounded-lg border border-gray-200" title={seal.documentTitle} />
               ) : docUrl && isImage ? (
-                <img src={docUrl} alt={seal.documentTitle} className="max-w-full max-h-[500px] rounded-lg shadow-sm" />
+                <img
+                  src={docUrl}
+                  alt={seal.documentTitle}
+                  crossOrigin="anonymous"
+                  className="w-full h-full object-contain max-h-[500px] rounded-lg shadow-sm"
+                  onError={() => { console.warn('[TrustSealCard] Image failed to load'); setDocError(true) }}
+                />
+              ) : docUrl ? (
+                <div className="flex flex-col items-center gap-4 text-gray-400">
+                  <FileText size={56} className="text-gray-300" />
+                  <p className="text-sm font-medium text-gray-500">{seal.documentTitle}</p>
+                  <p className="text-xs text-gray-400 uppercase">{seal.fileType || seal.documentType}</p>
+                  <a href={docUrl} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700 transition-colors">
+                    <Download size={14} /> Download
+                  </a>
+                </div>
+              ) : docError ? (
+                <div className="flex flex-col items-center gap-3 text-gray-400">
+                  <FileText size={56} className="text-gray-300" />
+                  <p className="text-sm font-medium text-gray-500">Unable to preview</p>
+                  <p className="text-xs text-gray-400">{seal.documentTitle}</p>
+                </div>
               ) : (
                 <div className="flex flex-col items-center gap-4 text-gray-400">
                   <FileText size={56} className="text-gray-300" />
                   <p className="text-sm font-medium text-gray-500">{seal.documentTitle}</p>
                   <p className="text-xs text-gray-400 uppercase">{seal.fileType || seal.documentType}</p>
-                  {docUrl && (
-                    <a href={docUrl} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700 transition-colors">
-                      <Download size={14} /> Download
-                    </a>
-                  )}
                 </div>
               )}
             </div>

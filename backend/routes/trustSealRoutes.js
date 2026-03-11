@@ -203,8 +203,9 @@ router.get('/:id/preview-url', async (req, res) => {
     // Handle legacy data where s3Key may be a full URL instead of a key
     let key = seal.s3Key
     if (key.startsWith('http')) {
-      try { key = new URL(key).pathname.substring(1) } catch {}
+      try { key = decodeURIComponent(new URL(key).pathname.substring(1)) } catch {}
     }
+    console.log(`[preview-url] sealId=${req.params.id} s3Key="${seal.s3Key}" resolvedKey="${key}"`)
 
     const previewUrl = await getPresignedUrlFromKey(key, 900, {
       contentType: seal.fileType || undefined,

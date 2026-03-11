@@ -191,18 +191,23 @@ exports.uploadReceipt = async (req, res) => {
 
     const sha256Hash = computeSHA256(req.file.buffer)
     const ext = req.file.originalname.split('.').pop().toLowerCase()
-    const s3Key = `${req.user.tenantId}/receipts/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
 
-    const { fileUrl } = await uploadToS3(req.file.buffer, s3Key, req.file.mimetype)
+    const { fileUrl, key: s3Key } = await uploadToS3(
+      req.file.buffer,
+      req.file.originalname,
+      req.user.tenantId,
+      'receipts'
+    )
 
     // Get tenant/org name for seal
     const tenant = await prisma.tenant.findUnique({ where: { id: req.user.tenantId }, select: { name: true } })
     const orgName = tenant?.name || 'Organization'
     const docTitle = req.body.title || req.file.originalname
 
-    // Create trust seal
-    const seal = await db.trustSeal.create({
+    // Create trust seal via global prisma (so anchor cron can find it)
+    const seal = await prisma.trustSeal.create({
       data: {
+        tenantId: req.user.tenantId,
         documentTitle: docTitle,
         documentType: 'expense-receipt',
         issuedTo: orgName,
@@ -210,7 +215,8 @@ exports.uploadReceipt = async (req, res) => {
         rawHash: sha256Hash,
         s3Key,
         fileType: ext,
-        status: 'issued',
+        anchorTxHash: null,
+        status: 'pending',
       }
     })
 

@@ -57,27 +57,7 @@ const ROLES: Record<ProductType, string[]> = {
   ],
 }
 
-const COUNTRIES = [
-  'Afghanistan','Albania','Algeria','Angola','Argentina','Armenia','Australia',
-  'Austria','Azerbaijan','Bangladesh','Belgium','Benin','Bolivia','Bosnia',
-  'Botswana','Brazil','Burkina Faso','Burundi','Cambodia','Cameroon','Canada',
-  'Central African Republic','Chad','Chile','China','Colombia','Congo (DRC)',
-  'Costa Rica',"Côte d'Ivoire",'Croatia','Czech Republic','Denmark','Ecuador',
-  'Egypt','El Salvador','Ethiopia','Finland','France','Georgia','Germany',
-  'Ghana','Greece','Guatemala','Guinea','Haiti','Honduras','Hungary','India',
-  'Indonesia','Iraq','Ireland','Israel','Italy','Japan','Jordan','Kazakhstan',
-  'Kenya','Kosovo','Kyrgyzstan','Laos','Lebanon','Liberia','Libya','Madagascar',
-  'Malawi','Malaysia','Mali','Mauritania','Mexico','Moldova','Mongolia',
-  'Morocco','Mozambique','Myanmar','Namibia','Nepal','Netherlands','New Zealand',
-  'Nicaragua','Niger','Nigeria','North Macedonia','Norway','Pakistan','Palestine',
-  'Panama','Paraguay','Peru','Philippines','Poland','Portugal','Romania','Russia',
-  'Rwanda','Saudi Arabia','Senegal','Serbia','Sierra Leone','Somalia',
-  'South Africa','South Sudan','Spain','Sri Lanka','Sudan','Sweden','Switzerland',
-  'Syria','Tajikistan','Tanzania','Thailand','Togo','Tunisia','Turkey',
-  'Turkmenistan','Uganda','Ukraine','United Arab Emirates','United Kingdom',
-  'United States','Uruguay','Uzbekistan','Venezuela','Vietnam','Yemen',
-  'Zambia','Zimbabwe','Other',
-]
+import { COUNTRIES } from '@/lib/ngo-categories'
 
 export default function RegisterPage() {
   const router = useRouter()

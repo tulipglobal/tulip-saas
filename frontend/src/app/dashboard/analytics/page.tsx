@@ -308,11 +308,340 @@ async function generateImpactReport() {
 /*  Page Component                                                     */
 /* ------------------------------------------------------------------ */
 
+/* ------------------------------------------------------------------ */
+/*  I&E Statement Types                                                */
+/* ------------------------------------------------------------------ */
+
+interface IEData {
+  period: { from: string | null; to: string | null }
+  income: {
+    bySource: { sourceType: string; items: { id: string; title: string; totalAmount: number; currency: string }[]; total: number }[]
+    total: number
+  }
+  expenditure: {
+    capex: { byCategory: { category: string; total: number }[]; total: number }
+    opex: { byCategory: { category: string; total: number }[]; total: number }
+    other: { total: number }
+    total: number
+  }
+  netBalance: number
+}
+
+/* ------------------------------------------------------------------ */
+/*  I&E Statement Component                                            */
+/* ------------------------------------------------------------------ */
+
+function IEStatement() {
+  const [data, setData] = useState<IEData | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+  const [exporting, setExporting] = useState(false)
+
+  const loadData = () => {
+    setLoading(true)
+    const params = new URLSearchParams()
+    if (dateFrom) params.set('from', dateFrom)
+    if (dateTo) params.set('to', dateTo)
+    apiGet(`/api/analytics/income-expenditure?${params}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setData(d); setLoading(false) })
+      .catch(() => setLoading(false))
+  }
+
+  useEffect(() => { loadData() }, [])
+
+  const handleFilter = () => { loadData() }
+
+  const exportPDF = async () => {
+    if (!data) return
+    setExporting(true)
+    try {
+      const { jsPDF } = await import('jspdf')
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+      const W = 210
+      const BLUE = [12, 122, 237] as const
+      const DARK = [30, 41, 59] as const
+      const GREY = [100, 116, 139] as const
+      const now = new Date()
+      const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
+
+      // Header
+      doc.setFillColor(...BLUE)
+      doc.rect(0, 0, W, 6, 'F')
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(22)
+      doc.setTextColor(...DARK)
+      doc.text('Income & Expenditure Statement', 20, 30)
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(10)
+      doc.setTextColor(...GREY)
+      const periodStr = dateFrom || dateTo ? `${dateFrom || 'Start'} to ${dateTo || 'Present'}` : 'All Time'
+      doc.text(`Period: ${periodStr}  |  Generated: ${dateStr}`, 20, 40)
+
+      let y = 55
+
+      // Income section
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(14)
+      doc.setTextColor(...DARK)
+      doc.text('INCOME', 20, y); y += 8
+
+      for (const source of data.income.bySource) {
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(10)
+        doc.setTextColor(...BLUE)
+        doc.text(source.sourceType, 25, y)
+        doc.setTextColor(...DARK)
+        doc.text(`$${source.total.toLocaleString()}`, W - 20, y, { align: 'right' })
+        y += 6
+        for (const item of source.items) {
+          doc.setFont('helvetica', 'normal')
+          doc.setFontSize(9)
+          doc.setTextColor(...GREY)
+          doc.text(item.title, 30, y)
+          doc.text(`$${item.totalAmount.toLocaleString()}`, W - 25, y, { align: 'right' })
+          y += 5
+        }
+        y += 2
+      }
+
+      doc.setDrawColor(226, 232, 240); doc.line(20, y, W - 20, y); y += 6
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(12)
+      doc.setTextColor(...DARK)
+      doc.text('Total Income', 25, y)
+      doc.text(`$${data.income.total.toLocaleString()}`, W - 20, y, { align: 'right' }); y += 12
+
+      // Expenditure section
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(14)
+      doc.text('EXPENDITURE', 20, y); y += 8
+
+      // CapEx
+      if (data.expenditure.capex.total > 0) {
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(11)
+        doc.setTextColor(139, 92, 246)
+        doc.text('Capital Expenditure (CapEx)', 25, y)
+        doc.setTextColor(...DARK)
+        doc.text(`$${data.expenditure.capex.total.toLocaleString()}`, W - 20, y, { align: 'right' }); y += 6
+        for (const cat of data.expenditure.capex.byCategory) {
+          doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...GREY)
+          doc.text(cat.category, 30, y)
+          doc.text(`$${cat.total.toLocaleString()}`, W - 25, y, { align: 'right' }); y += 5
+        }
+        y += 3
+      }
+
+      // OpEx
+      if (data.expenditure.opex.total > 0) {
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(11)
+        doc.setTextColor(6, 182, 212)
+        doc.text('Operating Expenditure (OpEx)', 25, y)
+        doc.setTextColor(...DARK)
+        doc.text(`$${data.expenditure.opex.total.toLocaleString()}`, W - 20, y, { align: 'right' }); y += 6
+        for (const cat of data.expenditure.opex.byCategory) {
+          doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...GREY)
+          doc.text(cat.category, 30, y)
+          doc.text(`$${cat.total.toLocaleString()}`, W - 25, y, { align: 'right' }); y += 5
+        }
+        y += 3
+      }
+
+      doc.setDrawColor(226, 232, 240); doc.line(20, y, W - 20, y); y += 6
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(12)
+      doc.setTextColor(...DARK)
+      doc.text('Total Expenditure', 25, y)
+      doc.text(`$${data.expenditure.total.toLocaleString()}`, W - 20, y, { align: 'right' }); y += 12
+
+      // Net Balance
+      doc.setFillColor(240, 249, 255)
+      doc.roundedRect(20, y, W - 40, 16, 3, 3, 'F')
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(14)
+      const balColor = data.netBalance >= 0 ? [5, 150, 105] as const : [239, 68, 68] as const
+      doc.setTextColor(balColor[0], balColor[1], balColor[2])
+      doc.text('NET BALANCE', 28, y + 10)
+      doc.text(`$${data.netBalance.toLocaleString()}`, W - 28, y + 10, { align: 'right' })
+
+      doc.save(`ie-statement-${now.toISOString().slice(0, 10)}.pdf`)
+    } catch (e) { console.error('PDF export failed:', e) }
+    finally { setExporting(false) }
+  }
+
+  const inputCls = "bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-[#0c7aed]/50 transition-all"
+
+  return (
+    <div className="space-y-6">
+      {/* Date range picker */}
+      <div className="flex flex-wrap items-end gap-3">
+        <div>
+          <label className="block text-xs text-white/30 mb-1">From</label>
+          <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className={inputCls} />
+        </div>
+        <div>
+          <label className="block text-xs text-white/30 mb-1">To</label>
+          <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className={inputCls} />
+        </div>
+        <button onClick={handleFilter}
+          className="px-4 py-2 rounded-lg text-sm font-medium text-white"
+          style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+          Apply
+        </button>
+        <button onClick={exportPDF} disabled={exporting || !data}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white/60 border border-white/10 hover:border-white/20 disabled:opacity-40 transition-all">
+          <Download size={14} /> {exporting ? 'Exporting...' : 'Export PDF'}
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="py-16 text-center text-white/30 text-sm">Loading...</div>
+      ) : !data ? (
+        <div className="py-16 text-center text-white/30 text-sm">Failed to load data</div>
+      ) : (
+        <>
+          {/* Summary cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="rounded-xl border border-white/8 px-5 py-4" style={{ background: 'rgba(255,255,255,0.02)' }}>
+              <div className="text-xs text-white/40 mb-1">Total Income</div>
+              <div className="text-xl font-bold text-emerald-400" style={{ fontFamily: 'Syne, sans-serif' }}>
+                ${data.income.total.toLocaleString()}
+              </div>
+            </div>
+            <div className="rounded-xl border border-white/8 px-5 py-4" style={{ background: 'rgba(255,255,255,0.02)' }}>
+              <div className="text-xs text-white/40 mb-1">Total Expenditure</div>
+              <div className="text-xl font-bold text-orange-400" style={{ fontFamily: 'Syne, sans-serif' }}>
+                ${data.expenditure.total.toLocaleString()}
+              </div>
+            </div>
+            <div className="rounded-xl border border-white/8 px-5 py-4" style={{ background: 'rgba(255,255,255,0.02)' }}>
+              <div className="text-xs text-white/40 mb-1">Net Balance</div>
+              <div className={`text-xl font-bold ${data.netBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}
+                style={{ fontFamily: 'Syne, sans-serif' }}>
+                ${data.netBalance.toLocaleString()}
+              </div>
+            </div>
+          </div>
+
+          {/* Income Section */}
+          <div className="rounded-xl border border-white/8 overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)' }}>
+            <div className="px-5 py-3 border-b border-white/8">
+              <h3 className="text-sm font-semibold text-emerald-400" style={{ fontFamily: 'Syne, sans-serif' }}>INCOME</h3>
+            </div>
+            {data.income.bySource.length === 0 ? (
+              <div className="px-5 py-8 text-center text-white/20 text-sm">No income recorded in this period</div>
+            ) : (
+              <div className="divide-y divide-white/5">
+                {data.income.bySource.map(source => (
+                  <div key={source.sourceType} className="px-5 py-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-medium text-white/70">{source.sourceType}</span>
+                      <span className="text-sm font-bold text-white">${source.total.toLocaleString()}</span>
+                    </div>
+                    {source.items.map((item: { id: string; title: string; totalAmount: number }) => (
+                      <div key={item.id} className="flex items-center justify-between pl-4 py-0.5">
+                        <span className="text-xs text-white/40">{item.title}</span>
+                        <span className="text-xs text-white/30">${item.totalAmount.toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+                <div className="px-5 py-3 bg-emerald-400/5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-emerald-400">Total Income</span>
+                    <span className="text-sm font-bold text-emerald-400">${data.income.total.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Expenditure Section */}
+          <div className="rounded-xl border border-white/8 overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)' }}>
+            <div className="px-5 py-3 border-b border-white/8">
+              <h3 className="text-sm font-semibold text-orange-400" style={{ fontFamily: 'Syne, sans-serif' }}>EXPENDITURE</h3>
+            </div>
+            <div className="divide-y divide-white/5">
+              {/* CapEx */}
+              {data.expenditure.capex.total > 0 && (
+                <div className="px-5 py-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-purple-400">Capital Expenditure (CapEx)</span>
+                    <span className="text-sm font-bold text-white">${data.expenditure.capex.total.toLocaleString()}</span>
+                  </div>
+                  {data.expenditure.capex.byCategory.map(cat => (
+                    <div key={cat.category} className="flex items-center justify-between pl-4 py-0.5">
+                      <span className="text-xs text-white/40">{cat.category}</span>
+                      <span className="text-xs text-white/30">${cat.total.toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* OpEx */}
+              {data.expenditure.opex.total > 0 && (
+                <div className="px-5 py-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-cyan-400">Operating Expenditure (OpEx)</span>
+                    <span className="text-sm font-bold text-white">${data.expenditure.opex.total.toLocaleString()}</span>
+                  </div>
+                  {data.expenditure.opex.byCategory.map(cat => (
+                    <div key={cat.category} className="flex items-center justify-between pl-4 py-0.5">
+                      <span className="text-xs text-white/40">{cat.category}</span>
+                      <span className="text-xs text-white/30">${cat.total.toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Other */}
+              {data.expenditure.other.total > 0 && (
+                <div className="px-5 py-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-white/50">Other / Uncategorised</span>
+                    <span className="text-sm font-bold text-white">${data.expenditure.other.total.toLocaleString()}</span>
+                  </div>
+                </div>
+              )}
+
+              {data.expenditure.total === 0 && (
+                <div className="px-5 py-8 text-center text-white/20 text-sm">No expenditure recorded in this period</div>
+              )}
+
+              <div className="px-5 py-3 bg-orange-400/5">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold text-orange-400">Total Expenditure</span>
+                  <span className="text-sm font-bold text-orange-400">${data.expenditure.total.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Net Balance */}
+          <div className={`rounded-xl border px-5 py-4 ${data.netBalance >= 0 ? 'border-emerald-400/20 bg-emerald-400/5' : 'border-red-400/20 bg-red-400/5'}`}>
+            <div className="flex items-center justify-between">
+              <span className="text-base font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>NET BALANCE</span>
+              <span className={`text-xl font-bold ${data.netBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}
+                style={{ fontFamily: 'Syne, sans-serif' }}>
+                ${data.netBalance.toLocaleString()}
+              </span>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [range, setRange] = useState(30)
   const [generating, setGenerating] = useState(false)
+  const [activeTab, setActiveTab] = useState<'charts' | 'ie'>('charts')
 
   useEffect(() => {
     setLoading(true)
@@ -330,6 +659,11 @@ export default function AnalyticsPage() {
 
   const rangeLabel = range === 365 ? 'Last 12 months' : `Last ${range} days`
 
+  const TABS = [
+    { id: 'charts' as const, label: 'Charts' },
+    { id: 'ie' as const, label: 'I&E Statement' },
+  ]
+
   return (
     <div className="p-4 md:p-6 space-y-6 animate-fade-up">
 
@@ -340,27 +674,50 @@ export default function AnalyticsPage() {
           <p className="text-white/40 text-sm mt-1">Charts, trends, and performance metrics</p>
         </div>
         <div className="flex items-center gap-3">
-          {/* Range selector */}
-          <div className="flex rounded-lg border border-white/10 overflow-hidden">
-            {RANGES.map(r => (
-              <button key={r.value} onClick={() => setRange(r.value)}
-                className={`px-3 py-1.5 text-xs font-medium transition-all ${
-                  range === r.value
-                    ? 'bg-indigo-500/20 text-indigo-400 border-indigo-400/30'
-                    : 'text-white/40 hover:text-white/60 hover:bg-white/5'
-                }`}>
-                {r.label}
+          {activeTab === 'charts' && (
+            <>
+              <div className="flex rounded-lg border border-white/10 overflow-hidden">
+                {RANGES.map(r => (
+                  <button key={r.value} onClick={() => setRange(r.value)}
+                    className={`px-3 py-1.5 text-xs font-medium transition-all ${
+                      range === r.value
+                        ? 'bg-indigo-500/20 text-indigo-400 border-indigo-400/30'
+                        : 'text-white/40 hover:text-white/60 hover:bg-white/5'
+                    }`}>
+                    {r.label}
+                  </button>
+                ))}
+              </div>
+              <button onClick={handleGenerateReport} disabled={generating}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                {generating ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Download size={14} />}
+                <span className="hidden sm:inline">{generating ? 'Generating...' : 'Impact Report'}</span>
               </button>
-            ))}
-          </div>
-          <button onClick={handleGenerateReport} disabled={generating}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90 transition-opacity disabled:opacity-50"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
-            {generating ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Download size={14} />}
-            <span className="hidden sm:inline">{generating ? 'Generating...' : 'Impact Report'}</span>
-          </button>
+            </>
+          )}
         </div>
       </div>
+
+      {/* Tabs */}
+      <div className="flex gap-1 rounded-lg border border-white/10 p-1 w-fit">
+        {TABS.map(tab => (
+          <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+              activeTab === tab.id
+                ? 'bg-white/10 text-white'
+                : 'text-white/40 hover:text-white/60'
+            }`}>
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'ie' ? (
+        <IEStatement />
+      ) : (
+        <>
+
 
       {/* Summary stat cards */}
       {loading ? (
@@ -526,6 +883,8 @@ export default function AnalyticsPage() {
           </ChartCard>
 
         </div>
+      )}
+        </>
       )}
     </div>
   )

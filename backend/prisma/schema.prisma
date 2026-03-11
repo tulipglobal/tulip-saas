@@ -278,6 +278,9 @@ model Expense {
   fundingAgreementId String?
   tenantId           String
   approvalStatus     String            @default("pending_review")
+  expenseType        String?           // CAPEX or OPEX
+  category           String?
+  subCategory        String?
   createdAt          DateTime          @default(now())
   documents          Document[]
   fundingSource      FundingSource?    @relation(fields: [fundingSourceId], references: [id])
@@ -290,6 +293,7 @@ model Expense {
   @@index([fundingSourceId])
   @@index([fundingAgreementId])
   @@index([createdAt])
+  @@index([expenseType])
 }
 
 model Document {
@@ -406,6 +410,15 @@ model FundingAgreement {
   repayable      Boolean             @default(false)
   status         String              @default("DRAFT")
   notes          String?
+  sourceType     String?             // Own Funds, Government Grant, etc.
+  sourceSubType  String?             // Restricted Grant, Program Grant, etc.
+  grantorName    String?
+  grantRef       String?
+  grantFrom      DateTime?
+  grantTo        DateTime?
+  restricted     Boolean             @default(false)
+  capexBudget    Float               @default(0)
+  opexBudget     Float               @default(0)
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
   donor          Donor?              @relation(fields: [donorId], references: [id])
@@ -418,6 +431,7 @@ model FundingAgreement {
   @@index([tenantId])
   @@index([status])
   @@index([type])
+  @@index([sourceType])
 }
 
 model RepaymentSchedule {

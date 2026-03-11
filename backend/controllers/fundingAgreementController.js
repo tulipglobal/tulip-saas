@@ -78,7 +78,8 @@ exports.get = async (req, res) => {
 exports.create = async (req, res) => {
   try {
     const db = tenantClient(req.user.tenantId)
-    const { title, type, totalAmount, currency, donorId, startDate, endDate, interestRate, repayable, notes, status } = req.body
+    const { title, type, totalAmount, currency, donorId, startDate, endDate, interestRate, repayable, notes, status,
+            sourceType, sourceSubType, grantorName, grantRef, grantFrom, grantTo, restricted, capexBudget, opexBudget } = req.body
     if (!title || !totalAmount) return res.status(400).json({ error: 'title and totalAmount are required' })
 
     const agreement = await db.fundingAgreement.create({
@@ -94,6 +95,15 @@ exports.create = async (req, res) => {
         repayable: repayable || false,
         notes: notes || null,
         status: status || 'ACTIVE',
+        sourceType: sourceType || null,
+        sourceSubType: sourceSubType || null,
+        grantorName: grantorName || null,
+        grantRef: grantRef || null,
+        grantFrom: grantFrom ? new Date(grantFrom) : null,
+        grantTo: grantTo ? new Date(grantTo) : null,
+        restricted: restricted || false,
+        capexBudget: capexBudget ? parseFloat(capexBudget) : 0,
+        opexBudget: opexBudget ? parseFloat(opexBudget) : 0,
       },
       include: { donor: { select: { id: true, name: true } } }
     })
@@ -180,7 +190,8 @@ exports.update = async (req, res) => {
     const existing = await db.fundingAgreement.findFirst({ where: { id: req.params.id } })
     if (!existing) return res.status(404).json({ error: 'Funding agreement not found' })
 
-    const { title, type, totalAmount, currency, donorId, startDate, endDate, interestRate, repayable, notes, status } = req.body
+    const { title, type, totalAmount, currency, donorId, startDate, endDate, interestRate, repayable, notes, status,
+            sourceType, sourceSubType, grantorName, grantRef, grantFrom, grantTo, restricted, capexBudget, opexBudget } = req.body
     const agreement = await db.fundingAgreement.update({
       where: { id: req.params.id },
       data: {
@@ -195,6 +206,15 @@ exports.update = async (req, res) => {
         ...(repayable !== undefined && { repayable }),
         ...(notes !== undefined && { notes }),
         ...(status !== undefined && { status }),
+        ...(sourceType !== undefined && { sourceType }),
+        ...(sourceSubType !== undefined && { sourceSubType }),
+        ...(grantorName !== undefined && { grantorName }),
+        ...(grantRef !== undefined && { grantRef }),
+        ...(grantFrom !== undefined && { grantFrom: grantFrom ? new Date(grantFrom) : null }),
+        ...(grantTo !== undefined && { grantTo: grantTo ? new Date(grantTo) : null }),
+        ...(restricted !== undefined && { restricted }),
+        ...(capexBudget !== undefined && { capexBudget: parseFloat(capexBudget) }),
+        ...(opexBudget !== undefined && { opexBudget: parseFloat(opexBudget) }),
       }
     })
     res.json(agreement)

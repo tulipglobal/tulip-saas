@@ -23,6 +23,11 @@ interface Agreement {
   repayable: boolean
   interestRate: number | null
   createdAt: string
+  sourceType: string | null
+  sourceSubType: string | null
+  capexBudget: number
+  opexBudget: number
+  restricted: boolean
   donor: { id: string; name: string; type: string } | null
   projectFunding: ProjectFunding[]
   spent: number
@@ -140,7 +145,9 @@ export default function FundingPage() {
                       {a.title}
                     </Link>
                     <div className="text-xs text-white/30 mt-0.5">
+                      {a.sourceType && <span className="text-white/40">{a.sourceType}{a.sourceSubType ? ` / ${a.sourceSubType}` : ''} · </span>}
                       {a.projectFunding.length} project{a.projectFunding.length !== 1 ? 's' : ''} · {a._count.expenses} expense{a._count.expenses !== 1 ? 's' : ''}
+                      {a.restricted && <span className="ml-1 text-orange-400/60">· Restricted</span>}
                     </div>
                     {/* Mobile-only meta */}
                     <div className="flex flex-wrap items-center gap-2 mt-2 lg:hidden">

@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save } from 'lucide-react'
 import { apiGet, apiPost } from '@/lib/api'
+import { getCategoriesForType, type ExpenseType } from '@/lib/ngo-categories'
 
 interface Project { id: string; name: string }
 interface FundingAgreement { id: string; title: string; currency: string; totalAmount: number; donor: { name: string } | null }
@@ -16,8 +17,9 @@ export default function NewExpensePage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [agreements, setAgreements] = useState<FundingAgreement[]>([])
   const [form, setForm] = useState({
-    title: '', amount: '', currency: 'USD', category: '',
-    vendor: '', expenseDate: new Date().toISOString().split('T')[0],
+    title: '', amount: '', currency: 'USD', expenseType: '' as '' | ExpenseType,
+    category: '', subCategory: '', vendor: '',
+    expenseDate: new Date().toISOString().split('T')[0],
     projectId: '', fundingAgreementId: '', notes: ''
   })
 
@@ -34,6 +36,24 @@ export default function NewExpensePage() {
 
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
 
+  const categories = useMemo(() => {
+    if (!form.expenseType) return {}
+    return getCategoriesForType(form.expenseType as ExpenseType)
+  }, [form.expenseType])
+
+  const subCategories = useMemo(() => {
+    if (!form.category || !form.expenseType) return []
+    return categories[form.category] ?? []
+  }, [form.expenseType, form.category, categories])
+
+  const handleTypeChange = (type: string) => {
+    setForm(f => ({ ...f, expenseType: type as '' | ExpenseType, category: '', subCategory: '' }))
+  }
+
+  const handleCategoryChange = (cat: string) => {
+    setForm(f => ({ ...f, category: cat, subCategory: '' }))
+  }
+
   const submit = async () => {
     if (!form.title.trim()) { setError('Title is required'); return }
     if (!form.amount || isNaN(parseFloat(form.amount))) { setError('Valid amount is required'); return }
@@ -43,7 +63,9 @@ export default function NewExpensePage() {
         title: form.title.trim(),
         amount: parseFloat(form.amount),
         currency: form.currency,
+        expenseType: form.expenseType || null,
         category: form.category || null,
+        subCategory: form.subCategory || null,
         vendor: form.vendor || null,
         expenseDate: form.expenseDate,
         projectId: form.projectId || null,
@@ -98,31 +120,64 @@ export default function NewExpensePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className={labelCls}>Category</label>
-            <select value={form.category} onChange={e => set('category', e.target.value)} className={inputCls}>
-              <option value="">Select category</option>
-              <option value="personnel">Personnel</option>
-              <option value="equipment">Equipment</option>
-              <option value="travel">Travel</option>
-              <option value="supplies">Supplies</option>
-              <option value="services">Services</option>
-              <option value="other">Other</option>
-            </select>
+        {/* CapEx / OpEx type */}
+        <div>
+          <label className={labelCls}>Expense Type</label>
+          <div className="flex gap-3">
+            {(['CAPEX', 'OPEX'] as const).map(type => (
+              <button key={type} type="button"
+                onClick={() => handleTypeChange(type)}
+                className={`flex-1 py-2.5 rounded-lg text-sm font-medium border transition-all ${
+                  form.expenseType === type
+                    ? type === 'CAPEX'
+                      ? 'bg-purple-500/15 border-purple-500/30 text-purple-400'
+                      : 'bg-cyan-500/15 border-cyan-500/30 text-cyan-400'
+                    : 'bg-white/5 border-white/10 text-white/40 hover:border-white/20'
+                }`}>
+                {type === 'CAPEX' ? 'CapEx' : 'OpEx'}
+              </button>
+            ))}
           </div>
+        </div>
+
+        {/* Category + SubCategory */}
+        {form.expenseType && (
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>Category</label>
+              <select value={form.category} onChange={e => handleCategoryChange(e.target.value)} className={inputCls}>
+                <option value="">Select category</option>
+                {Object.keys(categories).map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className={labelCls}>Sub-Category</label>
+              <select value={form.subCategory} onChange={e => set('subCategory', e.target.value)} className={inputCls}
+                disabled={!form.category}>
+                <option value="">Select sub-category</option>
+                {subCategories.map(sub => (
+                  <option key={sub} value={sub}>{sub}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={labelCls}>Vendor</label>
             <input value={form.vendor} onChange={e => set('vendor', e.target.value)}
               placeholder="Vendor name" className={inputCls} />
           </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={labelCls}>Expense Date</label>
             <input type="date" value={form.expenseDate} onChange={e => set('expenseDate', e.target.value)} className={inputCls} />
           </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={labelCls}>Project</label>
             <select value={form.projectId} onChange={e => set('projectId', e.target.value)} className={inputCls}>
@@ -130,14 +185,13 @@ export default function NewExpensePage() {
               {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </div>
-        </div>
-
-        <div>
-          <label className={labelCls}>Funding Source</label>
-          <select value={form.fundingAgreementId} onChange={e => set('fundingAgreementId', e.target.value)} className={inputCls}>
-            <option value="">No funding source</option>
-            {agreements.map(a => <option key={a.id} value={a.id}>{a.title}{a.donor ? ` (${a.donor.name})` : ''}</option>)}
-          </select>
+          <div>
+            <label className={labelCls}>Funding Source</label>
+            <select value={form.fundingAgreementId} onChange={e => set('fundingAgreementId', e.target.value)} className={inputCls}>
+              <option value="">No funding source</option>
+              {agreements.map(a => <option key={a.id} value={a.id}>{a.title}{a.donor ? ` (${a.donor.name})` : ''}</option>)}
+            </select>
+          </div>
         </div>
 
         <div>
@@ -154,7 +208,7 @@ export default function NewExpensePage() {
           <button onClick={submit} disabled={saving}
             className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white disabled:opacity-50"
             style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
-            <Save size={15} /> {saving ? 'Saving…' : 'Log Expense'}
+            <Save size={15} /> {saving ? 'Saving...' : 'Log Expense'}
           </button>
           <Link href="/dashboard/expenses" className="px-5 py-2.5 rounded-lg text-sm text-white/50 hover:text-white transition-colors">
             Cancel

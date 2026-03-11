@@ -396,6 +396,118 @@ function DocumentRow({ doc, token, compact = false }: { doc: Document; token: st
 }
 
 /* ------------------------------------------------------------------ */
+/*  Donor I&E Statement                                                */
+/* ------------------------------------------------------------------ */
+
+interface DonorIEData {
+  income: { bySource: { sourceType: string; total: number }[]; total: number }
+  expenditure: {
+    capex: { byCategory: { category: string; total: number }[]; total: number }
+    opex: { byCategory: { category: string; total: number }[]; total: number }
+    other: { total: number }
+    total: number
+  }
+  netBalance: number
+}
+
+function DonorIEStatement({ token }: { token: string }) {
+  const [data, setData] = useState<DonorIEData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [expanded, setExpanded] = useState(false)
+
+  useEffect(() => {
+    if (!token) return
+    fetch(`${API_URL}/api/donor-auth/income-expenditure`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setData(d); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [token])
+
+  if (loading || !data) return null
+
+  return (
+    <div>
+      <button onClick={() => setExpanded(!expanded)}
+        className="flex items-center justify-between w-full text-left mb-3">
+        <h2 className="text-sm font-medium text-white/50 uppercase tracking-wide">
+          Income & Expenditure
+        </h2>
+        <span className="text-white/30">
+          {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        </span>
+      </button>
+
+      {/* Summary always visible */}
+      <div className="grid grid-cols-3 gap-3 mb-3">
+        <div className="rounded-lg border border-white/8 px-3 py-3" style={{ background: 'rgba(255,255,255,0.02)' }}>
+          <div className="text-[10px] text-white/30 mb-0.5">Income</div>
+          <div className="text-sm font-bold text-emerald-400">${data.income.total.toLocaleString()}</div>
+        </div>
+        <div className="rounded-lg border border-white/8 px-3 py-3" style={{ background: 'rgba(255,255,255,0.02)' }}>
+          <div className="text-[10px] text-white/30 mb-0.5">Expenditure</div>
+          <div className="text-sm font-bold text-orange-400">${data.expenditure.total.toLocaleString()}</div>
+        </div>
+        <div className="rounded-lg border border-white/8 px-3 py-3" style={{ background: 'rgba(255,255,255,0.02)' }}>
+          <div className="text-[10px] text-white/30 mb-0.5">Balance</div>
+          <div className={`text-sm font-bold ${data.netBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+            ${data.netBalance.toLocaleString()}
+          </div>
+        </div>
+      </div>
+
+      {expanded && (
+        <div className="rounded-xl border border-white/8 overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)' }}>
+          {/* Income */}
+          <div className="px-4 py-3 border-b border-white/5">
+            <div className="text-xs font-medium text-emerald-400 mb-2">INCOME BY SOURCE</div>
+            {data.income.bySource.map(s => (
+              <div key={s.sourceType} className="flex items-center justify-between py-0.5">
+                <span className="text-xs text-white/50">{s.sourceType}</span>
+                <span className="text-xs text-white/30">${s.total.toLocaleString()}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* CapEx */}
+          {data.expenditure.capex.total > 0 && (
+            <div className="px-4 py-3 border-b border-white/5">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-medium text-purple-400">CapEx</span>
+                <span className="text-xs text-white/40">${data.expenditure.capex.total.toLocaleString()}</span>
+              </div>
+              {data.expenditure.capex.byCategory.map(c => (
+                <div key={c.category} className="flex items-center justify-between pl-3 py-0.5">
+                  <span className="text-[11px] text-white/30">{c.category}</span>
+                  <span className="text-[11px] text-white/20">${c.total.toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* OpEx */}
+          {data.expenditure.opex.total > 0 && (
+            <div className="px-4 py-3 border-b border-white/5">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-medium text-cyan-400">OpEx</span>
+                <span className="text-xs text-white/40">${data.expenditure.opex.total.toLocaleString()}</span>
+              </div>
+              {data.expenditure.opex.byCategory.map(c => (
+                <div key={c.category} className="flex items-center justify-between pl-3 py-0.5">
+                  <span className="text-[11px] text-white/30">{c.category}</span>
+                  <span className="text-[11px] text-white/20">${c.total.toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  Page                                                               */
 /* ------------------------------------------------------------------ */
 
@@ -573,6 +685,9 @@ export default function DonorDashboardPage() {
                 </div>
               ))}
             </div>
+
+            {/* ── I&E Statement (Donor view) ── */}
+            <DonorIEStatement token={token} />
 
             {/* ── Funding Agreements ── */}
             {agreements.length > 0 && (

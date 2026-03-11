@@ -21,6 +21,8 @@ interface Expense {
   amount: number
   currency: string
   category: string | null
+  subCategory: string | null
+  expenseType: string | null
   vendor: string | null
   expenseDate: string
   anchorStatus: string
@@ -28,6 +30,7 @@ interface Expense {
   dataHash: string | null
   blockchainTx: string | null
   project?: { id: string; name: string }
+  fundingAgreement?: { id: string; title: string; donor: { name: string } | null } | null
   documents?: Document[]
 }
 
@@ -57,6 +60,18 @@ function HashCell({ hash }: { hash: string }) {
         {copied ? <Check size={11} className="text-green-400" /> : <Copy size={11} className="text-white/30" />}
       </button>
     </div>
+  )
+}
+
+function ExpenseTypeBadge({ type }: { type: string | null }) {
+  if (!type) return null
+  const cls = type === 'CAPEX'
+    ? 'bg-purple-400/10 text-purple-400 border-purple-400/20'
+    : 'bg-cyan-400/10 text-cyan-400 border-cyan-400/20'
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] border font-medium ${cls}`}>
+      {type === 'CAPEX' ? 'CapEx' : 'OpEx'}
+    </span>
   )
 }
 
@@ -94,14 +109,18 @@ function ExpenseRow({ expense, onRefresh }: { expense: Expense; onRefresh: () =>
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-2 mt-0.5">
+          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+            <ExpenseTypeBadge type={expense.expenseType} />
+            {expense.category && (
+              <span className="text-xs text-white/40">{expense.category}{expense.subCategory ? ` / ${expense.subCategory}` : ''}</span>
+            )}
             {expense.project && (
               <span className="text-xs text-[#369bff]/70">{expense.project.name}</span>
             )}
-            {expense.vendor && <span className="text-xs text-white/30">{expense.vendor}</span>}
-            {!expense.project && !expense.vendor && expense.category && (
-              <span className="text-xs text-white/30">{expense.category}</span>
+            {expense.fundingAgreement && (
+              <span className="text-xs text-emerald-400/60">{expense.fundingAgreement.title}</span>
             )}
+            {expense.vendor && <span className="text-xs text-white/30">{expense.vendor}</span>}
             {(expense.documents?.length ?? 0) > 0 && (
               <span className="flex items-center gap-1 text-xs text-white/30">
                 <FileCheck size={10} /> {expense.documents!.length} doc{expense.documents!.length !== 1 ? 's' : ''}

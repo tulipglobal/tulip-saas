@@ -9,5 +9,6 @@ router.post('/login', ctrl.login)
 // Authenticated (donor JWT)
 router.get('/me', donorAuth, ctrl.me)
 router.get('/dashboard', donorAuth, ctrl.dashboard)
+router.get('/income-expenditure', donorAuth, ctrl.incomeExpenditure)
 
 module.exports = router

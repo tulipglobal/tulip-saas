@@ -201,4 +201,105 @@ router.get('/summary', async (req, res) => {
   })
 })
 
+// ── Income & Expenditure Statement ────────────────────────
+router.get('/income-expenditure', async (req, res) => {
+  const tenantId = req.user.tenantId
+  const { from, to } = req.query
+
+  const dateFilter = {}
+  if (from) dateFilter.gte = new Date(from)
+  if (to) dateFilter.lte = new Date(to)
+  const hasDateFilter = Object.keys(dateFilter).length > 0
+
+  try {
+    // ── INCOME: Funding agreements created/active in period ──
+    const agreementWhere = { tenantId }
+    if (hasDateFilter) {
+      agreementWhere.createdAt = dateFilter
+    }
+    const agreements = await prisma.fundingAgreement.findMany({
+      where: agreementWhere,
+      select: {
+        id: true, title: true, totalAmount: true, currency: true,
+        sourceType: true, sourceSubType: true, type: true,
+        capexBudget: true, opexBudget: true,
+        grantorName: true, grantRef: true, grantFrom: true, grantTo: true, restricted: true,
+        startDate: true, endDate: true, createdAt: true,
+        donor: { select: { name: true } },
+      },
+    })
+
+    // Group income by sourceType
+    const incomeBySource = {}
+    let totalIncome = 0
+    for (const a of agreements) {
+      const key = a.sourceType || a.type || 'Other'
+      if (!incomeBySource[key]) incomeBySource[key] = { sourceType: key, items: [], total: 0 }
+      incomeBySource[key].items.push(a)
+      incomeBySource[key].total += a.totalAmount
+      totalIncome += a.totalAmount
+    }
+
+    // ── EXPENDITURE: Expenses in period ──
+    const expenseWhere = { tenantId }
+    if (hasDateFilter) {
+      expenseWhere.createdAt = dateFilter
+    }
+    const expenses = await prisma.expense.findMany({
+      where: expenseWhere,
+      select: {
+        id: true, description: true, amount: true, currency: true,
+        expenseType: true, category: true, subCategory: true,
+        fundingAgreementId: true, createdAt: true,
+        fundingAgreement: { select: { id: true, title: true } },
+      },
+    })
+
+    // Split by CapEx/OpEx
+    let totalCapex = 0, totalOpex = 0, totalOther = 0
+    const capexByCategory = {}
+    const opexByCategory = {}
+    const otherExpenses = []
+
+    for (const e of expenses) {
+      if (e.expenseType === 'CAPEX') {
+        totalCapex += e.amount
+        const cat = e.category || 'Uncategorised'
+        if (!capexByCategory[cat]) capexByCategory[cat] = { category: cat, items: [], total: 0 }
+        capexByCategory[cat].items.push(e)
+        capexByCategory[cat].total += e.amount
+      } else if (e.expenseType === 'OPEX') {
+        totalOpex += e.amount
+        const cat = e.category || 'Uncategorised'
+        if (!opexByCategory[cat]) opexByCategory[cat] = { category: cat, items: [], total: 0 }
+        opexByCategory[cat].items.push(e)
+        opexByCategory[cat].total += e.amount
+      } else {
+        totalOther += e.amount
+        otherExpenses.push(e)
+      }
+    }
+
+    const totalExpenditure = totalCapex + totalOpex + totalOther
+
+    res.json({
+      period: { from: from || null, to: to || null },
+      income: {
+        bySource: Object.values(incomeBySource),
+        total: totalIncome,
+      },
+      expenditure: {
+        capex: { byCategory: Object.values(capexByCategory), total: totalCapex },
+        opex: { byCategory: Object.values(opexByCategory), total: totalOpex },
+        other: { items: otherExpenses, total: totalOther },
+        total: totalExpenditure,
+      },
+      netBalance: totalIncome - totalExpenditure,
+    })
+  } catch (err) {
+    console.error('[analytics] income-expenditure error:', err)
+    res.status(500).json({ error: 'Failed to generate I&E statement' })
+  }
+})
+
 module.exports = router

@@ -7,6 +7,7 @@ import {
   Upload, Globe, FileText, ChevronRight,
   Check, SkipForward, Plus, X, Loader2
 } from 'lucide-react'
+import CountrySelect from '@/components/CountrySelect'
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.tulipds.com'
 
@@ -281,6 +282,15 @@ export default function SetupWizardPage() {
                   placeholder="What does your organisation do?"
                   rows={3}
                   className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white placeholder-white/20 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/30 transition-all resize-none"
+                />
+              </div>
+
+              {/* Country */}
+              <div>
+                <label className="text-white/50 text-xs font-medium uppercase tracking-wider mb-2 block">Country</label>
+                <CountrySelect
+                  value={orgForm.country}
+                  onChange={v => setOrgForm(f => ({ ...f, country: v }))}
                 />
               </div>
 

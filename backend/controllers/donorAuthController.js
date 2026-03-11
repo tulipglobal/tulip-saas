@@ -185,3 +185,89 @@ exports.dashboard = async (req, res) => {
     res.status(500).json({ error: 'Failed to load dashboard' })
   }
 }
+
+exports.incomeExpenditure = async (req, res) => {
+  try {
+    const { donorId } = req.donorUser
+    const { from, to } = req.query
+
+    // Get all agreements for this donor
+    const agreements = await prisma.fundingAgreement.findMany({
+      where: { donorId },
+      select: {
+        id: true, title: true, totalAmount: true, currency: true,
+        sourceType: true, sourceSubType: true, type: true,
+        capexBudget: true, opexBudget: true,
+        grantorName: true, grantRef: true, grantFrom: true, grantTo: true, restricted: true,
+        startDate: true, endDate: true, createdAt: true,
+        tenant: { select: { id: true, name: true } },
+      },
+    })
+
+    // Get expenses linked to these agreements
+    const ids = agreements.map(a => a.id)
+    const expenseWhere = { fundingAgreementId: { in: ids } }
+    if (from) expenseWhere.createdAt = { ...expenseWhere.createdAt, gte: new Date(from) }
+    if (to) expenseWhere.createdAt = { ...expenseWhere.createdAt, lte: new Date(to) }
+
+    const expenses = ids.length > 0
+      ? await prisma.expense.findMany({
+          where: expenseWhere,
+          select: {
+            id: true, description: true, amount: true, currency: true,
+            expenseType: true, category: true, subCategory: true,
+            fundingAgreementId: true, createdAt: true,
+          },
+        })
+      : []
+
+    // Group income
+    let totalIncome = 0
+    const incomeBySource = {}
+    for (const a of agreements) {
+      const key = a.sourceType || a.type || 'Other'
+      if (!incomeBySource[key]) incomeBySource[key] = { sourceType: key, items: [], total: 0 }
+      incomeBySource[key].items.push(a)
+      incomeBySource[key].total += a.totalAmount
+      totalIncome += a.totalAmount
+    }
+
+    // Group expenses
+    let totalCapex = 0, totalOpex = 0, totalOther = 0
+    const capexByCategory = {}
+    const opexByCategory = {}
+
+    for (const e of expenses) {
+      if (e.expenseType === 'CAPEX') {
+        totalCapex += e.amount
+        const cat = e.category || 'Uncategorised'
+        if (!capexByCategory[cat]) capexByCategory[cat] = { category: cat, total: 0 }
+        capexByCategory[cat].total += e.amount
+      } else if (e.expenseType === 'OPEX') {
+        totalOpex += e.amount
+        const cat = e.category || 'Uncategorised'
+        if (!opexByCategory[cat]) opexByCategory[cat] = { category: cat, total: 0 }
+        opexByCategory[cat].total += e.amount
+      } else {
+        totalOther += e.amount
+      }
+    }
+
+    const totalExpenditure = totalCapex + totalOpex + totalOther
+
+    res.json({
+      period: { from: from || null, to: to || null },
+      income: { bySource: Object.values(incomeBySource), total: totalIncome },
+      expenditure: {
+        capex: { byCategory: Object.values(capexByCategory), total: totalCapex },
+        opex: { byCategory: Object.values(opexByCategory), total: totalOpex },
+        other: { total: totalOther },
+        total: totalExpenditure,
+      },
+      netBalance: totalIncome - totalExpenditure,
+    })
+  } catch (err) {
+    console.error('Donor I&E error:', err)
+    res.status(500).json({ error: 'Failed to generate I&E statement' })
+  }
+}

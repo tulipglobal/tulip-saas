@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Building2, Shield, Save, Check, AlertCircle } from 'lucide-react'
 import { apiGet, apiPatch } from '@/lib/api'
+import CountrySelect from '@/components/CountrySelect'
 
 interface Profile {
   id: string
@@ -244,7 +245,7 @@ export default function SettingsPage() {
           </div>
           <div>
             <label className="text-xs text-white/30 block mb-1">Country</label>
-            <input className={inputClass} value={orgCountry} onChange={e => setOrgCountry(e.target.value)} placeholder="e.g. UAE" />
+            <CountrySelect value={orgCountry} onChange={setOrgCountry} />
           </div>
           <div>
             <label className="text-xs text-white/30 block mb-1">Website</label>

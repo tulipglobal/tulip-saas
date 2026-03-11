@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save, UserPlus } from 'lucide-react'
 import { apiGet, apiPost } from '@/lib/api'
+import { FUNDING_SOURCE_TYPES, FUNDING_SOURCE_TYPE_KEYS } from '@/lib/ngo-categories'
 
 interface Donor { id: string; name: string; type: string }
 
@@ -18,7 +19,10 @@ export default function NewFundingPage() {
   const [form, setForm] = useState({
     title: '', type: 'GRANT', totalAmount: '', currency: 'USD',
     donorId: '', startDate: '', endDate: '', repayable: false,
-    interestRate: '', notes: ''
+    interestRate: '', notes: '',
+    sourceType: '', sourceSubType: '',
+    grantorName: '', grantRef: '', grantFrom: '', grantTo: '',
+    restricted: false, capexBudget: '', opexBudget: '',
   })
 
   useEffect(() => {
@@ -29,6 +33,17 @@ export default function NewFundingPage() {
   }, [])
 
   const set = (k: string, v: string | boolean) => setForm(f => ({ ...f, [k]: v }))
+
+  const subTypes = useMemo(() => {
+    if (!form.sourceType) return []
+    return FUNDING_SOURCE_TYPES[form.sourceType] ?? []
+  }, [form.sourceType])
+
+  const totalBudget = useMemo(() => {
+    const capex = parseFloat(form.capexBudget) || 0
+    const opex = parseFloat(form.opexBudget) || 0
+    return capex + opex
+  }, [form.capexBudget, form.opexBudget])
 
   const createDonor = async () => {
     if (!newDonor.name.trim()) return
@@ -51,13 +66,14 @@ export default function NewFundingPage() {
 
   const submit = async () => {
     if (!form.title.trim()) { setError('Title is required'); return }
-    if (!form.totalAmount || isNaN(parseFloat(form.totalAmount))) { setError('Valid amount is required'); return }
+    const total = parseFloat(form.totalAmount) || totalBudget
+    if (!total) { setError('Valid amount is required (enter total or CapEx/OpEx split)'); return }
     setSaving(true); setError('')
     try {
       const res = await apiPost('/api/funding-agreements', {
         title: form.title.trim(),
         type: form.type,
-        totalAmount: parseFloat(form.totalAmount),
+        totalAmount: total,
         currency: form.currency,
         donorId: form.donorId || null,
         startDate: form.startDate || null,
@@ -65,6 +81,15 @@ export default function NewFundingPage() {
         repayable: form.repayable,
         interestRate: form.interestRate ? parseFloat(form.interestRate) : null,
         notes: form.notes || null,
+        sourceType: form.sourceType || null,
+        sourceSubType: form.sourceSubType || null,
+        grantorName: form.grantorName || null,
+        grantRef: form.grantRef || null,
+        grantFrom: form.grantFrom || null,
+        grantTo: form.grantTo || null,
+        restricted: form.restricted,
+        capexBudget: parseFloat(form.capexBudget) || 0,
+        opexBudget: parseFloat(form.opexBudget) || 0,
       })
       if (res.ok) { router.push('/dashboard/funding') }
       else { const d = await res.json(); setError(d.error ?? 'Failed to create agreement') }
@@ -119,9 +144,57 @@ export default function NewFundingPage() {
           </div>
         </div>
 
+        {/* Funding Source Type */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className={labelCls}>Source Type</label>
+            <select value={form.sourceType}
+              onChange={e => { set('sourceType', e.target.value); set('sourceSubType', '') }}
+              className={inputCls}>
+              <option value="">Select source type</option>
+              {FUNDING_SOURCE_TYPE_KEYS.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={labelCls}>Source Sub-Type</label>
+            <select value={form.sourceSubType} onChange={e => set('sourceSubType', e.target.value)}
+              className={inputCls} disabled={!form.sourceType}>
+              <option value="">Select sub-type</option>
+              {subTypes.map(st => <option key={st} value={st}>{st}</option>)}
+            </select>
+          </div>
+        </div>
+
+        {/* Budget: CapEx / OpEx Split */}
+        <div className="rounded-lg border border-white/8 p-4 space-y-3 bg-white/[0.01]">
+          <label className={labelCls + ' mb-0'}>Budget Split</label>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="text-[10px] text-white/30 mb-1 block">CapEx Budget</label>
+              <input type="number" step="0.01" value={form.capexBudget}
+                onChange={e => set('capexBudget', e.target.value)}
+                placeholder="0.00" className={inputCls} />
+            </div>
+            <div>
+              <label className="text-[10px] text-white/30 mb-1 block">OpEx Budget</label>
+              <input type="number" step="0.01" value={form.opexBudget}
+                onChange={e => set('opexBudget', e.target.value)}
+                placeholder="0.00" className={inputCls} />
+            </div>
+            <div>
+              <label className="text-[10px] text-white/30 mb-1 block">Total Budget</label>
+              <div className={inputCls + ' bg-white/3 cursor-default'}>
+                {form.currency} {totalBudget.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div>
-          <label className={labelCls}>Total Amount *</label>
-          <input type="number" step="0.01" value={form.totalAmount} onChange={e => set('totalAmount', e.target.value)}
+          <label className={labelCls}>Total Amount * {totalBudget > 0 && <span className="text-white/20 normal-case">(auto-filled from budget)</span>}</label>
+          <input type="number" step="0.01"
+            value={form.totalAmount || (totalBudget > 0 ? totalBudget.toString() : '')}
+            onChange={e => set('totalAmount', e.target.value)}
             placeholder="0.00" className={inputCls} />
         </div>
 
@@ -163,6 +236,31 @@ export default function NewFundingPage() {
           )}
         </div>
 
+        {/* Grant details */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className={labelCls}>Grantor/Donor Name</label>
+            <input value={form.grantorName} onChange={e => set('grantorName', e.target.value)}
+              placeholder="e.g. World Bank" className={inputCls} />
+          </div>
+          <div>
+            <label className={labelCls}>Grant Reference</label>
+            <input value={form.grantRef} onChange={e => set('grantRef', e.target.value)}
+              placeholder="e.g. GRT-2026-001" className={inputCls} />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className={labelCls}>Grant Period From</label>
+            <input type="date" value={form.grantFrom} onChange={e => set('grantFrom', e.target.value)} className={inputCls} />
+          </div>
+          <div>
+            <label className={labelCls}>Grant Period To</label>
+            <input type="date" value={form.grantTo} onChange={e => set('grantTo', e.target.value)} className={inputCls} />
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={labelCls}>Start Date</label>
@@ -174,13 +272,22 @@ export default function NewFundingPage() {
           </div>
         </div>
 
-        {/* Repayable toggle */}
-        <div className="flex items-center gap-3">
-          <button onClick={() => set('repayable', !form.repayable)}
-            className={`relative w-10 h-5 rounded-full transition-colors ${form.repayable ? 'bg-[#0c7aed]' : 'bg-white/20'}`}>
-            <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${form.repayable ? 'left-5' : 'left-0.5'}`} />
-          </button>
-          <span className="text-sm text-white/60">Repayable (loan)</span>
+        {/* Toggles */}
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3">
+            <button onClick={() => set('restricted', !form.restricted)}
+              className={`relative w-10 h-5 rounded-full transition-colors ${form.restricted ? 'bg-[#0c7aed]' : 'bg-white/20'}`}>
+              <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${form.restricted ? 'left-5' : 'left-0.5'}`} />
+            </button>
+            <span className="text-sm text-white/60">Restricted</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <button onClick={() => set('repayable', !form.repayable)}
+              className={`relative w-10 h-5 rounded-full transition-colors ${form.repayable ? 'bg-[#0c7aed]' : 'bg-white/20'}`}>
+              <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${form.repayable ? 'left-5' : 'left-0.5'}`} />
+            </button>
+            <span className="text-sm text-white/60">Repayable (loan)</span>
+          </div>
         </div>
 
         {form.repayable && (
@@ -205,7 +312,7 @@ export default function NewFundingPage() {
           <button onClick={submit} disabled={saving}
             className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white disabled:opacity-50"
             style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
-            <Save size={15} /> {saving ? 'Creating…' : 'Create Agreement'}
+            <Save size={15} /> {saving ? 'Creating...' : 'Create Agreement'}
           </button>
           <Link href="/dashboard/funding" className="px-5 py-2.5 rounded-lg text-sm text-white/50 hover:text-white transition-colors">
             Cancel

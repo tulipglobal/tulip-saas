@@ -59,6 +59,28 @@ interface ProjectFunding {
   project: { id: string; name: string; status: string }
 }
 
+interface BudgetLineDonor {
+  id: string
+  expenseType: string
+  category: string
+  subCategory: string | null
+  approvedAmount: number
+  currency: string
+  spent: number
+  remaining: number
+}
+
+interface BudgetDonor {
+  id: string
+  name: string
+  status: string
+  periodFrom: string
+  periodTo: string
+  lines: BudgetLineDonor[]
+  totalApproved: number
+  totalSpent: number
+}
+
 interface Agreement {
   id: string
   title: string
@@ -68,6 +90,7 @@ interface Agreement {
   status: string
   createdAt: string
   tenant: { id: string; name: string }
+  budget: BudgetDonor | null
   projectFunding: ProjectFunding[]
   spent: number
   _count: { expenses: number }
@@ -208,6 +231,58 @@ function AgreementCard({ agreement, documents, token }: {
       {/* Expanded details */}
       {expanded && (
         <div className="border-t border-white/5 px-5 py-4 space-y-4">
+          {/* Budget breakdown — donor visibility */}
+          {agreement.budget && (
+            <div>
+              <h4 className="text-white/30 text-xs uppercase tracking-wide font-medium mb-2">
+                Budget: {agreement.budget.name}
+                <span className="text-white/15 normal-case ml-2">
+                  {formatDate(agreement.budget.periodFrom)} – {formatDate(agreement.budget.periodTo)}
+                </span>
+              </h4>
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                <div className="rounded-lg border border-white/5 px-3 py-2 bg-white/[0.01]">
+                  <div className="text-[10px] text-white/25">Budgeted</div>
+                  <div className="text-sm font-bold text-white">${agreement.budget.totalApproved.toLocaleString()}</div>
+                </div>
+                <div className="rounded-lg border border-white/5 px-3 py-2 bg-white/[0.01]">
+                  <div className="text-[10px] text-white/25">Spent</div>
+                  <div className="text-sm font-bold text-orange-400">${agreement.budget.totalSpent.toLocaleString()}</div>
+                </div>
+                <div className="rounded-lg border border-white/5 px-3 py-2 bg-white/[0.01]">
+                  <div className="text-[10px] text-white/25">Remaining</div>
+                  <div className={`text-sm font-bold ${(agreement.budget.totalApproved - agreement.budget.totalSpent) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    ${(agreement.budget.totalApproved - agreement.budget.totalSpent).toLocaleString()}
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-1">
+                {agreement.budget.lines.map(line => {
+                  const linePct = line.approvedAmount > 0 ? Math.min(100, Math.round((line.spent / line.approvedAmount) * 100)) : 0
+                  return (
+                    <div key={line.id} className="flex items-center gap-3 py-1.5 px-2 rounded-lg bg-white/[0.01]">
+                      <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
+                        line.expenseType === 'CAPEX' ? 'bg-purple-400/10 text-purple-400' : 'bg-cyan-400/10 text-cyan-400'
+                      }`}>{line.expenseType}</span>
+                      <span className="text-xs text-white/50 flex-1 truncate">
+                        {line.category}{line.subCategory ? ` / ${line.subCategory}` : ''}
+                      </span>
+                      <div className="w-20 h-1 rounded-full bg-white/10 overflow-hidden">
+                        <div className="h-full rounded-full" style={{
+                          width: `${linePct}%`,
+                          background: linePct > 90 ? '#f87171' : linePct > 70 ? '#fbbf24' : '#34d399'
+                        }} />
+                      </div>
+                      <span className="text-[10px] text-white/30 w-20 text-right">
+                        {line.currency} {line.spent.toLocaleString()} / {line.approvedAmount.toLocaleString()}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Linked projects */}
           {agreement.projectFunding.length > 0 && (
             <div>

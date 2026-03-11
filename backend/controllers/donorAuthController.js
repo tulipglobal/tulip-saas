@@ -119,6 +119,12 @@ exports.dashboard = async (req, res) => {
       where: { donorId },
       include: {
         tenant: { select: { id: true, name: true } },
+        budget: {
+          select: {
+            id: true, name: true, status: true, periodFrom: true, periodTo: true,
+            lines: { select: { id: true, expenseType: true, category: true, subCategory: true, approvedAmount: true, currency: true } },
+          }
+        },
         projectFunding: {
           include: { project: { select: { id: true, name: true, status: true } } }
         },
@@ -139,9 +145,36 @@ exports.dashboard = async (req, res) => {
     const spentMap = {}
     for (const r of spentRaw) spentMap[r.fundingAgreementId] = Number(r._sum.amount || 0)
 
+    // Compute spent per budget line for donor visibility
+    const allLineIds = []
+    for (const a of agreements) {
+      if (a.budget?.lines) {
+        for (const l of a.budget.lines) allLineIds.push(l.id)
+      }
+    }
+    const lineSpentRaw = allLineIds.length > 0
+      ? await prisma.expense.groupBy({
+          by: ['budgetLineId'],
+          where: { budgetLineId: { in: allLineIds } },
+          _sum: { amount: true }
+        })
+      : []
+    const lineSpentMap = {}
+    for (const r of lineSpentRaw) lineSpentMap[r.budgetLineId] = Number(r._sum.amount || 0)
+
     const enrichedAgreements = agreements.map(a => ({
       ...a,
       spent: spentMap[a.id] || 0,
+      budget: a.budget ? {
+        ...a.budget,
+        lines: a.budget.lines.map(l => ({
+          ...l,
+          spent: lineSpentMap[l.id] || 0,
+          remaining: l.approvedAmount - (lineSpentMap[l.id] || 0),
+        })),
+        totalApproved: a.budget.lines.reduce((s, l) => s + l.approvedAmount, 0),
+        totalSpent: a.budget.lines.reduce((s, l) => s + (lineSpentMap[l.id] || 0), 0),
+      } : null,
     }))
 
     // Documents from projects linked to donor's funding agreements

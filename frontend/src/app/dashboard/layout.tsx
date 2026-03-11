@@ -14,6 +14,7 @@ import { clsx } from 'clsx'
 const nav = [
   { label: 'Overview',  href: '/dashboard',           icon: LayoutDashboard },
   { label: 'Projects',  href: '/dashboard/projects',  icon: FolderOpen },
+  { label: 'Budgets',   href: '/dashboard/budgets',   icon: BarChart3 },
   { label: 'Funding',   href: '/dashboard/funding',   icon: Banknote },
   { label: 'Documents', href: '/dashboard/documents', icon: FileCheck },
   { label: 'Expenses',  href: '/dashboard/expenses',  icon: Receipt },

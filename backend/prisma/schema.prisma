@@ -45,6 +45,7 @@ model Tenant {
   fundingAgreements  FundingAgreement[]
   donorInvites       DonorInvite[]
   workflowTasks      WorkflowTask[]
+  budgets            Budget[]
 
   @@index([code])
   @@index([tenantType])
@@ -276,6 +277,8 @@ model Expense {
   projectId          String
   fundingSourceId    String?
   fundingAgreementId String?
+  budgetId           String?
+  budgetLineId       String?
   tenantId           String
   approvalStatus     String            @default("pending_review")
   expenseType        String?           // CAPEX or OPEX
@@ -285,6 +288,8 @@ model Expense {
   documents          Document[]
   fundingSource      FundingSource?    @relation(fields: [fundingSourceId], references: [id])
   fundingAgreement   FundingAgreement? @relation("ExpenseFundingAgreement", fields: [fundingAgreementId], references: [id])
+  budget             Budget?           @relation("ExpenseBudget", fields: [budgetId], references: [id])
+  budgetLine         BudgetLine?       @relation("ExpenseBudgetLine", fields: [budgetLineId], references: [id])
   project            Project           @relation(fields: [projectId], references: [id])
   tenant             Tenant            @relation(fields: [tenantId], references: [id])
 
@@ -292,6 +297,8 @@ model Expense {
   @@index([projectId])
   @@index([fundingSourceId])
   @@index([fundingAgreementId])
+  @@index([budgetId])
+  @@index([budgetLineId])
   @@index([createdAt])
   @@index([expenseType])
 }
@@ -400,6 +407,7 @@ model FundingAgreement {
   id             String              @id @default(uuid())
   donorId        String?
   tenantId       String
+  budgetId       String?
   title          String
   type           String              @default("GRANT")
   totalAmount    Float
@@ -423,12 +431,14 @@ model FundingAgreement {
   updatedAt      DateTime            @updatedAt
   donor          Donor?              @relation(fields: [donorId], references: [id])
   tenant         Tenant              @relation(fields: [tenantId], references: [id])
+  budget         Budget?             @relation("BudgetFunding", fields: [budgetId], references: [id])
   repayments     RepaymentSchedule[]
   projectFunding ProjectFunding[]
   expenses       Expense[]           @relation("ExpenseFundingAgreement")
 
   @@index([donorId])
   @@index([tenantId])
+  @@index([budgetId])
   @@index([status])
   @@index([type])
   @@index([sourceType])
@@ -651,4 +661,44 @@ model EngagementEvent {
   @@index([tenantId])
   @@index([eventType])
   @@index([createdAt])
+}
+
+// ─── Feature 1B: Budgeting ─────────────────────────────────
+
+model Budget {
+  id          String       @id @default(uuid())
+  tenantId    String
+  name        String
+  periodFrom  DateTime
+  periodTo    DateTime
+  status      String       @default("DRAFT") // DRAFT, APPROVED, ACTIVE, CLOSED
+  notes       String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  tenant      Tenant       @relation(fields: [tenantId], references: [id])
+  lines       BudgetLine[]
+  fundingAgreements FundingAgreement[] @relation("BudgetFunding")
+  expenses    Expense[]    @relation("ExpenseBudget")
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([periodFrom, periodTo])
+}
+
+model BudgetLine {
+  id             String   @id @default(uuid())
+  budgetId       String
+  expenseType    String   // CAPEX or OPEX
+  category       String
+  subCategory    String?
+  description    String?
+  approvedAmount Float
+  currency       String   @default("USD")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  budget         Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  expenses       Expense[] @relation("ExpenseBudgetLine")
+
+  @@index([budgetId])
+  @@index([expenseType])
 }

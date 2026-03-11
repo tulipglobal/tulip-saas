@@ -1,117 +1,78 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { apiGet } from '@/lib/api'
 import DocumentUploadSection from '@/components/DocumentUploadSection'
 import {
   ArrowLeft, FolderOpen, DollarSign, FileText, Activity,
-  CheckCircle, Clock, AlertTriangle, XCircle, ExternalLink,
-  Calendar, Tag, Hash, Plus, Wallet
+  CheckCircle, Clock, XCircle, ExternalLink,
+  Calendar, Plus, Wallet
 } from 'lucide-react'
 
 interface BudgetSummary {
-  budgetCapex: number
-  budgetOpex: number
-  budgetTotal: number
-  actualCapex: number
-  actualOpex: number
-  actualTotal: number
+  budgetCapex: number; budgetOpex: number; budgetTotal: number
+  actualCapex: number; actualOpex: number; actualTotal: number
 }
 
 interface BudgetInfo {
-  id: string
-  name: string
-  status: string
-  periodFrom: string
-  periodTo: string
+  id: string; name: string; status: string; periodFrom: string; periodTo: string
   lines: { id: string; expenseType: string; category: string; approvedAmount: number }[]
+  fundingSources?: { id: string; amount: number }[]
 }
 
 interface Project {
-  id: string
-  name: string
-  description: string | null
-  budget: number | null
-  currency?: string
-  status: string
-  startDate?: string | null
-  endDate?: string | null
-  createdAt: string
-  fundingSources: any[]
-  expenses: Expense[]
-  documents: Document[]
-  budgetSummary: BudgetSummary | null
-  budgets: BudgetInfo[]
+  id: string; name: string; description: string | null; budget: number | null
+  status: string; startDate?: string | null; endDate?: string | null; createdAt: string
+  fundingSources: any[]; expenses: Expense[]; documents: Document[]
+  budgetSummary: BudgetSummary | null; budgets: BudgetInfo[]
 }
 
 interface Expense {
-  id: string
-  description: string
-  amount: number
-  currency: string
-  anchorStatus?: string
-  dataHash?: string
-  createdAt: string
+  id: string; description: string; amount: number; currency: string
+  anchorStatus?: string; dataHash?: string; createdAt: string
 }
 
-interface Document {
-  id: string
-  name: string
-  fileHash?: string
-  anchorStatus?: string
-  createdAt: string
-}
+interface Document { id: string; name: string; fileHash?: string; anchorStatus?: string; createdAt: string }
 
 interface AuditEntry {
-  id: string
-  action: string
-  entityType: string
-  entityId: string
-  dataHash: string
-  anchorStatus: string
-  blockchainTx: string | null
-  ancheredAt: string | null
-  createdAt: string
+  id: string; action: string; entityType: string; entityId: string; dataHash: string
+  anchorStatus: string; blockchainTx: string | null; ancheredAt: string | null; createdAt: string
 }
 
 const statusColors: Record<string, string> = {
-  active:    'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
+  active: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
   completed: 'bg-blue-500/20 text-blue-400 border border-blue-500/30',
-  paused:    'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30',
-  draft:     'bg-white/10 text-white/50 border border-white/20',
+  paused: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30',
+  draft: 'bg-white/10 text-white/50 border border-white/20',
 }
 
 const budgetStatusColors: Record<string, string> = {
-  DRAFT:    'bg-white/10 text-white/50',
-  APPROVED: 'bg-blue-500/20 text-blue-400',
-  ACTIVE:   'bg-emerald-500/20 text-emerald-400',
-  CLOSED:   'bg-white/5 text-white/30',
+  DRAFT: 'bg-white/10 text-white/50', APPROVED: 'bg-blue-500/20 text-blue-400',
+  ACTIVE: 'bg-emerald-500/20 text-emerald-400', CLOSED: 'bg-white/5 text-white/30',
 }
 
 const anchorBadge = (status: string) => {
   switch (status) {
     case 'confirmed': return <span className="flex items-center gap-1 text-emerald-400 text-xs"><CheckCircle size={12} /> Confirmed</span>
-    case 'pending':   return <span className="flex items-center gap-1 text-yellow-400 text-xs"><Clock size={12} /> Pending</span>
-    case 'failed':    return <span className="flex items-center gap-1 text-red-400 text-xs"><XCircle size={12} /> Failed</span>
-    default:          return <span className="flex items-center gap-1 text-white/30 text-xs"><Clock size={12} /> —</span>
+    case 'pending': return <span className="flex items-center gap-1 text-yellow-400 text-xs"><Clock size={12} /> Pending</span>
+    case 'failed': return <span className="flex items-center gap-1 text-red-400 text-xs"><XCircle size={12} /> Failed</span>
+    default: return <span className="flex items-center gap-1 text-white/30 text-xs"><Clock size={12} /> —</span>
   }
 }
 
 type TabKey = 'expenses' | 'documents' | 'budgets' | 'audit'
 
 export default function ProjectDetailPage() {
-  const params  = useParams()
-  const router  = useRouter()
-  const id      = params?.id as string
-
-  const [project,  setProject]  = useState<Project | null>(null)
+  const params = useParams()
+  const id = params?.id as string
+  const [project, setProject] = useState<Project | null>(null)
   const [expenses, setExpenses] = useState<Expense[]>([])
-  const [audit,    setAudit]    = useState<AuditEntry[]>([])
-  const [loading,  setLoading]  = useState(true)
-  const [tab,      setTab]      = useState<TabKey>('expenses')
-  const [error,    setError]    = useState('')
+  const [audit, setAudit] = useState<AuditEntry[]>([])
+  const [loading, setLoading] = useState(true)
+  const [tab, setTab] = useState<TabKey>('expenses')
+  const [error, setError] = useState('')
 
   useEffect(() => {
     if (!id) return
@@ -124,9 +85,7 @@ export default function ProjectDetailPage() {
       setProject(proj)
       setExpenses(exp.data ?? exp.items ?? [])
       const allAudit = aud.data ?? aud.items ?? []
-      setAudit(allAudit.filter((a: AuditEntry) =>
-        a.entityId === id || a.entityType === 'Project'
-      ))
+      setAudit(allAudit.filter((a: AuditEntry) => a.entityId === id || a.entityType === 'Project'))
       setLoading(false)
     }).catch(() => { setError('Failed to load project'); setLoading(false) })
   }, [id])
@@ -141,19 +100,19 @@ export default function ProjectDetailPage() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-[#0a0a0f] text-white/60 gap-4">
       <FolderOpen size={48} className="text-white/20" />
       <p>{error || 'Project not found'}</p>
-      <Link href="/dashboard/projects" className="text-cyan-400 hover:text-cyan-300 text-sm">← Back to Projects</Link>
+      <Link href="/dashboard/projects" className="text-cyan-400 hover:text-cyan-300 text-sm">Back to Projects</Link>
     </div>
   )
 
-  const totalSpent    = expenses.reduce((s, e) => s + e.amount, 0)
-  const confirmedExp  = expenses.filter(e => e.anchorStatus === 'confirmed').length
-  const pendingExp    = expenses.filter(e => e.anchorStatus === 'pending' || !e.anchorStatus).length
-  const hasBudgets    = project.budgets && project.budgets.length > 0
+  // Aggregate from budgets
+  const hasBudgets = project.budgets && project.budgets.length > 0
+  const totalBudget = hasBudgets ? project.budgets.reduce((s, b) => s + b.lines.reduce((ls, l) => ls + l.approvedAmount, 0), 0) : 0
+  const totalFunded = hasBudgets ? project.budgets.reduce((s, b) => s + (b.fundingSources || []).reduce((fs, f) => fs + f.amount, 0), 0) : 0
+  const totalSpent = expenses.reduce((s, e) => s + e.amount, 0)
+  const remaining = totalBudget - totalSpent
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white p-6 max-w-6xl mx-auto">
-
-      {/* Back */}
       <Link href="/dashboard/projects" className="inline-flex items-center gap-2 text-white/40 hover:text-white/70 text-sm mb-6 transition-colors">
         <ArrowLeft size={14} /> Back to Projects
       </Link>
@@ -177,108 +136,34 @@ export default function ProjectDetailPage() {
             </div>
           </div>
         </div>
-        <Link href="/dashboard/expenses/new" className="flex items-center gap-2 bg-cyan-500 hover:bg-cyan-400 text-black text-sm font-medium px-4 py-2 rounded-lg transition-colors">
-          <Plus size={14} /> Log Expense
+        <Link href={`/dashboard/budgets/new?projectId=${id}`}
+          className="flex items-center gap-2 text-sm font-medium text-white px-4 py-2 rounded-lg transition-all shrink-0"
+          style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+          <Plus size={14} /> Create Budget
         </Link>
       </div>
 
-      {/* Stats row */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+          <p className="text-white/40 text-xs mb-1">Total Budget</p>
+          <p className="text-white font-semibold text-lg">${totalBudget.toLocaleString()}</p>
+        </div>
+        <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+          <p className="text-white/40 text-xs mb-1">Total Funded</p>
+          <p className={`font-semibold text-lg ${totalFunded >= totalBudget && totalBudget > 0 ? 'text-green-400' : 'text-yellow-400'}`}>
+            ${totalFunded.toLocaleString()}
+          </p>
+        </div>
         <div className="bg-white/5 border border-white/10 rounded-xl p-4">
           <p className="text-white/40 text-xs mb-1">Total Spent</p>
-          <p className="text-white font-semibold text-lg">${totalSpent.toLocaleString()}</p>
+          <p className="text-orange-400 font-semibold text-lg">${totalSpent.toLocaleString()}</p>
         </div>
         <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-          <p className="text-white/40 text-xs mb-1">Expenses</p>
-          <p className="text-white font-semibold text-lg">{expenses.length}</p>
-        </div>
-        <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-          <p className="text-white/40 text-xs mb-1">Documents</p>
-          <p className="text-white font-semibold text-lg">{project.documents?.length ?? 0}</p>
-        </div>
-      </div>
-
-      {/* Budget summary card */}
-      {project.budgetSummary && project.budgetSummary.budgetTotal > 0 ? (() => {
-        const bs = project.budgetSummary
-        const remaining = bs.budgetTotal - bs.actualTotal
-        const pct = bs.budgetTotal > 0 ? Math.round((remaining / bs.budgetTotal) * 100) : 0
-        return (
-          <div className="bg-white/5 border border-white/10 rounded-xl p-5 mb-8">
-            <div className="grid grid-cols-2 gap-x-8 gap-y-1">
-              <div className="text-xs text-white/30 font-medium uppercase tracking-wide">Budget</div>
-              <div className="text-xs text-white/30 font-medium uppercase tracking-wide">Actual Spend</div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-purple-400">CapEx</span>
-                <span className="text-sm text-white/60 font-medium">${bs.budgetCapex.toLocaleString()}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-purple-400">CapEx</span>
-                <span className="text-sm text-white/60 font-medium">${bs.actualCapex.toLocaleString()}</span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-cyan-400">OpEx</span>
-                <span className="text-sm text-white/60 font-medium">${bs.budgetOpex.toLocaleString()}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-cyan-400">OpEx</span>
-                <span className="text-sm text-white/60 font-medium">${bs.actualOpex.toLocaleString()}</span>
-              </div>
-
-              <div className="flex items-center justify-between border-t border-white/10 pt-1 mt-1">
-                <span className="text-sm text-white font-medium">Total</span>
-                <span className="text-sm text-white font-bold">${bs.budgetTotal.toLocaleString()}</span>
-              </div>
-              <div className="flex items-center justify-between border-t border-white/10 pt-1 mt-1">
-                <span className="text-sm text-white font-medium">Total</span>
-                <span className="text-sm text-white font-bold">${bs.actualTotal.toLocaleString()}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/10">
-              <span className="text-sm text-white/50">Remaining</span>
-              <span className={`text-sm font-bold ${remaining >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                ${remaining.toLocaleString()} ({pct}%)
-              </span>
-            </div>
-          </div>
-        )
-      })() : (
-        <div className="bg-white/5 border border-dashed border-white/10 rounded-xl p-6 mb-8 flex flex-col items-center gap-3">
-          <Wallet size={28} className="text-white/15" />
-          <p className="text-white/40 text-sm">No budget created yet</p>
-          <Link href={`/dashboard/budgets/new?projectId=${id}`}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
-            <Plus size={14} /> Create Budget
-          </Link>
-        </div>
-      )}
-
-      {/* Blockchain summary */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 flex items-center gap-3">
-          <CheckCircle size={20} className="text-emerald-400" />
-          <div>
-            <p className="text-white/40 text-xs">Confirmed</p>
-            <p className="text-emerald-400 font-semibold">{confirmedExp}</p>
-          </div>
-        </div>
-        <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-xl p-4 flex items-center gap-3">
-          <Clock size={20} className="text-yellow-400" />
-          <div>
-            <p className="text-white/40 text-xs">Pending Anchor</p>
-            <p className="text-yellow-400 font-semibold">{pendingExp}</p>
-          </div>
-        </div>
-        <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center gap-3">
-          <Activity size={20} className="text-cyan-400" />
-          <div>
-            <p className="text-white/40 text-xs">Audit Entries</p>
-            <p className="text-white font-semibold">{audit.length}</p>
-          </div>
+          <p className="text-white/40 text-xs mb-1">Remaining</p>
+          <p className={`font-semibold text-lg ${remaining >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+            ${remaining.toLocaleString()}
+          </p>
         </div>
       </div>
 
@@ -290,17 +175,14 @@ export default function ProjectDetailPage() {
           { key: 'budgets' as TabKey, label: 'Budgets', count: project.budgets?.length ?? 0 },
           { key: 'audit' as TabKey, label: 'Audit', count: audit.length },
         ]).map(t => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`px-4 py-1.5 rounded-md text-sm transition-all ${tab === t.key ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70'}`}
-          >
+          <button key={t.key} onClick={() => setTab(t.key)}
+            className={`px-4 py-1.5 rounded-md text-sm transition-all ${tab === t.key ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70'}`}>
             {t.label} ({t.count})
           </button>
         ))}
       </div>
 
-      {/* Tab content */}
+      {/* Tab: Expenses */}
       {tab === 'expenses' && (
         <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
           {expenses.length === 0 ? (
@@ -326,10 +208,7 @@ export default function ProjectDetailPage() {
                     <td className="px-4 py-3 text-sm text-white/80">{exp.description}</td>
                     <td className="px-4 py-3 text-sm text-white font-medium">{exp.currency} {exp.amount.toLocaleString()}</td>
                     <td className="px-4 py-3">
-                      {exp.dataHash
-                        ? <span className="text-xs font-mono text-white/30">{exp.dataHash.slice(0, 12)}...</span>
-                        : <span className="text-xs text-white/20">—</span>
-                      }
+                      {exp.dataHash ? <span className="text-xs font-mono text-white/30">{exp.dataHash.slice(0, 12)}...</span> : <span className="text-xs text-white/20">-</span>}
                     </td>
                     <td className="px-4 py-3">{anchorBadge(exp.anchorStatus ?? '')}</td>
                     <td className="px-4 py-3 text-xs text-white/30">{new Date(exp.createdAt).toLocaleDateString()}</td>
@@ -341,6 +220,7 @@ export default function ProjectDetailPage() {
         </div>
       )}
 
+      {/* Tab: Documents */}
       {tab === 'documents' && (
         <div className="space-y-4">
           <DocumentUploadSection entityType="project" entityId={id} onUploaded={() => {
@@ -350,7 +230,7 @@ export default function ProjectDetailPage() {
             {(!project.documents || project.documents.length === 0) ? (
               <div className="flex flex-col items-center justify-center py-12 text-white/30 gap-2">
                 <FileText size={32} className="text-white/10" />
-                <p className="text-sm">No documents yet — upload one above</p>
+                <p className="text-sm">No documents yet - upload one above</p>
               </div>
             ) : (
               <table className="w-full">
@@ -360,29 +240,17 @@ export default function ProjectDetailPage() {
                     <th className="text-left text-xs text-white/30 font-normal px-4 py-3">TYPE</th>
                     <th className="text-left text-xs text-white/30 font-normal px-4 py-3">HASH</th>
                     <th className="text-left text-xs text-white/30 font-normal px-4 py-3">DATE</th>
-                    <th className="text-left text-xs text-white/30 font-normal px-4 py-3"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {project.documents.map((doc: any) => (
                     <tr key={doc.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
                       <td className="px-4 py-3 text-sm text-white/80">{doc.name}</td>
-                      <td className="px-4 py-3 text-xs text-white/40 uppercase">{doc.fileType ?? '—'}</td>
+                      <td className="px-4 py-3 text-xs text-white/40 uppercase">{doc.fileType ?? '-'}</td>
                       <td className="px-4 py-3">
-                        {doc.sha256Hash
-                          ? <span className="text-xs font-mono text-white/30">{doc.sha256Hash.slice(0, 12)}...</span>
-                          : <span className="text-xs text-white/20">—</span>
-                        }
+                        {doc.sha256Hash ? <span className="text-xs font-mono text-white/30">{doc.sha256Hash.slice(0, 12)}...</span> : <span className="text-xs text-white/20">-</span>}
                       </td>
                       <td className="px-4 py-3 text-xs text-white/30">{new Date(doc.uploadedAt ?? doc.createdAt).toLocaleDateString()}</td>
-                      <td className="px-4 py-3">
-                        {doc.sha256Hash && (
-                          <a href={`/verify?hash=${doc.sha256Hash}`} target="_blank"
-                            className="text-white/20 hover:text-[#369bff] transition-colors" title="Verify hash">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                          </a>
-                        )}
-                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -392,6 +260,7 @@ export default function ProjectDetailPage() {
         </div>
       )}
 
+      {/* Tab: Budgets */}
       {tab === 'budgets' && (
         <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
           {!hasBudgets ? (
@@ -413,24 +282,18 @@ export default function ProjectDetailPage() {
                 </tr>
               </thead>
               <tbody>
-                {project.budgets.map((b) => {
+                {project.budgets.map(b => {
                   const total = b.lines.reduce((s, l) => s + l.approvedAmount, 0)
                   return (
                     <tr key={b.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
                       <td className="px-4 py-3 text-sm text-white/80">{b.name}</td>
                       <td className="px-4 py-3">
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${budgetStatusColors[b.status] ?? 'bg-white/10 text-white/50'}`}>
-                          {b.status}
-                        </span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${budgetStatusColors[b.status] ?? 'bg-white/10 text-white/50'}`}>{b.status}</span>
                       </td>
-                      <td className="px-4 py-3 text-xs text-white/40">
-                        {new Date(b.periodFrom).toLocaleDateString()} — {new Date(b.periodTo).toLocaleDateString()}
-                      </td>
+                      <td className="px-4 py-3 text-xs text-white/40">{new Date(b.periodFrom).toLocaleDateString()} - {new Date(b.periodTo).toLocaleDateString()}</td>
                       <td className="px-4 py-3 text-sm text-white/50">{b.lines.length}</td>
                       <td className="px-4 py-3 text-sm text-white font-medium">${total.toLocaleString()}</td>
-                      <td className="px-4 py-3">
-                        <Link href={`/dashboard/budgets/${b.id}`} className="text-cyan-400 hover:text-cyan-300 text-xs">View</Link>
-                      </td>
+                      <td className="px-4 py-3"><Link href={`/dashboard/budgets/${b.id}`} className="text-cyan-400 hover:text-cyan-300 text-xs">View</Link></td>
                     </tr>
                   )
                 })}
@@ -440,6 +303,7 @@ export default function ProjectDetailPage() {
         </div>
       )}
 
+      {/* Tab: Audit */}
       {tab === 'audit' && (
         <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
           {audit.length === 0 ? (
@@ -459,20 +323,17 @@ export default function ProjectDetailPage() {
                 </tr>
               </thead>
               <tbody>
-                {audit.map((entry) => (
+                {audit.map(entry => (
                   <tr key={entry.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
                     <td className="px-4 py-3 text-sm text-white/80">{entry.action.replace(/_/g, ' ')}</td>
-                    <td className="px-4 py-3">
-                      <span className="text-xs font-mono text-white/30">{entry.dataHash?.slice(0, 12)}...</span>
-                    </td>
+                    <td className="px-4 py-3"><span className="text-xs font-mono text-white/30">{entry.dataHash?.slice(0, 12)}...</span></td>
                     <td className="px-4 py-3">
                       {entry.blockchainTx
                         ? <a href={`https://polygonscan.com/tx/${entry.blockchainTx}`} target="_blank" rel="noopener noreferrer"
                             className="text-xs font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1">
                             {entry.blockchainTx.slice(0, 10)}... <ExternalLink size={10} />
                           </a>
-                        : <span className="text-xs text-white/20">—</span>
-                      }
+                        : <span className="text-xs text-white/20">-</span>}
                     </td>
                     <td className="px-4 py-3">{anchorBadge(entry.anchorStatus)}</td>
                     <td className="px-4 py-3 text-xs text-white/30">{new Date(entry.createdAt).toLocaleDateString()}</td>

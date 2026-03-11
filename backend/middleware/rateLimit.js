@@ -16,7 +16,7 @@ const byTenant = (req) => req.user?.tenantId || req.ip  // fallback to IP if not
 // ── General API limiter — per IP ──────────────────────────────
 const apiLimiter = rateLimit({
   windowMs:         15 * 60 * 1000,
-  max:              100,
+  max:              300,
   keyGenerator:     byIP,
   standardHeaders:  true,
   legacyHeaders:    false,

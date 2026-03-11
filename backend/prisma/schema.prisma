@@ -287,6 +287,10 @@ model Expense {
   expenseType        String?           // CAPEX or OPEX
   category           String?
   subCategory        String?
+  vendor             String?
+  receiptFileKey     String?
+  receiptHash        String?
+  receiptSealId      String?
   createdAt          DateTime          @default(now())
   documents          Document[]
   fundingSource      FundingSource?    @relation(fields: [fundingSourceId], references: [id])

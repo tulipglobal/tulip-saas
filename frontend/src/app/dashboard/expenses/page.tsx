@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { apiGet } from '@/lib/api'
+import { apiGet, apiPut } from '@/lib/api'
 import Link from 'next/link'
-import { Receipt, Plus, Search, ExternalLink, Shield, Copy, Check, ChevronDown, ChevronUp, FileCheck, Upload } from 'lucide-react'
+import { Receipt, Plus, Search, ExternalLink, Shield, Copy, Check, CheckCircle, ChevronDown, ChevronUp, FileCheck, Upload } from 'lucide-react'
 import DocumentUploadSection from '@/components/DocumentUploadSection'
 
 interface Document {
@@ -29,6 +29,9 @@ interface Expense {
   approvalStatus?: string
   dataHash: string | null
   blockchainTx: string | null
+  receiptHash: string | null
+  receiptFileKey: string | null
+  receiptSealId: string | null
   project?: { id: string; name: string }
   fundingAgreement?: { id: string; title: string; donor: { name: string } | null } | null
   documents?: Document[]
@@ -89,6 +92,60 @@ function AnchorBadge({ status }: { status: string }) {
   )
 }
 
+function ReceiptUploader({ expenseId, expenseTitle, onUploaded }: { expenseId: string; expenseTitle: string; onUploaded: () => void }) {
+  const [file, setFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
+
+  const upload = async () => {
+    if (!file) return
+    setUploading(true); setError('')
+    try {
+      const token = localStorage.getItem('tulip_token')
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('title', expenseTitle || file.name)
+      fd.append('expenseId', expenseId)
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5050'}/api/expenses/upload-receipt`, {
+        method: 'POST',
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: fd,
+      })
+      if (res.ok) {
+        setFile(null)
+        onUploaded()
+      } else {
+        const d = await res.json().catch(() => ({}))
+        setError(d.error || 'Upload failed')
+      }
+    } catch { setError('Upload failed') }
+    setUploading(false)
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <label className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-white/15 hover:border-white/25 cursor-pointer transition-all text-sm text-white/40">
+          <Upload size={13} />
+          <span>{file ? file.name : 'Choose receipt...'}</span>
+          <input type="file" className="hidden"
+            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xlsx,.xls,.csv"
+            onChange={e => { if (e.target.files?.[0]) setFile(e.target.files[0]) }} />
+        </label>
+        {file && (
+          <button onClick={upload} disabled={uploading}
+            className="px-3 py-2 rounded-lg text-xs font-medium text-white disabled:opacity-50 shrink-0"
+            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+            {uploading ? 'Uploading...' : 'Upload & Seal'}
+          </button>
+        )}
+      </div>
+      {error && <p className="text-xs text-red-400">{error}</p>}
+      <p className="text-[10px] text-white/20">File will be SHA-256 hashed and a Trust Seal created automatically</p>
+    </div>
+  )
+}
+
 function ExpenseRow({ expense, onRefresh }: { expense: Expense; onRefresh: () => void }) {
   const [expanded, setExpanded] = useState(false)
 
@@ -131,6 +188,9 @@ function ExpenseRow({ expense, onRefresh }: { expense: Expense; onRefresh: () =>
           <div className="flex items-center gap-2 mt-1.5 lg:hidden">
             <ApprovalBadge status={expense.approvalStatus} />
             <AnchorBadge status={expense.anchorStatus} />
+            {expense.receiptHash && (
+              <span className="text-[10px] text-green-400 flex items-center gap-0.5"><CheckCircle size={10} /> Sealed</span>
+            )}
             {expense.dataHash && (
               <Link href={`/verify?hash=${expense.dataHash}`} target="_blank"
                 className="text-white/20 hover:text-[#369bff] transition-colors" title="Verify" onClick={e => e.stopPropagation()}>
@@ -152,7 +212,14 @@ function ExpenseRow({ expense, onRefresh }: { expense: Expense; onRefresh: () =>
           {expense.project?.name ?? '—'}
         </div>
         <div className="hidden lg:block" onClick={e => e.stopPropagation()}>
-          {expense.dataHash ? <HashCell hash={expense.dataHash} /> : <span className="text-white/20 text-xs">—</span>}
+          {expense.receiptHash ? (
+            <div className="flex items-center gap-1.5">
+              <HashCell hash={expense.receiptHash} />
+              <span className="text-[10px] text-green-400 flex items-center gap-0.5"><CheckCircle size={10} /> Sealed</span>
+            </div>
+          ) : (
+            <span className="text-white/20 text-xs">No receipt</span>
+          )}
         </div>
         <div className="hidden lg:flex lg:items-center lg:gap-1.5">
           <ApprovalBadge status={expense.approvalStatus} />
@@ -181,6 +248,27 @@ function ExpenseRow({ expense, onRefresh }: { expense: Expense; onRefresh: () =>
       {expanded && (
         <div className="px-5 pb-5 bg-white/1 border-t border-white/5">
           <div className="pt-4 space-y-4">
+
+            {/* Receipt section */}
+            <div className="rounded-lg border border-white/8 p-4 space-y-3 bg-white/[0.01]">
+              <div className="text-xs font-medium text-white/50 uppercase tracking-wide">Receipt / Invoice</div>
+              {expense.receiptHash ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-green-400 text-sm">
+                    <CheckCircle size={14} /> Receipt Sealed
+                  </div>
+                  <div className="text-xs text-white/30 font-mono break-all">SHA-256: {expense.receiptHash}</div>
+                  {expense.receiptHash && (
+                    <Link href={`/verify?hash=${expense.receiptHash}`} target="_blank"
+                      className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 w-fit" onClick={e => e.stopPropagation()}>
+                      <Shield size={11} /> Verify on blockchain
+                    </Link>
+                  )}
+                </div>
+              ) : (
+                <ReceiptUploader expenseId={expense.id} expenseTitle={expense.title ?? expense.description} onUploaded={onRefresh} />
+              )}
+            </div>
 
             {/* Documents list */}
             {(expense.documents?.length ?? 0) > 0 && (
@@ -226,7 +314,7 @@ function ExpenseRow({ expense, onRefresh }: { expense: Expense; onRefresh: () =>
               </div>
             )}
 
-            {/* Upload new document */}
+            {/* Upload additional documents */}
             <DocumentUploadSection entityType="expense" entityId={expense.id} onUploaded={onRefresh} />
           </div>
         </div>
@@ -295,7 +383,7 @@ export default function ExpensesPage() {
 
       <div className="rounded-xl border border-white/8 overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)' }}>
         <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_60px] gap-4 px-5 py-3 border-b border-white/8 text-xs text-white/30 uppercase tracking-wide font-medium">
-          <span>Expense</span><span>Amount</span><span>Project</span><span>Hash</span><span>Status</span><span>Actions</span>
+          <span>Expense</span><span>Amount</span><span>Project</span><span>Receipt</span><span>Status</span><span>Actions</span>
         </div>
 
         {loading ? (

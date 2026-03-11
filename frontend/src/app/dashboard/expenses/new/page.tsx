@@ -148,6 +148,7 @@ export default function NewExpensePage() {
     if (!form.projectId) { setError('Project is required'); return }
     if (!form.title.trim()) { setError('Title is required'); return }
     if (!form.amount || isNaN(parseFloat(form.amount))) { setError('Valid amount is required'); return }
+    if (parseFloat(form.amount) <= 0) { setError('Amount must be greater than zero'); return }
     if (lineRemaining !== null && parseFloat(form.amount) > lineRemaining) {
       setError(`Amount exceeds remaining balance of ${selectedLine?.currency} ${lineRemaining.toLocaleString()}`)
       return

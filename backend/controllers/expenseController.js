@@ -58,6 +58,9 @@ exports.createExpense = async (req, res) => {
     if (!expenseTitle || !amount) {
       return res.status(400).json({ error: 'title and amount are required' })
     }
+    if (parseFloat(amount) <= 0) {
+      return res.status(400).json({ error: 'Amount must be a positive number greater than zero' })
+    }
 
     // Budget enforcement: if budgetLineId is provided, check remaining balance
     if (budgetLineId) {
@@ -139,7 +142,10 @@ exports.updateExpense = async (req, res) => {
     const existing = await db.expense.findFirst({ where: { id: req.params.id } })
     if (!existing) return res.status(404).json({ error: 'Expense not found' })
 
-    const { description, amount, currency, fundingSourceId, fundingAgreementId, expenseType, category, subCategory, budgetId, budgetLineId } = req.body
+    const { description, amount, currency, fundingSourceId, fundingAgreementId, expenseType, category, subCategory, budgetId, budgetLineId, receiptFileKey, receiptHash, receiptSealId } = req.body
+    if (amount !== undefined && parseFloat(amount) <= 0) {
+      return res.status(400).json({ error: 'Amount must be a positive number greater than zero' })
+    }
     const expense = await db.expense.update({
       where: { id: req.params.id },
       data: {
@@ -153,6 +159,9 @@ exports.updateExpense = async (req, res) => {
         ...(expenseType        !== undefined && { expenseType }),
         ...(category           !== undefined && { category }),
         ...(subCategory        !== undefined && { subCategory }),
+        ...(receiptFileKey     !== undefined && { receiptFileKey }),
+        ...(receiptHash        !== undefined && { receiptHash }),
+        ...(receiptSealId      !== undefined && { receiptSealId }),
       }
     })
     res.json(expense)
@@ -204,6 +213,14 @@ exports.uploadReceipt = async (req, res) => {
         status: 'issued',
       }
     })
+
+    // If expenseId provided, link receipt to expense
+    if (req.body.expenseId) {
+      await db.expense.update({
+        where: { id: req.body.expenseId },
+        data: { receiptFileKey: s3Key, receiptHash: sha256Hash, receiptSealId: seal.id },
+      }).catch(err => console.error('linkReceipt error:', err.message))
+    }
 
     res.json({
       fileKey: s3Key,

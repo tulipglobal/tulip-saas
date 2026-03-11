@@ -392,8 +392,8 @@ export default function ExpensesPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { label: 'Total Logged', value: `$${total.toLocaleString()}` },
-            { label: 'Anchored', value: filtered.filter(e => e.anchorStatus === 'confirmed').length },
-            { label: 'Pending Anchor', value: filtered.filter(e => e.anchorStatus === 'pending').length },
+            { label: 'Anchored', value: filtered.filter(e => e.receiptHash && sealMap[e.receiptHash]?.anchorStatus === 'confirmed').length },
+            { label: 'Pending Anchor', value: filtered.filter(e => !e.receiptHash || !sealMap[e.receiptHash] || sealMap[e.receiptHash]?.anchorStatus === 'pending').length },
           ].map(({ label, value }) => (
             <div key={label} className="rounded-xl border border-white/8 px-5 py-4" style={{ background: 'rgba(255,255,255,0.02)' }}>
               <div className="text-xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>{value}</div>

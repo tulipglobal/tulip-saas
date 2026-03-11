@@ -168,6 +168,14 @@ router.get('/ocr/jobs', async (req, res) => {
       },
     })
 
+    // Resolve sealIds for completed jobs
+    const hashes = jobs.filter(j => j.hashValue).map(j => j.hashValue)
+    const seals = hashes.length > 0 ? await prisma.trustSeal.findMany({
+      where: { rawHash: { in: hashes }, tenantId: req.user.tenantId },
+      select: { id: true, rawHash: true },
+    }) : []
+    const sealMap = Object.fromEntries(seals.map(s => [s.rawHash, s.id]))
+
     res.json(jobs.map(job => ({
       id: job.id,
       fileName: job.originalFilename,
@@ -180,6 +188,7 @@ router.get('/ocr/jobs', async (req, res) => {
         normalizedData: job.normalisedJson,
       } : undefined,
       hash: job.hashValue || undefined,
+      sealId: job.hashValue ? sealMap[job.hashValue] || null : null,
       anchorStatus: job.anchorTxHash ? 'confirmed' : (job.status === 'completed' ? 'pending' : null),
     })))
   } catch (err) {
@@ -215,6 +224,12 @@ router.get('/ocr/jobs/:id', async (req, res) => {
     if (job.hashValue) {
       response.hash = job.hashValue
       response.verifyUrl = `https://verify.tulipds.com/verify?hash=${job.hashValue}`
+      // Resolve sealId
+      const seal = await prisma.trustSeal.findFirst({
+        where: { rawHash: job.hashValue, tenantId: req.user.tenantId },
+        select: { id: true },
+      })
+      if (seal) response.sealId = seal.id
     }
     response.anchorStatus = job.anchorTxHash ? 'confirmed' : (job.status === 'completed' ? 'pending' : null)
     if (job.anchorTxHash) {

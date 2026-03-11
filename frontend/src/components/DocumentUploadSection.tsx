@@ -45,11 +45,28 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
       if (entityType === 'project') fd.append('projectId', entityId)
       if (entityType === 'expense') fd.append('expenseId', entityId)
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/documents`, {
+      let url = `${process.env.NEXT_PUBLIC_API_URL}/api/documents`
+      let res = await fetch(url, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: fd,
       })
+
+      // Handle duplicate hash — ask user to confirm
+      if (res.status === 409) {
+        const dup = await res.json()
+        const proceed = window.confirm(
+          `${dup.message}\n\nDo you want to upload it anyway?`
+        )
+        if (!proceed) { setUploading(false); return }
+        // Re-upload with allowDuplicate flag
+        res = await fetch(`${url}?allowDuplicate=1`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: fd,
+        })
+      }
+
       if (res.ok) {
         setSuccess(true)
         setFile(null)

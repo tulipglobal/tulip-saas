@@ -83,9 +83,18 @@ export default function AddDocumentPage() {
       if (category && KEY_DOCUMENT_CATEGORIES.includes(category) && expiryDate) formData.append('expiryDate', expiryDate)
       if (level === 'project' || level === 'expense') formData.append('projectId', selectedProject)
       if (level === 'expense') formData.append('expenseId', selectedExpense)
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/documents`, {
+      let res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/documents`, {
         method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData,
       })
+      // Handle duplicate hash
+      if (res.status === 409) {
+        const dup = await res.json()
+        const proceed = window.confirm(`${dup.message}\n\nDo you want to upload it anyway?`)
+        if (!proceed) { setLoading(false); return }
+        res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/documents?allowDuplicate=1`, {
+          method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData,
+        })
+      }
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Upload failed')
       setSuccess(true)

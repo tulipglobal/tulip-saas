@@ -77,6 +77,21 @@ exports.createDocument = async (req, res) => {
     // Compute SHA-256 of file
     const sha256Hash = computeSHA256(req.file.buffer)
 
+    // Check for duplicate hash within tenant
+    const existingDoc = await db.document.findFirst({
+      where: { sha256Hash },
+      select: { id: true, name: true, uploadedAt: true },
+    })
+    if (existingDoc && !req.query.allowDuplicate) {
+      return res.status(409).json({
+        error: 'duplicate_hash',
+        message: `This document was previously submitted on ${new Date(existingDoc.uploadedAt).toLocaleDateString()} as "${existingDoc.name}"`,
+        existingDocumentId: existingDoc.id,
+        existingDocumentName: existingDoc.name,
+        existingUploadedAt: existingDoc.uploadedAt,
+      })
+    }
+
     // Upload to S3
     const { fileUrl, key: s3FileKey } = await uploadToS3(
       req.file.buffer,

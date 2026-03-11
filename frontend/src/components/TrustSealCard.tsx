@@ -50,9 +50,9 @@ export default function TrustSealCard({ sealId, onClose }: TrustSealCardProps) {
 
         // Get document preview URL if file exists
         if (data.s3Key) {
-          fetch(`${api}/api/public/seal/${sealId}/document`)
+          fetch(`${api}/api/trust-seal/${sealId}/preview-url`, { headers })
             .then(r => r.ok ? r.json() : null)
-            .then(d => { if (d?.url) setDocUrl(d.url) })
+            .then(d => { if (d?.previewUrl) setDocUrl(d.previewUrl) })
             .catch(() => {})
         }
       })
@@ -72,8 +72,9 @@ export default function TrustSealCard({ sealId, onClose }: TrustSealCardProps) {
   }, [seal])
 
   const isAnchored = seal?.anchorTxHash || seal?.status === 'anchored'
-  const isImage = seal?.fileType && ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(seal.fileType.toLowerCase().replace('.', ''))
-  const isPdf = seal?.fileType && seal.fileType.toLowerCase().replace('.', '') === 'pdf'
+  const ft = (seal?.fileType || '').toLowerCase()
+  const isImage = ft.startsWith('image/') || ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ft.replace('.', ''))
+  const isPdf = ft === 'application/pdf' || ft.replace('.', '') === 'pdf'
 
   // Close on escape
   useEffect(() => {

@@ -12,7 +12,7 @@ const prisma = require('../lib/client')
 const { parsePagination, paginatedResponse } = require('../lib/paginate')
 const { createAuditLog } = require('../services/auditService')
 const { trackEvent } = require('../services/engagementService')
-const { uploadToS3 } = require('../lib/s3Upload')
+const { uploadToS3, getPresignedUrlFromKey } = require('../lib/s3Upload')
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } })
 
@@ -186,6 +186,25 @@ router.post('/resolve', async (req, res) => {
   } catch (err) {
     console.error('Failed to resolve seals:', err)
     res.status(500).json({ error: 'Failed to resolve seals' })
+  }
+})
+
+// GET /api/trust-seal/:id/preview-url — presigned S3 URL for document preview
+router.get('/:id/preview-url', async (req, res) => {
+  try {
+    const db = tenantClient(req.user.tenantId)
+    const seal = await db.trustSeal.findFirst({
+      where: { id: req.params.id },
+      select: { s3Key: true, fileType: true },
+    })
+    if (!seal) return res.status(404).json({ error: 'Seal not found' })
+    if (!seal.s3Key) return res.status(404).json({ error: 'No file attached to this seal' })
+
+    const previewUrl = await getPresignedUrlFromKey(seal.s3Key, 900)
+    res.json({ previewUrl, fileType: seal.fileType })
+  } catch (err) {
+    console.error('Failed to get seal preview URL:', err)
+    res.status(500).json({ error: 'Failed to generate preview URL' })
   }
 })
 

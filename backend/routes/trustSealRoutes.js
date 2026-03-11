@@ -13,6 +13,7 @@ const { parsePagination, paginatedResponse } = require('../lib/paginate')
 const { createAuditLog } = require('../services/auditService')
 const { trackEvent } = require('../services/engagementService')
 const { uploadToS3, getPresignedUrlFromKey } = require('../lib/s3Upload')
+const { hashPdfPages } = require('../lib/pdfPageHasher')
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } })
 
@@ -52,13 +53,18 @@ router.post('/issue', upload.single('file'), async (req, res) => {
 
     // Hash the file content and upload to S3
     const MIME_MAP = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp', tiff: 'image/tiff', tif: 'image/tiff', svg: 'image/svg+xml', pdf: 'application/pdf', doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
-    let rawHash, s3Key = null, fileType = null
+    let rawHash, s3Key = null, fileType = null, pageHashes = null
     if (req.file) {
       rawHash = crypto.createHash('sha256').update(req.file.buffer).digest('hex')
       const s3Result = await uploadToS3(req.file.buffer, req.file.originalname, req.user.tenantId, 'seals')
       s3Key = s3Result.key
       const ext = (req.file.originalname.split('.').pop() || '').toLowerCase()
       fileType = req.file.mimetype || MIME_MAP[ext] || 'application/octet-stream'
+      // Page-level hashing for PDFs
+      if (ext === 'pdf' || (fileType && fileType.includes('pdf'))) {
+        const result = await hashPdfPages(req.file.buffer)
+        if (result.pageHashes.length > 0) pageHashes = result.pageHashes
+      }
     } else if (fileBase64) {
       const buf = Buffer.from(fileBase64, 'base64')
       rawHash = crypto.createHash('sha256').update(buf).digest('hex')
@@ -67,6 +73,11 @@ router.post('/issue', upload.single('file'), async (req, res) => {
       fileType = MIME_MAP[ext] || req.body.fileType || 'application/octet-stream'
       const s3Result = await uploadToS3(buf, fileName, req.user.tenantId, 'seals')
       s3Key = s3Result.key
+      // Page-level hashing for PDFs
+      if (ext === 'pdf' || (fileType && fileType.includes('pdf'))) {
+        const result = await hashPdfPages(buf)
+        if (result.pageHashes.length > 0) pageHashes = result.pageHashes
+      }
     } else {
       // Hash the document metadata as fallback
       const canonical = JSON.stringify({
@@ -97,6 +108,7 @@ router.post('/issue', upload.single('file'), async (req, res) => {
       issuedBy: issuedBy || tenant?.name || 'Unknown',
       metadata: parsedMetadata,
       rawHash,
+      pageHashes: pageHashes || undefined,
       s3Key,
       fileType,
       status: 'issued',

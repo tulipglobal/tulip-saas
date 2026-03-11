@@ -630,25 +630,31 @@ model BundleJob {
 }
 
 model TrustSeal {
-  id             String    @id @default(uuid())
-  tenantId       String
-  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  documentTitle  String
-  documentType   String    @default("CERTIFICATE")
-  issuedTo       String
-  issuedToEmail  String?
-  issuedBy       String
-  metadata       Json?
-  rawHash        String
-  s3Key          String?
-  fileType       String?
-  anchorTxHash   String?
-  anchoredAt     DateTime?
-  blockNumber    Int?
-  qrCodeUrl      String?
-  status         String    @default("issued")
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id               String    @id @default(uuid())
+  tenantId         String
+  tenant           Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  documentTitle    String
+  documentType     String    @default("CERTIFICATE")
+  issuedTo         String
+  issuedToEmail    String?
+  issuedBy         String
+  metadata         Json?
+  rawHash          String
+  pageHashes       Json?
+  s3Key            String?
+  fileType         String?
+  anchorTxHash     String?
+  anchoredAt       DateTime?
+  blockNumber      Int?
+  qrCodeUrl        String?
+  status           String    @default("issued")
+  issuerReference  String?
+  apiKeyId         String?
+  ipAddress        String?
+  anchorRetryCount Int       @default(0)
+  anchorLastRetryAt DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   @@index([tenantId])
   @@index([rawHash])

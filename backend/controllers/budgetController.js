@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────
 //  controllers/budgetController.js
-//  CRUD for Budget + BudgetLine models
+//  CRUD for Budget + BudgetLine + BudgetFundingSource
 // ─────────────────────────────────────────────────────────────
 const tenantClient = require('../lib/tenantClient')
 const prisma = require('../lib/client')
@@ -14,7 +14,6 @@ exports.list = async (req, res) => {
     const { page, limit, skip, take } = parsePagination(req)
     const where = {}
     if (req.query.status) where.status = req.query.status
-
     if (req.query.projectId) where.projectId = req.query.projectId
 
     const [budgets, total] = await Promise.all([
@@ -22,6 +21,7 @@ exports.list = async (req, res) => {
         where, skip, take,
         include: {
           lines: { orderBy: { createdAt: 'asc' } },
+          fundingSources: true,
           project: { select: { id: true, name: true } },
           _count: { select: { fundingAgreements: true, expenses: true } }
         },
@@ -44,7 +44,8 @@ exports.list = async (req, res) => {
 
     const enriched = budgets.map(b => {
       const totalApproved = b.lines.reduce((s, l) => s + l.approvedAmount, 0)
-      return { ...b, totalApproved, spent: spentMap[b.id] || 0 }
+      const totalFunded = b.fundingSources.reduce((s, f) => s + f.amount, 0)
+      return { ...b, totalApproved, totalFunded, spent: spentMap[b.id] || 0 }
     })
 
     res.json(paginatedResponse(enriched, total, page, limit))
@@ -62,6 +63,7 @@ exports.get = async (req, res) => {
       where: { id: req.params.id },
       include: {
         lines: { orderBy: { createdAt: 'asc' } },
+        fundingSources: { orderBy: { createdAt: 'asc' } },
         project: { select: { id: true, name: true } },
         fundingAgreements: {
           select: {
@@ -102,7 +104,7 @@ exports.get = async (req, res) => {
 
     const totalApproved = budget.lines.reduce((s, l) => s + l.approvedAmount, 0)
     const totalSpent = Object.values(lineSpentMap).reduce((s, v) => s + v, 0)
-    const totalFunded = budget.fundingAgreements.reduce((s, f) => s + f.totalAmount, 0)
+    const totalFunded = budget.fundingSources.reduce((s, f) => s + f.amount, 0)
 
     res.json({
       ...budget,
@@ -118,11 +120,11 @@ exports.get = async (req, res) => {
   }
 }
 
-// ─── Create budget with lines ────────────────────────────────
+// ─── Create budget with lines + funding sources ──────────────
 exports.create = async (req, res) => {
   try {
     const db = tenantClient(req.user.tenantId)
-    const { name, periodFrom, periodTo, status, notes, lines, projectId } = req.body
+    const { name, periodFrom, periodTo, status, notes, lines, projectId, fundingSources } = req.body
 
     if (!name || !periodFrom || !periodTo) {
       return res.status(400).json({ error: 'name, periodFrom, and periodTo are required' })
@@ -134,13 +136,24 @@ exports.create = async (req, res) => {
       return res.status(400).json({ error: 'At least one budget line is required' })
     }
 
+    // Compute totals for approval validation
+    const totalBudget = lines.reduce((s, l) => s + Number(l.approvedAmount || 0), 0)
+    const totalFunded = (fundingSources || []).reduce((s, f) => s + Number(f.amount || 0), 0)
+    const requestedStatus = status || 'DRAFT'
+
+    if (requestedStatus === 'APPROVED' && totalFunded < totalBudget) {
+      return res.status(400).json({
+        error: `Cannot approve: budget requires $${totalBudget.toLocaleString()} but only $${totalFunded.toLocaleString()} funded`
+      })
+    }
+
     const budget = await db.budget.create({
       data: {
         name,
         projectId,
         periodFrom: new Date(periodFrom),
         periodTo: new Date(periodTo),
-        status: status || 'DRAFT',
+        status: requestedStatus,
         notes: notes || null,
         lines: {
           create: lines.map(l => ({
@@ -151,9 +164,22 @@ exports.create = async (req, res) => {
             approvedAmount: Number(l.approvedAmount),
             currency: l.currency || 'USD'
           }))
-        }
+        },
+        ...(fundingSources && fundingSources.length > 0 && {
+          fundingSources: {
+            create: fundingSources.map(f => ({
+              sourceType: f.sourceType,
+              sourceSubType: f.sourceSubType || null,
+              donorName: f.donorName,
+              amount: Number(f.amount),
+              currency: f.currency || 'USD',
+              agreementFileKey: f.agreementFileKey || null,
+              agreementHash: f.agreementHash || null,
+            }))
+          }
+        })
       },
-      include: { lines: true }
+      include: { lines: true, fundingSources: true }
     })
 
     await createAuditLog({
@@ -162,7 +188,7 @@ exports.create = async (req, res) => {
       entityId: budget.id,
       userId: req.user.id,
       tenantId: req.user.tenantId,
-      details: { name, lineCount: lines.length }
+      details: { name, lineCount: lines.length, fundingSourceCount: (fundingSources || []).length }
     })
 
     res.status(201).json(budget)
@@ -176,7 +202,10 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const db = tenantClient(req.user.tenantId)
-    const existing = await db.budget.findUnique({ where: { id: req.params.id } })
+    const existing = await db.budget.findUnique({
+      where: { id: req.params.id },
+      include: { lines: true, fundingSources: true }
+    })
     if (!existing) return res.status(404).json({ error: 'Budget not found' })
 
     const { name, periodFrom, periodTo, status, notes, lines } = req.body
@@ -184,13 +213,27 @@ exports.update = async (req, res) => {
     if (name !== undefined) data.name = name
     if (periodFrom !== undefined) data.periodFrom = new Date(periodFrom)
     if (periodTo !== undefined) data.periodTo = new Date(periodTo)
-    if (status !== undefined) data.status = status
     if (notes !== undefined) data.notes = notes
+
+    // Approval validation
+    if (status !== undefined) {
+      if (status === 'APPROVED') {
+        const budgetLines = lines || existing.lines
+        const totalBudget = budgetLines.reduce((s, l) => s + Number(l.approvedAmount || 0), 0)
+        const totalFunded = existing.fundingSources.reduce((s, f) => s + f.amount, 0)
+        if (totalFunded < totalBudget) {
+          return res.status(400).json({
+            error: `Cannot approve: budget requires $${totalBudget.toLocaleString()} but only $${totalFunded.toLocaleString()} funded`
+          })
+        }
+      }
+      data.status = status
+    }
 
     const budget = await db.budget.update({
       where: { id: req.params.id },
       data,
-      include: { lines: true }
+      include: { lines: true, fundingSources: true }
     })
 
     // If lines are provided, upsert them
@@ -198,13 +241,11 @@ exports.update = async (req, res) => {
       const existingLineIds = budget.lines.map(l => l.id)
       const incomingIds = lines.filter(l => l.id).map(l => l.id)
 
-      // Delete removed lines
       const toDelete = existingLineIds.filter(id => !incomingIds.includes(id))
       if (toDelete.length > 0) {
         await prisma.budgetLine.deleteMany({ where: { id: { in: toDelete } } })
       }
 
-      // Upsert lines
       for (const l of lines) {
         if (l.id && existingLineIds.includes(l.id)) {
           await prisma.budgetLine.update({
@@ -236,7 +277,7 @@ exports.update = async (req, res) => {
 
     const updated = await db.budget.findUnique({
       where: { id: req.params.id },
-      include: { lines: true }
+      include: { lines: true, fundingSources: true }
     })
 
     await createAuditLog({
@@ -252,6 +293,103 @@ exports.update = async (req, res) => {
   } catch (err) {
     console.error('budget update error:', err)
     res.status(500).json({ error: 'Failed to update budget' })
+  }
+}
+
+// ─── Add funding source to budget ────────────────────────────
+exports.addFundingSource = async (req, res) => {
+  try {
+    const db = tenantClient(req.user.tenantId)
+    const budget = await db.budget.findUnique({ where: { id: req.params.id } })
+    if (!budget) return res.status(404).json({ error: 'Budget not found' })
+
+    const { sourceType, sourceSubType, donorName, amount, currency, agreementFileKey, agreementHash } = req.body
+    if (!sourceType || !donorName || !amount) {
+      return res.status(400).json({ error: 'sourceType, donorName, and amount are required' })
+    }
+
+    const source = await prisma.budgetFundingSource.create({
+      data: {
+        budgetId: req.params.id,
+        sourceType,
+        sourceSubType: sourceSubType || null,
+        donorName,
+        amount: Number(amount),
+        currency: currency || 'USD',
+        agreementFileKey: agreementFileKey || null,
+        agreementHash: agreementHash || null,
+      }
+    })
+
+    await createAuditLog({
+      action: 'budget.funding_source.added',
+      entityType: 'Budget',
+      entityId: req.params.id,
+      userId: req.user.id,
+      tenantId: req.user.tenantId,
+      details: { sourceType, donorName, amount: Number(amount) }
+    })
+
+    res.status(201).json(source)
+  } catch (err) {
+    console.error('add funding source error:', err)
+    res.status(500).json({ error: 'Failed to add funding source' })
+  }
+}
+
+// ─── Remove funding source from budget ───────────────────────
+exports.removeFundingSource = async (req, res) => {
+  try {
+    const db = tenantClient(req.user.tenantId)
+    const budget = await db.budget.findUnique({ where: { id: req.params.id } })
+    if (!budget) return res.status(404).json({ error: 'Budget not found' })
+
+    const source = await prisma.budgetFundingSource.findUnique({ where: { id: req.params.sourceId } })
+    if (!source || source.budgetId !== req.params.id) {
+      return res.status(404).json({ error: 'Funding source not found' })
+    }
+
+    await prisma.budgetFundingSource.delete({ where: { id: req.params.sourceId } })
+
+    res.json({ ok: true })
+  } catch (err) {
+    console.error('remove funding source error:', err)
+    res.status(500).json({ error: 'Failed to remove funding source' })
+  }
+}
+
+// ─── List all funding sources across budgets (for Funding tab) ─
+exports.listAllFundingSources = async (req, res) => {
+  try {
+    const db = tenantClient(req.user.tenantId)
+    const { page, limit, skip, take } = parsePagination(req)
+
+    // Get all budget IDs for this tenant
+    const budgets = await db.budget.findMany({
+      select: { id: true, name: true, status: true }
+    })
+    const budgetIds = budgets.map(b => b.id)
+    const budgetMap = {}
+    for (const b of budgets) budgetMap[b.id] = b
+
+    const [sources, total] = await Promise.all([
+      prisma.budgetFundingSource.findMany({
+        where: { budgetId: { in: budgetIds } },
+        skip, take,
+        orderBy: { createdAt: 'desc' }
+      }),
+      prisma.budgetFundingSource.count({ where: { budgetId: { in: budgetIds } } })
+    ])
+
+    const enriched = sources.map(s => ({
+      ...s,
+      budget: budgetMap[s.budgetId] || null
+    }))
+
+    res.json(paginatedResponse(enriched, total, page, limit))
+  } catch (err) {
+    console.error('list all funding sources error:', err)
+    res.status(500).json({ error: 'Failed to list funding sources' })
   }
 }
 

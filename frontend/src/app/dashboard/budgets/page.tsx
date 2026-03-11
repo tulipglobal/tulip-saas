@@ -24,8 +24,10 @@ interface Budget {
   createdAt: string
   lines: BudgetLine[]
   totalApproved: number
+  totalFunded: number
   spent: number
   project: { id: string; name: string } | null
+  fundingSources: { id: string; amount: number }[]
   _count: { fundingAgreements: number; expenses: number }
 }
 

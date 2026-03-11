@@ -682,6 +682,7 @@ model Budget {
   tenant      Tenant       @relation(fields: [tenantId], references: [id])
   project     Project?     @relation(fields: [projectId], references: [id])
   lines       BudgetLine[]
+  fundingSources BudgetFundingSource[]
   fundingAgreements FundingAgreement[] @relation("BudgetFunding")
   expenses    Expense[]    @relation("ExpenseBudget")
 
@@ -707,4 +708,20 @@ model BudgetLine {
 
   @@index([budgetId])
   @@index([expenseType])
+}
+
+model BudgetFundingSource {
+  id               String   @id @default(uuid())
+  budgetId         String
+  sourceType       String
+  sourceSubType    String?
+  donorName        String
+  amount           Float
+  currency         String   @default("USD")
+  agreementFileKey String?
+  agreementHash    String?
+  createdAt        DateTime @default(now())
+  budget           Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+
+  @@index([budgetId])
 }

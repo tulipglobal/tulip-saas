@@ -26,7 +26,7 @@ app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), hand
 app.use(express.json())
 app.use(require('./middleware/requestLogger'))
 
-const { apiLimiter, authLimiter, strictLimiter } = require('./middleware/rateLimit')
+const { apiLimiter, authLimiter, strictLimiter, verifyLimiter } = require('./middleware/rateLimit')
 const authenticate = require('./middleware/authenticate')
 const tenantScope  = require('./middleware/tenantScope')
 
@@ -87,7 +87,7 @@ app.get('/api/health', async (req, res) => {
 })
 
 app.use('/api/auth',       authLimiter,    authRoutes)
-app.use('/api/verify',     verifyRouter)
+app.use('/api/verify',     verifyLimiter, verifyRouter)
 app.use('/api/tenants/public', apiLimiter, tenantPublicRoutes)
 app.use('/api/projects',   apiLimiter,     authenticate, tenantScope, projectRoutes)
 app.use('/api/funding-sources', apiLimiter, authenticate, tenantScope, fundingSourceRoutes)
@@ -117,7 +117,7 @@ app.use('/api/cases',        apiLimiter,  authenticate, tenantScope, caseRoutes)
 app.use('/api/trust-seal',   apiLimiter,  authenticate, tenantScope, trustSealRoutes)
 app.use('/api/budgets',     apiLimiter,  authenticate, tenantScope, budgetRoutes)
 app.use('/api/admin',       apiLimiter,  authenticate, adminRoutes)
-app.use('/api/public/cases', apiLimiter,  casePublicRoutes)
+app.use('/api/public/cases', verifyLimiter,  casePublicRoutes)
 app.use('/api/public/seal',  apiLimiter,  sealPublicRoutes)
 app.use('/api/public/ocr',   apiLimiter,  ocrPublicRoutes)
 app.use('/api/external',     apiLimiter,  externalAuth, externalApiRoutes)

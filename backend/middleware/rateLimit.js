@@ -53,4 +53,14 @@ const strictLimiter = rateLimit({
   message:          { error: 'Rate limit exceeded for this endpoint' },
 })
 
-module.exports = { apiLimiter, tenantApiLimiter, authLimiter, strictLimiter }
+// ── Public verify limiter — 20 req/min per IP ─────────────────
+const verifyLimiter = rateLimit({
+  windowMs:         60 * 1000,
+  max:              20,
+  keyGenerator:     byIP,
+  standardHeaders:  true,
+  legacyHeaders:    false,
+  message:          { error: 'Too many verification requests. Please try again in 1 minute.', retryAfter: '60 seconds' },
+})
+
+module.exports = { apiLimiter, tenantApiLimiter, authLimiter, strictLimiter, verifyLimiter }

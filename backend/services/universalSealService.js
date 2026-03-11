@@ -7,7 +7,6 @@
 // ─────────────────────────────────────────────────────────────
 
 const prisma = require('../lib/client')
-const tenantClient = require('../lib/tenantClient')
 
 /**
  * @param {Object} opts
@@ -35,9 +34,9 @@ async function autoIssueSeal({
   })
   if (existing) return existing
 
-  const db = tenantClient(tenantId)
-  const seal = await db.trustSeal.create({
+  const seal = await prisma.trustSeal.create({
     data: {
+      tenantId,
       documentTitle: documentTitle || 'Untitled Document',
       documentType:  documentType || 'document',
       issuedBy:      issuedBy || 'Organization',
@@ -46,7 +45,8 @@ async function autoIssueSeal({
       s3Key:         fileKey || null,
       fileType:      fileType || null,
       metadata:      metadata || null,
-      status:        'issued',
+      anchorTxHash:  null,
+      status:        'pending',
     },
   })
 

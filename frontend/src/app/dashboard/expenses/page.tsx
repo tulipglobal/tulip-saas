@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { apiGet, apiPut } from '@/lib/api'
+import { useState, useEffect, useCallback } from 'react'
+import { apiGet, apiPost } from '@/lib/api'
 import Link from 'next/link'
 import { Receipt, Plus, Search, ExternalLink, Shield, Copy, Check, CheckCircle, ChevronDown, ChevronUp, FileCheck, Upload } from 'lucide-react'
 import DocumentUploadSection from '@/components/DocumentUploadSection'
@@ -148,7 +148,7 @@ function ReceiptUploader({ expenseId, expenseTitle, onUploaded }: { expenseId: s
   )
 }
 
-function ExpenseRow({ expense, onRefresh, onOpenSeal }: { expense: Expense; onRefresh: () => void; onOpenSeal: (sealId: string) => void }) {
+function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expense; onRefresh: () => void; onOpenSeal: (sealId: string) => void; sealMap: Record<string, { sealId: string; anchorStatus: string; txHash: string | null }> }) {
   const [expanded, setExpanded] = useState(false)
 
   return (
@@ -217,7 +217,8 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal }: { expense: Expense; onRe
           {expense.receiptSealId ? (
             <BlockchainStatusPill
               sealId={expense.receiptSealId}
-              anchorStatus={expense.receiptHash ? 'pending' : undefined}
+              anchorStatus={expense.receiptHash && sealMap[expense.receiptHash] ? sealMap[expense.receiptHash].anchorStatus : undefined}
+              txHash={expense.receiptHash && sealMap[expense.receiptHash] ? sealMap[expense.receiptHash].txHash : undefined}
               onClick={() => onOpenSeal(expense.receiptSealId!)}
             />
           ) : (
@@ -339,11 +340,26 @@ export default function ExpensesPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [activeSealId, setActiveSealId] = useState<string | null>(null)
+  const [sealMap, setSealMap] = useState<Record<string, { sealId: string; anchorStatus: string; txHash: string | null }>>({})
+
+  const resolveSeals = useCallback((items: Expense[]) => {
+    const hashes = items.map(e => e.receiptHash).filter(Boolean) as string[]
+    if (hashes.length === 0) return
+    apiPost('/api/trust-seal/resolve', { hashes })
+      .then(r => r.ok ? r.json() : {})
+      .then(map => setSealMap(map))
+      .catch(() => {})
+  }, [])
 
   const load = () => {
     apiGet('/api/expenses?limit=50')
       .then(r => r.ok ? r.json() : { items: [] })
-      .then(d => { setExpenses(d.data ?? d.items ?? []); setLoading(false) })
+      .then(d => {
+        const items = d.data ?? d.items ?? []
+        setExpenses(items)
+        setLoading(false)
+        resolveSeals(items)
+      })
       .catch(() => setLoading(false))
   }
 
@@ -409,7 +425,7 @@ export default function ExpensesPage() {
         ) : (
           <div className="divide-y divide-white/5">
             {filtered.map(expense => (
-              <ExpenseRow key={expense.id} expense={expense} onRefresh={load} onOpenSeal={setActiveSealId} />
+              <ExpenseRow key={expense.id} expense={expense} onRefresh={load} onOpenSeal={setActiveSealId} sealMap={sealMap} />
             ))}
           </div>
         )}
@@ -417,7 +433,7 @@ export default function ExpensesPage() {
       <p className="text-xs text-white/20 text-center">Click any expense row to view documents and upload receipts</p>
 
       {activeSealId && (
-        <TrustSealCard sealId={activeSealId} onClose={() => setActiveSealId(null)} />
+        <TrustSealCard sealId={activeSealId} onClose={() => { setActiveSealId(null); resolveSeals(expenses) }} />
       )}
     </div>
   )

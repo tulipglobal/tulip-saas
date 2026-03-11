@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { apiGet } from '@/lib/api'
+import { apiGet, apiPost } from '@/lib/api'
 import Link from 'next/link'
 import { Banknote, Search } from 'lucide-react'
+import BlockchainStatusPill from '@/components/BlockchainStatusPill'
+import TrustSealCard from '@/components/TrustSealCard'
 
 interface FundingSource {
   id: string
@@ -35,11 +37,24 @@ export default function FundingPage() {
   const [sources, setSources] = useState<FundingSource[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [sealMap, setSealMap] = useState<Record<string, { sealId: string; anchorStatus: string; txHash: string | null }>>({})
+  const [activeSealId, setActiveSealId] = useState<string | null>(null)
 
   useEffect(() => {
     apiGet('/api/budgets/funding-sources?limit=100')
       .then(r => r.ok ? r.json() : { data: [] })
-      .then(d => { setSources(d.data ?? []); setLoading(false) })
+      .then(d => {
+        const items = d.data ?? []
+        setSources(items)
+        setLoading(false)
+        const hashes = items.map((s: FundingSource) => s.agreementHash).filter(Boolean)
+        if (hashes.length > 0) {
+          apiPost('/api/trust-seal/resolve', { hashes })
+            .then(r => r.ok ? r.json() : {})
+            .then(map => setSealMap(map))
+            .catch(() => {})
+        }
+      })
       .catch(() => setLoading(false))
   }, [])
 
@@ -78,8 +93,8 @@ export default function FundingPage() {
       </div>
 
       <div className="rounded-xl border border-white/8 overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)' }}>
-        <div className="hidden lg:grid grid-cols-[1.5fr_1.5fr_1fr_1fr_1fr] gap-4 px-5 py-3 border-b border-white/8 text-xs text-white/30 uppercase tracking-wide font-medium">
-          <span>Donor</span><span>Budget</span><span>Type</span><span>Amount</span><span>Status</span>
+        <div className="hidden lg:grid grid-cols-[1.5fr_1.5fr_1fr_1fr_80px_1fr] gap-4 px-5 py-3 border-b border-white/8 text-xs text-white/30 uppercase tracking-wide font-medium">
+          <span>Donor</span><span>Budget</span><span>Type</span><span>Amount</span><span>Seal</span><span>Status</span>
         </div>
 
         {loading ? (
@@ -93,7 +108,7 @@ export default function FundingPage() {
         ) : (
           <div className="divide-y divide-white/5">
             {filtered.map(s => (
-              <div key={s.id} className="px-5 py-3.5 lg:grid lg:grid-cols-[1.5fr_1.5fr_1fr_1fr_1fr] lg:gap-4 lg:items-center">
+              <div key={s.id} className="px-5 py-3.5 lg:grid lg:grid-cols-[1.5fr_1.5fr_1fr_1fr_80px_1fr] lg:gap-4 lg:items-center">
                 <div>
                   <div className="text-sm text-white/80">{s.donorName}</div>
                   {/* Mobile meta */}
@@ -102,6 +117,13 @@ export default function FundingPage() {
                     <span>{s.sourceType}{s.sourceSubType ? ` / ${s.sourceSubType}` : ''}</span>
                     <span className="text-white font-medium">{s.currency} {s.amount.toLocaleString()}</span>
                     {s.budget && <StatusBadge status={s.budget.status} />}
+                    {s.agreementHash && sealMap[s.agreementHash] && (
+                      <BlockchainStatusPill
+                        sealId={sealMap[s.agreementHash].sealId}
+                        anchorStatus={sealMap[s.agreementHash].anchorStatus}
+                        onClick={() => setActiveSealId(sealMap[s.agreementHash!].sealId)}
+                      />
+                    )}
                   </div>
                 </div>
                 <div className="hidden lg:block">
@@ -116,6 +138,17 @@ export default function FundingPage() {
                 </div>
                 <div className="hidden lg:block text-sm font-medium text-white">{s.currency} {s.amount.toLocaleString()}</div>
                 <div className="hidden lg:block">
+                  {s.agreementHash && sealMap[s.agreementHash] ? (
+                    <BlockchainStatusPill
+                      sealId={sealMap[s.agreementHash].sealId}
+                      anchorStatus={sealMap[s.agreementHash].anchorStatus}
+                      onClick={() => setActiveSealId(sealMap[s.agreementHash!].sealId)}
+                    />
+                  ) : (
+                    <BlockchainStatusPill onClick={() => {}} />
+                  )}
+                </div>
+                <div className="hidden lg:block">
                   {s.budget ? <StatusBadge status={s.budget.status} /> : <span className="text-xs text-white/30">—</span>}
                 </div>
               </div>
@@ -123,6 +156,10 @@ export default function FundingPage() {
           </div>
         )}
       </div>
+
+      {activeSealId && (
+        <TrustSealCard sealId={activeSealId} onClose={() => setActiveSealId(null)} />
+      )}
     </div>
   )
 }

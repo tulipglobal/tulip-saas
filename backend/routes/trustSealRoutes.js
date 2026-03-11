@@ -166,6 +166,29 @@ router.get('/', async (req, res) => {
   }
 })
 
+// POST /api/trust-seal/resolve — resolve hashes to seal info
+router.post('/resolve', async (req, res) => {
+  try {
+    const db = tenantClient(req.user.tenantId)
+    const { hashes } = req.body
+    if (!Array.isArray(hashes) || hashes.length === 0) return res.json({})
+
+    const seals = await db.trustSeal.findMany({
+      where: { rawHash: { in: hashes.slice(0, 200) } },
+      select: { id: true, rawHash: true, status: true, anchorTxHash: true, anchoredAt: true, documentType: true },
+    })
+
+    const map = {}
+    for (const s of seals) {
+      map[s.rawHash] = { sealId: s.id, anchorStatus: s.anchorTxHash ? 'confirmed' : 'pending', txHash: s.anchorTxHash, documentType: s.documentType }
+    }
+    res.json(map)
+  } catch (err) {
+    console.error('Failed to resolve seals:', err)
+    res.status(500).json({ error: 'Failed to resolve seals' })
+  }
+})
+
 // GET /api/trust-seal/:id — get single seal
 router.get('/:id', async (req, res) => {
   try {

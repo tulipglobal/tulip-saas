@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { apiGet } from '@/lib/api'
+import { apiGet, apiPost } from '@/lib/api'
 import DocumentUploadSection from '@/components/DocumentUploadSection'
+import BlockchainStatusPill from '@/components/BlockchainStatusPill'
+import TrustSealCard from '@/components/TrustSealCard'
 import {
   ArrowLeft, FolderOpen, DollarSign, FileText, Activity,
   CheckCircle, Clock, XCircle, ExternalLink,
@@ -73,6 +75,8 @@ export default function ProjectDetailPage() {
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<TabKey>('expenses')
   const [error, setError] = useState('')
+  const [sealMap, setSealMap] = useState<Record<string, { sealId: string; anchorStatus: string; txHash: string | null }>>({})
+  const [activeSealId, setActiveSealId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id) return
@@ -87,6 +91,14 @@ export default function ProjectDetailPage() {
       const allAudit = aud.data ?? aud.items ?? []
       setAudit(allAudit.filter((a: AuditEntry) => a.entityId === id || a.entityType === 'Project'))
       setLoading(false)
+      // Resolve document hashes to seals
+      const docHashes = (proj.documents || []).map((d: any) => d.sha256Hash).filter(Boolean)
+      if (docHashes.length > 0) {
+        apiPost('/api/trust-seal/resolve', { hashes: docHashes })
+          .then(r => r.ok ? r.json() : {})
+          .then(map => setSealMap(map))
+          .catch(() => {})
+      }
     }).catch(() => { setError('Failed to load project'); setLoading(false) })
   }, [id])
 
@@ -239,20 +251,31 @@ export default function ProjectDetailPage() {
                     <th className="text-left text-xs text-white/30 font-normal px-4 py-3">NAME</th>
                     <th className="text-left text-xs text-white/30 font-normal px-4 py-3">TYPE</th>
                     <th className="text-left text-xs text-white/30 font-normal px-4 py-3">HASH</th>
+                    <th className="text-left text-xs text-white/30 font-normal px-4 py-3">SEAL</th>
                     <th className="text-left text-xs text-white/30 font-normal px-4 py-3">DATE</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {project.documents.map((doc: any) => (
+                  {project.documents.map((doc: any) => {
+                    const seal = doc.sha256Hash ? sealMap[doc.sha256Hash] : null
+                    return (
                     <tr key={doc.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
                       <td className="px-4 py-3 text-sm text-white/80">{doc.name}</td>
                       <td className="px-4 py-3 text-xs text-white/40 uppercase">{doc.fileType ?? '-'}</td>
                       <td className="px-4 py-3">
                         {doc.sha256Hash ? <span className="text-xs font-mono text-white/30">{doc.sha256Hash.slice(0, 12)}...</span> : <span className="text-xs text-white/20">-</span>}
                       </td>
+                      <td className="px-4 py-3">
+                        {seal ? (
+                          <BlockchainStatusPill sealId={seal.sealId} anchorStatus={seal.anchorStatus} txHash={seal.txHash} onClick={() => setActiveSealId(seal.sealId)} />
+                        ) : (
+                          <BlockchainStatusPill onClick={() => {}} />
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-xs text-white/30">{new Date(doc.uploadedAt ?? doc.createdAt).toLocaleDateString()}</td>
                     </tr>
-                  ))}
+                    )
+                  })}
                 </tbody>
               </table>
             )}
@@ -343,6 +366,9 @@ export default function ProjectDetailPage() {
             </table>
           )}
         </div>
+      )}
+      {activeSealId && (
+        <TrustSealCard sealId={activeSealId} onClose={() => setActiveSealId(null)} />
       )}
     </div>
   )

@@ -5,6 +5,8 @@ import { apiGet, apiPut } from '@/lib/api'
 import Link from 'next/link'
 import { Receipt, Plus, Search, ExternalLink, Shield, Copy, Check, CheckCircle, ChevronDown, ChevronUp, FileCheck, Upload } from 'lucide-react'
 import DocumentUploadSection from '@/components/DocumentUploadSection'
+import BlockchainStatusPill from '@/components/BlockchainStatusPill'
+import TrustSealCard from '@/components/TrustSealCard'
 
 interface Document {
   id: string
@@ -146,7 +148,7 @@ function ReceiptUploader({ expenseId, expenseTitle, onUploaded }: { expenseId: s
   )
 }
 
-function ExpenseRow({ expense, onRefresh }: { expense: Expense; onRefresh: () => void }) {
+function ExpenseRow({ expense, onRefresh, onOpenSeal }: { expense: Expense; onRefresh: () => void; onOpenSeal: (sealId: string) => void }) {
   const [expanded, setExpanded] = useState(false)
 
   return (
@@ -211,12 +213,13 @@ function ExpenseRow({ expense, onRefresh }: { expense: Expense; onRefresh: () =>
         <div className="hidden lg:block text-xs text-white/40 truncate">
           {expense.project?.name ?? '—'}
         </div>
-        <div className="hidden lg:block" onClick={e => e.stopPropagation()}>
-          {expense.receiptHash ? (
-            <div className="flex items-center gap-1.5">
-              <HashCell hash={expense.receiptHash} />
-              <span className="text-[10px] text-green-400 flex items-center gap-0.5"><CheckCircle size={10} /> Sealed</span>
-            </div>
+        <div className="hidden lg:flex lg:items-center lg:gap-1.5" onClick={e => e.stopPropagation()}>
+          {expense.receiptSealId ? (
+            <BlockchainStatusPill
+              sealId={expense.receiptSealId}
+              anchorStatus={expense.receiptHash ? 'pending' : undefined}
+              onClick={() => onOpenSeal(expense.receiptSealId!)}
+            />
           ) : (
             <span className="text-white/20 text-xs">No receipt</span>
           )}
@@ -327,6 +330,7 @@ export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [activeSealId, setActiveSealId] = useState<string | null>(null)
 
   const load = () => {
     apiGet('/api/expenses?limit=50')
@@ -383,7 +387,7 @@ export default function ExpensesPage() {
 
       <div className="rounded-xl border border-white/8 overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)' }}>
         <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_60px] gap-4 px-5 py-3 border-b border-white/8 text-xs text-white/30 uppercase tracking-wide font-medium">
-          <span>Expense</span><span>Amount</span><span>Project</span><span>Receipt</span><span>Status</span><span>Actions</span>
+          <span>Expense</span><span>Amount</span><span>Project</span><span>Seal</span><span>Status</span><span>Actions</span>
         </div>
 
         {loading ? (
@@ -397,12 +401,16 @@ export default function ExpensesPage() {
         ) : (
           <div className="divide-y divide-white/5">
             {filtered.map(expense => (
-              <ExpenseRow key={expense.id} expense={expense} onRefresh={load} />
+              <ExpenseRow key={expense.id} expense={expense} onRefresh={load} onOpenSeal={setActiveSealId} />
             ))}
           </div>
         )}
       </div>
       <p className="text-xs text-white/20 text-center">Click any expense row to view documents and upload receipts</p>
+
+      {activeSealId && (
+        <TrustSealCard sealId={activeSealId} onClose={() => setActiveSealId(null)} />
+      )}
     </div>
   )
 }

@@ -1,9 +1,11 @@
 'use client'
-import { apiGet } from '@/lib/api'
+import { apiGet, apiPost } from '@/lib/api'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { FileCheck, Plus, Search, ExternalLink, Copy, Check, Shield, AlertTriangle, Users } from 'lucide-react'
+import BlockchainStatusPill from '@/components/BlockchainStatusPill'
+import TrustSealCard from '@/components/TrustSealCard'
 
 const KEY_DOCUMENT_CATEGORIES = ['licence','certificate','contract','permit','insurance','visa','id_document','mou']
 const CATEGORY_LABELS: Record<string, string> = {
@@ -104,15 +106,37 @@ function FileTypeBadge({ type }: { type: string | null }) {
   )
 }
 
+function SealPill({ hash, sealMap, onOpen }: { hash: string | null; sealMap: Record<string, { sealId: string; anchorStatus: string; txHash: string | null }>; onOpen: (id: string) => void }) {
+  if (hash && sealMap[hash]) {
+    const s = sealMap[hash]
+    return <BlockchainStatusPill sealId={s.sealId} anchorStatus={s.anchorStatus} txHash={s.txHash} onClick={() => onOpen(s.sealId)} />
+  }
+  return <BlockchainStatusPill onClick={() => {}} />
+}
+
 export default function DocumentsPage() {
   const [docs, setDocs] = useState<Document[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [sealMap, setSealMap] = useState<Record<string, { sealId: string; anchorStatus: string; txHash: string | null }>>({})
+  const [activeSealId, setActiveSealId] = useState<string | null>(null)
 
   useEffect(() => {
     apiGet('/api/documents?limit=100')
       .then(r => r.ok ? r.json() : { data: [] })
-      .then(d => { setDocs(d.data ?? d.items ?? []); setLoading(false) })
+      .then(d => {
+        const items = d.data ?? d.items ?? []
+        setDocs(items)
+        setLoading(false)
+        // Resolve hashes to seals
+        const hashes = items.map((doc: Document) => doc.sha256Hash).filter(Boolean)
+        if (hashes.length > 0) {
+          apiPost('/api/trust-seal/resolve', { hashes })
+            .then(r => r.ok ? r.json() : {})
+            .then(map => setSealMap(map))
+            .catch(() => {})
+        }
+      })
       .catch(() => setLoading(false))
   }, [])
 
@@ -160,8 +184,8 @@ export default function DocumentsPage() {
       <div className="rounded-xl border border-white/8 overflow-hidden"
         style={{ background: 'rgba(255,255,255,0.02)' }}>
         {/* Desktop table header */}
-        <div className="hidden lg:grid grid-cols-[2fr_80px_90px_80px_1fr_1fr_1fr_60px] gap-3 px-5 py-3 border-b border-white/8 text-xs text-white/30 uppercase tracking-wide font-medium">
-          <span>Document</span><span>Type</span><span>Category</span><span>Expiry</span><span>Hash</span><span>Project</span><span>Date</span><span>Actions</span>
+        <div className="hidden lg:grid grid-cols-[2fr_70px_80px_70px_1fr_80px_1fr_80px_40px] gap-3 px-5 py-3 border-b border-white/8 text-xs text-white/30 uppercase tracking-wide font-medium">
+          <span>Document</span><span>Type</span><span>Category</span><span>Expiry</span><span>Hash</span><span>Seal</span><span>Project</span><span>Date</span><span></span>
         </div>
 
         {loading ? (
@@ -175,7 +199,7 @@ export default function DocumentsPage() {
         ) : (
           <div className="divide-y divide-white/5">
             {filtered.map(doc => (
-              <div key={doc.id} className="px-4 py-3.5 hover:bg-white/2 transition-colors lg:grid lg:grid-cols-[2fr_80px_90px_80px_1fr_1fr_1fr_60px] lg:gap-3 lg:items-center lg:px-5">
+              <div key={doc.id} className="px-4 py-3.5 hover:bg-white/2 transition-colors lg:grid lg:grid-cols-[2fr_70px_80px_70px_1fr_80px_1fr_80px_40px] lg:gap-3 lg:items-center lg:px-5">
                 {/* Document name + info — always visible */}
                 <div className="flex items-center gap-3 cursor-pointer" onClick={() => openDoc(doc.id)}>
                   <div className="w-8 h-8 rounded-lg bg-[#0c7aed]/10 flex items-center justify-center shrink-0">
@@ -224,6 +248,9 @@ export default function DocumentsPage() {
                 >
                   {doc.sha256Hash ? <HashCell hash={doc.sha256Hash} /> : <span className="text-white/20 text-xs">Pending</span>}
                 </div>
+                <div className="hidden lg:block" onClick={e => e.stopPropagation()}>
+                  <SealPill hash={doc.sha256Hash} sealMap={sealMap} onOpen={setActiveSealId} />
+                </div>
                 <div className="hidden lg:block text-xs text-white/40 truncate">{doc.project?.name ?? '—'}</div>
                 <div className="hidden lg:block text-xs text-white/30">
                   {new Date(doc.uploadedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
@@ -233,18 +260,16 @@ export default function DocumentsPage() {
                     className="text-white/20 hover:text-[#34d399] transition-colors cursor-pointer bg-transparent border-none p-0" title="View document">
                     <ExternalLink size={13} />
                   </button>
-                  {doc.sha256Hash && (
-                    <Link href={`/verify?hash=${doc.sha256Hash}`} target="_blank"
-                      className="text-white/20 hover:text-[#369bff] transition-colors" title="Verify on blockchain">
-                      <Shield size={13} />
-                    </Link>
-                  )}
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {activeSealId && (
+        <TrustSealCard sealId={activeSealId} onClose={() => setActiveSealId(null)} />
+      )}
     </div>
   )
 }

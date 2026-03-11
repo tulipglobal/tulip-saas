@@ -19,14 +19,18 @@ const cors = require('cors')
 app.use(cors({ origin: ['http://localhost:3000', 'http://localhost:3001', 'https://tulipds.com', 'https://www.tulipds.com', 'https://app.tulipds.com', 'https://donor.tulipds.com', 'https://verify.tulipds.com'], credentials: true }))
 app.set('trust proxy', 1)
 
+const { apiLimiter, authLimiter, strictLimiter, verifyLimiter } = require('./middleware/rateLimit')
+
 // Stripe webhook needs raw body BEFORE express.json() parses it
 const { handleWebhook } = require('./controllers/billingController')
 app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), handleWebhook)
 
+// Seal issuance API needs 50mb body limit — mount BEFORE global express.json()
+const sealIssuanceRoutes = require('./routes/sealIssuanceRoutes')
+app.use('/api/seal', apiLimiter, sealIssuanceRoutes)
+
 app.use(express.json())
 app.use(require('./middleware/requestLogger'))
-
-const { apiLimiter, authLimiter, strictLimiter, verifyLimiter } = require('./middleware/rateLimit')
 const authenticate = require('./middleware/authenticate')
 const tenantScope  = require('./middleware/tenantScope')
 
@@ -63,7 +67,6 @@ const caseRoutes         = require('./routes/caseRoutes')
 const casePublicRoutes   = require('./routes/casePublicRoutes')
 const trustSealRoutes    = require('./routes/trustSealRoutes')
 const sealPublicRoutes   = require('./routes/sealPublicRoutes')
-const sealIssuanceRoutes = require('./routes/sealIssuanceRoutes')
 const budgetRoutes       = require('./routes/budgetRoutes')
 const adminRoutes        = require('./routes/adminRoutes')
 const ocrPublicRoutes    = require('./routes/ocrPublicRoutes')
@@ -120,7 +123,6 @@ app.use('/api/budgets',     apiLimiter,  authenticate, tenantScope, budgetRoutes
 app.use('/api/admin',       apiLimiter,  authenticate, adminRoutes)
 app.use('/api/public/cases', verifyLimiter,  casePublicRoutes)
 app.use('/api/public/seal',  apiLimiter,  sealPublicRoutes)
-app.use('/api/seal',         apiLimiter,  sealIssuanceRoutes)
 app.use('/api/public/ocr',   apiLimiter,  ocrPublicRoutes)
 app.use('/api/external',     apiLimiter,  externalAuth, externalApiRoutes)
 

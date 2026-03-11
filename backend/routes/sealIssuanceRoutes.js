@@ -164,8 +164,16 @@ router.post('/issue', apiKeyAuth, express.json({ limit: '50mb' }), async (req, r
       issued_at: seal.createdAt.toISOString(),
     })
   } catch (err) {
-    logger.error('Failed to issue seal via API', { error: err.message })
-    res.status(500).json({ error: 'Failed to issue seal' })
+    logger.error('Failed to issue seal via API', {
+      error: err.message,
+      stack: err.stack,
+      tenantId: req.user?.tenantId,
+      apiKeyId: req.user?.keyId,
+    })
+    res.status(500).json({
+      error: 'Failed to issue seal',
+      detail: process.env.NODE_ENV !== 'production' ? err.message : undefined,
+    })
   }
 })
 

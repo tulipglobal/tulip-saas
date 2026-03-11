@@ -121,6 +121,83 @@ router.get('/batch/:batchId', async (req, res) => {
   }
 })
 
+// POST /api/verify/pages — per-page verification
+router.post('/pages', async (req, res) => {
+  try {
+    const { full_hash, page_hashes } = req.body
+
+    if (!full_hash || !Array.isArray(page_hashes) || page_hashes.length === 0) {
+      return res.status(400).json({ error: 'full_hash and page_hashes array are required' })
+    }
+
+    // Find the seal by full document hash
+    const seal = await prisma.trustSeal.findFirst({
+      where: { rawHash: full_hash },
+      include: { tenant: { select: { name: true, tenantType: true } } },
+    })
+
+    if (!seal) {
+      return res.json({ verified: false, reason: 'Document hash not found', full_hash })
+    }
+
+    const storedPageHashes = seal.pageHashes
+
+    // Full document hash verified
+    const fullHashMatch = true
+
+    // Page-level verification
+    let pageResults = null
+    let allPagesIntact = true
+    let pageVerificationAvailable = false
+
+    if (Array.isArray(storedPageHashes) && storedPageHashes.length > 0) {
+      pageVerificationAvailable = true
+      pageResults = []
+
+      const maxPages = Math.max(page_hashes.length, storedPageHashes.length)
+      for (let i = 0; i < maxPages; i++) {
+        const uploaded = page_hashes[i] || null
+        const stored = storedPageHashes[i] || null
+
+        if (!uploaded && stored) {
+          pageResults.push({ page: i + 1, status: 'missing', message: 'Page missing from uploaded document' })
+          allPagesIntact = false
+        } else if (uploaded && !stored) {
+          pageResults.push({ page: i + 1, status: 'extra', message: 'Extra page not in original document' })
+          allPagesIntact = false
+        } else if (uploaded === stored) {
+          pageResults.push({ page: i + 1, status: 'intact', message: 'Intact' })
+        } else {
+          pageResults.push({ page: i + 1, status: 'tampered', message: 'This page has been modified' })
+          allPagesIntact = false
+        }
+      }
+    }
+
+    res.json({
+      verified: fullHashMatch && (pageVerificationAvailable ? allPagesIntact : true),
+      full_hash,
+      full_hash_match: fullHashMatch,
+      page_verification_available: pageVerificationAvailable,
+      all_pages_intact: pageVerificationAvailable ? allPagesIntact : null,
+      page_results: pageResults,
+      seal_id: seal.id,
+      document_type: seal.documentType,
+      issued_at: seal.createdAt,
+      organisation: seal.tenant?.name || null,
+      blockchain: {
+        network: 'Polygon',
+        txHash: seal.anchorTxHash || null,
+        blockNumber: seal.blockNumber || null,
+        anchorStatus: seal.anchorTxHash ? 'confirmed' : 'pending',
+        ancheredAt: seal.anchoredAt || null,
+      },
+    })
+  } catch (err) {
+    return res.status(500).json({ error: 'Internal error' })
+  }
+})
+
 // ── Catch-all hash lookup (must be LAST single-param route) ──
 
 /**
@@ -247,6 +324,7 @@ if (!record) {
       anchoredAt: trustSeal.anchoredAt || trustSeal.createdAt,
       organisationName: trustSeal.tenant?.name || null,
       organisationType: trustSeal.tenant?.tenantType || null,
+      pageHashes: trustSeal.pageHashes || null,
       entityDetails: {
         organisationName: trustSeal.tenant?.name || null,
         organisationType: trustSeal.tenant?.tenantType || null,

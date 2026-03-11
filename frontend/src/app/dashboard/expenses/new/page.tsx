@@ -9,6 +9,8 @@ import { getCategoriesForType, type ExpenseType } from '@/lib/ngo-categories'
 
 interface Project { id: string; name: string }
 interface FundingAgreement { id: string; title: string; currency: string; totalAmount: number; donor: { name: string } | null }
+interface BudgetLine { id: string; expenseType: string; category: string; subCategory: string | null; approvedAmount: number; currency: string; spent?: number; remaining?: number }
+interface BudgetOption { id: string; name: string; status: string; lines: BudgetLine[] }
 
 export default function NewExpensePage() {
   const router = useRouter()
@@ -16,11 +18,13 @@ export default function NewExpensePage() {
   const [error, setError] = useState('')
   const [projects, setProjects] = useState<Project[]>([])
   const [agreements, setAgreements] = useState<FundingAgreement[]>([])
+  const [budgets, setBudgets] = useState<BudgetOption[]>([])
+  const [selectedBudget, setSelectedBudget] = useState<BudgetOption | null>(null)
   const [form, setForm] = useState({
     title: '', amount: '', currency: 'USD', expenseType: '' as '' | ExpenseType,
     category: '', subCategory: '', vendor: '',
     expenseDate: new Date().toISOString().split('T')[0],
-    projectId: '', fundingAgreementId: '', notes: ''
+    projectId: '', fundingAgreementId: '', budgetId: '', budgetLineId: '', notes: ''
   })
 
   useEffect(() => {
@@ -31,6 +35,10 @@ export default function NewExpensePage() {
     apiGet('/api/funding-agreements?limit=100')
       .then(r => r.ok ? r.json() : { data: [] })
       .then(d => setAgreements(d.data ?? []))
+      .catch(() => {})
+    apiGet('/api/budgets?limit=100&status=ACTIVE')
+      .then(r => r.ok ? r.json() : { data: [] })
+      .then(d => setBudgets(d.data ?? []))
       .catch(() => {})
   }, [])
 
@@ -54,6 +62,36 @@ export default function NewExpensePage() {
     setForm(f => ({ ...f, category: cat, subCategory: '' }))
   }
 
+  const handleBudgetChange = async (budgetId: string) => {
+    setForm(f => ({ ...f, budgetId, budgetLineId: '' }))
+    if (!budgetId) { setSelectedBudget(null); return }
+    try {
+      const res = await apiGet(`/api/budgets/${budgetId}`)
+      if (res.ok) {
+        const data = await res.json()
+        setSelectedBudget(data)
+      }
+    } catch {
+      setSelectedBudget(budgets.find(b => b.id === budgetId) || null)
+    }
+  }
+
+  const handleBudgetLineChange = (lineId: string) => {
+    const line = selectedBudget?.lines.find(l => l.id === lineId)
+    if (line) {
+      setForm(f => ({
+        ...f,
+        budgetLineId: lineId,
+        expenseType: line.expenseType as '' | ExpenseType,
+        category: line.category,
+        subCategory: line.subCategory || '',
+        currency: line.currency,
+      }))
+    } else {
+      setForm(f => ({ ...f, budgetLineId: lineId }))
+    }
+  }
+
   const submit = async () => {
     if (!form.title.trim()) { setError('Title is required'); return }
     if (!form.amount || isNaN(parseFloat(form.amount))) { setError('Valid amount is required'); return }
@@ -70,6 +108,8 @@ export default function NewExpensePage() {
         expenseDate: form.expenseDate,
         projectId: form.projectId || null,
         fundingAgreementId: form.fundingAgreementId || null,
+        budgetId: form.budgetId || null,
+        budgetLineId: form.budgetLineId || null,
         notes: form.notes || null,
       })
       if (res.ok) { router.push('/dashboard/expenses') }
@@ -175,6 +215,44 @@ export default function NewExpensePage() {
             <label className={labelCls}>Expense Date</label>
             <input type="date" value={form.expenseDate} onChange={e => set('expenseDate', e.target.value)} className={inputCls} />
           </div>
+        </div>
+
+        {/* Budget + Budget Line */}
+        <div className="rounded-lg border border-white/8 p-4 space-y-3 bg-white/[0.01]">
+          <label className={labelCls + ' mb-0'}>Budget Allocation</label>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[10px] text-white/30 mb-1 block">Budget</label>
+              <select value={form.budgetId} onChange={e => handleBudgetChange(e.target.value)} className={inputCls}>
+                <option value="">No budget</option>
+                {budgets.map(b => <option key={b.id} value={b.id}>{b.name} ({b.status})</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] text-white/30 mb-1 block">Budget Line</label>
+              <select value={form.budgetLineId} onChange={e => handleBudgetLineChange(e.target.value)}
+                className={inputCls} disabled={!selectedBudget}>
+                <option value="">Select budget line</option>
+                {selectedBudget?.lines.map(l => (
+                  <option key={l.id} value={l.id}>
+                    {l.expenseType} — {l.category}{l.subCategory ? ` / ${l.subCategory}` : ''} ({l.currency} {l.approvedAmount.toLocaleString()})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          {form.budgetLineId && selectedBudget && (() => {
+            const line = selectedBudget.lines.find(l => l.id === form.budgetLineId)
+            if (!line) return null
+            return (
+              <div className="text-xs text-white/40 flex gap-4">
+                <span>Approved: <span className="text-white/60">{line.currency} {line.approvedAmount.toLocaleString()}</span></span>
+                {line.remaining !== undefined && (
+                  <span>Remaining: <span className={line.remaining > 0 ? 'text-green-400' : 'text-red-400'}>{line.currency} {line.remaining.toLocaleString()}</span></span>
+                )}
+              </div>
+            )
+          })()}
         </div>
 
         <div className="grid grid-cols-2 gap-4">

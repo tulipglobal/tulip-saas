@@ -28,6 +28,7 @@ interface Agreement {
   capexBudget: number
   opexBudget: number
   restricted: boolean
+  budget: { id: string; name: string; status: string } | null
   donor: { id: string; name: string; type: string } | null
   projectFunding: ProjectFunding[]
   spent: number
@@ -146,6 +147,7 @@ export default function FundingPage() {
                     </Link>
                     <div className="text-xs text-white/30 mt-0.5">
                       {a.sourceType && <span className="text-white/40">{a.sourceType}{a.sourceSubType ? ` / ${a.sourceSubType}` : ''} · </span>}
+                      {a.budget && <span className="text-blue-400/60">Budget: {a.budget.name} · </span>}
                       {a.projectFunding.length} project{a.projectFunding.length !== 1 ? 's' : ''} · {a._count.expenses} expense{a._count.expenses !== 1 ? 's' : ''}
                       {a.restricted && <span className="ml-1 text-orange-400/60">· Restricted</span>}
                     </div>

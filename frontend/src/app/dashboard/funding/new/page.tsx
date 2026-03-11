@@ -8,17 +8,19 @@ import { apiGet, apiPost } from '@/lib/api'
 import { FUNDING_SOURCE_TYPES, FUNDING_SOURCE_TYPE_KEYS } from '@/lib/ngo-categories'
 
 interface Donor { id: string; name: string; type: string }
+interface BudgetOption { id: string; name: string; status: string; totalApproved: number }
 
 export default function NewFundingPage() {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [donors, setDonors] = useState<Donor[]>([])
+  const [budgets, setBudgets] = useState<BudgetOption[]>([])
   const [showNewDonor, setShowNewDonor] = useState(false)
   const [newDonor, setNewDonor] = useState({ name: '', email: '', type: 'FOUNDATION', organisationName: '' })
   const [form, setForm] = useState({
     title: '', type: 'GRANT', totalAmount: '', currency: 'USD',
-    donorId: '', startDate: '', endDate: '', repayable: false,
+    donorId: '', budgetId: '', startDate: '', endDate: '', repayable: false,
     interestRate: '', notes: '',
     sourceType: '', sourceSubType: '',
     grantorName: '', grantRef: '', grantFrom: '', grantTo: '',
@@ -29,6 +31,10 @@ export default function NewFundingPage() {
     apiGet('/api/donors')
       .then(r => r.ok ? r.json() : { data: [] })
       .then(d => setDonors(d.data ?? []))
+      .catch(() => {})
+    apiGet('/api/budgets?limit=100')
+      .then(r => r.ok ? r.json() : { data: [] })
+      .then(d => setBudgets((d.data ?? []).filter((b: BudgetOption) => b.status !== 'CLOSED')))
       .catch(() => {})
   }, [])
 
@@ -81,6 +87,7 @@ export default function NewFundingPage() {
         repayable: form.repayable,
         interestRate: form.interestRate ? parseFloat(form.interestRate) : null,
         notes: form.notes || null,
+        budgetId: form.budgetId || null,
         sourceType: form.sourceType || null,
         sourceSubType: form.sourceSubType || null,
         grantorName: form.grantorName || null,
@@ -163,6 +170,15 @@ export default function NewFundingPage() {
               {subTypes.map(st => <option key={st} value={st}>{st}</option>)}
             </select>
           </div>
+        </div>
+
+        {/* Link to Budget */}
+        <div>
+          <label className={labelCls}>Link to Budget</label>
+          <select value={form.budgetId} onChange={e => set('budgetId', e.target.value)} className={inputCls}>
+            <option value="">No budget linked</option>
+            {budgets.map(b => <option key={b.id} value={b.id}>{b.name} ({b.status}) — ${b.totalApproved?.toLocaleString()}</option>)}
+          </select>
         </div>
 
         {/* Budget: CapEx / OpEx Split */}

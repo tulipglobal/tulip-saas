@@ -22,7 +22,7 @@ exports.getExpenses = async (req, res) => {
     const [expenses, total] = await Promise.all([
       db.expense.findMany({
         where, skip, take,
-        include: { fundingSource: true, fundingAgreement: { select: { id: true, title: true, donor: { select: { name: true } } } }, project: { select: { id: true, name: true } }, documents: { select: { id: true, name: true, sha256Hash: true, fileType: true, uploadedAt: true } } },
+        include: { fundingSource: true, fundingAgreement: { select: { id: true, title: true, donor: { select: { name: true } } } }, budget: { select: { id: true, name: true } }, budgetLine: { select: { id: true, category: true, subCategory: true, approvedAmount: true } }, project: { select: { id: true, name: true } }, documents: { select: { id: true, name: true, sha256Hash: true, fileType: true, uploadedAt: true } } },
         orderBy: { createdAt: 'desc' }
       }),
       db.expense.count({ where })
@@ -51,11 +51,31 @@ exports.getExpense = async (req, res) => {
 exports.createExpense = async (req, res) => {
   try {
     const db = tenantClient(req.user.tenantId)
-    const { title, description, amount, currency, projectId, fundingSourceId, fundingAgreementId, expenseType, category, subCategory } = req.body
+    const { title, description, amount, currency, projectId, fundingSourceId, fundingAgreementId,
+            expenseType, category, subCategory, budgetId, budgetLineId } = req.body
     const expenseTitle = title || description
     if (!expenseTitle || !amount) {
       return res.status(400).json({ error: 'title and amount are required' })
     }
+
+    // Budget enforcement: if budgetLineId is provided, check remaining balance
+    if (budgetLineId) {
+      const line = await prisma.budgetLine.findUnique({ where: { id: budgetLineId } })
+      if (!line) return res.status(400).json({ error: 'Budget line not found' })
+
+      const spentAgg = await prisma.expense.aggregate({
+        where: { budgetLineId },
+        _sum: { amount: true }
+      })
+      const alreadySpent = Number(spentAgg._sum.amount || 0)
+      const remaining = line.approvedAmount - alreadySpent
+      if (parseFloat(amount) > remaining) {
+        return res.status(400).json({
+          error: `Over budget: this line has ${line.currency} ${remaining.toLocaleString()} remaining (approved: ${line.approvedAmount.toLocaleString()}, spent: ${alreadySpent.toLocaleString()})`
+        })
+      }
+    }
+
     const expense = await db.expense.create({
       data: {
         description:        expenseTitle,
@@ -64,6 +84,8 @@ exports.createExpense = async (req, res) => {
         projectId:          projectId || null,
         fundingSourceId:    fundingSourceId || null,
         fundingAgreementId: fundingAgreementId || null,
+        budgetId:           budgetId || null,
+        budgetLineId:       budgetLineId || null,
         expenseType:        expenseType || null,
         category:           category || null,
         subCategory:        subCategory || null,
@@ -112,7 +134,7 @@ exports.updateExpense = async (req, res) => {
     const existing = await db.expense.findFirst({ where: { id: req.params.id } })
     if (!existing) return res.status(404).json({ error: 'Expense not found' })
 
-    const { description, amount, currency, fundingSourceId, fundingAgreementId, expenseType, category, subCategory } = req.body
+    const { description, amount, currency, fundingSourceId, fundingAgreementId, expenseType, category, subCategory, budgetId, budgetLineId } = req.body
     const expense = await db.expense.update({
       where: { id: req.params.id },
       data: {
@@ -121,6 +143,8 @@ exports.updateExpense = async (req, res) => {
         ...(currency           !== undefined && { currency }),
         ...(fundingSourceId    !== undefined && { fundingSourceId }),
         ...(fundingAgreementId !== undefined && { fundingAgreementId }),
+        ...(budgetId           !== undefined && { budgetId: budgetId || null }),
+        ...(budgetLineId       !== undefined && { budgetLineId: budgetLineId || null }),
         ...(expenseType        !== undefined && { expenseType }),
         ...(category           !== undefined && { category }),
         ...(subCategory        !== undefined && { subCategory }),

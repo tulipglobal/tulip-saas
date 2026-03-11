@@ -19,11 +19,14 @@ exports.list = async (req, res) => {
     if (req.query.type) where.type = req.query.type
     if (req.query.donorId) where.donorId = req.query.donorId
 
+    if (req.query.budgetId) where.budgetId = req.query.budgetId
+
     const [agreements, total] = await Promise.all([
       db.fundingAgreement.findMany({
         where, skip, take,
         include: {
           donor: { select: { id: true, name: true, type: true } },
+          budget: { select: { id: true, name: true, status: true } },
           projectFunding: { select: { id: true, allocatedAmount: true, project: { select: { id: true, name: true } } } },
           _count: { select: { expenses: true, repayments: true } }
         },
@@ -79,7 +82,7 @@ exports.create = async (req, res) => {
   try {
     const db = tenantClient(req.user.tenantId)
     const { title, type, totalAmount, currency, donorId, startDate, endDate, interestRate, repayable, notes, status,
-            sourceType, sourceSubType, grantorName, grantRef, grantFrom, grantTo, restricted, capexBudget, opexBudget } = req.body
+            sourceType, sourceSubType, grantorName, grantRef, grantFrom, grantTo, restricted, capexBudget, opexBudget, budgetId } = req.body
     if (!title || !totalAmount) return res.status(400).json({ error: 'title and totalAmount are required' })
 
     const agreement = await db.fundingAgreement.create({
@@ -89,6 +92,7 @@ exports.create = async (req, res) => {
         totalAmount: parseFloat(totalAmount),
         currency: currency || 'USD',
         donorId: donorId || null,
+        budgetId: budgetId || null,
         startDate: startDate ? new Date(startDate) : null,
         endDate: endDate ? new Date(endDate) : null,
         interestRate: interestRate ? parseFloat(interestRate) : null,
@@ -105,7 +109,7 @@ exports.create = async (req, res) => {
         capexBudget: capexBudget ? parseFloat(capexBudget) : 0,
         opexBudget: opexBudget ? parseFloat(opexBudget) : 0,
       },
-      include: { donor: { select: { id: true, name: true } } }
+      include: { donor: { select: { id: true, name: true } }, budget: { select: { id: true, name: true } } }
     })
 
     await createAuditLog({ action: 'FUNDING_AGREEMENT_CREATED', entityType: 'FundingAgreement', entityId: agreement.id, userId: req.user.userId || req.user.id, tenantId: req.user.tenantId }).catch(() => {})
@@ -191,7 +195,7 @@ exports.update = async (req, res) => {
     if (!existing) return res.status(404).json({ error: 'Funding agreement not found' })
 
     const { title, type, totalAmount, currency, donorId, startDate, endDate, interestRate, repayable, notes, status,
-            sourceType, sourceSubType, grantorName, grantRef, grantFrom, grantTo, restricted, capexBudget, opexBudget } = req.body
+            sourceType, sourceSubType, grantorName, grantRef, grantFrom, grantTo, restricted, capexBudget, opexBudget, budgetId } = req.body
     const agreement = await db.fundingAgreement.update({
       where: { id: req.params.id },
       data: {
@@ -200,6 +204,7 @@ exports.update = async (req, res) => {
         ...(totalAmount !== undefined && { totalAmount: parseFloat(totalAmount) }),
         ...(currency !== undefined && { currency }),
         ...(donorId !== undefined && { donorId: donorId || null }),
+        ...(budgetId !== undefined && { budgetId: budgetId || null }),
         ...(startDate !== undefined && { startDate: startDate ? new Date(startDate) : null }),
         ...(endDate !== undefined && { endDate: endDate ? new Date(endDate) : null }),
         ...(interestRate !== undefined && { interestRate: interestRate ? parseFloat(interestRate) : null }),

@@ -14,7 +14,7 @@ export default function NewProjectPage() {
   const [savedProjectId, setSavedProjectId] = useState<string | null>(null)
   const [form, setForm] = useState({
     name: '', description: '', status: 'active',
-    budget: '', currency: 'USD', startDate: '', endDate: ''
+    startDate: '', endDate: ''
   })
 
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
@@ -27,8 +27,6 @@ export default function NewProjectPage() {
         name: form.name.trim(),
         description: form.description || null,
         status: form.status,
-        budget: form.budget ? parseFloat(form.budget) : null,
-        currency: form.currency,
         startDate: form.startDate || null,
         endDate: form.endDate || null,
       })
@@ -76,32 +74,14 @@ export default function NewProjectPage() {
                 className={inputCls + ' resize-none'} />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className={labelCls}>Status</label>
-                <select value={form.status} onChange={e => set('status', e.target.value)} className={inputCls}>
-                  <option value="active">Active</option>
-                  <option value="draft">Draft</option>
-                  <option value="completed">Completed</option>
-                  <option value="archived">Archived</option>
-                </select>
-              </div>
-              <div>
-                <label className={labelCls}>Currency</label>
-                <select value={form.currency} onChange={e => set('currency', e.target.value)} className={inputCls}>
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
-                  <option value="AED">AED</option>
-                  <option value="OMR">OMR</option>
-                </select>
-              </div>
-            </div>
-
             <div>
-              <label className={labelCls}>Budget</label>
-              <input type="number" value={form.budget} onChange={e => set('budget', e.target.value)}
-                placeholder="0.00" className={inputCls} />
+              <label className={labelCls}>Status</label>
+              <select value={form.status} onChange={e => set('status', e.target.value)} className={inputCls}>
+                <option value="active">Active</option>
+                <option value="draft">Draft</option>
+                <option value="completed">Completed</option>
+                <option value="archived">Archived</option>
+              </select>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

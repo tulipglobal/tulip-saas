@@ -11,6 +11,15 @@ import {
   Calendar, Tag, Hash, Plus
 } from 'lucide-react'
 
+interface BudgetSummary {
+  budgetCapex: number
+  budgetOpex: number
+  budgetTotal: number
+  actualCapex: number
+  actualOpex: number
+  actualTotal: number
+}
+
 interface Project {
   id: string
   name: string
@@ -24,6 +33,7 @@ interface Project {
   fundingSources: any[]
   expenses: Expense[]
   documents: Document[]
+  budgetSummary: BudgetSummary | null
 }
 
 interface Expense {
@@ -155,13 +165,7 @@ export default function ProjectDetailPage() {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-          <p className="text-white/40 text-xs mb-1">Budget</p>
-          <p className="text-white font-semibold text-lg">
-            {project.budget ? `$${project.budget.toLocaleString()}` : '—'}
-          </p>
-        </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-white/5 border border-white/10 rounded-xl p-4">
           <p className="text-white/40 text-xs mb-1">Total Spent</p>
           <p className="text-white font-semibold text-lg">${totalSpent.toLocaleString()}</p>
@@ -176,21 +180,54 @@ export default function ProjectDetailPage() {
         </div>
       </div>
 
-      {/* Budget bar */}
-      {project.budget && (
-        <div className="bg-white/5 border border-white/10 rounded-xl p-4 mb-8">
-          <div className="flex justify-between text-xs text-white/40 mb-2">
-            <span>Budget utilisation</span>
-            <span>{budgetPercent.toFixed(1)}%</span>
+      {/* Budget summary card */}
+      {project.budgetSummary && project.budgetSummary.budgetTotal > 0 && (() => {
+        const bs = project.budgetSummary
+        const remaining = bs.budgetTotal - bs.actualTotal
+        const pct = bs.budgetTotal > 0 ? Math.round((remaining / bs.budgetTotal) * 100) : 0
+        return (
+          <div className="bg-white/5 border border-white/10 rounded-xl p-5 mb-8">
+            <div className="grid grid-cols-2 gap-x-8 gap-y-1">
+              <div className="text-xs text-white/30 font-medium uppercase tracking-wide">Budget</div>
+              <div className="text-xs text-white/30 font-medium uppercase tracking-wide">Actual Spend</div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-purple-400">CapEx</span>
+                <span className="text-sm text-white/60 font-medium">${bs.budgetCapex.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-purple-400">CapEx</span>
+                <span className="text-sm text-white/60 font-medium">${bs.actualCapex.toLocaleString()}</span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-cyan-400">OpEx</span>
+                <span className="text-sm text-white/60 font-medium">${bs.budgetOpex.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-cyan-400">OpEx</span>
+                <span className="text-sm text-white/60 font-medium">${bs.actualOpex.toLocaleString()}</span>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-white/10 pt-1 mt-1">
+                <span className="text-sm text-white font-medium">Total</span>
+                <span className="text-sm text-white font-bold">${bs.budgetTotal.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-between border-t border-white/10 pt-1 mt-1">
+                <span className="text-sm text-white font-medium">Total</span>
+                <span className="text-sm text-white font-bold">${bs.actualTotal.toLocaleString()}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/10">
+              <span className="text-sm text-white/50">Remaining</span>
+              <span className={`text-sm font-bold ${remaining >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                ${remaining.toLocaleString()} ({pct}%)
+              </span>
+            </div>
           </div>
-          <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all ${budgetPercent > 90 ? 'bg-red-500' : budgetPercent > 70 ? 'bg-yellow-500' : 'bg-cyan-500'}`}
-              style={{ width: `${budgetPercent}%` }}
-            />
-          </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* Blockchain summary */}
       <div className="grid grid-cols-3 gap-4 mb-8">

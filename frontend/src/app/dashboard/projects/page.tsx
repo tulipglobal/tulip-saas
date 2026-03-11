@@ -5,6 +5,15 @@ import { apiGet } from '@/lib/api'
 import Link from 'next/link'
 import { FolderOpen, Plus, ArrowUpRight, CheckCircle, Clock, AlertTriangle, Search } from 'lucide-react'
 
+interface BudgetSummary {
+  budgetCapex: number
+  budgetOpex: number
+  budgetTotal: number
+  actualCapex: number
+  actualOpex: number
+  actualTotal: number
+}
+
 interface Project {
   id: string
   name: string
@@ -15,6 +24,7 @@ interface Project {
   startDate: string | null
   endDate: string | null
   createdAt: string
+  budgetSummary: BudgetSummary | null
   _count?: { expenses: number; documents: number }
 }
 
@@ -136,12 +146,23 @@ export default function ProjectsPage() {
                   <Clock size={12} className="text-blue-400" />
                   {project._count?.expenses ?? 0} expenses
                 </div>
-                {project.budget && (
-                  <div className="ml-auto text-xs font-medium text-white/50">
-                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: project.currency || 'USD', minimumFractionDigits: 0 }).format(project.budget)}
-                  </div>
-                )}
               </div>
+              {project.budgetSummary && project.budgetSummary.budgetTotal > 0 && (
+                <div className="pt-2 border-t border-white/5 space-y-0.5">
+                  <div className="flex justify-between text-[10px]">
+                    <span className="text-white/25">Budget</span>
+                    <span className="text-white/40">
+                      CapEx ${project.budgetSummary.budgetCapex.toLocaleString()} | OpEx ${project.budgetSummary.budgetOpex.toLocaleString()} | Total ${project.budgetSummary.budgetTotal.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-[10px]">
+                    <span className="text-white/25">Actual</span>
+                    <span className="text-white/40">
+                      CapEx ${project.budgetSummary.actualCapex.toLocaleString()} | OpEx ${project.budgetSummary.actualOpex.toLocaleString()} | Total ${project.budgetSummary.actualTotal.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              )}
             </Link>
           ))}
         </div>

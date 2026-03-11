@@ -5,6 +5,7 @@ const { createAuditLog } = require('../services/auditService')
 const { notifyDocumentUploaded, notifyDonorsNewDocument } = require('../services/emailNotificationService')
 const { dispatch: webhookDispatch } = require('../services/webhookService')
 const { KEY_DOCUMENT_CATEGORIES, isKeyCategory } = require('../lib/documentCategories')
+const { autoIssueSeal } = require('../services/universalSealService')
 const multer = require('multer')
 
 // Multer — memory storage (buffer for SHA-256 + S3)
@@ -155,6 +156,21 @@ exports.createDocument = async (req, res) => {
         expenseId: document.expenseId,
       }
     })
+
+    // Auto-issue Trust Seal (non-blocking)
+    const tenant = await prisma.tenant.findUnique({ where: { id: req.user.tenantId }, select: { name: true } })
+    const orgName = tenant?.name || 'Organization'
+    autoIssueSeal({
+      documentTitle: name,
+      documentType: 'ngo-document',
+      rawHash: sha256Hash,
+      issuedBy: orgName,
+      issuedTo: orgName,
+      tenantId: req.user.tenantId,
+      fileKey: fileUrl,
+      fileType: document.fileType,
+      metadata: { source: 'document-upload', documentId: document.id, documentLevel: document.documentLevel },
+    }).catch(err => console.error('[seal] auto-issue failed:', err.message))
 
     // Notify admin (non-blocking)
     notifyDocumentUploaded({

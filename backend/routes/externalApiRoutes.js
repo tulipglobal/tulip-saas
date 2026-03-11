@@ -13,6 +13,7 @@ const { normaliseDocument, assessDocument, crossAnalyseBundle } = require('../se
 const { generateOcrPdf, generateBundlePdf } = require('../services/ocrPdfService')
 const { createAuditLog } = require('../services/auditService')
 const logger  = require('../lib/logger')
+const { autoIssueSeal } = require('../services/universalSealService')
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -110,6 +111,21 @@ async function processExternalOcrJob(jobId, tenantId, userId, file) {
     const originalHash = crypto.createHash('sha256').update(file.buffer).digest('hex')
 
     logger.info({ jobId, hashValue, originalHash }, 'External OCR job completed')
+
+    // Auto-issue Trust Seal for processed document (non-blocking)
+    const tenant = await prisma.tenant.findUnique({ where: { id: tenantId }, select: { name: true } })
+    const orgName = tenant?.name || 'Organization'
+    autoIssueSeal({
+      documentTitle: file.originalname,
+      documentType: 'api-document',
+      rawHash: hashValue,
+      issuedBy: orgName,
+      issuedTo: orgName,
+      tenantId,
+      fileKey: pdfS3Key,
+      fileType: 'pdf',
+      metadata: { source: 'external-api', jobId },
+    }).catch(err => logger.error({ err: err.message }, '[seal] external OCR seal failed'))
 
     createAuditLog({
       action: 'ocr.external_processed',
@@ -337,6 +353,22 @@ async function processExternalBundle(bundleId, tenantId, userId, ocrJobs) {
     })
 
     logger.info({ bundleId, bundleHash }, 'External bundle completed')
+
+    // Auto-issue Trust Seal for bundle (non-blocking)
+    const bTenant = await prisma.tenant.findUnique({ where: { id: tenantId }, select: { name: true } })
+    const bOrgName = bTenant?.name || 'Organization'
+    autoIssueSeal({
+      documentTitle: `Bundle Report — ${completedDocs.length} Documents`,
+      documentType: 'bundle',
+      rawHash: bundleHash,
+      issuedBy: bOrgName,
+      issuedTo: bOrgName,
+      tenantId,
+      fileKey: masterS3Key,
+      fileType: 'pdf',
+      metadata: { source: 'external-api-bundle', bundleId },
+    }).catch(err => logger.error({ err: err.message }, '[seal] bundle seal failed'))
+
     createAuditLog({ action: 'ocr.external_bundle_processed', entityType: 'BundleJob', entityId: bundleId, userId, tenantId }).catch(() => {})
   } catch (err) {
     logger.error({ err: err.message, stack: err.stack, bundleId }, 'External bundle pipeline error')

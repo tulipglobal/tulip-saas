@@ -6,6 +6,7 @@ const tenantClient = require('../lib/tenantClient')
 const prisma = require('../lib/client')
 const { createAuditLog } = require('../services/auditService')
 const { parsePagination, paginatedResponse } = require('../lib/paginate')
+const { autoIssueSeal } = require('../services/universalSealService')
 
 // ─── List budgets ────────────────────────────────────────────
 exports.list = async (req, res) => {
@@ -329,6 +330,22 @@ exports.addFundingSource = async (req, res) => {
       tenantId: req.user.tenantId,
       details: { sourceType, donorName, amount: Number(amount) }
     })
+
+    // Auto-issue Trust Seal for agreement document (non-blocking)
+    if (agreementHash) {
+      const tenant = await prisma.tenant.findUnique({ where: { id: req.user.tenantId }, select: { name: true } })
+      const orgName = tenant?.name || 'Organization'
+      autoIssueSeal({
+        documentTitle: `${donorName} — Funding Agreement`,
+        documentType: 'budget-agreement',
+        rawHash: agreementHash,
+        issuedBy: orgName,
+        issuedTo: orgName,
+        tenantId: req.user.tenantId,
+        fileKey: agreementFileKey || null,
+        metadata: { source: 'budget-funding-source', budgetId: req.params.id, sourceId: source.id },
+      }).catch(err => console.error('[seal] budget agreement seal failed:', err.message))
+    }
 
     res.status(201).json(source)
   } catch (err) {

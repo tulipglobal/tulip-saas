@@ -122,8 +122,8 @@ async function processExternalOcrJob(jobId, tenantId, userId, file) {
       issuedBy: orgName,
       issuedTo: orgName,
       tenantId,
-      fileKey: pdfS3Key,
-      fileType: 'pdf',
+      fileKey: s3Key,
+      fileType: file.mimetype,
       metadata: { source: 'external-api', jobId },
     }).catch(err => logger.error({ err: err.message }, '[seal] external OCR seal failed'))
 

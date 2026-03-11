@@ -31,7 +31,7 @@ interface OcrJob {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof Loader2 }> = {
-  pending:         { label: 'Pending',        color: 'text-white/40 bg-white/5 border-white/10',              icon: Clock },
+  pending:         { label: 'Pending',        color: 'text-gray-500 bg-gray-50 border-gray-200',              icon: Clock },
   processing:      { label: 'Processing',     color: 'text-blue-400 bg-blue-400/10 border-blue-400/20',      icon: Loader2 },
   extracting:      { label: 'Extracting',     color: 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20', icon: Loader2 },
   normalising:     { label: 'Normalising',    color: 'text-purple-400 bg-purple-400/10 border-purple-400/20', icon: Sparkles },
@@ -60,7 +60,7 @@ function RiskBadge({ level, score }: { level: string; score: number | null }) {
     high: 'bg-red-400/10 text-red-400 border-red-400/20',
   }
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase border ${map[level] ?? 'bg-white/5 text-white/40 border-white/10'}`}>
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase border ${map[level] ?? 'bg-gray-50 text-gray-500 border-gray-200'}`}>
       {level === 'high' && <AlertTriangle size={10} />}
       {level} risk{score != null ? ` · ${score}/100` : ''}
     </span>
@@ -213,12 +213,12 @@ export default function OcrPage() {
             </div>
             OCR Engine
           </h1>
-          <p className="text-white/40 text-sm mt-1">
+          <p className="text-gray-500 text-sm mt-1">
             Extract text from documents, normalise with AI, and generate compliance reports.
           </p>
         </div>
         <button onClick={fetchJobs}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white/60 hover:text-white hover:bg-white/10 transition-all">
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all">
           <RefreshCw size={14} />
           Refresh
         </button>
@@ -229,7 +229,7 @@ export default function OcrPage() {
         className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${
           dragActive
             ? 'border-[#0c7aed] bg-[#0c7aed]/5'
-            : 'border-white/10 hover:border-white/20 bg-white/[0.02]'
+            : 'border-gray-200 hover:border-gray-300 bg-white/[0.02]'
         }`}
         onDragOver={(e) => { e.preventDefault(); setDragActive(true) }}
         onDragLeave={() => setDragActive(false)}
@@ -241,7 +241,7 @@ export default function OcrPage() {
         {uploading ? (
           <div className="flex flex-col items-center gap-3">
             <Loader2 size={32} className="text-[#0c7aed] animate-spin" />
-            <p className="text-white/60 text-sm">Uploading and starting OCR...</p>
+            <p className="text-gray-600 text-sm">Uploading and starting OCR...</p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-3">
@@ -249,8 +249,8 @@ export default function OcrPage() {
               <Upload size={24} className="text-[#0c7aed]" />
             </div>
             <div>
-              <p className="text-white/70 font-medium">Drop a document here or click to upload</p>
-              <p className="text-white/30 text-xs mt-1">PDF, JPG, PNG, TIFF, WEBP — up to 20MB</p>
+              <p className="text-gray-700 font-medium">Drop a document here or click to upload</p>
+              <p className="text-gray-400 text-xs mt-1">PDF, JPG, PNG, TIFF, WEBP — up to 20MB</p>
             </div>
           </div>
         )}
@@ -266,17 +266,17 @@ export default function OcrPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Jobs list */}
         <div className="lg:col-span-1 space-y-3">
-          <h2 className="text-sm font-semibold text-white/50 uppercase tracking-wider">Jobs ({jobs.length})</h2>
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Jobs ({jobs.length})</h2>
 
           {loading && (
-            <div className="text-center py-8 text-white/30">
+            <div className="text-center py-8 text-gray-400">
               <Loader2 size={20} className="animate-spin mx-auto mb-2" />
               Loading...
             </div>
           )}
 
           {!loading && jobs.length === 0 && (
-            <div className="text-center py-8 text-white/30 text-sm">
+            <div className="text-center py-8 text-gray-400 text-sm">
               No OCR jobs yet. Upload a document to get started.
             </div>
           )}
@@ -288,13 +288,13 @@ export default function OcrPage() {
               className={`w-full text-left p-4 rounded-xl border transition-all ${
                 selectedJob?.id === job.id
                   ? 'bg-[#0c7aed]/10 border-[#0c7aed]/30'
-                  : 'bg-white/[0.02] border-white/8 hover:bg-white/[0.04]'
+                  : 'bg-white/[0.02] border-gray-200 hover:bg-white/[0.04]'
               }`}
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-white/90 truncate">{job.originalFilename}</p>
-                  <p className="text-xs text-white/30 mt-0.5">
+                  <p className="text-sm font-medium text-gray-900 truncate">{job.originalFilename}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
                     {new Date(job.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                     {' · '}{formatSize(job.fileSize)}
                   </p>
@@ -313,8 +313,8 @@ export default function OcrPage() {
         {/* Detail panel */}
         <div className="lg:col-span-2">
           {!selectedJob ? (
-            <div className="flex items-center justify-center h-64 rounded-2xl border border-white/8 bg-white/[0.02]">
-              <div className="text-center text-white/30">
+            <div className="flex items-center justify-center h-64 rounded-2xl border border-gray-200 bg-white/[0.02]">
+              <div className="text-center text-gray-400">
                 <Eye size={32} className="mx-auto mb-2 opacity-40" />
                 <p className="text-sm">Select a job to view results</p>
               </div>
@@ -322,41 +322,41 @@ export default function OcrPage() {
           ) : (
             <div className="space-y-4">
               {/* Job header */}
-              <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
+              <div className="p-5 rounded-2xl border border-gray-200 bg-white/[0.02]">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-lg truncate pr-3">{selectedJob.originalFilename}</h3>
                   <StatusBadge status={selectedJob.status} />
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                   <div>
-                    <span className="text-white/30">Type</span>
-                    <p className="text-white/70 mt-0.5">{selectedJob.documentType || selectedJob.fileType || '—'}</p>
+                    <span className="text-gray-400">Type</span>
+                    <p className="text-gray-700 mt-0.5">{selectedJob.documentType || selectedJob.fileType || '—'}</p>
                   </div>
                   <div>
-                    <span className="text-white/30">Size</span>
-                    <p className="text-white/70 mt-0.5">{formatSize(selectedJob.fileSize)}</p>
+                    <span className="text-gray-400">Size</span>
+                    <p className="text-gray-700 mt-0.5">{formatSize(selectedJob.fileSize)}</p>
                   </div>
                   <div>
-                    <span className="text-white/30">Language</span>
-                    <p className="text-white/70 mt-0.5 uppercase">{selectedJob.detectedLanguage || '—'}</p>
+                    <span className="text-gray-400">Language</span>
+                    <p className="text-gray-700 mt-0.5 uppercase">{selectedJob.detectedLanguage || '—'}</p>
                   </div>
                   <div>
-                    <span className="text-white/30">Confidence</span>
-                    <p className="text-white/70 mt-0.5">{selectedJob.confidence != null ? `${selectedJob.confidence}%` : '—'}</p>
+                    <span className="text-gray-400">Confidence</span>
+                    <p className="text-gray-700 mt-0.5">{selectedJob.confidence != null ? `${selectedJob.confidence}%` : '—'}</p>
                   </div>
                 </div>
 
                 {/* Hash */}
                 {selectedJob.hashValue && (
-                  <div className="mt-3 p-3 rounded-lg bg-white/[0.03] border border-white/8">
+                  <div className="mt-3 p-3 rounded-lg bg-white/[0.03] border border-gray-200">
                     <div className="flex items-center gap-2 text-xs">
                       <Hash size={12} className="text-[#0c7aed]" />
-                      <span className="text-white/30">SHA-256</span>
-                      <code className="text-white/50 font-mono text-[11px] break-all">{selectedJob.hashValue}</code>
+                      <span className="text-gray-400">SHA-256</span>
+                      <code className="text-gray-500 font-mono text-[11px] break-all">{selectedJob.hashValue}</code>
                     </div>
                     {selectedJob.anchorTxHash && (
                       <div className="flex items-center gap-2 text-xs mt-1">
-                        <span className="text-white/30 ml-5">Polygon TX</span>
+                        <span className="text-gray-400 ml-5">Polygon TX</span>
                         <code className="text-green-400/70 font-mono text-[11px]">{selectedJob.anchorTxHash}</code>
                       </div>
                     )}
@@ -367,7 +367,7 @@ export default function OcrPage() {
                 {selectedJob.normalisedPdfS3 && (
                   <button
                     onClick={() => handleDownloadPdf(selectedJob.id)}
-                    className="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90"
+                    className="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-lg text-sm font-medium text-gray-900 transition-all hover:opacity-90"
                     style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}
                   >
                     <Download size={14} />
@@ -378,18 +378,18 @@ export default function OcrPage() {
 
               {/* Original document preview */}
               {selectedJob.status === 'completed' && (
-                <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
-                  <h4 className="font-semibold text-sm text-white/60 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <div className="p-5 rounded-2xl border border-gray-200 bg-white/[0.02]">
+                  <h4 className="font-semibold text-sm text-gray-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <Eye size={14} className="text-[#0c7aed]" />
                     Original Document
                   </h4>
                   {docPreviewLoading ? (
                     <div className="flex items-center justify-center py-12">
                       <Loader2 size={20} className="animate-spin text-[#0c7aed]" />
-                      <span className="ml-3 text-sm text-white/40">Loading preview...</span>
+                      <span className="ml-3 text-sm text-gray-500">Loading preview...</span>
                     </div>
                   ) : docPreviewUrl ? (
-                    <div className="rounded-xl overflow-hidden border border-white/8 bg-white">
+                    <div className="rounded-xl overflow-hidden border border-gray-200 bg-white">
                       {selectedJob.originalFilename.match(/\.(jpg|jpeg|png|gif|webp|tif|tiff)$/i) ? (
                         <img src={docPreviewUrl} alt={selectedJob.originalFilename} className="max-h-[400px] w-full object-contain" />
                       ) : (
@@ -397,7 +397,7 @@ export default function OcrPage() {
                       )}
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center py-8 text-sm text-white/30">
+                    <div className="flex items-center justify-center py-8 text-sm text-gray-400">
                       Preview not available
                     </div>
                   )}
@@ -406,8 +406,8 @@ export default function OcrPage() {
 
               {/* Risk assessment */}
               {selectedJob.assessmentResult && (
-                <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
-                  <h4 className="font-semibold text-sm text-white/60 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <div className="p-5 rounded-2xl border border-gray-200 bg-white/[0.02]">
+                  <h4 className="font-semibold text-sm text-gray-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <AlertTriangle size={14} className="text-yellow-400" />
                     Risk Assessment
                   </h4>
@@ -415,24 +415,24 @@ export default function OcrPage() {
                     <RiskBadge level={selectedJob.assessmentResult} score={selectedJob.assessmentScore} />
                   </div>
                   {selectedJob.assessmentNotes ? (
-                    <p className="text-sm text-white/60">{selectedJob.assessmentNotes}</p>
+                    <p className="text-sm text-gray-600">{selectedJob.assessmentNotes}</p>
                   ) : null}
 
                   {/* Flags */}
                   {Array.isArray(flags) && flags.length > 0 ? (
                     <div className="mt-4 space-y-2">
-                      <span className="text-white/30 text-xs uppercase tracking-wider">Flags</span>
+                      <span className="text-gray-400 text-xs uppercase tracking-wider">Flags</span>
                       {flags.map((flag, i) => {
-                        const sevColor = flag.severity === 'high' ? 'text-red-400' : flag.severity === 'medium' ? 'text-yellow-400' : 'text-white/40'
+                        const sevColor = flag.severity === 'high' ? 'text-red-400' : flag.severity === 'medium' ? 'text-yellow-400' : 'text-gray-500'
                         return (
-                          <div key={i} className="p-3 rounded-lg bg-white/[0.03] border border-white/8">
+                          <div key={i} className="p-3 rounded-lg bg-white/[0.03] border border-gray-200">
                             <div className="flex items-center gap-2">
                               <span className={`text-[10px] font-bold uppercase ${sevColor}`}>{flag.severity}</span>
-                              <span className="text-xs text-white/50">{flag.field}</span>
+                              <span className="text-xs text-gray-500">{flag.field}</span>
                             </div>
-                            <p className="text-sm text-white/70 mt-1">{flag.issue}</p>
+                            <p className="text-sm text-gray-700 mt-1">{flag.issue}</p>
                             {flag.recommendation ? (
-                              <p className="text-xs text-white/40 mt-1">{'→ '}{flag.recommendation}</p>
+                              <p className="text-xs text-gray-500 mt-1">{'→ '}{flag.recommendation}</p>
                             ) : null}
                           </div>
                         )
@@ -444,62 +444,62 @@ export default function OcrPage() {
 
               {/* Normalised data */}
               {norm && (
-                <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
-                  <h4 className="font-semibold text-sm text-white/60 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <div className="p-5 rounded-2xl border border-gray-200 bg-white/[0.02]">
+                  <h4 className="font-semibold text-sm text-gray-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <Sparkles size={14} className="text-purple-400" />
                     Extracted Document Data
                   </h4>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     {norm.documentNumber ? (
                       <div>
-                        <span className="text-white/30 text-xs">Doc Number</span>
-                        <p className="text-white/80">{String(norm.documentNumber)}</p>
+                        <span className="text-gray-400 text-xs">Doc Number</span>
+                        <p className="text-gray-800">{String(norm.documentNumber)}</p>
                       </div>
                     ) : null}
                     {norm.documentDate ? (
                       <div>
-                        <span className="text-white/30 text-xs">Date</span>
-                        <p className="text-white/80">{String(norm.documentDate)}</p>
+                        <span className="text-gray-400 text-xs">Date</span>
+                        <p className="text-gray-800">{String(norm.documentDate)}</p>
                       </div>
                     ) : null}
                     {norm.currency ? (
                       <div>
-                        <span className="text-white/30 text-xs">Currency</span>
-                        <p className="text-white/80">{String(norm.currency)}</p>
+                        <span className="text-gray-400 text-xs">Currency</span>
+                        <p className="text-gray-800">{String(norm.currency)}</p>
                       </div>
                     ) : null}
                     {norm.total != null ? (
                       <div>
-                        <span className="text-white/30 text-xs">Total</span>
-                        <p className="text-white/80 font-mono">{String(norm.currency || '')} {Number(norm.total).toLocaleString()}</p>
+                        <span className="text-gray-400 text-xs">Total</span>
+                        <p className="text-gray-800 font-mono">{String(norm.currency || '')} {Number(norm.total).toLocaleString()}</p>
                       </div>
                     ) : null}
                     {norm.vendor ? (
                       <div>
-                        <span className="text-white/30 text-xs">Vendor</span>
-                        <p className="text-white/80">{String((norm.vendor as Record<string, unknown>)?.name || '—')}</p>
+                        <span className="text-gray-400 text-xs">Vendor</span>
+                        <p className="text-gray-800">{String((norm.vendor as Record<string, unknown>)?.name || '—')}</p>
                       </div>
                     ) : null}
                     {norm.buyer ? (
                       <div>
-                        <span className="text-white/30 text-xs">Buyer</span>
-                        <p className="text-white/80">{String((norm.buyer as Record<string, unknown>)?.name || '—')}</p>
+                        <span className="text-gray-400 text-xs">Buyer</span>
+                        <p className="text-gray-800">{String((norm.buyer as Record<string, unknown>)?.name || '—')}</p>
                       </div>
                     ) : null}
                     {norm.paymentTerms ? (
                       <div className="col-span-2">
-                        <span className="text-white/30 text-xs">Payment Terms</span>
-                        <p className="text-white/60">{String(norm.paymentTerms)}</p>
+                        <span className="text-gray-400 text-xs">Payment Terms</span>
+                        <p className="text-gray-600">{String(norm.paymentTerms)}</p>
                       </div>
                     ) : null}
                     {Array.isArray(norm.lineItems) && norm.lineItems.length > 0 ? (
                       <div className="col-span-2">
-                        <span className="text-white/30 text-xs">Line Items ({norm.lineItems.length})</span>
+                        <span className="text-gray-400 text-xs">Line Items ({norm.lineItems.length})</span>
                         <div className="mt-2 space-y-1">
                           {(norm.lineItems as Array<Record<string, unknown>>).slice(0, 10).map((item, i) => (
                             <div key={i} className="flex justify-between text-xs p-2 rounded bg-white/[0.03]">
-                              <span className="text-white/60 truncate flex-1">{String(item.description || '—')}</span>
-                              <span className="text-white/80 font-mono ml-4">
+                              <span className="text-gray-600 truncate flex-1">{String(item.description || '—')}</span>
+                              <span className="text-gray-800 font-mono ml-4">
                                 {item.total != null ? `${norm.currency || ''} ${Number(item.total).toLocaleString()}` : '—'}
                               </span>
                             </div>
@@ -513,11 +513,11 @@ export default function OcrPage() {
 
               {/* Raw text */}
               {selectedJob.rawText && (
-                <details className="rounded-2xl border border-white/8 bg-white/[0.02] overflow-hidden">
-                  <summary className="px-5 py-3 cursor-pointer text-sm font-medium text-white/50 hover:text-white/70 transition-colors">
+                <details className="rounded-2xl border border-gray-200 bg-white/[0.02] overflow-hidden">
+                  <summary className="px-5 py-3 cursor-pointer text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors">
                     Raw Extracted Text
                   </summary>
-                  <pre className="px-5 pb-4 text-xs text-white/40 whitespace-pre-wrap font-mono max-h-64 overflow-y-auto">
+                  <pre className="px-5 pb-4 text-xs text-gray-500 whitespace-pre-wrap font-mono max-h-64 overflow-y-auto">
                     {selectedJob.rawText.slice(0, 5000)}
                     {selectedJob.rawText.length > 5000 && '\n\n... (truncated)'}
                   </pre>

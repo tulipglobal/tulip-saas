@@ -104,23 +104,23 @@ export default function NewFundingPage() {
     setSaving(false)
   }
 
-  const inputCls = "w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-[#0c7aed]/50 transition-all"
-  const labelCls = "block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wide"
+  const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all"
+  const labelCls = "block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide"
 
   return (
     <div className="p-6 max-w-2xl animate-fade-up">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/dashboard/funding" className="text-white/40 hover:text-white transition-colors">
+        <Link href="/dashboard/funding" className="text-gray-500 hover:text-gray-900 transition-colors">
           <ArrowLeft size={18} />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>New Funding Agreement</h1>
-          <p className="text-white/40 text-sm">Track grants, loans, and donations from your funding partners</p>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>New Funding Agreement</h1>
+          <p className="text-gray-500 text-sm">Track grants, loans, and donations from your funding partners</p>
         </div>
       </div>
 
-      <div className="rounded-xl border border-white/8 p-6 space-y-5"
-        style={{ background: 'rgba(255,255,255,0.02)' }}>
+      <div className="rounded-xl border border-gray-200 p-6 space-y-5"
+        style={{ background: '#FFFFFF' }}>
 
         <div>
           <label className={labelCls}>Title *</label>
@@ -182,24 +182,24 @@ export default function NewFundingPage() {
         </div>
 
         {/* Budget: CapEx / OpEx Split */}
-        <div className="rounded-lg border border-white/8 p-4 space-y-3 bg-white/[0.01]">
+        <div className="rounded-lg border border-gray-200 p-4 space-y-3 bg-gray-50">
           <label className={labelCls + ' mb-0'}>Budget Split</label>
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="text-[10px] text-white/30 mb-1 block">CapEx Budget</label>
+              <label className="text-[10px] text-gray-400 mb-1 block">CapEx Budget</label>
               <input type="number" step="0.01" value={form.capexBudget}
                 onChange={e => set('capexBudget', e.target.value)}
                 placeholder="0.00" className={inputCls} />
             </div>
             <div>
-              <label className="text-[10px] text-white/30 mb-1 block">OpEx Budget</label>
+              <label className="text-[10px] text-gray-400 mb-1 block">OpEx Budget</label>
               <input type="number" step="0.01" value={form.opexBudget}
                 onChange={e => set('opexBudget', e.target.value)}
                 placeholder="0.00" className={inputCls} />
             </div>
             <div>
-              <label className="text-[10px] text-white/30 mb-1 block">Total Budget</label>
-              <div className={inputCls + ' bg-white/3 cursor-default'}>
+              <label className="text-[10px] text-gray-400 mb-1 block">Total Budget</label>
+              <div className={inputCls + ' bg-gray-50 cursor-default'}>
                 {form.currency} {totalBudget.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </div>
             </div>
@@ -207,7 +207,7 @@ export default function NewFundingPage() {
         </div>
 
         <div>
-          <label className={labelCls}>Total Amount * {totalBudget > 0 && <span className="text-white/20 normal-case">(auto-filled from budget)</span>}</label>
+          <label className={labelCls}>Total Amount * {totalBudget > 0 && <span className="text-gray-300 normal-case">(auto-filled from budget)</span>}</label>
           <input type="number" step="0.01"
             value={form.totalAmount || (totalBudget > 0 ? totalBudget.toString() : '')}
             onChange={e => set('totalAmount', e.target.value)}
@@ -224,7 +224,7 @@ export default function NewFundingPage() {
             </button>
           </div>
           {showNewDonor ? (
-            <div className="space-y-3 bg-white/5 border border-white/10 rounded-lg p-4">
+            <div className="space-y-3 bg-gray-50 border border-gray-200 rounded-lg p-4">
               <input value={newDonor.name} onChange={e => setNewDonor(d => ({ ...d, name: e.target.value }))}
                 placeholder="Donor name *" className={inputCls} />
               <div className="grid grid-cols-2 gap-3">
@@ -239,7 +239,7 @@ export default function NewFundingPage() {
                 </select>
               </div>
               <button onClick={createDonor}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-white"
+                className="px-4 py-2 rounded-lg text-sm font-medium text-gray-900"
                 style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
                 Create Donor
               </button>
@@ -292,17 +292,17 @@ export default function NewFundingPage() {
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
             <button onClick={() => set('restricted', !form.restricted)}
-              className={`relative w-10 h-5 rounded-full transition-colors ${form.restricted ? 'bg-[#0c7aed]' : 'bg-white/20'}`}>
+              className={`relative w-10 h-5 rounded-full transition-colors ${form.restricted ? 'bg-[#0c7aed]' : 'bg-gray-500'}`}>
               <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${form.restricted ? 'left-5' : 'left-0.5'}`} />
             </button>
-            <span className="text-sm text-white/60">Restricted</span>
+            <span className="text-sm text-gray-600">Restricted</span>
           </div>
           <div className="flex items-center gap-3">
             <button onClick={() => set('repayable', !form.repayable)}
-              className={`relative w-10 h-5 rounded-full transition-colors ${form.repayable ? 'bg-[#0c7aed]' : 'bg-white/20'}`}>
+              className={`relative w-10 h-5 rounded-full transition-colors ${form.repayable ? 'bg-[#0c7aed]' : 'bg-gray-500'}`}>
               <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${form.repayable ? 'left-5' : 'left-0.5'}`} />
             </button>
-            <span className="text-sm text-white/60">Repayable (loan)</span>
+            <span className="text-sm text-gray-600">Repayable (loan)</span>
           </div>
         </div>
 
@@ -326,11 +326,11 @@ export default function NewFundingPage() {
 
         <div className="flex items-center gap-3 pt-2">
           <button onClick={submit} disabled={saving}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white disabled:opacity-50"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-gray-900 disabled:opacity-50"
             style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
             <Save size={15} /> {saving ? 'Creating...' : 'Create Agreement'}
           </button>
-          <Link href="/dashboard/funding" className="px-5 py-2.5 rounded-lg text-sm text-white/50 hover:text-white transition-colors">
+          <Link href="/dashboard/funding" className="px-5 py-2.5 rounded-lg text-sm text-gray-500 hover:text-gray-900 transition-colors">
             Cancel
           </Link>
         </div>

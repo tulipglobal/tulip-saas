@@ -584,20 +584,20 @@ function VerifyPageInner() {
   const isVerified = result?.verified === true
 
   return (
-    <div className="min-h-screen bg-[#040f1f]" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+    <div className="min-h-screen bg-[#F9FAFB]" style={{ fontFamily: 'DM Sans, sans-serif' }}>
 
       {/* ── NAV ── */}
-      <nav className="border-b border-white/10 bg-[#07224a]/80 backdrop-blur-md">
+      <nav className="border-b border-gray-200 bg-[#07224a]/80 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
-              <Shield className="w-3.5 h-3.5 text-white" />
+              <Shield className="w-3.5 h-3.5 text-gray-900" />
             </div>
             <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '17px', color: 'white' }}>
               tulip<span style={{ color: '#369bff' }}>ds</span>
             </span>
           </Link>
-          <Link href="/login" className="px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity"
+          <Link href="/login" className="px-4 py-2 rounded-lg text-gray-900 text-sm font-medium hover:opacity-90 transition-opacity"
             style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
             Sign in
           </Link>
@@ -611,7 +611,7 @@ function VerifyPageInner() {
           <span className="text-slate-400 text-xs font-medium">Public verification · No login required</span>
         </div>
         <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1 }}
-          className="text-3xl sm:text-5xl text-white">
+          className="text-3xl sm:text-5xl text-gray-900">
           Verify a document
         </h1>
         <p className="text-slate-500 text-base sm:text-lg mt-3 max-w-xl mx-auto leading-relaxed">
@@ -623,13 +623,13 @@ function VerifyPageInner() {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pb-8">
 
         {/* Mode tabs */}
-        <div className="flex gap-1 mb-4 bg-white/5 p-1 rounded-lg w-fit mx-auto">
+        <div className="flex gap-1 mb-4 bg-gray-50 p-1 rounded-lg w-fit mx-auto">
           <button onClick={() => setMode('file')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === 'file' ? 'bg-[#0c7aed] text-white' : 'text-white/40 hover:text-white/70'}`}>
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === 'file' ? 'bg-[#0c7aed] text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>
             <span className="flex items-center gap-2"><Upload className="w-3.5 h-3.5" /> Drop a file</span>
           </button>
           <button onClick={() => setMode('hash')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === 'hash' ? 'bg-[#0c7aed] text-white' : 'text-white/40 hover:text-white/70'}`}>
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === 'hash' ? 'bg-[#0c7aed] text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>
             <span className="flex items-center gap-2"><Hash className="w-3.5 h-3.5" /> Paste a hash</span>
           </button>
         </div>
@@ -644,7 +644,7 @@ function VerifyPageInner() {
             className={`relative rounded-2xl border-2 border-dashed transition-all cursor-pointer group
               ${dragActive
                 ? 'border-[#0c7aed] bg-[#0c7aed]/10 scale-[1.01]'
-                : 'border-white/10 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]'
+                : 'border-gray-200 bg-white/[0.02] hover:border-gray-300 hover:bg-white/[0.04]'
               }`}
             style={{ minHeight: '200px' }}
           >
@@ -653,19 +653,19 @@ function VerifyPageInner() {
               {hashing ? (
                 <>
                   <div className="w-10 h-10 border-2 border-[#0c7aed] border-t-transparent rounded-full animate-spin mb-4" />
-                  <p className="text-white/70 text-sm font-medium">Computing SHA-256 hash...</p>
-                  <p className="text-white/30 text-xs mt-1">{fileName}</p>
+                  <p className="text-gray-700 text-sm font-medium">Computing SHA-256 hash...</p>
+                  <p className="text-gray-400 text-xs mt-1">{fileName}</p>
                 </>
               ) : (
                 <>
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-colors ${dragActive ? 'bg-[#0c7aed]/20' : 'bg-white/5'}`}>
-                    <Upload className={`w-7 h-7 transition-colors ${dragActive ? 'text-[#0c7aed]' : 'text-white/20 group-hover:text-white/40'}`} />
+                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-colors ${dragActive ? 'bg-[#0c7aed]/20' : 'bg-gray-50'}`}>
+                    <Upload className={`w-7 h-7 transition-colors ${dragActive ? 'text-[#0c7aed]' : 'text-gray-300 group-hover:text-gray-500'}`} />
                   </div>
-                  <p className="text-white/70 text-base font-medium">
+                  <p className="text-gray-700 text-base font-medium">
                     {dragActive ? 'Drop your file here' : 'Drag and drop any file here'}
                   </p>
-                  <p className="text-white/30 text-sm mt-1.5">or click to browse</p>
-                  <p className="text-white/20 text-xs mt-4">
+                  <p className="text-gray-400 text-sm mt-1.5">or click to browse</p>
+                  <p className="text-gray-300 text-xs mt-4">
                     PDF, Word, Excel, images, or any file type — your file never leaves your device
                   </p>
                 </>
@@ -682,10 +682,10 @@ function VerifyPageInner() {
                 <Hash className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                 <input type="text" value={hash} onChange={e => setHash(e.target.value)}
                   placeholder="Paste SHA-256 hash (64 hex characters)..."
-                  className="w-full pl-11 pr-4 py-4 rounded-xl border border-white/10 bg-white/5 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50 transition-all text-sm font-mono" />
+                  className="w-full pl-11 pr-4 py-4 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50 transition-all text-sm font-mono" />
               </div>
               <button type="submit" disabled={loading || !hash.trim()}
-                className="px-6 py-4 rounded-xl text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
+                className="px-6 py-4 rounded-xl text-gray-900 font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
                 style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
                 {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Verify'}
               </button>
@@ -697,9 +697,9 @@ function VerifyPageInner() {
       {/* ── LOADING ── */}
       {loading && (
         <div className="max-w-3xl mx-auto px-4 sm:px-6 pb-8">
-          <div className="flex items-center justify-center gap-3 p-6 rounded-xl bg-white/[0.02] border border-white/5">
+          <div className="flex items-center justify-center gap-3 p-6 rounded-xl bg-white/[0.02] border border-gray-100">
             <div className="w-5 h-5 border-2 border-[#0c7aed] border-t-transparent rounded-full animate-spin" />
-            <span className="text-white/50 text-sm">Verifying on the blockchain...</span>
+            <span className="text-gray-500 text-sm">Verifying on the blockchain...</span>
           </div>
         </div>
       )}
@@ -739,19 +739,19 @@ function VerifyPageInner() {
             <div className="space-y-4">
 
               {/* ── Record info card ── */}
-              <div className="rounded-2xl border border-white/8 overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)' }}>
+              <div className="rounded-2xl border border-gray-200 overflow-hidden" style={{ background: '#FFFFFF' }}>
                 <div className="p-5 sm:p-6">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
                     {/* File / record name */}
                     {(details?.documentName || fileName || details?.expenseDescription || result.action) && (
                       <div className="sm:col-span-2">
-                        <p className="text-white/30 text-xs font-medium uppercase tracking-wider mb-1.5">
+                        <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1.5">
                           {result.documentHash ? 'Document' : 'Record'}
                         </p>
                         <div className="flex items-center gap-2.5">
                           <FileText className="w-5 h-5 text-[#369bff] flex-shrink-0" />
-                          <span className="text-white text-base font-medium truncate">
+                          <span className="text-gray-900 text-base font-medium truncate">
                             {details?.documentName || fileName || details?.expenseDescription || result.action?.replace(/_/g, ' ')}
                           </span>
                         </div>
@@ -761,10 +761,10 @@ function VerifyPageInner() {
                     {/* Organisation */}
                     {details?.organisationName && (
                       <div>
-                        <p className="text-white/30 text-xs font-medium uppercase tracking-wider mb-1.5">Organisation</p>
+                        <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1.5">Organisation</p>
                         <div className="flex items-center gap-2">
-                          <Building2 className="w-4 h-4 text-white/25" />
-                          <span className="text-white/80 text-sm font-medium">{details.organisationName}</span>
+                          <Building2 className="w-4 h-4 text-gray-400" />
+                          <span className="text-gray-800 text-sm font-medium">{details.organisationName}</span>
                           {details.organisationType && (
                             <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">{details.organisationType}</span>
                           )}
@@ -775,10 +775,10 @@ function VerifyPageInner() {
                     {/* Date */}
                     {result.recordedAt && (
                       <div>
-                        <p className="text-white/30 text-xs font-medium uppercase tracking-wider mb-1.5">Date &amp; Time</p>
+                        <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1.5">Date &amp; Time</p>
                         <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-white/25" />
-                          <span className="text-white/80 text-sm">
+                          <Calendar className="w-4 h-4 text-gray-400" />
+                          <span className="text-gray-800 text-sm">
                             {new Date(result.recordedAt).toLocaleString('en-GB', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
@@ -788,22 +788,22 @@ function VerifyPageInner() {
                     {/* Project */}
                     {details?.projectName && (
                       <div>
-                        <p className="text-white/30 text-xs font-medium uppercase tracking-wider mb-1.5">Project</p>
-                        <span className="text-white/80 text-sm">{details.projectName}</span>
+                        <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1.5">Project</p>
+                        <span className="text-gray-800 text-sm">{details.projectName}</span>
                       </div>
                     )}
 
                     {/* Amount */}
                     {details?.amount && (
                       <div>
-                        <p className="text-white/30 text-xs font-medium uppercase tracking-wider mb-1.5">Amount</p>
+                        <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1.5">Amount</p>
                         <span className="text-emerald-400 text-lg font-bold">{details.currency || 'USD'} {details.amount.toLocaleString()}</span>
                       </div>
                     )}
 
                     {/* Anchor status */}
                     <div>
-                      <p className="text-white/30 text-xs font-medium uppercase tracking-wider mb-1.5">Status</p>
+                      <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1.5">Status</p>
                       <div className="flex items-center gap-2">
                         {bc?.anchorStatus === 'confirmed'
                           ? <><CheckCircle className="w-4 h-4 text-emerald-400" /><span className="text-emerald-400 text-sm font-medium">Anchored on blockchain</span></>
@@ -816,8 +816,8 @@ function VerifyPageInner() {
 
                 {/* View document button */}
                 {result.documentId && (
-                  <div className="border-t border-white/8 px-5 sm:px-6 py-4 flex items-center justify-between">
-                    <span className="text-white/30 text-xs">Original document available</span>
+                  <div className="border-t border-gray-200 px-5 sm:px-6 py-4 flex items-center justify-between">
+                    <span className="text-gray-400 text-xs">Original document available</span>
                     <button onClick={async () => {
                       try {
                         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.tulipds.com'
@@ -825,7 +825,7 @@ function VerifyPageInner() {
                         const data = await res.json()
                         if (data.url) window.open(data.url, '_blank')
                       } catch {}
-                    }} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90 transition-opacity"
+                    }} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-900 hover:opacity-90 transition-opacity"
                       style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
                       <ExternalLink className="w-4 h-4" /> View Document
                     </button>
@@ -836,7 +836,7 @@ function VerifyPageInner() {
               {/* ── Download buttons ── */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button onClick={() => generateCertificate(result, fileName || undefined)}
-                  className="flex items-center justify-center gap-2.5 py-3.5 rounded-xl border border-white/10 bg-white/[0.03] text-white/70 text-sm font-medium hover:bg-white/[0.06] hover:text-white transition-all">
+                  className="flex items-center justify-center gap-2.5 py-3.5 rounded-xl border border-gray-200 bg-white/[0.03] text-gray-700 text-sm font-medium hover:bg-white/[0.06] hover:text-gray-900 transition-all">
                   <Download className="w-4 h-4" /> Download PDF
                 </button>
                 <button onClick={() => generateProofBundle(result, fileName || undefined)}
@@ -846,19 +846,19 @@ function VerifyPageInner() {
               </div>
 
               {/* ── Advanced / Technical section ── */}
-              <div className="rounded-2xl border border-white/8 overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)' }}>
+              <div className="rounded-2xl border border-gray-200 overflow-hidden" style={{ background: '#FFFFFF' }}>
                 <button onClick={() => setShowAdvanced(!showAdvanced)}
                   className="w-full flex items-center justify-between px-5 sm:px-6 py-4 text-left hover:bg-white/[0.02] transition-colors">
-                  <span className="text-white/40 text-sm font-medium">Technical Details</span>
-                  {showAdvanced ? <ChevronUp className="w-4 h-4 text-white/30" /> : <ChevronDown className="w-4 h-4 text-white/30" />}
+                  <span className="text-gray-500 text-sm font-medium">Technical Details</span>
+                  {showAdvanced ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
                 </button>
 
                 {showAdvanced && (
-                  <div className="px-5 sm:px-6 pb-6 space-y-5 border-t border-white/5">
+                  <div className="px-5 sm:px-6 pb-6 space-y-5 border-t border-gray-100">
 
                     {/* Hash chain */}
                     <div className="pt-5">
-                      <p className="text-white/30 text-xs font-semibold uppercase tracking-wider mb-3">Hash Chain</p>
+                      <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-3">Hash Chain</p>
                       <div className="space-y-3">
                         {[
                           { label: 'Data Hash (SHA-256)', value: result.dataHash, key: 'hash' },
@@ -867,11 +867,11 @@ function VerifyPageInner() {
                         ].filter(r => r.value).map(row => (
                           <div key={row.key} className="flex items-center justify-between gap-3">
                             <div className="flex-1 min-w-0">
-                              <p className="text-white/25 text-xs mb-0.5">{row.label}</p>
-                              <p className="font-mono text-white/50 text-xs truncate">{row.value}</p>
+                              <p className="text-gray-400 text-xs mb-0.5">{row.label}</p>
+                              <p className="font-mono text-gray-500 text-xs truncate">{row.value}</p>
                             </div>
-                            <button onClick={() => copyText(row.value!, row.key)} className="flex-shrink-0 p-1.5 rounded-lg hover:bg-white/10 transition-colors">
-                              {copied === row.key ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-white/20" />}
+                            <button onClick={() => copyText(row.value!, row.key)} className="flex-shrink-0 p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                              {copied === row.key ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-gray-300" />}
                             </button>
                           </div>
                         ))}
@@ -903,38 +903,38 @@ function VerifyPageInner() {
                     {/* Blockchain */}
                     {bc?.txHash && (
                       <div>
-                        <p className="text-white/30 text-xs font-semibold uppercase tracking-wider mb-3">Blockchain Anchor</p>
+                        <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-3">Blockchain Anchor</p>
                         <div className="space-y-2">
                           <div className="flex items-center justify-between gap-3">
                             <div className="flex-1 min-w-0">
-                              <p className="text-white/25 text-xs mb-0.5">Transaction Hash</p>
-                              <p className="font-mono text-white/50 text-xs truncate">{bc.txHash}</p>
+                              <p className="text-gray-400 text-xs mb-0.5">Transaction Hash</p>
+                              <p className="font-mono text-gray-500 text-xs truncate">{bc.txHash}</p>
                             </div>
                             <div className="flex gap-1 flex-shrink-0">
-                              <button onClick={() => copyText(bc.txHash!, 'tx')} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
-                                {copied === 'tx' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-white/20" />}
+                              <button onClick={() => copyText(bc.txHash!, 'tx')} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                                {copied === 'tx' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-gray-300" />}
                               </button>
                               <a href={`https://polygonscan.com/tx/${bc.txHash}`} target="_blank" rel="noopener noreferrer"
-                                className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
-                                <ExternalLink className="w-3.5 h-3.5 text-white/20" />
+                                className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                                <ExternalLink className="w-3.5 h-3.5 text-gray-300" />
                               </a>
                             </div>
                           </div>
                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                             {bc.blockNumber && (
                               <div>
-                                <p className="text-white/25 text-xs">Block</p>
-                                <p className="text-white/60 text-sm font-mono">#{bc.blockNumber.toLocaleString()}</p>
+                                <p className="text-gray-400 text-xs">Block</p>
+                                <p className="text-gray-600 text-sm font-mono">#{bc.blockNumber.toLocaleString()}</p>
                               </div>
                             )}
                             {bc.ancheredAt && (
                               <div>
-                                <p className="text-white/25 text-xs">Anchored</p>
-                                <p className="text-white/60 text-xs">{new Date(bc.ancheredAt).toLocaleString('en-GB')}</p>
+                                <p className="text-gray-400 text-xs">Anchored</p>
+                                <p className="text-gray-600 text-xs">{new Date(bc.ancheredAt).toLocaleString('en-GB')}</p>
                               </div>
                             )}
                             <div>
-                              <p className="text-white/25 text-xs">Network</p>
+                              <p className="text-gray-400 text-xs">Network</p>
                               <div className="flex items-center gap-1">
                                 <Globe className="w-3 h-3 text-[#369bff]" />
                                 <p className="text-[#369bff] text-xs font-medium">Polygon Amoy</p>
@@ -948,11 +948,11 @@ function VerifyPageInner() {
                     {/* RFC 3161 */}
                     {bc?.ancheredAt && (
                       <div>
-                        <p className="text-white/30 text-xs font-semibold uppercase tracking-wider mb-3">RFC 3161 Timestamp</p>
+                        <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-3">RFC 3161 Timestamp</p>
                         <div className="flex items-center gap-2">
                           <Clock className="w-4 h-4 text-emerald-400" />
                           <span className="text-emerald-400 text-xs font-medium">RFC 3161 Compliant</span>
-                          <span className="text-white/20 text-xs">· eIDAS · ESIGN Act · Legally admissible</span>
+                          <span className="text-gray-300 text-xs">· eIDAS · ESIGN Act · Legally admissible</span>
                         </div>
                       </div>
                     )}
@@ -973,14 +973,14 @@ function VerifyPageInner() {
               { icon: <Globe className="w-5 h-5" />, title: 'Blockchain check', desc: 'We look up the fingerprint on the Polygon blockchain to confirm the document was registered.' },
               { icon: <CheckCircle className="w-5 h-5" />, title: 'Instant proof', desc: 'Get a clear result with all the details, and download a printable proof certificate with QR code.' },
             ].map(item => (
-              <div key={item.title} className="p-5 rounded-xl border border-white/5 bg-white/[0.02] text-center">
+              <div key={item.title} className="p-5 rounded-xl border border-gray-100 bg-white/[0.02] text-center">
                 <div className="w-11 h-11 rounded-xl bg-blue-500/10 flex items-center justify-center mx-auto mb-3 text-blue-400">{item.icon}</div>
                 <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'white', marginBottom: '6px' }}>{item.title}</p>
                 <p className="text-slate-500 text-xs leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
-          <div className="mt-8 p-5 rounded-xl border border-white/5 bg-white/[0.02] text-center">
+          <div className="mt-8 p-5 rounded-xl border border-gray-100 bg-white/[0.02] text-center">
             <p className="text-slate-500 text-sm">
               Want to verify your own records?{' '}
               <Link href="/login" className="text-[#369bff] font-medium hover:underline">Sign in to your dashboard</Link>
@@ -991,7 +991,7 @@ function VerifyPageInner() {
         </div>
       )}
 
-      <footer className="border-t border-white/5 py-6 sm:py-8">
+      <footer className="border-t border-gray-100 py-6 sm:py-8">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
           <p className="text-slate-700 text-xs">© 2026 Tulip DS · Bright Bytes Technology · Dubai, UAE</p>
         </div>
@@ -1002,7 +1002,7 @@ function VerifyPageInner() {
 
 export default function VerifyPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#040f1f] flex items-center justify-center"><div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" /></div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#F9FAFB] flex items-center justify-center"><div className="w-6 h-6 border-2 border-gray-300 border-t-white rounded-full animate-spin" /></div>}>
       <VerifyPageInner />
     </Suspense>
   )

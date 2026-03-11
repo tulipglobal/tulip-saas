@@ -44,7 +44,7 @@ function SourceBadge({ type }: { type: string }) {
   if (src) {
     return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] border font-medium ${src.cls}`}>{src.label}</span>
   }
-  return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] border font-medium bg-white/5 text-white/40 border-white/10">{type}</span>
+  return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] border font-medium bg-gray-50 text-gray-500 border-gray-200">{type}</span>
 }
 
 export default function TrustSealPage() {
@@ -175,18 +175,18 @@ export default function TrustSealPage() {
     return true
   })
 
-  const inputCls = "bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-[#0c7aed]/50"
+  const inputCls = "bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50"
 
   return (
     <div className="p-4 md:p-8 space-y-6 max-w-6xl">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>Trust Seals</h1>
-          <p className="text-sm text-white/50 mt-1">Every document in the system is automatically sealed and anchored to Polygon</p>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>Trust Seals</h1>
+          <p className="text-sm text-gray-500 mt-1">Every document in the system is automatically sealed and anchored to Polygon</p>
         </div>
         <button onClick={() => { setShowCreate(true); setCreateError('') }}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-900 transition-all hover:opacity-90"
           style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
           <Plus size={16} /> Issue New Seal
         </button>
@@ -195,24 +195,24 @@ export default function TrustSealPage() {
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total Seals', value: totalSeals, color: 'text-white' },
+          { label: 'Total Seals', value: totalSeals, color: 'text-gray-900' },
           { label: 'Confirmed', value: confirmed, color: 'text-green-400' },
           { label: 'Pending', value: pending, color: 'text-yellow-400' },
           { label: 'This Month', value: thisMonth, color: 'text-cyan-400' },
         ].map(({ label, value, color }) => (
-          <div key={label} className="rounded-xl border border-white/8 px-5 py-4" style={{ background: 'rgba(255,255,255,0.02)' }}>
+          <div key={label} className="rounded-xl border border-gray-200 px-5 py-4" style={{ background: '#FFFFFF' }}>
             <div className={`text-xl font-bold ${color}`} style={{ fontFamily: 'Syne, sans-serif' }}>{value}</div>
-            <div className="text-xs text-white/40 mt-1">{label}</div>
+            <div className="text-xs text-gray-500 mt-1">{label}</div>
           </div>
         ))}
       </div>
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2 max-w-xs flex-1 min-w-[200px]">
-          <Search size={14} className="text-white/30" />
+        <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 max-w-xs flex-1 min-w-[200px]">
+          <Search size={14} className="text-gray-400" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search seals..."
-            className="bg-transparent text-sm text-white/80 placeholder-white/30 outline-none w-full" />
+            className="bg-transparent text-sm text-gray-800 placeholder-gray-400 outline-none w-full" />
         </div>
         <select value={filterSource} onChange={e => setFilterSource(e.target.value)}
           className={`${inputCls} min-w-[140px] [&>option]:bg-[#0a1628]`}>
@@ -236,29 +236,29 @@ export default function TrustSealPage() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-20">
-          <ShieldCheck size={48} className="mx-auto text-white/10 mb-4" />
-          <h3 className="text-lg font-semibold text-white/60">No seals found</h3>
-          <p className="text-sm text-white/30 mt-1">Issue your first trust seal or upload a document</p>
+          <ShieldCheck size={48} className="mx-auto text-gray-300 mb-4" />
+          <h3 className="text-lg font-semibold text-gray-600">No seals found</h3>
+          <p className="text-sm text-gray-400 mt-1">Issue your first trust seal or upload a document</p>
         </div>
       ) : (
-        <div className="rounded-xl border border-white/8 overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)' }}>
-          <div className="hidden lg:grid grid-cols-[2fr_80px_1fr_1fr_80px_80px_60px] gap-3 px-5 py-3 border-b border-white/8 text-xs text-white/30 uppercase tracking-wide font-medium">
+        <div className="rounded-xl border border-gray-200 overflow-hidden" style={{ background: '#FFFFFF' }}>
+          <div className="hidden lg:grid grid-cols-[2fr_80px_1fr_1fr_80px_80px_60px] gap-3 px-5 py-3 border-b border-gray-200 text-xs text-gray-400 uppercase tracking-wide font-medium">
             <span>Document</span><span>Source</span><span>Issued By</span><span>Date</span><span>Seal</span><span>TX</span><span></span>
           </div>
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-gray-100">
             {filtered.map(seal => (
-              <div key={seal.id} className="px-5 py-3.5 hover:bg-white/2 transition-colors lg:grid lg:grid-cols-[2fr_80px_1fr_1fr_80px_80px_60px] lg:gap-3 lg:items-center">
+              <div key={seal.id} className="px-5 py-3.5 hover:bg-gray-50 transition-colors lg:grid lg:grid-cols-[2fr_80px_1fr_1fr_80px_80px_60px] lg:gap-3 lg:items-center">
                 <div>
-                  <div className="text-sm font-medium text-white/80 truncate">{seal.documentTitle}</div>
+                  <div className="text-sm font-medium text-gray-800 truncate">{seal.documentTitle}</div>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-xs text-white/30">To: {seal.issuedTo}</span>
+                    <span className="text-xs text-gray-400">To: {seal.issuedTo}</span>
                     {/* Mobile meta */}
                     <span className="lg:hidden"><SourceBadge type={seal.documentType} /></span>
                   </div>
                 </div>
                 <div className="hidden lg:block"><SourceBadge type={seal.documentType} /></div>
-                <div className="hidden lg:block text-xs text-white/50 truncate">{seal.issuedBy}</div>
-                <div className="hidden lg:block text-xs text-white/30">
+                <div className="hidden lg:block text-xs text-gray-500 truncate">{seal.issuedBy}</div>
+                <div className="hidden lg:block text-xs text-gray-400">
                   {new Date(seal.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
                 </div>
                 <div className="hidden lg:block">
@@ -276,17 +276,17 @@ export default function TrustSealPage() {
                       {seal.anchorTxHash.slice(0, 8)}… <ExternalLink size={9} />
                     </a>
                   ) : (
-                    <span className="text-xs text-white/20">—</span>
+                    <span className="text-xs text-gray-300">—</span>
                   )}
                 </div>
                 <div className="hidden lg:flex items-center gap-1">
                   <button onClick={() => setActiveSealId(seal.id)}
-                    className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-white/30 hover:text-white hover:bg-white/10 transition-all"
+                    className="w-7 h-7 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-all"
                     title="View seal">
                     <Eye size={13} />
                   </button>
                   <button onClick={() => copyUrl(seal.id)}
-                    className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-white/30 hover:text-white hover:bg-white/10 transition-all"
+                    className="w-7 h-7 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-all"
                     title="Copy verify URL">
                     <Copy size={13} />
                   </button>
@@ -305,50 +305,50 @@ export default function TrustSealPage() {
       {/* Create Modal */}
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowCreate(false)}>
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <div className="relative bg-[#0a1929] border border-white/10 rounded-xl w-full max-w-lg max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className="relative bg-[#0a1929] border border-gray-200 rounded-xl w-full max-w-lg max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
-              <h3 className="font-semibold text-white text-lg">Issue New Trust Seal</h3>
-              <button onClick={() => setShowCreate(false)} className="text-white/40 hover:text-white"><X size={18} /></button>
+              <h3 className="font-semibold text-gray-900 text-lg">Issue New Trust Seal</h3>
+              <button onClick={() => setShowCreate(false)} className="text-gray-500 hover:text-gray-900"><X size={18} /></button>
             </div>
             <div className="p-5 space-y-4">
               {createError && (
                 <div className="p-3 rounded-lg bg-red-400/10 border border-red-400/20 text-red-400 text-sm">{createError}</div>
               )}
               <div>
-                <label className="text-xs font-medium text-white/60 mb-1.5 block">Document Title *</label>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Document Title *</label>
                 <input value={formTitle} onChange={e => setFormTitle(e.target.value)} placeholder="e.g. Bachelor of Science Degree" className={`w-full ${inputCls}`} />
               </div>
               <div>
-                <label className="text-xs font-medium text-white/60 mb-1.5 block">Document Type</label>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Document Type</label>
                 <select value={formType} onChange={e => setFormType(e.target.value)} className={`w-full ${inputCls} [&>option]:bg-[#0a1628]`}>
                   {TYPE_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-xs font-medium text-white/60 mb-1.5 block">Issued To *</label>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Issued To *</label>
                 <input value={formTo} onChange={e => setFormTo(e.target.value)} placeholder="Recipient full name" className={`w-full ${inputCls}`} />
               </div>
               <div>
-                <label className="text-xs font-medium text-white/60 mb-1.5 block">Recipient Email</label>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Recipient Email</label>
                 <input value={formToEmail} onChange={e => setFormToEmail(e.target.value)} placeholder="recipient@example.com" type="email" className={`w-full ${inputCls}`} />
               </div>
               <div>
-                <label className="text-xs font-medium text-white/60 mb-1.5 block">Issued By (org name)</label>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Issued By (org name)</label>
                 <input value={formBy} onChange={e => setFormBy(e.target.value)} placeholder="Leave blank to use your org name" className={`w-full ${inputCls}`} />
               </div>
               <div>
-                <label className="text-xs font-medium text-white/60 mb-1.5 block">Upload Document (to hash)</label>
-                <div className="border border-dashed border-white/10 rounded-lg p-4 text-center">
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Upload Document (to hash)</label>
+                <div className="border border-dashed border-gray-200 rounded-lg p-4 text-center">
                   <input type="file" onChange={e => setFormFile(e.target.files?.[0] || null)} className="hidden" id="seal-file" />
                   <label htmlFor="seal-file" className="cursor-pointer">
-                    {formFile ? <div className="text-sm text-white/70">{formFile.name}</div> : <div className="text-sm text-white/30">Click to select a file</div>}
+                    {formFile ? <div className="text-sm text-gray-700">{formFile.name}</div> : <div className="text-sm text-gray-400">Click to select a file</div>}
                   </label>
                 </div>
               </div>
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-medium text-white/60">Custom Metadata</label>
+                  <label className="text-xs font-medium text-gray-600">Custom Metadata</label>
                   <button onClick={addMetadataRow} className="text-[10px] text-[#369bff] hover:underline">+ Add field</button>
                 </div>
                 <div className="space-y-2">
@@ -359,7 +359,7 @@ export default function TrustSealPage() {
                       <input value={metadataVals[idx]} onChange={e => { const v = [...metadataVals]; v[idx] = e.target.value; setMetadataVals(v) }}
                         placeholder="Value" className={`flex-1 ${inputCls} !text-xs !py-2`} />
                       {metadataKeys.length > 1 && (
-                        <button onClick={() => removeMetadataRow(idx)} className="text-white/20 hover:text-red-400"><X size={14} /></button>
+                        <button onClick={() => removeMetadataRow(idx)} className="text-gray-300 hover:text-red-400"><X size={14} /></button>
                       )}
                     </div>
                   ))}
@@ -367,9 +367,9 @@ export default function TrustSealPage() {
               </div>
             </div>
             <div className="flex justify-end gap-3 p-5 border-t border-white/[0.06]">
-              <button onClick={() => setShowCreate(false)} className="px-4 py-2 rounded-lg text-sm text-white/60 hover:text-white transition-colors">Cancel</button>
+              <button onClick={() => setShowCreate(false)} className="px-4 py-2 rounded-lg text-sm text-gray-600 hover:text-gray-900 transition-colors">Cancel</button>
               <button onClick={handleCreate} disabled={creating || !formTitle.trim() || !formTo.trim()}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white disabled:opacity-40 transition-all hover:opacity-90"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-900 disabled:opacity-40 transition-all hover:opacity-90"
                 style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
                 {creating && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                 {creating ? 'Issuing...' : 'Issue Seal'}
@@ -382,37 +382,37 @@ export default function TrustSealPage() {
       {/* Success Modal */}
       {createdSeal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setCreatedSeal(null)}>
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <div className="relative bg-[#0a1929] border border-white/10 rounded-xl w-full max-w-md text-center" onClick={e => e.stopPropagation()}>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className="relative bg-[#0a1929] border border-gray-200 rounded-xl w-full max-w-md text-center" onClick={e => e.stopPropagation()}>
             <div className="p-6">
               <div className="w-14 h-14 rounded-full bg-green-400/15 flex items-center justify-center mx-auto mb-4">
                 <ShieldCheck size={28} className="text-green-400" />
               </div>
-              <h3 className="text-lg font-bold text-white mb-1">Trust Seal Issued</h3>
-              <p className="text-sm text-white/50 mb-5">{createdSeal.documentTitle}</p>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">Trust Seal Issued</h3>
+              <p className="text-sm text-gray-500 mb-5">{createdSeal.documentTitle}</p>
               {(createdSeal.qrCode || createdSeal.qrCodeUrl) && (
                 <div className="bg-white rounded-xl p-4 inline-block mb-4">
                   <img src={createdSeal.qrCode || createdSeal.qrCodeUrl!} alt="QR Code" className="w-48 h-48 mx-auto" />
                 </div>
               )}
               <div className="space-y-3 mb-5">
-                <div className="flex items-center gap-2 bg-white/5 rounded-lg px-3 py-2.5">
-                  <code className="text-xs text-white/60 truncate flex-1">{createdSeal.verifyUrl || `https://verify.tulipds.com/seal/${createdSeal.id}`}</code>
+                <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2.5">
+                  <code className="text-xs text-gray-600 truncate flex-1">{createdSeal.verifyUrl || `https://verify.tulipds.com/seal/${createdSeal.id}`}</code>
                   <button onClick={() => copyUrl(createdSeal.id)} className="text-[#369bff] hover:underline text-xs shrink-0">
                     {copied ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
-                <div className="text-xs text-white/30 font-mono break-all">SHA-256: {createdSeal.rawHash}</div>
+                <div className="text-xs text-gray-400 font-mono break-all">SHA-256: {createdSeal.rawHash}</div>
               </div>
               <div className="flex gap-3 justify-center">
                 {(createdSeal.qrCode || createdSeal.qrCodeUrl) && (
                   <button onClick={() => downloadQR(createdSeal.qrCode || createdSeal.qrCodeUrl!, createdSeal.documentTitle)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 text-white/70 hover:bg-white/10 transition-all text-sm">
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-50 text-gray-700 hover:bg-gray-100 transition-all text-sm">
                     <Download size={14} /> Download QR
                   </button>
                 )}
                 <button onClick={() => setCreatedSeal(null)}
-                  className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90"
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-gray-900 transition-all hover:opacity-90"
                   style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
                   Done
                 </button>

@@ -98,7 +98,7 @@ export default function TrustSealCard({ sealId, onClose }: TrustSealCardProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
 
       {/* Modal */}
       <div
@@ -141,7 +141,7 @@ export default function TrustSealCard({ sealId, onClose }: TrustSealCardProps) {
                   <p className="text-sm font-medium text-gray-500">{seal.documentTitle}</p>
                   <p className="text-xs text-gray-400 uppercase">{seal.fileType || seal.documentType}</p>
                   <a href={docUrl} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700 transition-colors">
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 text-gray-900 text-sm hover:bg-blue-700 transition-colors">
                     <Download size={14} /> Download
                   </a>
                 </div>

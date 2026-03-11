@@ -42,15 +42,15 @@ function StatCard({ label, value, sub, icon: Icon, color }: {
   icon: typeof BarChart3; color: string
 }) {
   return (
-    <div className="p-4 rounded-xl border border-white/8 bg-white/[0.02]">
+    <div className="p-4 rounded-xl border border-gray-200 bg-white/[0.02]">
       <div className="flex items-center gap-2 mb-2">
         <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${color}`}>
           <Icon size={16} />
         </div>
-        <span className="text-xs text-white/40 uppercase tracking-wider">{label}</span>
+        <span className="text-xs text-gray-500 uppercase tracking-wider">{label}</span>
       </div>
-      <p className="text-2xl font-bold text-white/90">{value}</p>
-      {sub ? <p className="text-xs text-white/30 mt-0.5">{sub}</p> : null}
+      <p className="text-2xl font-bold text-gray-900">{value}</p>
+      {sub ? <p className="text-xs text-gray-400 mt-0.5">{sub}</p> : null}
     </div>
   )
 }
@@ -251,22 +251,22 @@ export default function DeveloperApiPage() {
             </div>
             Developer API
           </h1>
-          <p className="text-white/40 text-sm mt-1">
+          <p className="text-gray-500 text-sm mt-1">
             Manage API keys and integrate Tulip OCR into your applications.
           </p>
         </div>
         <button onClick={() => { fetchKeys(); fetchUsage() }}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white/60 hover:text-white hover:bg-white/10 transition-all">
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all">
           <RefreshCw size={14} /> Refresh
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 p-1 rounded-xl bg-white/[0.03] border border-white/8 w-fit">
+      <div className="flex gap-1 p-1 rounded-xl bg-white/[0.03] border border-gray-200 w-fit">
         {(['keys', 'usage', 'docs'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              activeTab === tab ? 'bg-[#0c7aed]/20 text-[#369bff]' : 'text-white/40 hover:text-white/70'
+              activeTab === tab ? 'bg-[#0c7aed]/20 text-[#369bff]' : 'text-gray-500 hover:text-gray-700'
             }`}>
             {tab === 'keys' ? 'API Keys' : tab === 'usage' ? 'Usage' : 'Documentation'}
           </button>
@@ -289,18 +289,18 @@ export default function DeveloperApiPage() {
             <CheckCircle2 size={16} className="text-green-400" />
             <span className="text-sm font-semibold text-green-400">API Key Created</span>
           </div>
-          <p className="text-xs text-white/50 mb-2">Copy this key now. It will not be shown again.</p>
+          <p className="text-xs text-gray-500 mb-2">Copy this key now. It will not be shown again.</p>
           <div className="flex items-center gap-2">
-            <code className="flex-1 p-3 rounded-lg bg-black/30 border border-white/10 text-sm font-mono text-white/90 break-all select-all">
+            <code className="flex-1 p-3 rounded-lg bg-black/30 border border-gray-200 text-sm font-mono text-gray-900 break-all select-all">
               {newlyCreatedKey}
             </code>
             <button onClick={() => handleCopy(newlyCreatedKey)}
-              className="shrink-0 p-3 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
-              {copied ? <Check size={16} className="text-green-400" /> : <Copy size={16} className="text-white/60" />}
+              className="shrink-0 p-3 rounded-lg bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-all">
+              {copied ? <Check size={16} className="text-green-400" /> : <Copy size={16} className="text-gray-600" />}
             </button>
           </div>
           <button onClick={() => setNewlyCreatedKey(null)}
-            className="mt-2 text-xs text-white/30 hover:text-white/60 transition-all">
+            className="mt-2 text-xs text-gray-400 hover:text-gray-600 transition-all">
             Dismiss
           </button>
         </div>
@@ -312,31 +312,31 @@ export default function DeveloperApiPage() {
           {/* Create key */}
           {showCreate ? (
             <div className="p-4 rounded-xl border border-[#0c7aed]/30 bg-[#0c7aed]/5">
-              <h3 className="text-sm font-semibold text-white/80 mb-3">Create New API Key</h3>
+              <h3 className="text-sm font-semibold text-gray-800 mb-3">Create New API Key</h3>
               <div className="flex gap-3">
                 <input
                   type="text" value={newKeyName} onChange={e => setNewKeyName(e.target.value)}
                   placeholder="Key name (e.g. Production, CI Pipeline)"
-                  className="flex-1 px-4 py-2.5 rounded-lg bg-white/[0.05] border border-white/10 text-sm text-white/80 placeholder-white/25 outline-none focus:border-[#0c7aed]/40"
+                  className="flex-1 px-4 py-2.5 rounded-lg bg-white/[0.05] border border-gray-200 text-sm text-gray-800 placeholder-white/25 outline-none focus:border-[#0c7aed]/40"
                   onKeyDown={e => { if (e.key === 'Enter') handleCreate() }}
                 />
                 <button onClick={handleCreate} disabled={creating || !newKeyName.trim()}
-                  className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90 disabled:opacity-40"
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-gray-900 transition-all hover:opacity-90 disabled:opacity-40"
                   style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
                   {creating ? <Loader2 size={14} className="animate-spin" /> : 'Create'}
                 </button>
                 <button onClick={() => { setShowCreate(false); setNewKeyName('') }}
-                  className="px-3 py-2 rounded-lg text-sm text-white/40 hover:text-white/70 bg-white/5 border border-white/10">
+                  className="px-3 py-2 rounded-lg text-sm text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200">
                   Cancel
                 </button>
               </div>
-              <p className="text-xs text-white/30 mt-2">
+              <p className="text-xs text-gray-400 mt-2">
                 Key will have documents:read and documents:write permissions for OCR and Bundle APIs.
               </p>
             </div>
           ) : (
             <button onClick={() => setShowCreate(true)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-900 transition-all hover:opacity-90"
               style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
               <Plus size={16} /> Create API Key
             </button>
@@ -344,14 +344,14 @@ export default function DeveloperApiPage() {
 
           {/* Loading */}
           {loading ? (
-            <div className="text-center py-8 text-white/30">
+            <div className="text-center py-8 text-gray-400">
               <Loader2 size={20} className="animate-spin mx-auto mb-2" /> Loading...
             </div>
           ) : null}
 
           {/* Active keys */}
           {!loading && activeKeys.length === 0 && !newlyCreatedKey ? (
-            <div className="text-center py-12 text-white/30 text-sm rounded-2xl border border-white/8 bg-white/[0.02]">
+            <div className="text-center py-12 text-gray-400 text-sm rounded-2xl border border-gray-200 bg-white/[0.02]">
               <Key size={32} className="mx-auto mb-3 opacity-30" />
               <p>No API keys yet. Create one to start integrating.</p>
             </div>
@@ -359,15 +359,15 @@ export default function DeveloperApiPage() {
 
           {activeKeys.length > 0 ? (
             <div className="space-y-2">
-              <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider">Active Keys ({activeKeys.length})</h3>
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Active Keys ({activeKeys.length})</h3>
               {activeKeys.map(k => (
-                <div key={k.id} className="flex items-center gap-4 p-4 rounded-xl border border-white/8 bg-white/[0.02]">
+                <div key={k.id} className="flex items-center gap-4 p-4 rounded-xl border border-gray-200 bg-white/[0.02]">
                   <div className="w-9 h-9 rounded-lg bg-green-400/10 flex items-center justify-center shrink-0">
                     <Key size={16} className="text-green-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white/90">{k.name}</p>
-                    <div className="flex items-center gap-3 mt-0.5 text-xs text-white/30">
+                    <p className="text-sm font-medium text-gray-900">{k.name}</p>
+                    <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-400">
                       <code className="font-mono">{k.prefix}...{'•'.repeat(16)}</code>
                       <span>Created {new Date(k.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                       {k.lastUsedAt ? (
@@ -379,13 +379,13 @@ export default function DeveloperApiPage() {
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
                     {k.permissions.map(p => (
-                      <span key={p} className="px-2 py-0.5 rounded text-[10px] font-medium bg-white/5 text-white/30 border border-white/8">
+                      <span key={p} className="px-2 py-0.5 rounded text-[10px] font-medium bg-gray-50 text-gray-400 border border-gray-200">
                         {p}
                       </span>
                     ))}
                   </div>
                   <button onClick={() => handleRevoke(k.id)}
-                    className="p-2 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-400/10 transition-all shrink-0"
+                    className="p-2 rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-400/10 transition-all shrink-0"
                     title="Revoke key">
                     <Trash2 size={16} />
                   </button>
@@ -397,16 +397,16 @@ export default function DeveloperApiPage() {
           {/* Revoked keys */}
           {revokedKeys.length > 0 ? (
             <details className="mt-4">
-              <summary className="text-xs font-semibold text-white/20 uppercase tracking-wider cursor-pointer hover:text-white/40 transition-all">
+              <summary className="text-xs font-semibold text-gray-300 uppercase tracking-wider cursor-pointer hover:text-gray-500 transition-all">
                 Revoked Keys ({revokedKeys.length})
               </summary>
               <div className="mt-2 space-y-2">
                 {revokedKeys.map(k => (
-                  <div key={k.id} className="flex items-center gap-4 p-3 rounded-xl border border-white/5 bg-white/[0.01] opacity-50">
+                  <div key={k.id} className="flex items-center gap-4 p-3 rounded-xl border border-gray-100 bg-gray-50 opacity-50">
                     <Key size={14} className="text-red-400/50 shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white/40 line-through">{k.name}</p>
-                      <p className="text-xs text-white/20 font-mono">{k.prefix}...</p>
+                      <p className="text-sm text-gray-500 line-through">{k.name}</p>
+                      <p className="text-xs text-gray-300 font-mono">{k.prefix}...</p>
                     </div>
                     <span className="text-[10px] text-red-400/50">Revoked {new Date(k.revokedAt!).toLocaleDateString('en-GB')}</span>
                   </div>
@@ -438,13 +438,13 @@ export default function DeveloperApiPage() {
 
           {/* By endpoint */}
           {usage?.byEndpoint && usage.byEndpoint.length > 0 ? (
-            <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
-              <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-3">By Endpoint</h3>
+            <div className="p-5 rounded-2xl border border-gray-200 bg-white/[0.02]">
+              <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">By Endpoint</h3>
               <div className="space-y-2">
                 {usage.byEndpoint.map((ep, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] border border-white/8">
-                    <code className="text-xs text-white/50 font-mono flex-1 truncate">{ep.endpoint}</code>
-                    <span className="text-xs text-white/70 font-semibold">{ep.total}</span>
+                  <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] border border-gray-200">
+                    <code className="text-xs text-gray-500 font-mono flex-1 truncate">{ep.endpoint}</code>
+                    <span className="text-xs text-gray-700 font-semibold">{ep.total}</span>
                     <span className="text-[10px] text-green-400/60">{ep.success} ok</span>
                     {ep.errors > 0 ? <span className="text-[10px] text-red-400/60">{ep.errors} err</span> : null}
                   </div>
@@ -455,15 +455,15 @@ export default function DeveloperApiPage() {
 
           {/* By key */}
           {usage?.byKey && usage.byKey.length > 0 ? (
-            <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
-              <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-3">By API Key</h3>
+            <div className="p-5 rounded-2xl border border-gray-200 bg-white/[0.02]">
+              <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">By API Key</h3>
               <div className="space-y-2">
                 {usage.byKey.map((k, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] border border-white/8">
-                    <Key size={12} className="text-white/20 shrink-0" />
-                    <span className="text-sm text-white/70 flex-1">{k.name}</span>
-                    <code className="text-[10px] text-white/25 font-mono">{k.prefix}...</code>
-                    <span className="text-xs text-white/70 font-semibold">{k.total} calls</span>
+                  <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] border border-gray-200">
+                    <Key size={12} className="text-gray-300 shrink-0" />
+                    <span className="text-sm text-gray-700 flex-1">{k.name}</span>
+                    <code className="text-[10px] text-gray-400 font-mono">{k.prefix}...</code>
+                    <span className="text-xs text-gray-700 font-semibold">{k.total} calls</span>
                   </div>
                 ))}
               </div>
@@ -472,12 +472,12 @@ export default function DeveloperApiPage() {
 
           {/* Recent calls */}
           {usage?.recentCalls && usage.recentCalls.length > 0 ? (
-            <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
-              <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-3">Recent API Calls</h3>
+            <div className="p-5 rounded-2xl border border-gray-200 bg-white/[0.02]">
+              <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">Recent API Calls</h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="text-white/30 border-b border-white/8">
+                    <tr className="text-gray-400 border-b border-gray-200">
                       <th className="text-left py-2 pr-3 font-medium">Time</th>
                       <th className="text-left py-2 pr-3 font-medium">Endpoint</th>
                       <th className="text-left py-2 pr-3 font-medium">Key</th>
@@ -487,14 +487,14 @@ export default function DeveloperApiPage() {
                   </thead>
                   <tbody>
                     {usage.recentCalls.map(call => (
-                      <tr key={call.id} className="border-b border-white/5 hover:bg-white/[0.02]">
-                        <td className="py-2 pr-3 text-white/40">
+                      <tr key={call.id} className="border-b border-gray-100 hover:bg-white/[0.02]">
+                        <td className="py-2 pr-3 text-gray-500">
                           {new Date(call.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                         </td>
                         <td className="py-2 pr-3">
-                          <code className="text-white/50 font-mono">{call.method} {call.endpoint}</code>
+                          <code className="text-gray-500 font-mono">{call.method} {call.endpoint}</code>
                         </td>
-                        <td className="py-2 pr-3 text-white/30">{call.keyName}</td>
+                        <td className="py-2 pr-3 text-gray-400">{call.keyName}</td>
                         <td className="py-2 pr-3">
                           <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold ${
                             call.statusCode < 400
@@ -504,7 +504,7 @@ export default function DeveloperApiPage() {
                             {call.statusCode}
                           </span>
                         </td>
-                        <td className="py-2 text-right text-white/40">{call.responseTime}ms</td>
+                        <td className="py-2 text-right text-gray-500">{call.responseTime}ms</td>
                       </tr>
                     ))}
                   </tbody>
@@ -514,7 +514,7 @@ export default function DeveloperApiPage() {
           ) : null}
 
           {!usage || (usage.thisMonth.total === 0 && usage.today.total === 0) ? (
-            <div className="text-center py-12 text-white/30 text-sm rounded-2xl border border-white/8 bg-white/[0.02]">
+            <div className="text-center py-12 text-gray-400 text-sm rounded-2xl border border-gray-200 bg-white/[0.02]">
               <BarChart3 size={32} className="mx-auto mb-3 opacity-30" />
               <p>No API usage yet. Make your first API call to see stats here.</p>
             </div>
@@ -526,111 +526,111 @@ export default function DeveloperApiPage() {
       {activeTab === 'docs' ? (
         <div className="space-y-6">
           {/* Intro */}
-          <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
-            <h3 className="font-semibold text-white/90 mb-2">Getting Started</h3>
-            <ol className="text-sm text-white/60 space-y-1.5 list-decimal list-inside">
+          <div className="p-5 rounded-2xl border border-gray-200 bg-white/[0.02]">
+            <h3 className="font-semibold text-gray-900 mb-2">Getting Started</h3>
+            <ol className="text-sm text-gray-600 space-y-1.5 list-decimal list-inside">
               <li>Create an API key from the <button onClick={() => setActiveTab('keys')} className="text-[#369bff] hover:underline">API Keys</button> tab</li>
-              <li>Include it in the <code className="text-xs px-1.5 py-0.5 rounded bg-white/5 text-white/50 font-mono">Authorization: Bearer tl_live_...</code> header</li>
+              <li>Include it in the <code className="text-xs px-1.5 py-0.5 rounded bg-gray-50 text-gray-500 font-mono">Authorization: Bearer tl_live_...</code> header</li>
               <li>Call the endpoints below to process documents</li>
               <li>Poll the status endpoint until the job completes</li>
             </ol>
           </div>
 
           {/* Base URL */}
-          <div className="p-4 rounded-xl border border-white/8 bg-white/[0.02]">
-            <span className="text-xs text-white/40 uppercase tracking-wider">Base URL</span>
+          <div className="p-4 rounded-xl border border-gray-200 bg-white/[0.02]">
+            <span className="text-xs text-gray-500 uppercase tracking-wider">Base URL</span>
             <div className="flex items-center gap-2 mt-1">
               <code className="text-sm font-mono text-[#369bff]">{apiUrl}</code>
-              <button onClick={() => handleCopy(apiUrl)} className="p-1 rounded hover:bg-white/5 transition-all">
-                <Copy size={12} className="text-white/30" />
+              <button onClick={() => handleCopy(apiUrl)} className="p-1 rounded hover:bg-gray-50 transition-all">
+                <Copy size={12} className="text-gray-400" />
               </button>
             </div>
           </div>
 
           {/* Endpoint selector */}
-          <div className="flex gap-1 p-1 rounded-xl bg-white/[0.03] border border-white/8 w-fit">
+          <div className="flex gap-1 p-1 rounded-xl bg-white/[0.03] border border-gray-200 w-fit">
             <button onClick={() => setDocsSection('ocr')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                docsSection === 'ocr' ? 'bg-[#0c7aed]/20 text-[#369bff]' : 'text-white/40 hover:text-white/70'
+                docsSection === 'ocr' ? 'bg-[#0c7aed]/20 text-[#369bff]' : 'text-gray-500 hover:text-gray-700'
               }`}>
               OCR Process
             </button>
             <button onClick={() => setDocsSection('bundle')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                docsSection === 'bundle' ? 'bg-[#0c7aed]/20 text-[#369bff]' : 'text-white/40 hover:text-white/70'
+                docsSection === 'bundle' ? 'bg-[#0c7aed]/20 text-[#369bff]' : 'text-gray-500 hover:text-gray-700'
               }`}>
               Bundle Verify
             </button>
           </div>
 
           {/* Endpoint info */}
-          <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
+          <div className="p-5 rounded-2xl border border-gray-200 bg-white/[0.02]">
             {docsSection === 'ocr' ? (
               <>
                 <div className="flex items-center gap-2 mb-3">
                   <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-400/10 text-green-400 border border-green-400/20">POST</span>
-                  <code className="text-sm font-mono text-white/70">/api/external/ocr/process</code>
+                  <code className="text-sm font-mono text-gray-700">/api/external/ocr/process</code>
                 </div>
-                <p className="text-sm text-white/50 mb-4">
+                <p className="text-sm text-gray-500 mb-4">
                   Upload a single document for OCR extraction, AI normalisation, risk assessment, and PDF report generation.
-                  Returns a job ID immediately — poll <code className="text-xs px-1 py-0.5 rounded bg-white/5 font-mono">GET /api/external/ocr/jobs/:id</code> for results.
+                  Returns a job ID immediately — poll <code className="text-xs px-1 py-0.5 rounded bg-gray-50 font-mono">GET /api/external/ocr/jobs/:id</code> for results.
                 </p>
-                <div className="text-xs space-y-1 mb-4 text-white/40">
-                  <p><strong className="text-white/60">Content-Type:</strong> multipart/form-data</p>
-                  <p><strong className="text-white/60">Field:</strong> <code className="font-mono">file</code> — PDF, JPG, PNG, TIFF, WEBP (max 20MB)</p>
-                  <p><strong className="text-white/60">Required permission:</strong> documents:write</p>
+                <div className="text-xs space-y-1 mb-4 text-gray-500">
+                  <p><strong className="text-gray-600">Content-Type:</strong> multipart/form-data</p>
+                  <p><strong className="text-gray-600">Field:</strong> <code className="font-mono">file</code> — PDF, JPG, PNG, TIFF, WEBP (max 20MB)</p>
+                  <p><strong className="text-gray-600">Required permission:</strong> documents:write</p>
                 </div>
-                <div className="space-y-2 text-xs text-white/40">
-                  <p><strong className="text-white/60">Response (201):</strong></p>
-                  <pre className="p-3 rounded-lg bg-black/30 border border-white/8 font-mono text-white/50 overflow-x-auto">
+                <div className="space-y-2 text-xs text-gray-500">
+                  <p><strong className="text-gray-600">Response (201):</strong></p>
+                  <pre className="p-3 rounded-lg bg-black/30 border border-gray-200 font-mono text-gray-500 overflow-x-auto">
 {`{
   "data": { "id": "uuid", "status": "processing" },
   "message": "OCR job created. Poll GET /api/external/ocr/jobs/:id for status."
 }`}
                   </pre>
-                  <p className="mt-2"><strong className="text-white/60">Completed job fields:</strong> status, documentType, detectedLanguage, normalisedJson, assessmentScore, assessmentResult, assessmentNotes, flags, hashValue</p>
+                  <p className="mt-2"><strong className="text-gray-600">Completed job fields:</strong> status, documentType, detectedLanguage, normalisedJson, assessmentScore, assessmentResult, assessmentNotes, flags, hashValue</p>
                 </div>
               </>
             ) : (
               <>
                 <div className="flex items-center gap-2 mb-3">
                   <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-400/10 text-green-400 border border-green-400/20">POST</span>
-                  <code className="text-sm font-mono text-white/70">/api/external/ocr/bundle</code>
+                  <code className="text-sm font-mono text-gray-700">/api/external/ocr/bundle</code>
                 </div>
-                <p className="text-sm text-white/50 mb-4">
+                <p className="text-sm text-gray-500 mb-4">
                   Upload up to 20 documents for individual OCR processing plus cross-document analysis checking for inconsistencies.
-                  Returns a bundle ID — poll <code className="text-xs px-1 py-0.5 rounded bg-white/5 font-mono">GET /api/external/ocr/bundles/:id</code> for results.
+                  Returns a bundle ID — poll <code className="text-xs px-1 py-0.5 rounded bg-gray-50 font-mono">GET /api/external/ocr/bundles/:id</code> for results.
                 </p>
-                <div className="text-xs space-y-1 mb-4 text-white/40">
-                  <p><strong className="text-white/60">Content-Type:</strong> multipart/form-data</p>
-                  <p><strong className="text-white/60">Field:</strong> <code className="font-mono">files</code> — up to 20 files (PDF, JPG, PNG, TIFF, WEBP, max 20MB each)</p>
-                  <p><strong className="text-white/60">Field:</strong> <code className="font-mono">name</code> — optional bundle name</p>
-                  <p><strong className="text-white/60">Required permission:</strong> documents:write</p>
+                <div className="text-xs space-y-1 mb-4 text-gray-500">
+                  <p><strong className="text-gray-600">Content-Type:</strong> multipart/form-data</p>
+                  <p><strong className="text-gray-600">Field:</strong> <code className="font-mono">files</code> — up to 20 files (PDF, JPG, PNG, TIFF, WEBP, max 20MB each)</p>
+                  <p><strong className="text-gray-600">Field:</strong> <code className="font-mono">name</code> — optional bundle name</p>
+                  <p><strong className="text-gray-600">Required permission:</strong> documents:write</p>
                 </div>
-                <div className="space-y-2 text-xs text-white/40">
-                  <p><strong className="text-white/60">Response (201):</strong></p>
-                  <pre className="p-3 rounded-lg bg-black/30 border border-white/8 font-mono text-white/50 overflow-x-auto">
+                <div className="space-y-2 text-xs text-gray-500">
+                  <p><strong className="text-gray-600">Response (201):</strong></p>
+                  <pre className="p-3 rounded-lg bg-black/30 border border-gray-200 font-mono text-gray-500 overflow-x-auto">
 {`{
   "data": { "id": "uuid", "status": "processing", "fileCount": 3 },
   "message": "Bundle created. Poll GET /api/external/ocr/bundles/:id for status."
 }`}
                   </pre>
-                  <p className="mt-2"><strong className="text-white/60">Completed bundle fields:</strong> status, overallRiskScore, overallRiskLevel, crossAnalysisJson (consistency checks, relationships, missing docs), ocrJobs (individual results)</p>
+                  <p className="mt-2"><strong className="text-gray-600">Completed bundle fields:</strong> status, overallRiskScore, overallRiskLevel, crossAnalysisJson (consistency checks, relationships, missing docs), ocrJobs (individual results)</p>
                 </div>
               </>
             )}
           </div>
 
           {/* Code examples */}
-          <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
-            <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-3">Code Examples</h3>
+          <div className="p-5 rounded-2xl border border-gray-200 bg-white/[0.02]">
+            <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">Code Examples</h3>
 
             {/* Language tabs */}
-            <div className="flex gap-1 mb-4 p-1 rounded-lg bg-white/[0.03] border border-white/8 w-fit">
+            <div className="flex gap-1 mb-4 p-1 rounded-lg bg-white/[0.03] border border-gray-200 w-fit">
               {(['curl', 'python', 'javascript'] as const).map(lang => (
                 <button key={lang} onClick={() => setDocsLang(lang)}
                   className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                    docsLang === lang ? 'bg-white/10 text-white/80' : 'text-white/30 hover:text-white/60'
+                    docsLang === lang ? 'bg-gray-100 text-gray-800' : 'text-gray-400 hover:text-gray-600'
                   }`}>
                   {lang === 'curl' ? 'cURL' : lang === 'python' ? 'Python' : 'JavaScript'}
                 </button>
@@ -639,7 +639,7 @@ export default function DeveloperApiPage() {
 
             {/* Code block */}
             <div className="relative">
-              <pre className="p-4 rounded-xl bg-black/40 border border-white/8 font-mono text-xs text-white/60 overflow-x-auto whitespace-pre leading-relaxed">
+              <pre className="p-4 rounded-xl bg-black/40 border border-gray-200 font-mono text-xs text-gray-600 overflow-x-auto whitespace-pre leading-relaxed">
                 {docsSection === 'ocr'
                   ? (docsLang === 'curl' ? codes.ocrCurl : docsLang === 'python' ? codes.ocrPython : codes.ocrJs)
                   : (docsLang === 'curl' ? codes.bundleCurl : docsLang === 'python' ? codes.bundlePython : codes.bundleJs)
@@ -651,47 +651,47 @@ export default function DeveloperApiPage() {
                     ? (docsLang === 'curl' ? codes.ocrCurl : docsLang === 'python' ? codes.ocrPython : codes.ocrJs)
                     : (docsLang === 'curl' ? codes.bundleCurl : docsLang === 'python' ? codes.bundlePython : codes.bundleJs)
                 )}
-                className="absolute top-3 right-3 p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
+                className="absolute top-3 right-3 p-2 rounded-lg bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-all"
                 title="Copy to clipboard">
-                {copied ? <Check size={12} className="text-green-400" /> : <Copy size={12} className="text-white/40" />}
+                {copied ? <Check size={12} className="text-green-400" /> : <Copy size={12} className="text-gray-500" />}
               </button>
             </div>
           </div>
 
           {/* Auth info */}
-          <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
-            <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-3">Authentication</h3>
-            <div className="text-sm text-white/50 space-y-2">
+          <div className="p-5 rounded-2xl border border-gray-200 bg-white/[0.02]">
+            <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">Authentication</h3>
+            <div className="text-sm text-gray-500 space-y-2">
               <p>All external API requests require an API key in the Authorization header:</p>
-              <pre className="p-3 rounded-lg bg-black/30 border border-white/8 font-mono text-xs text-white/50">
+              <pre className="p-3 rounded-lg bg-black/30 border border-gray-200 font-mono text-xs text-gray-500">
 Authorization: Bearer tl_live_your_api_key_here
               </pre>
-              <p className="text-xs text-white/30 mt-3">API keys use the <code className="font-mono px-1 py-0.5 rounded bg-white/5">tl_live_</code> prefix. Keys are hashed before storage — the full key is shown only once at creation.</p>
+              <p className="text-xs text-gray-400 mt-3">API keys use the <code className="font-mono px-1 py-0.5 rounded bg-gray-50">tl_live_</code> prefix. Keys are hashed before storage — the full key is shown only once at creation.</p>
             </div>
           </div>
 
           {/* Rate limits */}
-          <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
-            <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-3">Rate Limits</h3>
+          <div className="p-5 rounded-2xl border border-gray-200 bg-white/[0.02]">
+            <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">Rate Limits</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-              <div className="p-3 rounded-lg bg-white/[0.03] border border-white/8">
-                <p className="text-white/40 text-xs">Per IP</p>
-                <p className="text-white/70 font-semibold">100 req / 15 min</p>
+              <div className="p-3 rounded-lg bg-white/[0.03] border border-gray-200">
+                <p className="text-gray-500 text-xs">Per IP</p>
+                <p className="text-gray-700 font-semibold">100 req / 15 min</p>
               </div>
-              <div className="p-3 rounded-lg bg-white/[0.03] border border-white/8">
-                <p className="text-white/40 text-xs">Per Tenant</p>
-                <p className="text-white/70 font-semibold">1,000 req / 15 min</p>
+              <div className="p-3 rounded-lg bg-white/[0.03] border border-gray-200">
+                <p className="text-gray-500 text-xs">Per Tenant</p>
+                <p className="text-gray-700 font-semibold">1,000 req / 15 min</p>
               </div>
-              <div className="p-3 rounded-lg bg-white/[0.03] border border-white/8">
-                <p className="text-white/40 text-xs">File Size</p>
-                <p className="text-white/70 font-semibold">20 MB max</p>
+              <div className="p-3 rounded-lg bg-white/[0.03] border border-gray-200">
+                <p className="text-gray-500 text-xs">File Size</p>
+                <p className="text-gray-700 font-semibold">20 MB max</p>
               </div>
             </div>
           </div>
 
           {/* Error codes */}
-          <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
-            <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-3">Error Codes</h3>
+          <div className="p-5 rounded-2xl border border-gray-200 bg-white/[0.02]">
+            <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">Error Codes</h3>
             <div className="space-y-1.5 text-xs">
               {[
                 ['401', 'Unauthorized', 'Missing or invalid API key'],
@@ -704,10 +704,10 @@ Authorization: Bearer tl_live_your_api_key_here
                 <div key={code} className="flex items-center gap-3 p-2 rounded-lg bg-white/[0.02]">
                   <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
                     code === '401' || code === '403' ? 'bg-yellow-400/10 text-yellow-400' :
-                    code === '429' || code === '500' ? 'bg-red-400/10 text-red-400' : 'bg-white/5 text-white/40'
+                    code === '429' || code === '500' ? 'bg-red-400/10 text-red-400' : 'bg-gray-50 text-gray-500'
                   }`}>{code}</span>
-                  <span className="text-white/60 font-medium w-24">{label}</span>
-                  <span className="text-white/30">{desc}</span>
+                  <span className="text-gray-600 font-medium w-24">{label}</span>
+                  <span className="text-gray-400">{desc}</span>
                 </div>
               ))}
             </div>

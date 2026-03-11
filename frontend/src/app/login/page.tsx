@@ -39,7 +39,7 @@ export default function LoginPage() {
       <div className="hidden lg:flex lg:w-1/2 tulip-mesh flex-col justify-between p-12">
         <Link href="/" className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg tulip-gradient flex items-center justify-center">
-            <Shield className="w-4 h-4 text-white" />
+            <Shield className="w-4 h-4 text-gray-900" />
           </div>
           <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px', color: 'white' }}>
             tulip<span style={{ color: '#369bff' }}>ds</span>
@@ -79,7 +79,7 @@ export default function LoginPage() {
           {/* Mobile logo */}
           <Link href="/" className="flex items-center gap-2 mb-8 lg:hidden">
             <div className="w-8 h-8 rounded-lg tulip-gradient flex items-center justify-center">
-              <Shield className="w-4 h-4 text-white" />
+              <Shield className="w-4 h-4 text-gray-900" />
             </div>
             <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px' }}>
               tulip<span style={{ color: '#0c7aed' }}>ds</span>
@@ -141,7 +141,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg text-white font-semibold tulip-gradient hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg text-gray-900 font-semibold tulip-gradient hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

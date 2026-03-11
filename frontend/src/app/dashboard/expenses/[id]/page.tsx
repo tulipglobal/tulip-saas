@@ -39,7 +39,7 @@ const anchorBadge = (status: string) => {
     case 'confirmed': return <span className="flex items-center gap-1 text-emerald-400 text-xs"><CheckCircle size={12} /> Confirmed</span>
     case 'pending':   return <span className="flex items-center gap-1 text-yellow-400 text-xs"><Clock size={12} /> Pending</span>
     case 'failed':    return <span className="flex items-center gap-1 text-red-400 text-xs"><XCircle size={12} /> Failed</span>
-    default:          return <span className="flex items-center gap-1 text-white/30 text-xs"><Clock size={12} /> —</span>
+    default:          return <span className="flex items-center gap-1 text-gray-400 text-xs"><Clock size={12} /> —</span>
   }
 }
 
@@ -48,9 +48,9 @@ function HashCell({ hash }: { hash: string }) {
   const copy = () => { navigator.clipboard.writeText(hash); setCopied(true); setTimeout(() => setCopied(false), 1500) }
   return (
     <div className="flex items-center gap-1.5 group">
-      <span className="text-xs font-mono text-white/30">{hash.slice(0, 12)}…{hash.slice(-6)}</span>
+      <span className="text-xs font-mono text-gray-400">{hash.slice(0, 12)}…{hash.slice(-6)}</span>
       <button onClick={copy} className="opacity-0 group-hover:opacity-100 transition-opacity">
-        {copied ? <Check size={11} className="text-green-400" /> : <Copy size={11} className="text-white/30" />}
+        {copied ? <Check size={11} className="text-green-400" /> : <Copy size={11} className="text-gray-400" />}
       </button>
     </div>
   )
@@ -138,8 +138,8 @@ export default function ExpenseDetailPage() {
   )
 
   if (error || !expense) return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#0a0a0f] text-white/60 gap-4">
-      <DollarSign size={48} className="text-white/20" />
+    <div className="flex flex-col items-center justify-center min-h-screen bg-[#0a0a0f] text-gray-600 gap-4">
+      <DollarSign size={48} className="text-gray-300" />
       <p>{error || 'Expense not found'}</p>
       <Link href="/dashboard/expenses" className="text-cyan-400 hover:text-cyan-300 text-sm">← Back to Expenses</Link>
     </div>
@@ -148,10 +148,10 @@ export default function ExpenseDetailPage() {
   const docs = expense.documents ?? []
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white p-6 max-w-5xl mx-auto">
+    <div className="min-h-screen bg-[#0a0a0f] text-gray-900 p-6 max-w-5xl mx-auto">
 
       {/* Back */}
-      <Link href="/dashboard/expenses" className="inline-flex items-center gap-2 text-white/40 hover:text-white/70 text-sm mb-6 transition-colors">
+      <Link href="/dashboard/expenses" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 text-sm mb-6 transition-colors">
         <ArrowLeft size={14} /> Back to Expenses
       </Link>
 
@@ -162,10 +162,10 @@ export default function ExpenseDetailPage() {
             <DollarSign size={22} className="text-cyan-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-semibold text-white">{expense.description}</h1>
+            <h1 className="text-2xl font-semibold text-gray-900">{expense.description}</h1>
             <div className="flex items-center gap-3 mt-2 flex-wrap">
               {anchorBadge(expense.anchorStatus ?? '')}
-              <span className="text-white/30 text-xs flex items-center gap-1">
+              <span className="text-gray-400 text-xs flex items-center gap-1">
                 <Calendar size={11} /> {new Date(expense.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
               </span>
               {expense.blockchainTx && (
@@ -181,36 +181,36 @@ export default function ExpenseDetailPage() {
 
       {/* Details grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-          <p className="text-white/40 text-xs mb-1">Amount</p>
-          <p className="text-white font-semibold text-lg">{expense.currency} {expense.amount.toLocaleString()}</p>
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+          <p className="text-gray-500 text-xs mb-1">Amount</p>
+          <p className="text-gray-900 font-semibold text-lg">{expense.currency} {expense.amount.toLocaleString()}</p>
         </div>
-        <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-          <p className="text-white/40 text-xs mb-1">Project</p>
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+          <p className="text-gray-500 text-xs mb-1">Project</p>
           {expense.project ? (
             <Link href={`/dashboard/projects/${expense.project.id}`} className="text-cyan-400 hover:text-cyan-300 font-medium text-sm flex items-center gap-1">
               <FolderOpen size={13} /> {expense.project.name}
             </Link>
           ) : (
-            <p className="text-white/30 text-sm">—</p>
+            <p className="text-gray-400 text-sm">—</p>
           )}
         </div>
-        <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-          <p className="text-white/40 text-xs mb-1">Funding Source</p>
-          <p className="text-white/70 text-sm">{expense.fundingSource?.name ?? '—'}</p>
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+          <p className="text-gray-500 text-xs mb-1">Funding Source</p>
+          <p className="text-gray-700 text-sm">{expense.fundingSource?.name ?? '—'}</p>
         </div>
-        <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-          <p className="text-white/40 text-xs mb-1">Documents</p>
-          <p className="text-white font-semibold text-lg">{docs.length}</p>
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+          <p className="text-gray-500 text-xs mb-1">Documents</p>
+          <p className="text-gray-900 font-semibold text-lg">{docs.length}</p>
         </div>
       </div>
 
       {/* Data hash */}
       {expense.dataHash && (
-        <div className="bg-white/5 border border-white/10 rounded-xl p-4 mb-8">
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white/40 text-xs mb-1 flex items-center gap-1"><Hash size={11} /> Data Hash (SHA-256)</p>
+              <p className="text-gray-500 text-xs mb-1 flex items-center gap-1"><Hash size={11} /> Data Hash (SHA-256)</p>
               <HashCell hash={expense.dataHash} />
             </div>
             <Link href={`/verify?hash=${expense.dataHash}`} target="_blank"
@@ -223,9 +223,9 @@ export default function ExpenseDetailPage() {
 
       {/* Documents section */}
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-white">Documents</h2>
+        <h2 className="text-lg font-semibold text-gray-900">Documents</h2>
         <label className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors ${
-          uploading ? 'bg-white/10 text-white/40' : 'text-white'
+          uploading ? 'bg-gray-100 text-gray-500' : 'text-gray-900'
         }`} style={uploading ? {} : { background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
           <Upload size={14} />
           {uploading ? 'Uploading…' : 'Upload Document'}
@@ -239,37 +239,37 @@ export default function ExpenseDetailPage() {
         </div>
       )}
 
-      <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+      <div className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden">
         {docs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-white/30 gap-3">
-            <FileText size={36} className="text-white/10" />
+          <div className="flex flex-col items-center justify-center py-16 text-gray-400 gap-3">
+            <FileText size={36} className="text-gray-300" />
             <p className="text-sm">No documents attached to this expense</p>
-            <p className="text-xs text-white/20">Upload receipts, invoices, or supporting documents</p>
+            <p className="text-xs text-gray-300">Upload receipts, invoices, or supporting documents</p>
           </div>
         ) : (
           <table className="w-full">
             <thead>
-              <tr className="border-b border-white/10">
-                <th className="text-left text-xs text-white/30 font-normal px-4 py-3">NAME</th>
-                <th className="text-left text-xs text-white/30 font-normal px-4 py-3">TYPE</th>
-                <th className="text-left text-xs text-white/30 font-normal px-4 py-3">SIZE</th>
-                <th className="text-left text-xs text-white/30 font-normal px-4 py-3">SHA-256 HASH</th>
-                <th className="text-left text-xs text-white/30 font-normal px-4 py-3">DATE</th>
-                <th className="text-left text-xs text-white/30 font-normal px-4 py-3"></th>
+              <tr className="border-b border-gray-200">
+                <th className="text-left text-xs text-gray-400 font-normal px-4 py-3">NAME</th>
+                <th className="text-left text-xs text-gray-400 font-normal px-4 py-3">TYPE</th>
+                <th className="text-left text-xs text-gray-400 font-normal px-4 py-3">SIZE</th>
+                <th className="text-left text-xs text-gray-400 font-normal px-4 py-3">SHA-256 HASH</th>
+                <th className="text-left text-xs text-gray-400 font-normal px-4 py-3">DATE</th>
+                <th className="text-left text-xs text-gray-400 font-normal px-4 py-3"></th>
               </tr>
             </thead>
             <tbody>
               {docs.map((doc, i) => (
-                <tr key={doc.id} className={`border-b border-white/5 hover:bg-white/5 transition-colors ${i % 2 === 0 ? '' : 'bg-white/[0.02]'}`}>
-                  <td className="px-4 py-3 text-sm text-white/80">{doc.name}</td>
+                <tr key={doc.id} className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${i % 2 === 0 ? '' : 'bg-white/[0.02]'}`}>
+                  <td className="px-4 py-3 text-sm text-gray-800">{doc.name}</td>
                   <td className="px-4 py-3">
-                    <span className="text-xs font-mono text-white/40 uppercase">{doc.fileType ?? '—'}</span>
+                    <span className="text-xs font-mono text-gray-500 uppercase">{doc.fileType ?? '—'}</span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-white/40">{formatBytes(doc.fileSize)}</td>
+                  <td className="px-4 py-3 text-xs text-gray-500">{formatBytes(doc.fileSize)}</td>
                   <td className="px-4 py-3">
-                    {doc.sha256Hash ? <HashCell hash={doc.sha256Hash} /> : <span className="text-xs text-white/20">—</span>}
+                    {doc.sha256Hash ? <HashCell hash={doc.sha256Hash} /> : <span className="text-xs text-gray-300">—</span>}
                   </td>
-                  <td className="px-4 py-3 text-xs text-white/30">
+                  <td className="px-4 py-3 text-xs text-gray-400">
                     {new Date(doc.uploadedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
                   </td>
                   <td className="px-4 py-3">

@@ -183,22 +183,22 @@ export default function NewExpensePage() {
     setSaving(false)
   }
 
-  const inputCls = "w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-[#0c7aed]/50 transition-all [&>option]:bg-[#0a1628] [color-scheme:dark]"
-  const labelCls = "block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wide"
+  const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all [&>option]:bg-[#0a1628] [color-scheme:dark]"
+  const labelCls = "block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide"
 
   return (
     <div className="p-6 max-w-2xl animate-fade-up">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/dashboard/expenses" className="text-white/40 hover:text-white transition-colors">
+        <Link href="/dashboard/expenses" className="text-gray-500 hover:text-gray-900 transition-colors">
           <ArrowLeft size={18} />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>Log Expense</h1>
-          <p className="text-white/40 text-sm">This expense will be SHA-256 hashed and anchored to Polygon</p>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>Log Expense</h1>
+          <p className="text-gray-500 text-sm">This expense will be SHA-256 hashed and anchored to Polygon</p>
         </div>
       </div>
 
-      <div className="rounded-xl border border-white/8 p-6 space-y-5" style={{ background: 'rgba(255,255,255,0.02)' }}>
+      <div className="rounded-xl border border-gray-200 p-6 space-y-5" style={{ background: '#FFFFFF' }}>
 
         {/* 1. Project */}
         <div>
@@ -223,7 +223,7 @@ export default function NewExpensePage() {
                   className={`flex-1 py-2.5 rounded-lg text-sm font-medium border transition-all ${
                     form.expenseType === type
                       ? type === 'CAPEX' ? 'bg-purple-500/15 border-purple-500/30 text-purple-400' : 'bg-cyan-500/15 border-cyan-500/30 text-cyan-400'
-                      : 'bg-white/5 border-white/10 text-white/40 hover:border-white/20'
+                      : 'bg-gray-50 border-gray-200 text-gray-500 hover:border-gray-300'
                   }`}>
                   {type === 'CAPEX' ? 'CapEx' : 'OpEx'}
                 </button>
@@ -237,9 +237,9 @@ export default function NewExpensePage() {
           <div>
             <label className={labelCls}>Budget *</label>
             {loadingBudgets ? (
-              <div className={inputCls + ' text-white/30'}>Loading budgets...</div>
+              <div className={inputCls + ' text-gray-400'}>Loading budgets...</div>
             ) : filteredBudgets.length === 0 ? (
-              <div className="text-xs text-white/30 py-2">
+              <div className="text-xs text-gray-400 py-2">
                 {budgets.length === 0 ? <>No budgets found for this project.{' '}
                   <Link href={`/dashboard/budgets/new?projectId=${form.projectId}`} className="text-cyan-400 hover:text-cyan-300">Create one</Link>
                 </> : <>No budgets with {form.expenseType === 'CAPEX' ? 'CapEx' : 'OpEx'} lines found.</>}
@@ -270,8 +270,8 @@ export default function NewExpensePage() {
               ))}
             </select>
             {selectedLine && (
-              <div className="text-xs text-white/40 mt-1 flex gap-4">
-                <span>Approved: <span className="text-white/60">{selectedLine.currency} {selectedLine.approvedAmount.toLocaleString()}</span></span>
+              <div className="text-xs text-gray-500 mt-1 flex gap-4">
+                <span>Approved: <span className="text-gray-600">{selectedLine.currency} {selectedLine.approvedAmount.toLocaleString()}</span></span>
                 {selectedLine.remaining !== undefined && (
                   <span>Remaining: <span className={selectedLine.remaining > 0 ? 'text-green-400' : 'text-red-400'}>{selectedLine.currency} {selectedLine.remaining.toLocaleString()}</span></span>
                 )}
@@ -336,21 +336,21 @@ export default function NewExpensePage() {
         </div>
 
         {/* Receipt Upload */}
-        <div className="rounded-lg border border-white/8 p-4 space-y-3 bg-white/[0.01]">
+        <div className="rounded-lg border border-gray-200 p-4 space-y-3 bg-gray-50">
           <label className={labelCls + ' mb-0'}>Receipt / Invoice</label>
           {receiptData ? (
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-green-400 text-sm">
                 <CheckCircle size={16} /> Sealed
               </div>
-              <div className="text-xs text-white/30 font-mono break-all">SHA-256: {receiptData.hash}</div>
+              <div className="text-xs text-gray-400 font-mono break-all">SHA-256: {receiptData.hash}</div>
               <button onClick={() => { setReceiptData(null); setReceiptFile(null) }}
-                className="text-xs text-white/30 hover:text-white/50">Replace file</button>
+                className="text-xs text-gray-400 hover:text-gray-500">Replace file</button>
             </div>
           ) : (
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <label className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-white/15 hover:border-white/25 cursor-pointer transition-all text-sm text-white/40">
+                <label className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-gray-200 hover:border-gray-300 cursor-pointer transition-all text-sm text-gray-500">
                   <Upload size={14} />
                   <span>{receiptFile ? receiptFile.name : 'Choose file...'}</span>
                   <input type="file" className="hidden"
@@ -359,13 +359,13 @@ export default function NewExpensePage() {
                 </label>
                 {receiptFile && (
                   <button onClick={handleReceiptUpload} disabled={uploading}
-                    className="px-4 py-2.5 rounded-lg text-xs font-medium text-white disabled:opacity-50 shrink-0"
+                    className="px-4 py-2.5 rounded-lg text-xs font-medium text-gray-900 disabled:opacity-50 shrink-0"
                     style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
                     {uploading ? 'Uploading...' : 'Upload & Seal'}
                   </button>
                 )}
               </div>
-              <p className="text-[10px] text-white/20">File will be hashed (SHA-256) and a Trust Seal will be created automatically</p>
+              <p className="text-[10px] text-gray-300">File will be hashed (SHA-256) and a Trust Seal will be created automatically</p>
             </div>
           )}
         </div>
@@ -382,11 +382,11 @@ export default function NewExpensePage() {
 
         <div className="flex items-center gap-3 pt-2">
           <button onClick={submit} disabled={saving}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white disabled:opacity-50"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-gray-900 disabled:opacity-50"
             style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
             <Save size={15} /> {saving ? 'Saving...' : 'Log Expense'}
           </button>
-          <Link href="/dashboard/expenses" className="px-5 py-2.5 rounded-lg text-sm text-white/50 hover:text-white transition-colors">
+          <Link href="/dashboard/expenses" className="px-5 py-2.5 rounded-lg text-sm text-gray-500 hover:text-gray-900 transition-colors">
             Cancel
           </Link>
         </div>

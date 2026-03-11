@@ -16,7 +16,7 @@ export default function BlockchainStatusPill({ sealId, anchorStatus, txHash, onC
     return (
       <button
         onClick={onClick}
-        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-white/5 text-white/30 border border-white/10 hover:border-white/20 transition-all cursor-pointer"
+        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-50 text-gray-400 border border-gray-200 hover:border-gray-300 transition-all cursor-pointer"
       >
         <XCircle size={10} /> No seal
       </button>

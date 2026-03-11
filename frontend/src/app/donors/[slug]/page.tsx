@@ -52,10 +52,10 @@ function HashBadge({ hash }: { hash: string }) {
   const copy = () => { navigator.clipboard.writeText(hash); setCopied(true); setTimeout(() => setCopied(false), 1500) }
   return (
     <button onClick={copy}
-      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-all group"
+      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all group"
       title="Copy hash">
-      <span className="hash-mono text-white/30" style={{ fontSize: 10 }}>{hash.slice(0,8)}…{hash.slice(-6)}</span>
-      {copied ? <Check size={10} className="text-green-400" /> : <Copy size={10} className="text-white/20 group-hover:text-white/50" />}
+      <span className="hash-mono text-gray-400" style={{ fontSize: 10 }}>{hash.slice(0,8)}…{hash.slice(-6)}</span>
+      {copied ? <Check size={10} className="text-green-400" /> : <Copy size={10} className="text-gray-300 group-hover:text-gray-500" />}
     </button>
   )
 }
@@ -91,12 +91,12 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: '#040f1f' }}>
-      <div className="text-white/30 text-sm">Loading profile…</div>
+      <div className="text-gray-400 text-sm">Loading profile…</div>
     </div>
   )
   if (!profile) return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: '#040f1f' }}>
-      <div className="text-white/30 text-sm">NGO not found</div>
+      <div className="text-gray-400 text-sm">NGO not found</div>
     </div>
   )
 
@@ -113,17 +113,17 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
       backgroundImage: 'radial-gradient(at 20% 10%, rgba(12,122,237,0.1) 0px, transparent 50%)'
     }}>
       {/* Nav */}
-      <nav className="border-b border-white/8 px-6 h-16 flex items-center justify-between sticky top-0 z-10"
+      <nav className="border-b border-gray-200 px-6 h-16 flex items-center justify-between sticky top-0 z-10"
         style={{ background: 'rgba(4,15,31,0.9)', backdropFilter: 'blur(12px)' }}>
-        <Link href="/donors" className="flex items-center gap-2 text-white/50 hover:text-white transition-colors text-sm">
+        <Link href="/donors" className="flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors text-sm">
           <ArrowLeft size={16} /> All organisations
         </Link>
         <Link href="/" className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-md flex items-center justify-center"
             style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
-            <span className="text-white font-bold" style={{ fontFamily: 'Syne, sans-serif', fontSize: 10 }}>T</span>
+            <span className="text-gray-900 font-bold" style={{ fontFamily: 'Syne, sans-serif', fontSize: 10 }}>T</span>
           </div>
-          <span className="font-bold text-white text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>
+          <span className="font-bold text-gray-900 text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>
             tulip<span style={{ color: '#369bff' }}>ds</span>
           </span>
         </Link>
@@ -132,26 +132,26 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
       <div className="max-w-4xl mx-auto px-6 py-10 space-y-8">
 
         {/* Profile header */}
-        <div className="rounded-2xl border border-white/8 p-8"
-          style={{ background: 'rgba(255,255,255,0.02)' }}>
+        <div className="rounded-2xl border border-gray-200 p-8"
+          style={{ background: '#FFFFFF' }}>
           <div className="flex items-start justify-between flex-wrap gap-6">
             <div className="flex items-start gap-5">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-white shrink-0"
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-gray-900 shrink-0"
                 style={{ background: 'linear-gradient(135deg, #0c7aed22, #004ea822)', border: '1px solid rgba(12,122,237,0.3)' }}>
                 {profile.name.charAt(0)}
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-white mb-1" style={{ fontFamily: 'Syne, sans-serif' }}>
+                <h1 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Syne, sans-serif' }}>
                   {profile.name}
                 </h1>
                 <div className="flex items-center gap-3 flex-wrap">
                   {profile.country && (
-                    <div className="flex items-center gap-1.5 text-sm text-white/40">
+                    <div className="flex items-center gap-1.5 text-sm text-gray-500">
                       <Globe size={13} /> {profile.country}
                     </div>
                   )}
                   {profile.verifiedAt && (
-                    <div className="flex items-center gap-1.5 text-sm text-white/40">
+                    <div className="flex items-center gap-1.5 text-sm text-gray-500">
                       <Calendar size={13} />
                       Verified {new Date(profile.verifiedAt).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
                     </div>
@@ -164,18 +164,18 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
                   )}
                 </div>
                 {profile.description && (
-                  <p className="text-white/50 text-sm mt-3 max-w-lg">{profile.description}</p>
+                  <p className="text-gray-500 text-sm mt-3 max-w-lg">{profile.description}</p>
                 )}
               </div>
             </div>
 
             {/* Integrity score */}
-            <div className="rounded-xl border border-white/8 p-5 text-center min-w-[120px]"
-              style={{ background: 'rgba(255,255,255,0.03)' }}>
+            <div className="rounded-xl border border-gray-200 p-5 text-center min-w-[120px]"
+              style={{ background: '#FFFFFF' }}>
               <div className="text-3xl font-bold mb-1" style={{ fontFamily: 'Syne, sans-serif', color: scoreColor }}>
                 {pct}%
               </div>
-              <div className="text-xs text-white/40">Integrity Score</div>
+              <div className="text-xs text-gray-500">Integrity Score</div>
               <div className="flex items-center justify-center gap-1 mt-2">
                 <CheckCircle size={11} className="text-green-400" />
                 <span className="text-xs text-green-400">Verified</span>
@@ -184,7 +184,7 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
           </div>
 
           {/* Stats row */}
-          <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-white/5">
+          <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-100">
             {[
               { label: 'Projects', value: profile.projects.length, icon: FolderOpen },
               { label: 'Total Expenses', value: profile.totalExpenses, icon: Receipt },
@@ -193,8 +193,8 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
               <div key={label} className="flex items-center gap-3">
                 <Icon size={16} className="text-[#369bff]" />
                 <div>
-                  <div className="text-lg font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>{value}</div>
-                  <div className="text-xs text-white/30">{label}</div>
+                  <div className="text-lg font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>{value}</div>
+                  <div className="text-xs text-gray-400">{label}</div>
                 </div>
               </div>
             ))}
@@ -209,12 +209,12 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
             { label: 'RFC 3161', sub: 'Trusted timestamps' },
             { label: 'eIDAS Compliant', sub: 'Legally admissible EU' },
           ].map(({ label, sub }) => (
-            <div key={label} className="rounded-xl border border-white/8 p-4 flex items-start gap-3"
-              style={{ background: 'rgba(255,255,255,0.02)' }}>
+            <div key={label} className="rounded-xl border border-gray-200 p-4 flex items-start gap-3"
+              style={{ background: '#FFFFFF' }}>
               <CheckCircle size={14} className="text-green-400 shrink-0 mt-0.5" />
               <div>
-                <div className="text-xs font-semibold text-white">{label}</div>
-                <div className="text-xs text-white/30 mt-0.5">{sub}</div>
+                <div className="text-xs font-semibold text-gray-900">{label}</div>
+                <div className="text-xs text-gray-400 mt-0.5">{sub}</div>
               </div>
             </div>
           ))}
@@ -223,7 +223,7 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
         {/* Projects */}
         {profile.projects.length > 0 && (
           <div>
-            <h2 className="font-semibold text-white mb-4" style={{ fontFamily: 'Syne, sans-serif' }}>
+            <h2 className="font-semibold text-gray-900 mb-4" style={{ fontFamily: 'Syne, sans-serif' }}>
               Projects
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -233,13 +233,13 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
                   className={`text-left rounded-xl border p-4 transition-all ${
                     activeProject === project.id
                       ? 'border-[#0c7aed]/50 bg-[#0c7aed]/8'
-                      : 'border-white/8 hover:border-white/15'
+                      : 'border-gray-200 hover:border-gray-200'
                   }`}
-                  style={{ background: activeProject === project.id ? undefined : 'rgba(255,255,255,0.02)' }}>
+                  style={{ background: activeProject === project.id ? undefined : '#FFFFFF' }}>
                   <div className="flex items-start justify-between">
                     <div>
-                      <div className="text-sm font-medium text-white">{project.name}</div>
-                      <div className="text-xs text-white/30 mt-1">
+                      <div className="text-sm font-medium text-gray-900">{project.name}</div>
+                      <div className="text-xs text-gray-400 mt-1">
                         {project._count?.expenses ?? 0} expenses
                         {project.budget && ` · Budget: ${project.currency} ${project.budget.toLocaleString()}`}
                       </div>
@@ -247,7 +247,7 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
                     <span className={`text-xs px-2 py-0.5 rounded-full capitalize font-medium ${
                       project.status === 'active' ? 'bg-green-400/10 text-green-400' :
                       project.status === 'completed' ? 'bg-blue-400/10 text-blue-400' :
-                      'bg-white/5 text-white/40'
+                      'bg-gray-50 text-gray-500'
                     }`}>{project.status}</span>
                   </div>
                 </button>
@@ -259,37 +259,37 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
         {/* Expenses */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>
+            <h2 className="font-semibold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>
               {activeProject ? 'Project Expenses' : 'Recent Expenses'}
             </h2>
-            <div className="flex items-center gap-1.5 text-xs text-white/30">
+            <div className="flex items-center gap-1.5 text-xs text-gray-400">
               <Shield size={11} className="text-[#369bff]" />
               All verified on-chain
             </div>
           </div>
 
-          <div className="rounded-xl border border-white/8 overflow-hidden"
-            style={{ background: 'rgba(255,255,255,0.02)' }}>
+          <div className="rounded-xl border border-gray-200 overflow-hidden"
+            style={{ background: '#FFFFFF' }}>
             {filteredExpenses.length === 0 ? (
-              <div className="p-8 text-center text-white/30 text-sm">No expenses for this project</div>
+              <div className="p-8 text-center text-gray-400 text-sm">No expenses for this project</div>
             ) : (
-              <div className="divide-y divide-white/5">
+              <div className="divide-y divide-gray-100">
                 {filteredExpenses.map(expense => (
-                  <div key={expense.id} className="flex items-center gap-4 px-5 py-4 hover:bg-white/2 transition-colors">
+                  <div key={expense.id} className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors">
                     <div className="w-9 h-9 rounded-lg bg-[#0c7aed]/10 flex items-center justify-center shrink-0">
                       <Receipt size={15} className="text-[#369bff]" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-white/80">{expense.title}</div>
+                      <div className="text-sm font-medium text-gray-800">{expense.title}</div>
                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                        {expense.vendor && <span className="text-xs text-white/30">{expense.vendor}</span>}
-                        {expense.project && <span className="text-xs text-white/20">· {expense.project.name}</span>}
-                        <span className="text-xs text-white/20">
+                        {expense.vendor && <span className="text-xs text-gray-400">{expense.vendor}</span>}
+                        {expense.project && <span className="text-xs text-gray-300">· {expense.project.name}</span>}
+                        <span className="text-xs text-gray-300">
                           · {new Date(expense.expenseDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
                         </span>
                       </div>
                     </div>
-                    <div className="text-sm font-semibold text-white shrink-0">
+                    <div className="text-sm font-semibold text-gray-900 shrink-0">
                       {expense.currency} {expense.amount.toLocaleString()}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
@@ -306,13 +306,13 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
                       )}
                       {expense.dataHash && (
                         <Link href={`/verify?hash=${expense.dataHash}`} target="_blank"
-                          className="text-white/20 hover:text-[#369bff] transition-colors" title="Verify on Tulip DS">
+                          className="text-gray-300 hover:text-[#369bff] transition-colors" title="Verify on Tulip DS">
                           <Shield size={14} />
                         </Link>
                       )}
                       {expense.blockchainTx && (
                         <Link href={`https://polygonscan.com/tx/${expense.blockchainTx}`} target="_blank"
-                          className="text-white/20 hover:text-[#369bff] transition-colors" title="View on Polygonscan">
+                          className="text-gray-300 hover:text-[#369bff] transition-colors" title="View on Polygonscan">
                           <ExternalLink size={14} />
                         </Link>
                       )}
@@ -328,14 +328,14 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
         <div className="rounded-2xl border border-[#0c7aed]/20 p-8 text-center"
           style={{ background: 'linear-gradient(135deg, rgba(12,122,237,0.05), rgba(0,78,168,0.05))' }}>
           <Shield size={28} className="text-[#369bff] mx-auto mb-3" />
-          <h3 className="font-bold text-white text-lg mb-2" style={{ fontFamily: 'Syne, sans-serif' }}>
+          <h3 className="font-bold text-gray-900 text-lg mb-2" style={{ fontFamily: 'Syne, sans-serif' }}>
             Every figure is verifiable
           </h3>
-          <p className="text-white/40 text-sm max-w-sm mx-auto mb-4">
+          <p className="text-gray-500 text-sm max-w-sm mx-auto mb-4">
             Click the shield icon on any expense to verify its blockchain proof independently.
           </p>
           <Link href="/verify"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-gray-900"
             style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
             <Shield size={15} /> Open Verifier
           </Link>
@@ -343,8 +343,8 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
 
       </div>
 
-      <footer className="border-t border-white/5 py-8 text-center">
-        <p className="text-white/20 text-xs">© 2026 Tulip DS · Bright Bytes Technology · Dubai UAE</p>
+      <footer className="border-t border-gray-100 py-8 text-center">
+        <p className="text-gray-300 text-xs">© 2026 Tulip DS · Bright Bytes Technology · Dubai UAE</p>
       </footer>
     </div>
   )

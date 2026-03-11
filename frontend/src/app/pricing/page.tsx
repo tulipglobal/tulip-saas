@@ -125,13 +125,13 @@ const faqs = [
 function FAQ({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false)
   return (
-    <div className="border-b border-white/8 last:border-0">
+    <div className="border-b border-gray-200 last:border-0">
       <button onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between py-5 text-left gap-4 hover:text-white transition-colors">
-        <span className="text-sm font-medium text-white/80">{q}</span>
-        <ChevronDown size={16} className={`text-white/30 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+        className="w-full flex items-center justify-between py-5 text-left gap-4 hover:text-gray-900 transition-colors">
+        <span className="text-sm font-medium text-gray-800">{q}</span>
+        <ChevronDown size={16} className={`text-gray-400 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
-      {open && <p className="text-sm text-white/50 pb-5 leading-relaxed">{a}</p>}
+      {open && <p className="text-sm text-gray-500 pb-5 leading-relaxed">{a}</p>}
     </div>
   )
 }
@@ -146,22 +146,22 @@ export default function PricingPage() {
     }}>
 
       {/* Nav */}
-      <nav className="border-b border-white/8 px-6 h-16 flex items-center justify-between sticky top-0 z-10"
+      <nav className="border-b border-gray-200 px-6 h-16 flex items-center justify-between sticky top-0 z-10"
         style={{ background: 'rgba(4,15,31,0.9)', backdropFilter: 'blur(12px)' }}>
         <Link href="/" className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center"
             style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
-            <span className="text-white font-bold text-xs" style={{ fontFamily: 'Syne, sans-serif' }}>T</span>
+            <span className="text-gray-900 font-bold text-xs" style={{ fontFamily: 'Syne, sans-serif' }}>T</span>
           </div>
-          <span className="font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>
+          <span className="font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>
             tulip<span style={{ color: '#369bff' }}>ds</span>
           </span>
         </Link>
         <div className="flex items-center gap-4">
-          <Link href="/docs" className="text-sm text-white/50 hover:text-white transition-colors">API Docs</Link>
-          <Link href="/donors" className="text-sm text-white/50 hover:text-white transition-colors">Donor Portal</Link>
+          <Link href="/docs" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">API Docs</Link>
+          <Link href="/donors" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Donor Portal</Link>
           <Link href="/register"
-            className="px-4 py-1.5 rounded-lg text-sm font-medium text-white"
+            className="px-4 py-1.5 rounded-lg text-sm font-medium text-gray-900"
             style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
             Get started
           </Link>
@@ -174,23 +174,23 @@ export default function PricingPage() {
           <CheckCircle size={12} />
           No setup fees · Cancel anytime
         </div>
-        <h1 className="text-4xl md:text-5xl font-bold text-white mb-4" style={{ fontFamily: 'Syne, sans-serif' }}>
+        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Syne, sans-serif' }}>
           Simple, transparent pricing
         </h1>
-        <p className="text-white/50 text-lg max-w-xl mx-auto mb-8">
+        <p className="text-gray-500 text-lg max-w-xl mx-auto mb-8">
           Start free. Upgrade when you need more. Every plan includes blockchain anchoring and public verification.
         </p>
 
         {/* Billing toggle */}
-        <div className="inline-flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl p-1.5">
+        <div className="inline-flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl p-1.5">
           <button onClick={() => setAnnual(false)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${!annual ? 'bg-white text-[#040f1f]' : 'text-white/50 hover:text-white'}`}>
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${!annual ? 'bg-white text-[#040f1f]' : 'text-gray-500 hover:text-gray-900'}`}>
             Monthly
           </button>
           <button onClick={() => setAnnual(true)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${annual ? 'bg-white text-[#040f1f]' : 'text-white/50 hover:text-white'}`}>
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${annual ? 'bg-white text-[#040f1f]' : 'text-gray-500 hover:text-gray-900'}`}>
             Annual
-            <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${annual ? 'bg-green-500 text-white' : 'bg-green-500/20 text-green-400'}`}>
+            <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${annual ? 'bg-green-500 text-gray-900' : 'bg-green-500/20 text-green-400'}`}>
               −20%
             </span>
           </button>
@@ -208,17 +208,17 @@ export default function PricingPage() {
                 className={`relative rounded-2xl border p-7 flex flex-col transition-all ${
                   plan.highlight
                     ? 'border-[#0c7aed]/50 shadow-lg shadow-[#0c7aed]/10'
-                    : 'border-white/8'
+                    : 'border-gray-200'
                 }`}
                 style={{
                   background: plan.highlight
                     ? 'linear-gradient(135deg, rgba(12,122,237,0.08), rgba(0,78,168,0.06))'
-                    : 'rgba(255,255,255,0.02)'
+                    : '#FFFFFF'
                 }}>
 
                 {plan.badge && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                    <span className="px-3 py-1 rounded-full text-xs font-semibold text-white"
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold text-gray-900"
                       style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
                       {plan.badge}
                     </span>
@@ -229,11 +229,11 @@ export default function PricingPage() {
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <Icon size={16} className="text-[#369bff]" />
-                      <span className="font-bold text-white text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>
+                      <span className="font-bold text-gray-900 text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>
                         {plan.name}
                       </span>
                     </div>
-                    <p className="text-xs text-white/40 leading-relaxed">{plan.description}</p>
+                    <p className="text-xs text-gray-500 leading-relaxed">{plan.description}</p>
                   </div>
                 </div>
 
@@ -241,26 +241,26 @@ export default function PricingPage() {
                 <div className="mb-6">
                   {price === null ? (
                     <div>
-                      <div className="text-3xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>
+                      <div className="text-3xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>
                         Custom
                       </div>
-                      <div className="text-xs text-white/30 mt-1">Contact us for a quote</div>
+                      <div className="text-xs text-gray-400 mt-1">Contact us for a quote</div>
                     </div>
                   ) : price === 0 ? (
                     <div>
-                      <div className="text-3xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>
+                      <div className="text-3xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>
                         Free
                       </div>
-                      <div className="text-xs text-white/30 mt-1">Forever</div>
+                      <div className="text-xs text-gray-400 mt-1">Forever</div>
                     </div>
                   ) : (
                     <div>
                       <div className="flex items-end gap-1">
-                        <span className="text-white/40 text-lg mb-1">$</span>
-                        <span className="text-3xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>
+                        <span className="text-gray-500 text-lg mb-1">$</span>
+                        <span className="text-3xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>
                           {price}
                         </span>
-                        <span className="text-white/40 text-sm mb-1">/mo</span>
+                        <span className="text-gray-500 text-sm mb-1">/mo</span>
                       </div>
                       {annual && (
                         <div className="text-xs text-green-400 mt-1">
@@ -275,8 +275,8 @@ export default function PricingPage() {
                 <Link href={plan.ctaHref}
                   className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-medium mb-6 transition-all ${
                     plan.highlight
-                      ? 'text-white hover:opacity-90'
-                      : 'text-white/80 border border-white/15 hover:border-white/30 hover:text-white'
+                      ? 'text-gray-900 hover:opacity-90'
+                      : 'text-gray-800 border border-gray-200 hover:border-white/30 hover:text-gray-900'
                   }`}
                   style={plan.highlight ? { background: 'linear-gradient(135deg, #0c7aed, #004ea8)' } : {}}>
                   {plan.cta}
@@ -288,13 +288,13 @@ export default function PricingPage() {
                   {plan.features.map(f => (
                     <div key={f} className="flex items-start gap-2.5">
                       <CheckCircle size={13} className="text-green-400 shrink-0 mt-0.5" />
-                      <span className="text-xs text-white/60">{f}</span>
+                      <span className="text-xs text-gray-600">{f}</span>
                     </div>
                   ))}
                   {plan.limits.map(f => (
                     <div key={f} className="flex items-start gap-2.5">
-                      <div className="w-3 h-3 rounded-full border border-white/15 shrink-0 mt-0.5" />
-                      <span className="text-xs text-white/25">{f}</span>
+                      <div className="w-3 h-3 rounded-full border border-gray-200 shrink-0 mt-0.5" />
+                      <span className="text-xs text-gray-400">{f}</span>
                     </div>
                   ))}
                 </div>
@@ -305,7 +305,7 @@ export default function PricingPage() {
       </div>
 
       {/* Trust row */}
-      <div className="border-y border-white/5 py-8"
+      <div className="border-y border-gray-100 py-8"
         style={{ background: 'rgba(255,255,255,0.01)' }}>
         <div className="max-w-4xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
@@ -316,8 +316,8 @@ export default function PricingPage() {
               { value: '99.9%', label: 'Uptime SLA (Enterprise)' },
             ].map(({ value, label }) => (
               <div key={label}>
-                <div className="text-xl font-bold text-white mb-1" style={{ fontFamily: 'Syne, sans-serif' }}>{value}</div>
-                <div className="text-xs text-white/30">{label}</div>
+                <div className="text-xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Syne, sans-serif' }}>{value}</div>
+                <div className="text-xs text-gray-400">{label}</div>
               </div>
             ))}
           </div>
@@ -326,15 +326,15 @@ export default function PricingPage() {
 
       {/* Compare table */}
       <div className="max-w-4xl mx-auto px-6 py-16">
-        <h2 className="text-2xl font-bold text-white text-center mb-10" style={{ fontFamily: 'Syne, sans-serif' }}>
+        <h2 className="text-2xl font-bold text-gray-900 text-center mb-10" style={{ fontFamily: 'Syne, sans-serif' }}>
           Compare plans
         </h2>
-        <div className="rounded-2xl border border-white/8 overflow-hidden"
-          style={{ background: 'rgba(255,255,255,0.02)' }}>
-          <div className="grid grid-cols-5 border-b border-white/8">
-            <div className="px-4 py-4 text-xs text-white/30 uppercase tracking-wide font-medium">Feature</div>
+        <div className="rounded-2xl border border-gray-200 overflow-hidden"
+          style={{ background: '#FFFFFF' }}>
+          <div className="grid grid-cols-5 border-b border-gray-200">
+            <div className="px-4 py-4 text-xs text-gray-400 uppercase tracking-wide font-medium">Feature</div>
             {['Starter', 'Growth', 'NGO', 'Enterprise'].map(p => (
-              <div key={p} className={`px-4 py-4 text-sm font-semibold text-center ${p === 'NGO' ? 'text-[#369bff]' : 'text-white'}`}
+              <div key={p} className={`px-4 py-4 text-sm font-semibold text-center ${p === 'NGO' ? 'text-[#369bff]' : 'text-gray-900'}`}
                 style={{ fontFamily: 'Syne, sans-serif' }}>{p}</div>
             ))}
           </div>
@@ -352,13 +352,13 @@ export default function PricingPage() {
             ['SLA', '—', '—', '—', '99.9%'],
             ['Support', 'Community', 'Email', 'Email', 'Dedicated'],
           ].map(([feature, starter, growth, ngo, enterprise]) => (
-            <div key={feature} className="grid grid-cols-5 border-b border-white/5 last:border-0 hover:bg-white/1 transition-colors">
-              <div className="px-4 py-3.5 text-sm text-white/50">{feature}</div>
+            <div key={feature} className="grid grid-cols-5 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors">
+              <div className="px-4 py-3.5 text-sm text-gray-500">{feature}</div>
               {[starter, growth, ngo, enterprise].map((val, i) => (
                 <div key={i} className={`px-4 py-3.5 text-sm text-center ${
                   val === '✓' ? 'text-green-400' :
                   val === '—' ? 'text-white/15' :
-                  i === 2 ? 'text-[#369bff] font-medium' : 'text-white/60'
+                  i === 2 ? 'text-[#369bff] font-medium' : 'text-gray-600'
                 }`}>{val}</div>
               ))}
             </div>
@@ -370,12 +370,12 @@ export default function PricingPage() {
       <div className="max-w-2xl mx-auto px-6 pb-20">
         <div className="flex items-center gap-2 justify-center mb-10">
           <HelpCircle size={18} className="text-[#369bff]" />
-          <h2 className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>
+          <h2 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>
             Frequently asked questions
           </h2>
         </div>
-        <div className="rounded-2xl border border-white/8 px-6"
-          style={{ background: 'rgba(255,255,255,0.02)' }}>
+        <div className="rounded-2xl border border-gray-200 px-6"
+          style={{ background: '#FFFFFF' }}>
           {faqs.map(({ q, a }) => <FAQ key={q} q={q} a={a} />)}
         </div>
       </div>
@@ -384,28 +384,28 @@ export default function PricingPage() {
       <div className="max-w-3xl mx-auto px-6 pb-20 text-center">
         <div className="rounded-2xl border border-[#0c7aed]/20 p-10"
           style={{ background: 'linear-gradient(135deg, rgba(12,122,237,0.06), rgba(0,78,168,0.06))' }}>
-          <h2 className="text-2xl font-bold text-white mb-3" style={{ fontFamily: 'Syne, sans-serif' }}>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3" style={{ fontFamily: 'Syne, sans-serif' }}>
             Start proving your integrity today
           </h2>
-          <p className="text-white/40 text-sm mb-6 max-w-md mx-auto">
+          <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">
             Free to start. No credit card required. Your first blockchain anchor in under 5 minutes.
           </p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <Link href="/register"
-              className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium text-white"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium text-gray-900"
               style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
               Start free <ArrowRight size={15} />
             </Link>
             <Link href="mailto:hello@tulipds.com"
-              className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm text-white/60 border border-white/10 hover:border-white/20 hover:text-white transition-all">
+              className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm text-gray-600 border border-gray-200 hover:border-gray-300 hover:text-gray-900 transition-all">
               Talk to us
             </Link>
           </div>
         </div>
       </div>
 
-      <footer className="border-t border-white/5 py-8 text-center">
-        <p className="text-white/20 text-xs">© 2026 Tulip DS · Bright Bytes Technology · Dubai UAE</p>
+      <footer className="border-t border-gray-100 py-8 text-center">
+        <p className="text-gray-300 text-xs">© 2026 Tulip DS · Bright Bytes Technology · Dubai UAE</p>
       </footer>
     </div>
   )

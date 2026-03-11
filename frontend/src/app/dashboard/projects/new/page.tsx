@@ -41,25 +41,25 @@ export default function NewProjectPage() {
     setSaving(false)
   }
 
-  const inputCls = "w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-[#0c7aed]/50 focus:bg-white/8 transition-all"
-  const labelCls = "block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wide"
+  const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 focus:bg-white/8 transition-all"
+  const labelCls = "block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide"
 
   return (
     <div className="p-6 max-w-2xl animate-fade-up">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/dashboard/projects" className="text-white/40 hover:text-white transition-colors">
+        <Link href="/dashboard/projects" className="text-gray-500 hover:text-gray-900 transition-colors">
           <ArrowLeft size={18} />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>New Project</h1>
-          <p className="text-white/40 text-sm">All project data will be blockchain anchored automatically</p>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>New Project</h1>
+          <p className="text-gray-500 text-sm">All project data will be blockchain anchored automatically</p>
         </div>
       </div>
 
       <div className="space-y-4">
         {!savedProjectId ? (
-          <div className="rounded-xl border border-white/8 p-6 space-y-5"
-            style={{ background: 'rgba(255,255,255,0.02)' }}>
+          <div className="rounded-xl border border-gray-200 p-6 space-y-5"
+            style={{ background: '#FFFFFF' }}>
 
             <div>
               <label className={labelCls}>Project Name *</label>
@@ -101,12 +101,12 @@ export default function NewProjectPage() {
 
             <div className="flex items-center gap-3 pt-2">
               <button onClick={submit} disabled={saving}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white disabled:opacity-50 transition-all"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-gray-900 disabled:opacity-50 transition-all"
                 style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
                 <Save size={15} />
                 {saving ? 'Creating…' : 'Create Project'}
               </button>
-              <Link href="/dashboard/projects" className="px-5 py-2.5 rounded-lg text-sm text-white/50 hover:text-white transition-colors">
+              <Link href="/dashboard/projects" className="px-5 py-2.5 rounded-lg text-sm text-gray-500 hover:text-gray-900 transition-colors">
                 Cancel
               </Link>
             </div>
@@ -123,12 +123,12 @@ export default function NewProjectPage() {
             <DocumentUploadSection entityType="project" entityId={savedProjectId} />
             <div className="flex items-center gap-3">
               <button onClick={() => router.push(`/dashboard/projects/${savedProjectId}`)}
-                className="px-5 py-2.5 rounded-lg text-sm font-medium text-white"
+                className="px-5 py-2.5 rounded-lg text-sm font-medium text-gray-900"
                 style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
                 View Project
               </button>
               <button onClick={() => router.push('/dashboard/projects/new')}
-                className="px-5 py-2.5 rounded-lg text-sm text-white/50 hover:text-white transition-colors">
+                className="px-5 py-2.5 rounded-lg text-sm text-gray-500 hover:text-gray-900 transition-colors">
                 Create Another
               </button>
             </div>

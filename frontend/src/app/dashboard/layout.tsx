@@ -90,21 +90,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <>
       {/* Logo */}
       <div className={clsx(
-        'flex items-center border-b border-white/8 h-16 shrink-0',
+        'flex items-center border-b border-gray-200 h-16 shrink-0',
         collapsed && !mobileOpen ? 'justify-center px-0' : 'px-5 gap-3'
       )}>
         <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
           style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
-          <span className="text-white font-bold text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>T</span>
+          <span className="text-gray-900 font-bold text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>T</span>
         </div>
         {(!collapsed || mobileOpen) && (
-          <span className="font-bold text-white text-lg" style={{ fontFamily: 'Syne, sans-serif' }}>
+          <span className="font-bold text-gray-900 text-lg" style={{ fontFamily: 'Syne, sans-serif' }}>
             tulip<span style={{ color: '#369bff' }}>ds</span>
           </span>
         )}
         {/* Close button — mobile only */}
         {mobileOpen && (
-          <button onClick={() => setMobileOpen(false)} className="ml-auto text-white/40 hover:text-white md:hidden">
+          <button onClick={() => setMobileOpen(false)} className="ml-auto text-gray-500 hover:text-gray-900 md:hidden">
             <X size={20} />
           </button>
         )}
@@ -119,7 +119,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               'relative flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg mb-0.5 transition-all group',
               active
                 ? 'bg-[#0c7aed]/20 text-[#369bff]'
-                : 'text-white/50 hover:text-white hover:bg-white/5'
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
             )}>
               <Icon size={18} className="shrink-0" />
               {(!collapsed || mobileOpen) && <span className="text-sm font-medium">{label}</span>}
@@ -141,7 +141,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </nav>
 
       {/* Bottom */}
-      <div className="border-t border-white/8 p-3 space-y-1">
+      <div className="border-t border-gray-200 p-3 space-y-1">
         {/* Admin — superadmin only */}
         {isSuperadmin && (
           <Link href="/dashboard/admin" className={clsx(
@@ -157,14 +157,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Collapse toggle — desktop only */}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="hidden md:flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-white/40 hover:text-white hover:bg-white/5 transition-all"
+          className="hidden md:flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all"
         >
           {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
           {!collapsed && <span className="text-sm">Collapse</span>}
         </button>
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-white/40 hover:text-red-400 hover:bg-red-400/5 transition-all"
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-400/5 transition-all"
         >
           <LogOut size={18} className="shrink-0" />
           {(!collapsed || mobileOpen) && <span className="text-sm">Sign out</span>}
@@ -174,18 +174,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   )
 
   return (
-    <div className="flex h-screen bg-[#040f1f] text-white overflow-hidden">
+    <div className="flex h-screen bg-[#F9FAFB] text-gray-900 overflow-hidden">
 
       {/* Mobile sidebar overlay */}
       {mobileOpen && (
         <div className="fixed inset-0 z-40 md:hidden" onClick={() => setMobileOpen(false)}>
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
         </div>
       )}
 
       {/* Mobile sidebar drawer */}
       <aside className={clsx(
-        'fixed inset-y-0 left-0 z-50 w-60 flex flex-col border-r border-white/8 transition-transform duration-300 md:hidden',
+        'fixed inset-y-0 left-0 z-50 w-60 flex flex-col border-r border-gray-200 transition-transform duration-300 md:hidden',
         mobileOpen ? 'translate-x-0' : '-translate-x-full'
       )} style={{ background: 'linear-gradient(180deg, #07224a 0%, #040f1f 100%)' }}>
         {sidebarContent}
@@ -193,7 +193,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Desktop sidebar */}
       <aside className={clsx(
-        'hidden md:flex flex-col border-r border-white/8 transition-all duration-300 shrink-0',
+        'hidden md:flex flex-col border-r border-gray-200 transition-all duration-300 shrink-0',
         collapsed ? 'w-16' : 'w-60'
       )} style={{ background: 'linear-gradient(180deg, #07224a 0%, #040f1f 100%)' }}>
         {sidebarContent}
@@ -203,51 +203,51 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="flex-1 flex flex-col overflow-hidden">
 
         {/* Topbar */}
-        <header className="h-16 border-b border-white/8 flex items-center justify-between px-4 md:px-6 shrink-0"
-          style={{ background: 'rgba(4,15,31,0.8)', backdropFilter: 'blur(12px)' }}>
+        <header className="h-16 border-b border-gray-200 flex items-center justify-between px-4 md:px-6 shrink-0"
+          style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(12px)' }}>
 
           {/* Left: hamburger (mobile) + search (desktop) */}
           <div className="flex items-center gap-3">
             <button onClick={() => setMobileOpen(true)}
-              className="md:hidden w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all">
-              <Menu size={18} className="text-white/60" />
+              className="md:hidden w-9 h-9 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition-all">
+              <Menu size={18} className="text-gray-600" />
             </button>
 
             {/* Logo — mobile only (centered feel) */}
             <div className="md:hidden flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg flex items-center justify-center"
                 style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
-                <span className="text-white font-bold text-xs" style={{ fontFamily: 'Syne, sans-serif' }}>T</span>
+                <span className="text-gray-900 font-bold text-xs" style={{ fontFamily: 'Syne, sans-serif' }}>T</span>
               </div>
-              <span className="font-bold text-white text-base" style={{ fontFamily: 'Syne, sans-serif' }}>
+              <span className="font-bold text-gray-900 text-base" style={{ fontFamily: 'Syne, sans-serif' }}>
                 tulip<span style={{ color: '#369bff' }}>ds</span>
               </span>
             </div>
 
             {/* Search — desktop only */}
-            <div className="hidden md:flex items-center gap-3 bg-white/5 border border-white/10 rounded-lg px-3 py-2 w-72">
-              <Search size={15} className="text-white/30" />
+            <div className="hidden md:flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 w-72">
+              <Search size={15} className="text-gray-400" />
               <input
                 placeholder="Search projects, documents..."
-                className="bg-transparent text-sm text-white/70 placeholder-white/30 outline-none w-full"
+                className="bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none w-full"
               />
             </div>
           </div>
 
           {/* Right: bell + avatar */}
           <div className="flex items-center gap-3">
-            <button className="relative w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all">
-              <Bell size={16} className="text-white/60" />
+            <button className="relative w-9 h-9 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition-all">
+              <Bell size={16} className="text-gray-600" />
               <div className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#0c7aed]" />
             </button>
-            <div className="flex items-center gap-2.5 pl-3 border-l border-white/10">
+            <div className="flex items-center gap-2.5 pl-3 border-l border-gray-200">
               <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
                 style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
                 N
               </div>
               <div className="hidden sm:block">
-                <div className="text-sm font-medium text-white/90">NGO Admin</div>
-                <div className="text-xs text-white/40">Administrator</div>
+                <div className="text-sm font-medium text-gray-900">NGO Admin</div>
+                <div className="text-xs text-gray-500">Administrator</div>
               </div>
             </div>
           </div>

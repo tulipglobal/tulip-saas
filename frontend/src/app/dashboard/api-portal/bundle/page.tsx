@@ -63,7 +63,7 @@ interface BundleJob {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof Loader2 }> = {
-  pending:           { label: 'Pending',          color: 'text-white/40 bg-white/5 border-white/10',              icon: Clock },
+  pending:           { label: 'Pending',          color: 'text-gray-500 bg-gray-50 border-gray-200',              icon: Clock },
   processing:        { label: 'Processing',       color: 'text-blue-400 bg-blue-400/10 border-blue-400/20',      icon: Loader2 },
   processing_docs:   { label: 'Processing Docs',  color: 'text-blue-400 bg-blue-400/10 border-blue-400/20',      icon: Loader2 },
   cross_analysing:   { label: 'Cross-Analysing',  color: 'text-purple-400 bg-purple-400/10 border-purple-400/20', icon: Sparkles },
@@ -91,7 +91,7 @@ function RiskBadge({ level, score }: { level: string; score: number | null }) {
     high: 'bg-red-400/10 text-red-400 border-red-400/20',
   }
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase border ${map[level] ?? 'bg-white/5 text-white/40 border-white/10'}`}>
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase border ${map[level] ?? 'bg-gray-50 text-gray-500 border-gray-200'}`}>
       {level === 'high' ? <AlertTriangle size={10} /> : null}
       {level} risk{score != null ? ` · ${score}/100` : ''}
     </span>
@@ -100,11 +100,11 @@ function RiskBadge({ level, score }: { level: string; score: number | null }) {
 
 function SeverityBadge({ severity }: { severity: string }) {
   const map: Record<string, string> = {
-    low: 'text-white/40',
+    low: 'text-gray-500',
     medium: 'text-yellow-400',
     high: 'text-red-400',
   }
-  return <span className={`text-[10px] font-bold uppercase ${map[severity] ?? 'text-white/40'}`}>{severity}</span>
+  return <span className={`text-[10px] font-bold uppercase ${map[severity] ?? 'text-gray-500'}`}>{severity}</span>
 }
 
 export default function BundlePage() {
@@ -231,12 +231,12 @@ export default function BundlePage() {
             </div>
             Bundle Verify
           </h1>
-          <p className="text-white/40 text-sm mt-1">
+          <p className="text-gray-500 text-sm mt-1">
             Upload multiple documents for cross-analysis and inconsistency detection.
           </p>
         </div>
         <button onClick={fetchBundles}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white/60 hover:text-white hover:bg-white/10 transition-all">
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all">
           <RefreshCw size={14} />
           Refresh
         </button>
@@ -249,13 +249,13 @@ export default function BundlePage() {
           value={bundleName}
           onChange={(e) => setBundleName(e.target.value)}
           placeholder="Bundle name (optional)"
-          className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-sm text-white/80 placeholder-white/25 outline-none focus:border-[#0c7aed]/40 transition-all"
+          className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-gray-200 text-sm text-gray-800 placeholder-white/25 outline-none focus:border-[#0c7aed]/40 transition-all"
         />
         <div
           className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${
             dragActive
               ? 'border-[#0c7aed] bg-[#0c7aed]/5'
-              : 'border-white/10 hover:border-white/20 bg-white/[0.02]'
+              : 'border-gray-200 hover:border-gray-300 bg-white/[0.02]'
           }`}
           onDragOver={(e) => { e.preventDefault(); setDragActive(true) }}
           onDragLeave={() => setDragActive(false)}
@@ -267,7 +267,7 @@ export default function BundlePage() {
           {uploading ? (
             <div className="flex flex-col items-center gap-3">
               <Loader2 size={32} className="text-[#0c7aed] animate-spin" />
-              <p className="text-white/60 text-sm">Uploading bundle and starting processing...</p>
+              <p className="text-gray-600 text-sm">Uploading bundle and starting processing...</p>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-3">
@@ -275,8 +275,8 @@ export default function BundlePage() {
                 <Upload size={24} className="text-[#0c7aed]" />
               </div>
               <div>
-                <p className="text-white/70 font-medium">Drop multiple documents here or click to upload</p>
-                <p className="text-white/30 text-xs mt-1">Up to 20 files — PDF, JPG, PNG, TIFF, WEBP — 20MB each</p>
+                <p className="text-gray-700 font-medium">Drop multiple documents here or click to upload</p>
+                <p className="text-gray-400 text-xs mt-1">Up to 20 files — PDF, JPG, PNG, TIFF, WEBP — 20MB each</p>
               </div>
             </div>
           )}
@@ -293,17 +293,17 @@ export default function BundlePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Bundle list */}
         <div className="lg:col-span-1 space-y-3">
-          <h2 className="text-sm font-semibold text-white/50 uppercase tracking-wider">Bundles ({bundles.length})</h2>
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Bundles ({bundles.length})</h2>
 
           {loading ? (
-            <div className="text-center py-8 text-white/30">
+            <div className="text-center py-8 text-gray-400">
               <Loader2 size={20} className="animate-spin mx-auto mb-2" />
               Loading...
             </div>
           ) : null}
 
           {!loading && bundles.length === 0 ? (
-            <div className="text-center py-8 text-white/30 text-sm">
+            <div className="text-center py-8 text-gray-400 text-sm">
               No bundles yet. Upload documents to get started.
             </div>
           ) : null}
@@ -315,23 +315,23 @@ export default function BundlePage() {
               className={`w-full text-left p-4 rounded-xl border transition-all ${
                 selectedBundle?.id === bundle.id
                   ? 'bg-[#0c7aed]/10 border-[#0c7aed]/30'
-                  : 'bg-white/[0.02] border-white/8 hover:bg-white/[0.04]'
+                  : 'bg-white/[0.02] border-gray-200 hover:bg-white/[0.04]'
               }`}
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-white/90 truncate">{bundle.name}</p>
-                  <p className="text-xs text-white/30 mt-0.5">
+                  <p className="text-sm font-medium text-gray-900 truncate">{bundle.name}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
                     {new Date(bundle.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                     {' · '}{bundle.fileCount} files
                   </p>
                   {bundle.status === 'processing_docs' ? (
                     <div className="mt-1.5">
-                      <div className="w-full h-1.5 rounded-full bg-white/5 overflow-hidden">
+                      <div className="w-full h-1.5 rounded-full bg-gray-50 overflow-hidden">
                         <div className="h-full rounded-full bg-blue-400 transition-all duration-500"
                           style={{ width: `${bundle.fileCount > 0 ? (bundle.completedCount / bundle.fileCount) * 100 : 0}%` }} />
                       </div>
-                      <p className="text-[10px] text-white/30 mt-0.5">{bundle.completedCount}/{bundle.fileCount} docs processed</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">{bundle.completedCount}/{bundle.fileCount} docs processed</p>
                     </div>
                   ) : null}
                 </div>
@@ -349,8 +349,8 @@ export default function BundlePage() {
         {/* Detail panel */}
         <div className="lg:col-span-2">
           {!selectedBundle ? (
-            <div className="flex items-center justify-center h-64 rounded-2xl border border-white/8 bg-white/[0.02]">
-              <div className="text-center text-white/30">
+            <div className="flex items-center justify-center h-64 rounded-2xl border border-gray-200 bg-white/[0.02]">
+              <div className="text-center text-gray-400">
                 <Eye size={32} className="mx-auto mb-2 opacity-40" />
                 <p className="text-sm">Select a bundle to view results</p>
               </div>
@@ -358,48 +358,48 @@ export default function BundlePage() {
           ) : (
             <div className="space-y-4">
               {/* Bundle header */}
-              <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
+              <div className="p-5 rounded-2xl border border-gray-200 bg-white/[0.02]">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-lg truncate pr-3">{selectedBundle.name}</h3>
                   <StatusBadge status={selectedBundle.status} />
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                   <div>
-                    <span className="text-white/30">Files</span>
-                    <p className="text-white/70 mt-0.5">{selectedBundle.fileCount}</p>
+                    <span className="text-gray-400">Files</span>
+                    <p className="text-gray-700 mt-0.5">{selectedBundle.fileCount}</p>
                   </div>
                   <div>
-                    <span className="text-white/30">Processed</span>
-                    <p className="text-white/70 mt-0.5">{selectedBundle.completedCount}/{selectedBundle.fileCount}</p>
+                    <span className="text-gray-400">Processed</span>
+                    <p className="text-gray-700 mt-0.5">{selectedBundle.completedCount}/{selectedBundle.fileCount}</p>
                   </div>
                   <div>
-                    <span className="text-white/30">Risk Level</span>
-                    <p className="text-white/70 mt-0.5 uppercase">{selectedBundle.overallRiskLevel || '—'}</p>
+                    <span className="text-gray-400">Risk Level</span>
+                    <p className="text-gray-700 mt-0.5 uppercase">{selectedBundle.overallRiskLevel || '—'}</p>
                   </div>
                   <div>
-                    <span className="text-white/30">Risk Score</span>
-                    <p className="text-white/70 mt-0.5">{selectedBundle.overallRiskScore != null ? `${selectedBundle.overallRiskScore}/100` : '—'}</p>
+                    <span className="text-gray-400">Risk Score</span>
+                    <p className="text-gray-700 mt-0.5">{selectedBundle.overallRiskScore != null ? `${selectedBundle.overallRiskScore}/100` : '—'}</p>
                   </div>
                 </div>
 
                 {/* Progress bar for active processing */}
                 {['processing', 'processing_docs'].includes(selectedBundle.status) ? (
                   <div className="mt-3">
-                    <div className="w-full h-2 rounded-full bg-white/5 overflow-hidden">
+                    <div className="w-full h-2 rounded-full bg-gray-50 overflow-hidden">
                       <div className="h-full rounded-full bg-blue-400 transition-all duration-500"
                         style={{ width: `${selectedBundle.fileCount > 0 ? (selectedBundle.completedCount / selectedBundle.fileCount) * 100 : 0}%` }} />
                     </div>
-                    <p className="text-xs text-white/30 mt-1">Processing documents... {selectedBundle.completedCount}/{selectedBundle.fileCount} complete</p>
+                    <p className="text-xs text-gray-400 mt-1">Processing documents... {selectedBundle.completedCount}/{selectedBundle.fileCount} complete</p>
                   </div>
                 ) : null}
 
                 {/* Hash */}
                 {selectedBundle.bundleHash ? (
-                  <div className="mt-3 p-3 rounded-lg bg-white/[0.03] border border-white/8">
+                  <div className="mt-3 p-3 rounded-lg bg-white/[0.03] border border-gray-200">
                     <div className="flex items-center gap-2 text-xs">
                       <Hash size={12} className="text-[#0c7aed]" />
-                      <span className="text-white/30">SHA-256</span>
-                      <code className="text-white/50 font-mono text-[11px] break-all">{selectedBundle.bundleHash}</code>
+                      <span className="text-gray-400">SHA-256</span>
+                      <code className="text-gray-500 font-mono text-[11px] break-all">{selectedBundle.bundleHash}</code>
                     </div>
                   </div>
                 ) : null}
@@ -408,7 +408,7 @@ export default function BundlePage() {
                 {selectedBundle.masterReportS3 ? (
                   <button
                     onClick={() => handleDownloadPdf(selectedBundle.id)}
-                    className="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90"
+                    className="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-lg text-sm font-medium text-gray-900 transition-all hover:opacity-90"
                     style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}
                   >
                     <Download size={14} />
@@ -419,21 +419,21 @@ export default function BundlePage() {
 
               {/* Documents in bundle */}
               {selectedBundle.ocrJobs && selectedBundle.ocrJobs.length > 0 ? (
-                <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
-                  <h4 className="font-semibold text-sm text-white/60 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <div className="p-5 rounded-2xl border border-gray-200 bg-white/[0.02]">
+                  <h4 className="font-semibold text-sm text-gray-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <FileText size={14} className="text-blue-400" />
                     Documents ({selectedBundle.ocrJobs.length})
                   </h4>
                   <div className="space-y-2">
                     {selectedBundle.ocrJobs.map((job, i) => (
-                      <div key={job.id} className="flex items-center justify-between p-3 rounded-lg bg-white/[0.03] border border-white/8">
+                      <div key={job.id} className="flex items-center justify-between p-3 rounded-lg bg-white/[0.03] border border-gray-200">
                         <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <span className="text-white/20 text-xs font-mono w-5 text-right">{i + 1}</span>
-                          <span className="text-sm text-white/80 truncate">{job.originalFilename}</span>
+                          <span className="text-gray-300 text-xs font-mono w-5 text-right">{i + 1}</span>
+                          <span className="text-sm text-gray-800 truncate">{job.originalFilename}</span>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           {job.documentType ? (
-                            <span className="text-[10px] text-white/30 uppercase">{job.documentType}</span>
+                            <span className="text-[10px] text-gray-400 uppercase">{job.documentType}</span>
                           ) : null}
                           {job.assessmentResult ? (
                             <RiskBadge level={job.assessmentResult} score={job.assessmentScore} />
@@ -451,14 +451,14 @@ export default function BundlePage() {
               {cross ? (
                 <>
                   {/* Summary & scores */}
-                  <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
-                    <h4 className="font-semibold text-sm text-white/60 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <div className="p-5 rounded-2xl border border-gray-200 bg-white/[0.02]">
+                    <h4 className="font-semibold text-sm text-gray-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                       <ShieldCheck size={14} className="text-green-400" />
                       Cross-Analysis Results
                     </h4>
                     <div className="flex items-center gap-4 mb-3">
                       <RiskBadge level={cross.bundleRiskLevel} score={cross.bundleRiskScore} />
-                      <span className="text-xs text-white/30">
+                      <span className="text-xs text-gray-400">
                         Consistency: {cross.consistencyScore}/100
                       </span>
                       <span className={`text-xs font-semibold uppercase ${
@@ -468,30 +468,30 @@ export default function BundlePage() {
                         {cross.overallRecommendation}
                       </span>
                     </div>
-                    <p className="text-sm text-white/60">{cross.summary}</p>
+                    <p className="text-sm text-gray-600">{cross.summary}</p>
                     {cross.overallRecommendationReason ? (
-                      <p className="text-xs text-white/40 mt-2">Reason: {cross.overallRecommendationReason}</p>
+                      <p className="text-xs text-gray-500 mt-2">Reason: {cross.overallRecommendationReason}</p>
                     ) : null}
                   </div>
 
                   {/* Cross-check findings */}
                   {cross.crossChecks && cross.crossChecks.length > 0 ? (
-                    <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
-                      <h4 className="font-semibold text-sm text-white/60 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <div className="p-5 rounded-2xl border border-gray-200 bg-white/[0.02]">
+                      <h4 className="font-semibold text-sm text-gray-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <AlertTriangle size={14} className="text-yellow-400" />
                         Cross-Check Findings ({cross.crossChecks.length})
                       </h4>
                       <div className="space-y-3">
                         {cross.crossChecks.map((check, i) => (
-                          <div key={i} className="p-3 rounded-lg bg-white/[0.03] border border-white/8">
+                          <div key={i} className="p-3 rounded-lg bg-white/[0.03] border border-gray-200">
                             <div className="flex items-center gap-2 mb-1">
                               <SeverityBadge severity={check.severity} />
-                              <span className="text-xs text-white/40 uppercase">{check.checkType}</span>
-                              <span className="text-xs text-white/20">Docs: {check.documents?.join(', ')}</span>
+                              <span className="text-xs text-gray-500 uppercase">{check.checkType}</span>
+                              <span className="text-xs text-gray-300">Docs: {check.documents?.join(', ')}</span>
                             </div>
-                            <p className="text-sm text-white/70">{check.finding}</p>
+                            <p className="text-sm text-gray-700">{check.finding}</p>
                             {check.recommendation ? (
-                              <p className="text-xs text-white/40 mt-1">{'→ '}{check.recommendation}</p>
+                              <p className="text-xs text-gray-500 mt-1">{'→ '}{check.recommendation}</p>
                             ) : null}
                           </div>
                         ))}
@@ -501,8 +501,8 @@ export default function BundlePage() {
 
                   {/* Document relationships */}
                   {cross.documentRelationships && cross.documentRelationships.length > 0 ? (
-                    <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
-                      <h4 className="font-semibold text-sm text-white/60 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <div className="p-5 rounded-2xl border border-gray-200 bg-white/[0.02]">
+                      <h4 className="font-semibold text-sm text-gray-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <ArrowRightLeft size={14} className="text-indigo-400" />
                         Document Relationships
                       </h4>
@@ -511,12 +511,12 @@ export default function BundlePage() {
                           const d1 = selectedBundle.ocrJobs[rel.doc1 - 1]?.originalFilename || `Doc ${rel.doc1}`
                           const d2 = selectedBundle.ocrJobs[rel.doc2 - 1]?.originalFilename || `Doc ${rel.doc2}`
                           return (
-                            <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] border border-white/8 text-sm">
-                              <span className="text-white/70 truncate flex-1">{d1}</span>
-                              <span className="text-white/20">↔</span>
-                              <span className="text-white/70 truncate flex-1">{d2}</span>
-                              <span className="text-xs text-white/30 shrink-0">{rel.relationship}</span>
-                              <span className="text-[10px] text-white/20 shrink-0">{rel.confidence}</span>
+                            <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] border border-gray-200 text-sm">
+                              <span className="text-gray-700 truncate flex-1">{d1}</span>
+                              <span className="text-gray-300">↔</span>
+                              <span className="text-gray-700 truncate flex-1">{d2}</span>
+                              <span className="text-xs text-gray-400 shrink-0">{rel.relationship}</span>
+                              <span className="text-[10px] text-gray-300 shrink-0">{rel.confidence}</span>
                             </div>
                           )
                         })}
@@ -526,8 +526,8 @@ export default function BundlePage() {
 
                   {/* Missing documents */}
                   {cross.missingDocuments && cross.missingDocuments.length > 0 ? (
-                    <div className="p-5 rounded-2xl border border-white/8 bg-white/[0.02]">
-                      <h4 className="font-semibold text-sm text-white/60 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <div className="p-5 rounded-2xl border border-gray-200 bg-white/[0.02]">
+                      <h4 className="font-semibold text-sm text-gray-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <FileWarning size={14} className="text-orange-400" />
                         Missing Documents
                       </h4>

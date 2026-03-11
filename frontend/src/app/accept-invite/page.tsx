@@ -69,8 +69,8 @@ function AcceptInviteForm() {
     <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
       <div className="text-center">
         <AlertCircle size={48} className="text-red-400 mx-auto mb-4" />
-        <h1 className="text-xl font-semibold text-white mb-2">Invalid Invite Link</h1>
-        <p className="text-white/50 text-sm">This invitation link is missing the token parameter.</p>
+        <h1 className="text-xl font-semibold text-gray-900 mb-2">Invalid Invite Link</h1>
+        <p className="text-gray-500 text-sm">This invitation link is missing the token parameter.</p>
       </div>
     </div>
   )
@@ -79,9 +79,9 @@ function AcceptInviteForm() {
     <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
       <div className="text-center max-w-md">
         <CheckCircle size={48} className="text-emerald-400 mx-auto mb-4" />
-        <h1 className="text-xl font-semibold text-white mb-2">Invitation Accepted</h1>
-        <p className="text-white/50 text-sm mb-6">Your donor account has been created. You can now access the donor portal to view verified financial records.</p>
-        <Link href="/login" className="inline-block px-6 py-3 rounded-lg text-sm font-medium text-white"
+        <h1 className="text-xl font-semibold text-gray-900 mb-2">Invitation Accepted</h1>
+        <p className="text-gray-500 text-sm mb-6">Your donor account has been created. You can now access the donor portal to view verified financial records.</p>
+        <Link href="/login" className="inline-block px-6 py-3 rounded-lg text-sm font-medium text-gray-900"
           style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
           Go to Login
         </Link>
@@ -95,8 +95,8 @@ function AcceptInviteForm() {
     </div>
   )
 
-  const inputCls = "w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-[#0c7aed]/50 transition-all"
-  const labelCls = "block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wide"
+  const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all"
+  const labelCls = "block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide"
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center p-4">
@@ -104,14 +104,14 @@ function AcceptInviteForm() {
         <div className="text-center mb-8">
           <div className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center"
             style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
-            <span className="text-white font-bold text-lg" style={{ fontFamily: 'Syne, sans-serif' }}>T</span>
+            <span className="text-gray-900 font-bold text-lg" style={{ fontFamily: 'Syne, sans-serif' }}>T</span>
           </div>
-          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>Accept Invitation</h1>
-          <p className="text-white/40 text-sm mt-2">Create your donor account to view verified financial records</p>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>Accept Invitation</h1>
+          <p className="text-gray-500 text-sm mt-2">Create your donor account to view verified financial records</p>
         </div>
 
-        <div className="rounded-xl border border-white/8 p-6 space-y-4"
-          style={{ background: 'rgba(255,255,255,0.02)' }}>
+        <div className="rounded-xl border border-gray-200 p-6 space-y-4"
+          style={{ background: '#FFFFFF' }}>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -166,13 +166,13 @@ function AcceptInviteForm() {
           )}
 
           <button onClick={submit}
-            className="w-full py-3 rounded-lg text-sm font-medium text-white transition-all"
+            className="w-full py-3 rounded-lg text-sm font-medium text-gray-900 transition-all"
             style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
             Accept & Create Account
           </button>
         </div>
 
-        <p className="text-center text-white/20 text-xs mt-6">Tulip DS · Blockchain-Verified Financial Transparency</p>
+        <p className="text-center text-gray-300 text-xs mt-6">Tulip DS · Blockchain-Verified Financial Transparency</p>
       </div>
     </div>
   )

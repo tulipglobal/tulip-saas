@@ -136,7 +136,7 @@ export default function AddDocumentPage() {
               const Icon = cfg.icon; const active = level === key
               return (
                 <button key={key} onClick={() => { setLevel(key); setDocumentType('') }}
-                  style={{ padding:'16px', borderRadius:12, border:`2px solid ${active ? cfg.color : 'rgba(255,255,255,0.06)'}`, background: active ? `${cfg.color}15` : 'rgba(255,255,255,0.02)', cursor:'pointer', textAlign:'left' }}>
+                  style={{ padding:'16px', borderRadius:12, border:`2px solid ${active ? cfg.color : 'rgba(255,255,255,0.06)'}`, background: active ? `${cfg.color}15` : '#FFFFFF', cursor:'pointer', textAlign:'left' }}>
                   <Icon size={20} style={{ color: active ? cfg.color : '#475569', marginBottom:8 }} />
                   <p style={{ color: active ? 'white' : '#94a3b8', fontSize:13, fontWeight:600, margin:0 }}>{cfg.label}</p>
                   <p style={{ color:'#475569', fontSize:11, margin:'4px 0 0' }}>{cfg.desc}</p>
@@ -209,7 +209,7 @@ export default function AddDocumentPage() {
           <label style={{ color:'#94a3b8', fontSize:12, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', display:'block', marginBottom:8 }}>File *</label>
           <div onDragOver={e => { e.preventDefault(); setDragging(true) }} onDragLeave={() => setDragging(false)} onDrop={handleDrop} onClick={() => fileRef.current?.click()}
             style={{ border:`2px dashed ${dragging ? '#0d9488' : file ? '#34d399' : 'rgba(255,255,255,0.1)'}`, borderRadius:12, padding:'40px 24px', textAlign:'center', cursor:'pointer',
-              background: dragging ? 'rgba(13,148,136,0.05)' : file ? 'rgba(52,211,153,0.05)' : 'rgba(255,255,255,0.02)' }}>
+              background: dragging ? 'rgba(13,148,136,0.05)' : file ? 'rgba(52,211,153,0.05)' : '#FFFFFF' }}>
             {file ? (
               <div>
                 <CheckCircle size={32} style={{ color:'#34d399', margin:'0 auto 8px' }} />

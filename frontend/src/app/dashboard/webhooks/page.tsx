@@ -96,20 +96,20 @@ function DeliveryLogModal({ webhookId, onClose }: { webhookId: string; onClose: 
   }, [webhookId])
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-[#0a1929] border border-white/10 rounded-none md:rounded-2xl w-full h-full md:h-auto md:max-w-3xl md:max-h-[80vh] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-white/8">
-          <h3 className="text-white font-semibold text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>Delivery Log</h3>
-          <button onClick={onClose} className="text-white/30 hover:text-white/60 transition-colors"><X size={18} /></button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-[#0a1929] border border-gray-200 rounded-none md:rounded-2xl w-full h-full md:h-auto md:max-w-3xl md:max-h-[80vh] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-gray-200">
+          <h3 className="text-gray-900 font-semibold text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>Delivery Log</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors"><X size={18} /></button>
         </div>
 
         <div className="overflow-y-auto max-h-[calc(80vh-60px)]">
           {loading ? (
-            <div className="p-8 text-center text-white/30 text-sm">Loading deliveries...</div>
+            <div className="p-8 text-center text-gray-400 text-sm">Loading deliveries...</div>
           ) : deliveries.length === 0 ? (
-            <div className="p-8 text-center text-white/30 text-sm">No delivery attempts yet</div>
+            <div className="p-8 text-center text-gray-400 text-sm">No delivery attempts yet</div>
           ) : (
-            <div className="divide-y divide-white/5">
+            <div className="divide-y divide-gray-100">
               {deliveries.map(d => (
                 <div key={d.id}>
                   <button
@@ -117,13 +117,13 @@ function DeliveryLogModal({ webhookId, onClose }: { webhookId: string; onClose: 
                     className="w-full grid grid-cols-[1fr_80px_80px] md:grid-cols-[1.5fr_1fr_80px_80px_80px] gap-3 items-center px-4 md:px-6 py-3 hover:bg-white/[0.02] transition-colors text-left"
                   >
                     <div className="flex items-center gap-2">
-                      {expanded === d.id ? <ChevronDown size={12} className="text-white/20" /> : <ChevronRight size={12} className="text-white/20" />}
-                      <span className="text-white/60 text-xs font-medium">{d.event}</span>
+                      {expanded === d.id ? <ChevronDown size={12} className="text-gray-300" /> : <ChevronRight size={12} className="text-gray-300" />}
+                      <span className="text-gray-600 text-xs font-medium">{d.event}</span>
                     </div>
-                    <span className="text-white/25 text-xs">
+                    <span className="text-gray-400 text-xs">
                       {new Date(d.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                     </span>
-                    <span className="text-xs font-mono text-white/40">{d.statusCode || '—'}</span>
+                    <span className="text-xs font-mono text-gray-500">{d.statusCode || '—'}</span>
                     <div>
                       {d.status === 'success' ? (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">
@@ -139,20 +139,20 @@ function DeliveryLogModal({ webhookId, onClose }: { webhookId: string; onClose: 
                         </span>
                       )}
                     </div>
-                    <span className="text-white/20 text-xs">#{d.attempts}</span>
+                    <span className="text-gray-300 text-xs">#{d.attempts}</span>
                   </button>
                   {expanded === d.id && (
                     <div className="px-6 pb-4 space-y-2">
                       <div>
-                        <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">Payload</p>
-                        <pre className="text-xs text-white/40 bg-white/[0.03] border border-white/5 rounded-lg p-3 overflow-x-auto max-h-48">
+                        <p className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">Payload</p>
+                        <pre className="text-xs text-gray-500 bg-white/[0.03] border border-gray-100 rounded-lg p-3 overflow-x-auto max-h-48">
                           {JSON.stringify(d.payload, null, 2)}
                         </pre>
                       </div>
                       {d.responseBody && (
                         <div>
-                          <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">Response</p>
-                          <pre className="text-xs text-white/30 bg-white/[0.03] border border-white/5 rounded-lg p-3 overflow-x-auto max-h-32">
+                          <p className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">Response</p>
+                          <pre className="text-xs text-gray-400 bg-white/[0.03] border border-gray-100 rounded-lg p-3 overflow-x-auto max-h-32">
                             {d.responseBody}
                           </pre>
                         </div>
@@ -222,13 +222,13 @@ function WebhookFormModal({ webhook, onClose, onSaved }: {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-[#0a1929] border border-white/10 rounded-none md:rounded-2xl w-full h-full md:h-auto md:max-w-lg md:max-h-[85vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-white/8">
-          <h3 className="text-white font-semibold text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-[#0a1929] border border-gray-200 rounded-none md:rounded-2xl w-full h-full md:h-auto md:max-w-lg md:max-h-[85vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-gray-200">
+          <h3 className="text-gray-900 font-semibold text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>
             {isEdit ? 'Edit Webhook' : 'Add Webhook'}
           </h3>
-          <button onClick={onClose} className="text-white/30 hover:text-white/60 transition-colors"><X size={18} /></button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors"><X size={18} /></button>
         </div>
 
         <div className="px-6 py-5 space-y-5">
@@ -238,44 +238,44 @@ function WebhookFormModal({ webhook, onClose, onSaved }: {
 
           {/* URL */}
           <div>
-            <label className="text-white/40 text-xs font-medium uppercase tracking-wider mb-1.5 block">Endpoint URL</label>
+            <label className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-1.5 block">Endpoint URL</label>
             <input
               value={url} onChange={e => setUrl(e.target.value)}
               placeholder="https://your-server.com/webhook"
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white/70 placeholder-white/20 outline-none focus:border-[#0c7aed]/40 transition-colors"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 placeholder-white/20 outline-none focus:border-[#0c7aed]/40 transition-colors"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="text-white/40 text-xs font-medium uppercase tracking-wider mb-1.5 block">Description (optional)</label>
+            <label className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-1.5 block">Description (optional)</label>
             <input
               value={description} onChange={e => setDescription(e.target.value)}
               placeholder="e.g., Slack notifications, Zapier integration"
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white/70 placeholder-white/20 outline-none focus:border-[#0c7aed]/40 transition-colors"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 placeholder-white/20 outline-none focus:border-[#0c7aed]/40 transition-colors"
             />
           </div>
 
           {/* Events */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-white/40 text-xs font-medium uppercase tracking-wider">Events</label>
+              <label className="text-gray-500 text-xs font-medium uppercase tracking-wider">Events</label>
               <div className="flex gap-2">
                 <button onClick={selectAll} className="text-[10px] text-[#369bff] hover:underline">Select All</button>
-                <button onClick={deselectAll} className="text-[10px] text-white/30 hover:underline">Deselect All</button>
+                <button onClick={deselectAll} className="text-[10px] text-gray-400 hover:underline">Deselect All</button>
               </div>
             </div>
             <div className="space-y-3">
               {EVENT_GROUPS.map(group => (
                 <div key={group.label}>
-                  <p className="text-white/20 text-[10px] uppercase tracking-widest font-medium mb-1.5">{group.label}</p>
+                  <p className="text-gray-300 text-[10px] uppercase tracking-widest font-medium mb-1.5">{group.label}</p>
                   <div className="flex flex-wrap gap-1.5">
                     {group.events.map(ev => (
                       <button key={ev.id} onClick={() => toggleEvent(ev.id)}
                         className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
                           selectedEvents.includes(ev.id)
                             ? 'bg-[#0c7aed]/20 text-[#369bff] border-[#0c7aed]/30'
-                            : 'text-white/30 border-white/8 hover:text-white/50 hover:border-white/15'
+                            : 'text-gray-400 border-gray-200 hover:text-gray-500 hover:border-gray-200'
                         }`}>
                         {ev.id}
                       </button>
@@ -287,10 +287,10 @@ function WebhookFormModal({ webhook, onClose, onSaved }: {
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t border-white/8 flex items-center justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-white/40 hover:text-white/60 transition-colors">Cancel</button>
+        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-gray-500 hover:text-gray-600 transition-colors">Cancel</button>
           <button onClick={handleSave} disabled={saving}
-            className="px-5 py-2 rounded-lg text-sm font-medium text-white disabled:opacity-40"
+            className="px-5 py-2 rounded-lg text-sm font-medium text-gray-900 disabled:opacity-40"
             style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
             {saving ? 'Saving...' : isEdit ? 'Update' : 'Create Webhook'}
           </button>
@@ -374,14 +374,14 @@ export default function WebhooksPage() {
 
   if (loading) return (
     <div className="p-6 animate-fade-up">
-      <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>Webhooks</h1>
-      <p className="text-white/30 text-sm mt-4">Loading...</p>
+      <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>Webhooks</h1>
+      <p className="text-gray-400 text-sm mt-4">Loading...</p>
     </div>
   )
 
   if (error && webhooks.length === 0) return (
     <div className="p-6 animate-fade-up">
-      <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>Webhooks</h1>
+      <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>Webhooks</h1>
       <div className="mt-6 rounded-xl border border-red-400/20 bg-red-400/5 px-5 py-4">
         <p className="text-red-400 text-sm">{error}</p>
       </div>
@@ -394,11 +394,11 @@ export default function WebhooksPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>Webhooks</h1>
-          <p className="text-white/40 text-sm mt-1">Receive real-time notifications via HMAC-signed HTTP callbacks</p>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>Webhooks</h1>
+          <p className="text-gray-500 text-sm mt-1">Receive real-time notifications via HMAC-signed HTTP callbacks</p>
         </div>
         <button onClick={() => setFormModal({ open: true, webhook: null })}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white self-start"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-900 self-start"
           style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
           <Plus size={16} /> Add Webhook
         </button>
@@ -412,23 +412,23 @@ export default function WebhooksPage() {
             Signing secret — copy now, it will not be shown again
           </div>
           <div className="flex items-center gap-2">
-            <code className="text-xs text-white/70 bg-white/5 px-3 py-2 rounded-lg flex-1 overflow-x-auto font-mono">{revealedSecret}</code>
-            <button onClick={copySecret} className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
-              {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} className="text-white/50" />}
+            <code className="text-xs text-gray-700 bg-gray-50 px-3 py-2 rounded-lg flex-1 overflow-x-auto font-mono">{revealedSecret}</code>
+            <button onClick={copySecret} className="px-3 py-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+              {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} className="text-gray-500" />}
             </button>
           </div>
-          <button onClick={() => setRevealedSecret(null)} className="text-xs text-white/30 hover:text-white/50">Dismiss</button>
+          <button onClick={() => setRevealedSecret(null)} className="text-xs text-gray-400 hover:text-gray-500">Dismiss</button>
         </div>
       )}
 
       {/* Webhooks list */}
       {webhooks.length === 0 ? (
-        <div className="rounded-xl border border-white/8 px-5 py-16 text-center" style={{ background: 'rgba(255,255,255,0.02)' }}>
-          <Webhook size={36} className="text-white/10 mx-auto mb-3" />
-          <p className="text-white/30 text-sm font-medium">No webhooks configured</p>
+        <div className="rounded-xl border border-gray-200 px-5 py-16 text-center" style={{ background: '#FFFFFF' }}>
+          <Webhook size={36} className="text-gray-300 mx-auto mb-3" />
+          <p className="text-gray-400 text-sm font-medium">No webhooks configured</p>
           <p className="text-white/15 text-xs mt-1 mb-4">Add your first webhook to start receiving real-time event notifications</p>
           <button onClick={() => setFormModal({ open: true, webhook: null })}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-900"
             style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
             <Plus size={14} /> Add Webhook
           </button>
@@ -436,38 +436,38 @@ export default function WebhooksPage() {
       ) : (
         <div className="space-y-3">
           {webhooks.map(wh => (
-            <div key={wh.id} className="rounded-xl border border-white/8 p-5" style={{ background: 'rgba(255,255,255,0.02)' }}>
+            <div key={wh.id} className="rounded-xl border border-gray-200 p-5" style={{ background: '#FFFFFF' }}>
               <div className="flex items-start justify-between gap-4 mb-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-medium text-white/80 truncate">{wh.url}</span>
+                    <span className="text-sm font-medium text-gray-800 truncate">{wh.url}</span>
                     <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                      wh.active ? 'bg-emerald-400/10 text-emerald-400' : 'bg-white/5 text-white/30'
+                      wh.active ? 'bg-emerald-400/10 text-emerald-400' : 'bg-gray-50 text-gray-400'
                     }`}>
                       {wh.active ? 'Active' : 'Inactive'}
                     </span>
                   </div>
-                  {wh.description && <p className="text-white/25 text-xs">{wh.description}</p>}
+                  {wh.description && <p className="text-gray-400 text-xs">{wh.description}</p>}
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <button onClick={() => handleToggle(wh)} title={wh.active ? 'Deactivate' : 'Activate'}
-                    className="p-1.5 rounded-md text-white/20 hover:text-white/50 hover:bg-white/5 transition-colors">
+                    className="p-1.5 rounded-md text-gray-300 hover:text-gray-500 hover:bg-gray-50 transition-colors">
                     {wh.active ? <ToggleRight size={16} className="text-emerald-400" /> : <ToggleLeft size={16} />}
                   </button>
                   <button onClick={() => handleTest(wh.id)} disabled={testing === wh.id} title="Send test event"
-                    className="p-1.5 rounded-md text-white/20 hover:text-[#369bff] hover:bg-[#0c7aed]/10 transition-colors disabled:opacity-30">
+                    className="p-1.5 rounded-md text-gray-300 hover:text-[#369bff] hover:bg-[#0c7aed]/10 transition-colors disabled:opacity-30">
                     <Send size={14} />
                   </button>
                   <button onClick={() => setDeliveryModal(wh.id)} title="View delivery log"
-                    className="p-1.5 rounded-md text-white/20 hover:text-white/50 hover:bg-white/5 transition-colors">
+                    className="p-1.5 rounded-md text-gray-300 hover:text-gray-500 hover:bg-gray-50 transition-colors">
                     <Eye size={14} />
                   </button>
                   <button onClick={() => setFormModal({ open: true, webhook: wh })} title="Edit"
-                    className="p-1.5 rounded-md text-white/20 hover:text-white/50 hover:bg-white/5 transition-colors">
+                    className="p-1.5 rounded-md text-gray-300 hover:text-gray-500 hover:bg-gray-50 transition-colors">
                     <Pencil size={14} />
                   </button>
                   <button onClick={() => handleDelete(wh.id)} title="Delete"
-                    className="p-1.5 rounded-md text-white/20 hover:text-red-400 hover:bg-red-400/5 transition-colors">
+                    className="p-1.5 rounded-md text-gray-300 hover:text-red-400 hover:bg-red-400/5 transition-colors">
                     <Trash2 size={14} />
                   </button>
                 </div>
@@ -476,7 +476,7 @@ export default function WebhooksPage() {
               {/* Events */}
               <div className="flex flex-wrap gap-1.5">
                 {wh.events.map(ev => (
-                  <span key={ev} className="px-2 py-0.5 rounded-full text-[10px] bg-white/5 text-white/35 border border-white/8 font-medium">{ev}</span>
+                  <span key={ev} className="px-2 py-0.5 rounded-full text-[10px] bg-gray-50 text-gray-400 border border-gray-200 font-medium">{ev}</span>
                 ))}
               </div>
 
@@ -495,17 +495,17 @@ export default function WebhooksPage() {
       )}
 
       {/* Verification guide */}
-      <div className="rounded-xl border border-white/8 p-5" style={{ background: 'rgba(255,255,255,0.02)' }}>
+      <div className="rounded-xl border border-gray-200 p-5" style={{ background: '#FFFFFF' }}>
         <div className="flex items-center gap-2 mb-3">
-          <Code size={16} className="text-white/30" />
-          <h3 className="text-white/60 text-sm font-semibold" style={{ fontFamily: 'Syne, sans-serif' }}>How to verify webhooks</h3>
+          <Code size={16} className="text-gray-400" />
+          <h3 className="text-gray-600 text-sm font-semibold" style={{ fontFamily: 'Syne, sans-serif' }}>How to verify webhooks</h3>
         </div>
-        <p className="text-white/30 text-xs mb-3 leading-relaxed">
-          Each delivery includes a <code className="text-white/50 bg-white/5 px-1 rounded">Tulip-Signature</code> header
-          in the format <code className="text-white/50 bg-white/5 px-1 rounded">t=TIMESTAMP,v1=SIGNATURE</code>.
+        <p className="text-gray-400 text-xs mb-3 leading-relaxed">
+          Each delivery includes a <code className="text-gray-500 bg-gray-50 px-1 rounded">Tulip-Signature</code> header
+          in the format <code className="text-gray-500 bg-gray-50 px-1 rounded">t=TIMESTAMP,v1=SIGNATURE</code>.
           Verify it like this:
         </p>
-        <pre className="text-xs text-[#369bff]/80 bg-[#0c1a2e] border border-white/5 rounded-lg p-4 overflow-x-auto leading-relaxed">
+        <pre className="text-xs text-[#369bff]/80 bg-[#0c1a2e] border border-gray-100 rounded-lg p-4 overflow-x-auto leading-relaxed">
 {`const crypto = require('crypto')
 
 // Parse the Tulip-Signature header

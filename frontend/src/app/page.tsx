@@ -46,11 +46,11 @@ export default function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       {/* NAV */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 backdrop-blur-md bg-[#07224a]/90">
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200 backdrop-blur-md bg-[#07224a]/90">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg tulip-gradient flex items-center justify-center">
-              <Shield className="w-4 h-4 text-white" />
+              <Shield className="w-4 h-4 text-gray-900" />
             </div>
             <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px', color: 'white' }}>
               tulip<span style={{ color: '#369bff' }}>ds</span>
@@ -59,17 +59,17 @@ export default function HomePage() {
           <div className="hidden md:flex items-center gap-8">
             {['Products', 'Verify API', 'Pricing', 'Docs'].map(item => (
               <a key={item} href="#" style={{ color: '#94a3b8', fontSize: '14px', fontWeight: 500 }}
-                className="hover:text-white transition-colors">{item}</a>
+                className="hover:text-gray-900 transition-colors">{item}</a>
             ))}
           </div>
           <div className="flex items-center gap-3">
             <Link href="/login"
               style={{ color: '#94a3b8', fontSize: '14px', fontWeight: 500 }}
-              className="hover:text-white transition-colors hidden md:block">
+              className="hover:text-gray-900 transition-colors hidden md:block">
               Sign in
             </Link>
             <Link href="/login"
-              className="px-4 py-2 rounded-lg text-white text-sm font-medium tulip-gradient hover:opacity-90 transition-opacity">
+              className="px-4 py-2 rounded-lg text-gray-900 text-sm font-medium tulip-gradient hover:opacity-90 transition-opacity">
               Get started
             </Link>
           </div>
@@ -100,25 +100,25 @@ export default function HomePage() {
 
             <div className="flex flex-wrap items-center gap-4 mt-10 animate-fade-up-delay-3">
               <Link href="/dashboard"
-                className="flex items-center gap-2 px-6 py-3 rounded-lg text-white font-medium tulip-gradient hover:opacity-90 transition-opacity">
+                className="flex items-center gap-2 px-6 py-3 rounded-lg text-gray-900 font-medium tulip-gradient hover:opacity-90 transition-opacity">
                 Start for free
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link href="/verify"
-                className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium border border-white/20 text-white hover:bg-white/5 transition-colors">
+                className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium border border-gray-300 text-gray-900 hover:bg-gray-50 transition-colors">
                 <Hash className="w-4 h-4" />
                 Verify a hash
               </Link>
             </div>
 
             {/* Live hash demo */}
-            <div className="mt-12 animate-fade-up-delay-4 p-4 rounded-xl border border-white/10 bg-white/5 max-w-xl">
+            <div className="mt-12 animate-fade-up-delay-4 p-4 rounded-xl border border-gray-200 bg-gray-50 max-w-xl">
               <div className="flex items-center gap-2 mb-3">
                 <CheckCircle className="w-4 h-4 text-emerald-400" />
                 <span style={{ color: '#10b981', fontSize: '13px', fontWeight: 600 }}>VERIFIED</span>
                 <span style={{ color: '#475569', fontSize: '13px' }}>· Polygon · FreeTSA · 2 seconds ago</span>
               </div>
-              <p className="hash-mono text-white/60" style={{ color: '#64748b', fontSize: '11px', wordBreak: 'break-all' }}>
+              <p className="hash-mono text-gray-600" style={{ color: '#64748b', fontSize: '11px', wordBreak: 'break-all' }}>
                 72ae9c6c4f8b3d2e1a5c9f0b6e2d8a4c7f3e9b1d5a2c8e4f0b6d2a8c4e0f6b2
               </p>
               <p style={{ color: '#475569', fontSize: '12px', marginTop: '8px' }}>
@@ -149,7 +149,7 @@ export default function HomePage() {
       </section>
 
       {/* PRODUCTS */}
-      <section className="bg-[#040f1f] py-24">
+      <section className="bg-[#F9FAFB] py-24">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <p style={{ color: '#369bff', fontSize: '13px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Three products. One platform.</p>
@@ -189,7 +189,7 @@ export default function HomePage() {
               },
             ].map(product => (
               <div key={product.title}
-                className="group p-6 rounded-2xl border border-white/5 bg-white/3 hover:border-white/10 hover:bg-white/5 transition-all cursor-pointer">
+                className="group p-6 rounded-2xl border border-gray-100 bg-gray-50 hover:border-gray-200 hover:bg-gray-50 transition-all cursor-pointer">
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
                   style={{ background: product.color + '22', color: product.color }}>
                   {product.icon}
@@ -216,7 +216,7 @@ export default function HomePage() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section className="bg-[#040f1f] py-24 border-t border-slate-800">
+      <section className="bg-[#F9FAFB] py-24 border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 'clamp(28px, 4vw, 48px)', color: 'white', letterSpacing: '-0.02em' }}>
@@ -260,12 +260,12 @@ export default function HomePage() {
           </p>
           <div className="flex flex-wrap justify-center gap-4 mt-10">
             <Link href="/dashboard"
-              className="flex items-center gap-2 px-8 py-4 rounded-xl text-white font-semibold tulip-gradient hover:opacity-90 transition-opacity text-lg">
+              className="flex items-center gap-2 px-8 py-4 rounded-xl text-gray-900 font-semibold tulip-gradient hover:opacity-90 transition-opacity text-lg">
               Get started free
               <ArrowRight className="w-5 h-5" />
             </Link>
             <Link href="/verify"
-              className="flex items-center gap-2 px-8 py-4 rounded-xl font-semibold border border-white/20 text-white hover:bg-white/5 transition-colors text-lg">
+              className="flex items-center gap-2 px-8 py-4 rounded-xl font-semibold border border-gray-300 text-gray-900 hover:bg-gray-50 transition-colors text-lg">
               Try the verifier
             </Link>
           </div>
@@ -273,12 +273,12 @@ export default function HomePage() {
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-[#040f1f] border-t border-slate-800 py-12">
+      <footer className="bg-[#F9FAFB] border-t border-slate-800 py-12">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg tulip-gradient flex items-center justify-center">
-                <Shield className="w-3.5 h-3.5 text-white" />
+                <Shield className="w-3.5 h-3.5 text-gray-900" />
               </div>
               <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, color: 'white', fontSize: '16px' }}>
                 tulip<span style={{ color: '#369bff' }}>ds</span>
@@ -289,7 +289,7 @@ export default function HomePage() {
             </p>
             <div className="flex gap-6">
               {['Privacy', 'Terms', 'Docs', 'Status'].map(link => (
-                <a key={link} href="#" style={{ color: '#475569', fontSize: '13px' }} className="hover:text-white transition-colors">{link}</a>
+                <a key={link} href="#" style={{ color: '#475569', fontSize: '13px' }} className="hover:text-gray-900 transition-colors">{link}</a>
               ))}
             </div>
           </div>

@@ -108,7 +108,7 @@ function ActionIcon({ action }: { action: string }) {
   if (action.includes('ANCHOR') || action.includes('BATCH')) return <Link2 size={14} className="text-[#369bff]" />
   if (action.includes('APPROVED')) return <CheckCircle2 size={14} className="text-emerald-400" />
   if (action.includes('REJECTED')) return <XCircle size={14} className="text-rose-400" />
-  return <Clock size={14} className="text-white/40" />
+  return <Clock size={14} className="text-gray-500" />
 }
 
 // ── Progress bar color ────────────────────────────────────────
@@ -147,19 +147,19 @@ function ExpiryAlertsBanner() {
       style={{ background: urgent ? 'rgba(244,63,94,0.06)' : 'rgba(245,158,11,0.06)' }}>
       <AlertTriangle size={20} className={urgent ? 'text-rose-400 shrink-0' : 'text-amber-400 shrink-0'} />
       <div className="flex-1">
-        <div className="text-sm font-medium text-white">
+        <div className="text-sm font-medium text-gray-900">
           {count} document{count !== 1 ? 's' : ''} expiring soon
         </div>
-        <div className="text-xs text-white/40 mt-0.5">
+        <div className="text-xs text-gray-500 mt-0.5">
           {urgent ? 'Some expire within 7 days' : 'Expiring within 30 days'}
         </div>
       </div>
       <Link href="/dashboard/documents?filter=expiring"
-        className="px-4 py-2 rounded-lg text-sm font-semibold text-white shrink-0"
+        className="px-4 py-2 rounded-lg text-sm font-semibold text-gray-900 shrink-0"
         style={{ background: urgent ? '#F43F5E' : '#F59E0B' }}>
         View
       </Link>
-      <button onClick={() => setDismissed(true)} className="text-white/30 hover:text-white/60 shrink-0"><X size={16} /></button>
+      <button onClick={() => setDismissed(true)} className="text-gray-400 hover:text-gray-600 shrink-0"><X size={16} /></button>
     </div>
   )
 }
@@ -195,10 +195,10 @@ export default function DashboardPage() {
       {/* ── HERO GREETING ──────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>
             {getGreeting()}, {data?.user?.name?.split(' ')[0] ?? 'there'} 👋
           </h1>
-          <p className="text-white/40 text-sm mt-1">
+          <p className="text-gray-500 text-sm mt-1">
             Here&apos;s your organisation&apos;s impact today — {today}
           </p>
         </div>
@@ -215,10 +215,10 @@ export default function DashboardPage() {
           style={{ background: 'rgba(12,122,237,0.06)', borderColor: 'rgba(12,122,237,0.2)' }}>
           <Sparkles size={20} className="text-[#369bff] shrink-0" />
           <div className="flex-1">
-            <div className="text-sm font-medium text-white">{trial.daysLeft} day{trial.daysLeft !== 1 ? 's' : ''} left in your free trial</div>
-            <div className="text-xs text-white/40 mt-0.5">Upgrade to unlock more features</div>
+            <div className="text-sm font-medium text-gray-900">{trial.daysLeft} day{trial.daysLeft !== 1 ? 's' : ''} left in your free trial</div>
+            <div className="text-xs text-gray-500 mt-0.5">Upgrade to unlock more features</div>
           </div>
-          <Link href="/dashboard/billing" className="px-4 py-2 rounded-lg text-sm font-semibold text-white shrink-0"
+          <Link href="/dashboard/billing" className="px-4 py-2 rounded-lg text-sm font-semibold text-gray-900 shrink-0"
             style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>Upgrade</Link>
         </div>
       )}
@@ -227,10 +227,10 @@ export default function DashboardPage() {
           style={{ background: 'rgba(244,63,94,0.06)', borderColor: 'rgba(244,63,94,0.2)' }}>
           <AlertTriangle size={20} className="text-rose-400 shrink-0" />
           <div className="flex-1">
-            <div className="text-sm font-medium text-white">Your free trial has expired</div>
-            <div className="text-xs text-white/40 mt-0.5">Upgrade to continue using all features</div>
+            <div className="text-sm font-medium text-gray-900">Your free trial has expired</div>
+            <div className="text-xs text-gray-500 mt-0.5">Upgrade to continue using all features</div>
           </div>
-          <Link href="/dashboard/billing" className="px-4 py-2 rounded-lg text-sm font-semibold text-white shrink-0"
+          <Link href="/dashboard/billing" className="px-4 py-2 rounded-lg text-sm font-semibold text-gray-900 shrink-0"
             style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>Upgrade Now</Link>
         </div>
       )}
@@ -240,64 +240,64 @@ export default function DashboardPage() {
       {/* ── HERO STAT CARDS ────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Documents Verified */}
-        <div className="rounded-xl border border-white/8 p-5 flex items-start gap-4" style={{ background: 'rgba(255,255,255,0.03)' }}>
+        <div className="rounded-xl border border-gray-200 p-5 flex items-start gap-4" style={{ background: '#FFFFFF' }}>
           <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-emerald-500/10 text-emerald-400">
             <Shield size={18} />
           </div>
           <div>
-            <div className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>{loading ? '…' : verifiedCount.toLocaleString()}</div>
-            <div className="text-sm text-white/50 mt-0.5">Blockchain Verified</div>
+            <div className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>{loading ? '…' : verifiedCount.toLocaleString()}</div>
+            <div className="text-sm text-gray-500 mt-0.5">Blockchain Verified</div>
             <div className="text-xs text-emerald-400/60 mt-1">+{s?.documentsThisMonth ?? 0} this month</div>
           </div>
         </div>
 
         {/* Total Funding */}
-        <div className="rounded-xl border border-white/8 p-5 flex items-start gap-4" style={{ background: 'rgba(255,255,255,0.03)' }}>
+        <div className="rounded-xl border border-gray-200 p-5 flex items-start gap-4" style={{ background: '#FFFFFF' }}>
           <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-amber-500/10 text-amber-400">
             <DollarSign size={18} />
           </div>
           <div>
-            <div className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>
+            <div className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>
               {loading ? '…' : formatAmount(fundingCount, s?.totalFundingCurrency ?? 'USD')}
             </div>
-            <div className="text-sm text-white/50 mt-0.5">Funding Secured</div>
+            <div className="text-sm text-gray-500 mt-0.5">Funding Secured</div>
             <div className="text-xs text-amber-400/60 mt-1">across {s?.fundingAgreementsCount ?? 0} agreements</div>
           </div>
         </div>
 
         {/* Active Projects */}
-        <div className="rounded-xl border border-white/8 p-5 flex items-start gap-4" style={{ background: 'rgba(255,255,255,0.03)' }}>
+        <div className="rounded-xl border border-gray-200 p-5 flex items-start gap-4" style={{ background: '#FFFFFF' }}>
           <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-blue-500/10 text-blue-400">
             <FolderOpen size={18} />
           </div>
           <div>
-            <div className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>{loading ? '…' : projectCount}</div>
-            <div className="text-sm text-white/50 mt-0.5">Active Projects</div>
+            <div className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>{loading ? '…' : projectCount}</div>
+            <div className="text-sm text-gray-500 mt-0.5">Active Projects</div>
             <div className="text-xs text-blue-400/60 mt-1">{s?.completedProjects ?? 0} completed</div>
           </div>
         </div>
 
         {/* Blockchain Transactions */}
-        <div className="rounded-xl border border-white/8 p-5 flex items-start gap-4" style={{ background: 'rgba(255,255,255,0.03)' }}>
+        <div className="rounded-xl border border-gray-200 p-5 flex items-start gap-4" style={{ background: '#FFFFFF' }}>
           <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-emerald-500/10 text-emerald-400 relative">
             <Link2 size={18} />
             <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping opacity-75" />
             <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400" />
           </div>
           <div>
-            <div className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>{loading ? '…' : blockchainCount.toLocaleString()}</div>
-            <div className="text-sm text-white/50 mt-0.5">Transactions on Polygon</div>
+            <div className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>{loading ? '…' : blockchainCount.toLocaleString()}</div>
+            <div className="text-sm text-gray-500 mt-0.5">Transactions on Polygon</div>
             <div className="text-xs text-emerald-400/60 mt-1">Immutable records</div>
           </div>
         </div>
       </div>
 
       {/* ── IMPACT SUMMARY CHART ───────────────────────────── */}
-      <div className="rounded-xl border border-white/8 p-5" style={{ background: 'rgba(255,255,255,0.03)' }}>
+      <div className="rounded-xl border border-gray-200 p-5" style={{ background: '#FFFFFF' }}>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="font-semibold text-white text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>Organisation Activity</h2>
-            <p className="text-xs text-white/30 mt-0.5">Last 6 months</p>
+            <h2 className="font-semibold text-gray-900 text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>Organisation Activity</h2>
+            <p className="text-xs text-gray-400 mt-0.5">Last 6 months</p>
           </div>
           <div className="flex items-center gap-4 text-xs">
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-400" /> Documents</span>
@@ -305,7 +305,7 @@ export default function DashboardPage() {
           </div>
         </div>
         {loading || !data?.chartData?.length ? (
-          <div className="h-52 flex items-center justify-center text-white/20 text-sm">
+          <div className="h-52 flex items-center justify-center text-gray-300 text-sm">
             {loading ? 'Loading chart…' : 'No activity data yet'}
           </div>
         ) : (
@@ -346,12 +346,12 @@ export default function DashboardPage() {
           { icon: Users, label: 'Invite Member', href: '/dashboard/team', color: 'text-rose-400', bg: 'bg-rose-500/10', hoverBorder: 'hover:border-rose-400/30' },
         ].map(({ icon: Icon, label, href, color, bg, hoverBorder }) => (
           <Link key={href} href={href}
-            className={`flex flex-col items-center gap-2.5 p-5 rounded-xl border border-white/8 ${hoverBorder} hover:bg-white/3 transition-all group cursor-pointer`}
-            style={{ background: 'rgba(255,255,255,0.02)' }}>
+            className={`flex flex-col items-center gap-2.5 p-5 rounded-xl border border-gray-200 ${hoverBorder} hover:bg-gray-50 transition-all group cursor-pointer`}
+            style={{ background: '#FFFFFF' }}>
             <div className={`w-11 h-11 rounded-xl ${bg} flex items-center justify-center group-hover:scale-110 transition-transform`}>
               <Icon size={20} className={color} />
             </div>
-            <span className="text-sm font-medium text-white/60 group-hover:text-white transition-colors text-center">{label}</span>
+            <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors text-center">{label}</span>
           </Link>
         ))}
       </div>
@@ -362,20 +362,20 @@ export default function DashboardPage() {
         {/* Projects (2/3 width) */}
         <div className="lg:col-span-2 space-y-4">
           <div>
-            <h2 className="font-semibold text-white text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>Project Health</h2>
-            <p className="text-xs text-white/30 mt-0.5">Budget tracking</p>
+            <h2 className="font-semibold text-gray-900 text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>Project Health</h2>
+            <p className="text-xs text-gray-400 mt-0.5">Budget tracking</p>
           </div>
 
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {[1, 2, 3, 4].map(i => (
-                <div key={i} className="rounded-xl border border-white/8 h-40 animate-pulse" style={{ background: 'rgba(255,255,255,0.02)' }} />
+                <div key={i} className="rounded-xl border border-gray-200 h-40 animate-pulse" style={{ background: '#FFFFFF' }} />
               ))}
             </div>
           ) : !data?.projects?.length ? (
-            <div className="rounded-xl border border-white/8 flex flex-col items-center py-12 gap-3" style={{ background: 'rgba(255,255,255,0.02)' }}>
-              <FolderOpen size={32} className="text-white/10" />
-              <p className="text-white/30 text-sm">No active projects yet</p>
+            <div className="rounded-xl border border-gray-200 flex flex-col items-center py-12 gap-3" style={{ background: '#FFFFFF' }}>
+              <FolderOpen size={32} className="text-gray-300" />
+              <p className="text-gray-400 text-sm">No active projects yet</p>
               <Link href="/dashboard/projects/new" className="text-emerald-400 text-sm hover:underline">Create your first project</Link>
             </div>
           ) : (
@@ -388,10 +388,10 @@ export default function DashboardPage() {
 
                 return (
                   <Link key={project.id} href={`/dashboard/projects/${project.id}`}
-                    className="rounded-xl border border-white/8 p-4 hover:border-white/15 hover:bg-white/2 transition-all group cursor-pointer"
-                    style={{ background: 'rgba(255,255,255,0.02)' }}>
+                    className="rounded-xl border border-gray-200 p-4 hover:border-gray-200 hover:bg-gray-50 transition-all group cursor-pointer"
+                    style={{ background: '#FFFFFF' }}>
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-medium text-white/80 group-hover:text-white transition-colors truncate pr-2">{project.name}</span>
+                      <span className="text-sm font-medium text-gray-800 group-hover:text-gray-900 transition-colors truncate pr-2">{project.name}</span>
                       <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium border shrink-0 ${
                         project.status === 'active'
                           ? 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20'
@@ -404,20 +404,20 @@ export default function DashboardPage() {
                     {/* Budget used */}
                     <div className="mb-2">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-[11px] text-white/30 uppercase tracking-wide">Budget Used</span>
-                        <span className="text-xs text-white/50">{budgetPct}%</span>
+                        <span className="text-[11px] text-gray-400 uppercase tracking-wide">Budget Used</span>
+                        <span className="text-xs text-gray-500">{budgetPct}%</span>
                       </div>
-                      <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                      <div className="h-1.5 rounded-full bg-gray-50 overflow-hidden">
                         <div className="h-full rounded-full transition-all duration-700" style={{ width: `${budgetPct}%`, background: progressColor(budgetPct) }} />
                       </div>
-                      <div className="text-[11px] text-white/30 mt-1">
+                      <div className="text-[11px] text-gray-400 mt-1">
                         {data.stats.totalFundingCurrency} {spent.toLocaleString()} of {data.stats.totalFundingCurrency} {budget.toLocaleString()}
                       </div>
                     </div>
 
                     {/* Completion badge */}
-                    <div className="flex items-center justify-between pt-2 border-t border-white/5">
-                      <span className="text-[11px] text-white/30">Completion</span>
+                    <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                      <span className="text-[11px] text-gray-400">Completion</span>
                       <span className="text-sm font-bold" style={{ color: progressColor(completionPct), fontFamily: 'Syne, sans-serif' }}>
                         {completionPct}%
                       </span>
@@ -433,30 +433,30 @@ export default function DashboardPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="font-semibold text-white text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>Recent Activity</h2>
-              <p className="text-xs text-white/30 mt-0.5">Latest events</p>
+              <h2 className="font-semibold text-gray-900 text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>Recent Activity</h2>
+              <p className="text-xs text-gray-400 mt-0.5">Latest events</p>
             </div>
             <Link href="/dashboard/audit" className="text-xs text-[#369bff] hover:underline">View all</Link>
           </div>
 
-          <div className="rounded-xl border border-white/8 overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)' }}>
+          <div className="rounded-xl border border-gray-200 overflow-hidden" style={{ background: '#FFFFFF' }}>
             {loading ? (
-              <div className="p-6 text-center text-white/20 text-sm">Loading…</div>
+              <div className="p-6 text-center text-gray-300 text-sm">Loading…</div>
             ) : !data?.activityFeed?.length ? (
-              <div className="p-6 text-center text-white/20 text-sm">No activity yet</div>
+              <div className="p-6 text-center text-gray-300 text-sm">No activity yet</div>
             ) : (
-              <div className="divide-y divide-white/5">
+              <div className="divide-y divide-gray-100">
                 {data.activityFeed.map(entry => (
-                  <div key={entry.id} className="flex items-start gap-3 px-4 py-3 hover:bg-white/2 transition-colors">
-                    <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center shrink-0 mt-0.5">
+                  <div key={entry.id} className="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors">
+                    <div className="w-7 h-7 rounded-lg bg-gray-50 flex items-center justify-center shrink-0 mt-0.5">
                       <ActionIcon action={entry.action} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs text-white/60">
-                        <span className="font-medium text-white/70">{entry.userName}</span>{' '}
+                      <div className="text-xs text-gray-600">
+                        <span className="font-medium text-gray-700">{entry.userName}</span>{' '}
                         {actionLabel(entry.action, entry.entityType)}
                       </div>
-                      <div className="text-[11px] text-white/25 mt-0.5">{timeAgo(entry.createdAt)}</div>
+                      <div className="text-[11px] text-gray-400 mt-0.5">{timeAgo(entry.createdAt)}</div>
                     </div>
                   </div>
                 ))}

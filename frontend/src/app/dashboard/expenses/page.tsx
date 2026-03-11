@@ -49,7 +49,7 @@ function ApprovalBadge({ status }: { status?: string }) {
     pending_review: 'Pending Review', rejected: 'Rejected',
   }
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] border font-medium ${map[status] ?? 'bg-white/5 text-white/40 border-white/10'}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] border font-medium ${map[status] ?? 'bg-gray-50 text-gray-500 border-gray-200'}`}>
       {labels[status] ?? status}
     </span>
   )
@@ -60,9 +60,9 @@ function HashCell({ hash }: { hash: string }) {
   const copy = (e: React.MouseEvent) => { e.stopPropagation(); navigator.clipboard.writeText(hash); setCopied(true); setTimeout(() => setCopied(false), 1500) }
   return (
     <div className="flex items-center gap-1.5 group">
-      <span className="hash-mono text-white/30" style={{ fontSize: 11 }}>{hash.slice(0, 10)}…{hash.slice(-6)}</span>
+      <span className="hash-mono text-gray-400" style={{ fontSize: 11 }}>{hash.slice(0, 10)}…{hash.slice(-6)}</span>
       <button onClick={copy} className="opacity-0 group-hover:opacity-100 transition-opacity">
-        {copied ? <Check size={11} className="text-green-400" /> : <Copy size={11} className="text-white/30" />}
+        {copied ? <Check size={11} className="text-green-400" /> : <Copy size={11} className="text-gray-400" />}
       </button>
     </div>
   )
@@ -127,7 +127,7 @@ function ReceiptUploader({ expenseId, expenseTitle, onUploaded }: { expenseId: s
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <label className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-white/15 hover:border-white/25 cursor-pointer transition-all text-sm text-white/40">
+        <label className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-gray-200 hover:border-gray-300 cursor-pointer transition-all text-sm text-gray-500">
           <Upload size={13} />
           <span>{file ? file.name : 'Choose receipt...'}</span>
           <input type="file" className="hidden"
@@ -136,14 +136,14 @@ function ReceiptUploader({ expenseId, expenseTitle, onUploaded }: { expenseId: s
         </label>
         {file && (
           <button onClick={upload} disabled={uploading}
-            className="px-3 py-2 rounded-lg text-xs font-medium text-white disabled:opacity-50 shrink-0"
+            className="px-3 py-2 rounded-lg text-xs font-medium text-gray-900 disabled:opacity-50 shrink-0"
             style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
             {uploading ? 'Uploading...' : 'Upload & Seal'}
           </button>
         )}
       </div>
       {error && <p className="text-xs text-red-400">{error}</p>}
-      <p className="text-[10px] text-white/20">File will be SHA-256 hashed and a Trust Seal created automatically</p>
+      <p className="text-[10px] text-gray-300">File will be SHA-256 hashed and a Trust Seal created automatically</p>
     </div>
   )
 }
@@ -154,16 +154,16 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
   return (
     <>
       <div
-        className="px-4 py-3.5 hover:bg-white/2 transition-colors cursor-pointer lg:grid lg:grid-cols-[2fr_1fr_1fr_1fr_1fr_60px] lg:gap-4 lg:items-center lg:px-5"
+        className="px-4 py-3.5 hover:bg-gray-50 transition-colors cursor-pointer lg:grid lg:grid-cols-[2fr_1fr_1fr_1fr_1fr_60px] lg:gap-4 lg:items-center lg:px-5"
         onClick={() => setExpanded(e => !e)}
       >
         <div>
           <div className="flex items-center justify-between">
-            <Link href={`/dashboard/expenses/${expense.id}`} className="text-sm font-medium text-white/80 hover:text-cyan-400 transition-colors" onClick={e => e.stopPropagation()}>{expense.title ?? expense.description}</Link>
+            <Link href={`/dashboard/expenses/${expense.id}`} className="text-sm font-medium text-gray-800 hover:text-cyan-400 transition-colors" onClick={e => e.stopPropagation()}>{expense.title ?? expense.description}</Link>
             {/* Mobile-only amount + chevron */}
             <div className="flex items-center gap-2 lg:hidden">
-              <span className="text-sm font-medium text-white">{expense.currency} {expense.amount.toLocaleString()}</span>
-              <span className="text-white/20">
+              <span className="text-sm font-medium text-gray-900">{expense.currency} {expense.amount.toLocaleString()}</span>
+              <span className="text-gray-300">
                 {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
               </span>
             </div>
@@ -171,7 +171,7 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
             <ExpenseTypeBadge type={expense.expenseType} />
             {expense.category && (
-              <span className="text-xs text-white/40">{expense.category}{expense.subCategory ? ` / ${expense.subCategory}` : ''}</span>
+              <span className="text-xs text-gray-500">{expense.category}{expense.subCategory ? ` / ${expense.subCategory}` : ''}</span>
             )}
             {expense.project && (
               <span className="text-xs text-[#369bff]/70">{expense.project.name}</span>
@@ -179,9 +179,9 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
             {expense.fundingAgreement && (
               <span className="text-xs text-emerald-400/60">{expense.fundingAgreement.title}</span>
             )}
-            {expense.vendor && <span className="text-xs text-white/30">{expense.vendor}</span>}
+            {expense.vendor && <span className="text-xs text-gray-400">{expense.vendor}</span>}
             {(expense.documents?.length ?? 0) > 0 && (
-              <span className="flex items-center gap-1 text-xs text-white/30">
+              <span className="flex items-center gap-1 text-xs text-gray-400">
                 <FileCheck size={10} /> {expense.documents!.length} doc{expense.documents!.length !== 1 ? 's' : ''}
               </span>
             )}
@@ -195,22 +195,22 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
             )}
             {expense.dataHash && (
               <Link href={`/verify?hash=${expense.dataHash}`} target="_blank"
-                className="text-white/20 hover:text-[#369bff] transition-colors" title="Verify" onClick={e => e.stopPropagation()}>
+                className="text-gray-300 hover:text-[#369bff] transition-colors" title="Verify" onClick={e => e.stopPropagation()}>
                 <Shield size={13} />
               </Link>
             )}
             {expense.blockchainTx && (
               <Link href={`https://polygonscan.com/tx/${expense.blockchainTx}`} target="_blank"
-                className="text-white/20 hover:text-[#34d399] transition-colors" title="Polygonscan" onClick={e => e.stopPropagation()}>
+                className="text-gray-300 hover:text-[#34d399] transition-colors" title="Polygonscan" onClick={e => e.stopPropagation()}>
                 <ExternalLink size={13} />
               </Link>
             )}
           </div>
         </div>
-        <div className="hidden lg:block text-sm font-medium text-white">
+        <div className="hidden lg:block text-sm font-medium text-gray-900">
           {expense.currency} {expense.amount.toLocaleString()}
         </div>
-        <div className="hidden lg:block text-xs text-white/40 truncate">
+        <div className="hidden lg:block text-xs text-gray-500 truncate">
           {expense.project?.name ?? '—'}
         </div>
         <div className="hidden lg:flex lg:items-center lg:gap-1.5" onClick={e => e.stopPropagation()}>
@@ -222,7 +222,7 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
               onClick={() => onOpenSeal(expense.receiptSealId!)}
             />
           ) : (
-            <span className="text-white/20 text-xs">No receipt</span>
+            <span className="text-gray-300 text-xs">No receipt</span>
           )}
         </div>
         <div className="hidden lg:flex lg:items-center lg:gap-1.5">
@@ -232,17 +232,17 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
         <div className="hidden lg:flex items-center gap-2" onClick={e => e.stopPropagation()}>
           {expense.dataHash && (
             <Link href={`/verify?hash=${expense.dataHash}`} target="_blank"
-              className="text-white/20 hover:text-[#369bff] transition-colors" title="Verify on blockchain">
+              className="text-gray-300 hover:text-[#369bff] transition-colors" title="Verify on blockchain">
               <Shield size={13} />
             </Link>
           )}
           {expense.blockchainTx && (
             <Link href={`https://polygonscan.com/tx/${expense.blockchainTx}`} target="_blank"
-              className="text-white/20 hover:text-[#34d399] transition-colors" title="View on Polygonscan">
+              className="text-gray-300 hover:text-[#34d399] transition-colors" title="View on Polygonscan">
               <ExternalLink size={13} />
             </Link>
           )}
-          <span className="text-white/20">
+          <span className="text-gray-300">
             {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
           </span>
         </div>
@@ -250,18 +250,18 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
 
       {/* Expanded panel */}
       {expanded && (
-        <div className="px-5 pb-5 bg-white/1 border-t border-white/5">
+        <div className="px-5 pb-5 bg-gray-50 border-t border-gray-100">
           <div className="pt-4 space-y-4">
 
             {/* Receipt section */}
-            <div className="rounded-lg border border-white/8 p-4 space-y-3 bg-white/[0.01]">
-              <div className="text-xs font-medium text-white/50 uppercase tracking-wide">Receipt / Invoice</div>
+            <div className="rounded-lg border border-gray-200 p-4 space-y-3 bg-gray-50">
+              <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Receipt / Invoice</div>
               {expense.receiptHash ? (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-green-400 text-sm">
                     <CheckCircle size={14} /> Receipt Sealed
                   </div>
-                  <div className="text-xs text-white/30 font-mono break-all">SHA-256: {expense.receiptHash}</div>
+                  <div className="text-xs text-gray-400 font-mono break-all">SHA-256: {expense.receiptHash}</div>
                   <div className="flex items-center gap-3">
                     {expense.receiptSealId && (
                       <button onClick={(e) => { e.stopPropagation(); onOpenSeal(expense.receiptSealId!) }}
@@ -284,24 +284,24 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
 
             {/* Documents list */}
             {(expense.documents?.length ?? 0) > 0 && (
-              <div className="rounded-lg border border-white/8 overflow-hidden">
-                <div className="grid grid-cols-[2fr_80px_1fr_1fr_40px] gap-3 px-4 py-2 border-b border-white/8 text-xs text-white/30 uppercase tracking-wide">
+              <div className="rounded-lg border border-gray-200 overflow-hidden">
+                <div className="grid grid-cols-[2fr_80px_1fr_1fr_40px] gap-3 px-4 py-2 border-b border-gray-200 text-xs text-gray-400 uppercase tracking-wide">
                   <span>Document</span><span>Type</span><span>Hash</span><span>Date</span><span></span>
                 </div>
                 {expense.documents!.map(doc => (
-                  <div key={doc.id} className="grid grid-cols-[2fr_80px_1fr_1fr_40px] gap-3 items-center px-4 py-2.5 border-b border-white/5 last:border-0 hover:bg-white/2">
+                  <div key={doc.id} className="grid grid-cols-[2fr_80px_1fr_1fr_40px] gap-3 items-center px-4 py-2.5 border-b border-gray-100 last:border-0 hover:bg-gray-50">
                     <div className="flex items-center gap-2">
                       <FileCheck size={12} className="text-[#369bff]" />
-                      <span className="text-sm text-white/70">{doc.name}</span>
+                      <span className="text-sm text-gray-700">{doc.name}</span>
                     </div>
-                    <span className="text-xs text-white/40 uppercase">{doc.fileType ?? '—'}</span>
+                    <span className="text-xs text-gray-500 uppercase">{doc.fileType ?? '—'}</span>
                     <div>
                       {doc.sha256Hash
-                        ? <span className="hash-mono text-white/30" style={{ fontSize: 11 }}>{doc.sha256Hash.slice(0, 10)}…{doc.sha256Hash.slice(-6)}</span>
-                        : <span className="text-white/20 text-xs">—</span>
+                        ? <span className="hash-mono text-gray-400" style={{ fontSize: 11 }}>{doc.sha256Hash.slice(0, 10)}…{doc.sha256Hash.slice(-6)}</span>
+                        : <span className="text-gray-300 text-xs">—</span>
                       }
                     </div>
-                    <span className="text-xs text-white/30">{new Date(doc.uploadedAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                    <span className="text-xs text-gray-400">{new Date(doc.uploadedAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
                     <div className="flex items-center gap-2">
                       <button onClick={async (e) => {
                         e.stopPropagation()
@@ -311,12 +311,12 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
                         })
                         const data = await res.json()
                         if (data.url) window.open(data.url, '_blank')
-                      }} className="text-white/20 hover:text-[#34d399] transition-colors" title="View document">
+                      }} className="text-gray-300 hover:text-[#34d399] transition-colors" title="View document">
                         <ExternalLink size={12} />
                       </button>
                       {doc.sha256Hash && (
                         <Link href={`/verify?hash=${doc.sha256Hash}`} target="_blank"
-                          className="text-white/20 hover:text-[#369bff] transition-colors" title="Verify hash">
+                          className="text-gray-300 hover:text-[#369bff] transition-colors" title="Verify hash">
                           <Shield size={12} />
                         </Link>
                       )}
@@ -378,11 +378,11 @@ export default function ExpensesPage() {
     <div className="p-4 md:p-6 space-y-6 animate-fade-up">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>Expenses</h1>
-          <p className="text-white/40 text-sm mt-1">{expenses.length} expense{expenses.length !== 1 ? 's' : ''} — every entry blockchain anchored</p>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>Expenses</h1>
+          <p className="text-gray-500 text-sm mt-1">{expenses.length} expense{expenses.length !== 1 ? 's' : ''} — every entry blockchain anchored</p>
         </div>
         <Link href="/dashboard/expenses/new"
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white self-start"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-900 self-start"
           style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
           <Plus size={16} /> Log Expense
         </Link>
@@ -395,42 +395,42 @@ export default function ExpensesPage() {
             { label: 'Anchored', value: filtered.filter(e => e.receiptHash && sealMap[e.receiptHash]?.anchorStatus === 'confirmed').length },
             { label: 'Pending Anchor', value: filtered.filter(e => !e.receiptHash || !sealMap[e.receiptHash] || sealMap[e.receiptHash]?.anchorStatus === 'pending').length },
           ].map(({ label, value }) => (
-            <div key={label} className="rounded-xl border border-white/8 px-5 py-4" style={{ background: 'rgba(255,255,255,0.02)' }}>
-              <div className="text-xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>{value}</div>
-              <div className="text-xs text-white/40 mt-1">{label}</div>
+            <div key={label} className="rounded-xl border border-gray-200 px-5 py-4" style={{ background: '#FFFFFF' }}>
+              <div className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>{value}</div>
+              <div className="text-xs text-gray-500 mt-1">{label}</div>
             </div>
           ))}
         </div>
       )}
 
-      <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 max-w-sm">
-        <Search size={15} className="text-white/30" />
+      <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 max-w-sm">
+        <Search size={15} className="text-gray-400" />
         <input value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="Search expenses..." className="bg-transparent text-sm text-white/70 placeholder-white/30 outline-none w-full" />
+          placeholder="Search expenses..." className="bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none w-full" />
       </div>
 
-      <div className="rounded-xl border border-white/8 overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)' }}>
-        <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_60px] gap-4 px-5 py-3 border-b border-white/8 text-xs text-white/30 uppercase tracking-wide font-medium">
+      <div className="rounded-xl border border-gray-200 overflow-hidden" style={{ background: '#FFFFFF' }}>
+        <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_60px] gap-4 px-5 py-3 border-b border-gray-200 text-xs text-gray-400 uppercase tracking-wide font-medium">
           <span>Expense</span><span>Amount</span><span>Project</span><span>Seal</span><span>Status</span><span>Actions</span>
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-white/30 text-sm">Loading…</div>
+          <div className="p-8 text-center text-gray-400 text-sm">Loading…</div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center py-16 gap-3">
-            <Receipt size={32} className="text-white/10" />
-            <p className="text-white/30 text-sm">No expenses logged yet</p>
+            <Receipt size={32} className="text-gray-300" />
+            <p className="text-gray-400 text-sm">No expenses logged yet</p>
             <Link href="/dashboard/expenses/new" className="text-[#369bff] text-sm hover:underline">Log your first expense</Link>
           </div>
         ) : (
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-gray-100">
             {filtered.map(expense => (
               <ExpenseRow key={expense.id} expense={expense} onRefresh={load} onOpenSeal={setActiveSealId} sealMap={sealMap} />
             ))}
           </div>
         )}
       </div>
-      <p className="text-xs text-white/20 text-center">Click any expense row to view documents and upload receipts</p>
+      <p className="text-xs text-gray-300 text-center">Click any expense row to view documents and upload receipts</p>
 
       {activeSealId && (
         <TrustSealCard sealId={activeSealId} onClose={() => { setActiveSealId(null); resolveSeals(expenses) }} />

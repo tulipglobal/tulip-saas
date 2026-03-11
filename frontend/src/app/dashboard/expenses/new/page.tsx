@@ -100,6 +100,19 @@ export default function NewExpensePage() {
   }, [form.expenseType])
   const subCategories = useMemo(() => form.category ? (categories[form.category] ?? []) : [], [form.category, categories])
 
+  // Filter budgets by expense type (only show budgets that have lines matching the type)
+  const filteredBudgets = useMemo(() => {
+    if (!form.expenseType) return budgets
+    return budgets.filter(b => b.lines.some(l => l.expenseType === form.expenseType))
+  }, [budgets, form.expenseType])
+
+  // Filter budget lines by expense type
+  const filteredLines = useMemo(() => {
+    if (!selectedBudget) return []
+    if (!form.expenseType) return selectedBudget.lines
+    return selectedBudget.lines.filter(l => l.expenseType === form.expenseType)
+  }, [selectedBudget, form.expenseType])
+
   // Selected line remaining
   const selectedLine = selectedBudget?.lines.find(l => l.id === form.budgetLineId)
   const lineRemaining = selectedLine?.remaining ?? null
@@ -195,20 +208,45 @@ export default function NewExpensePage() {
           </select>
         </div>
 
-        {/* 2. Budget */}
+        {/* 2. Expense Type (CapEx/OpEx) — filters budgets & lines */}
+        {form.projectId && (
+          <div>
+            <label className={labelCls}>Expense Type</label>
+            <div className="flex gap-3">
+              {(['CAPEX', 'OPEX'] as const).map(type => (
+                <button key={type} type="button"
+                  onClick={() => {
+                    setForm(f => ({ ...f, expenseType: type, category: '', subCategory: '', budgetId: '', budgetLineId: '' }))
+                    setSelectedBudget(null)
+                  }}
+                  className={`flex-1 py-2.5 rounded-lg text-sm font-medium border transition-all ${
+                    form.expenseType === type
+                      ? type === 'CAPEX' ? 'bg-purple-500/15 border-purple-500/30 text-purple-400' : 'bg-cyan-500/15 border-cyan-500/30 text-cyan-400'
+                      : 'bg-white/5 border-white/10 text-white/40 hover:border-white/20'
+                  }`}>
+                  {type === 'CAPEX' ? 'CapEx' : 'OpEx'}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 3. Budget (filtered by expense type if selected) */}
         {form.projectId && (
           <div>
             <label className={labelCls}>Budget *</label>
             {loadingBudgets ? (
               <div className={inputCls + ' text-white/30'}>Loading budgets...</div>
-            ) : budgets.length === 0 ? (
-              <div className="text-xs text-white/30 py-2">No budgets found for this project.{' '}
-                <Link href={`/dashboard/budgets/new?projectId=${form.projectId}`} className="text-cyan-400 hover:text-cyan-300">Create one</Link>
+            ) : filteredBudgets.length === 0 ? (
+              <div className="text-xs text-white/30 py-2">
+                {budgets.length === 0 ? <>No budgets found for this project.{' '}
+                  <Link href={`/dashboard/budgets/new?projectId=${form.projectId}`} className="text-cyan-400 hover:text-cyan-300">Create one</Link>
+                </> : <>No budgets with {form.expenseType === 'CAPEX' ? 'CapEx' : 'OpEx'} lines found.</>}
               </div>
             ) : (
               <select value={form.budgetId} onChange={e => handleBudgetChange(e.target.value)} className={inputCls}>
                 <option value="">Select budget...</option>
-                {budgets.map(b => (
+                {filteredBudgets.map(b => (
                   <option key={b.id} value={b.id}>
                     {b.name} ({b.status}) — Remaining: ${(b.totalApproved - (b.totalSpent || 0)).toLocaleString()}
                   </option>
@@ -218,13 +256,13 @@ export default function NewExpensePage() {
           </div>
         )}
 
-        {/* 3. Budget Line */}
+        {/* 4. Budget Line (filtered by expense type if selected) */}
         {selectedBudget && (
           <div>
             <label className={labelCls}>Budget Line *</label>
             <select value={form.budgetLineId} onChange={e => handleBudgetLineChange(e.target.value)} className={inputCls}>
               <option value="">Select budget line...</option>
-              {selectedBudget.lines.map(l => (
+              {filteredLines.map(l => (
                 <option key={l.id} value={l.id}>
                   {l.expenseType} — {l.category}{l.subCategory ? ` / ${l.subCategory}` : ''} (Remaining: {l.currency} {(l.remaining ?? l.approvedAmount).toLocaleString()})
                 </option>
@@ -262,24 +300,6 @@ export default function NewExpensePage() {
             <select value={form.currency} onChange={e => set('currency', e.target.value)} className={inputCls}>
               {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
-          </div>
-        </div>
-
-        {/* CapEx/OpEx (auto-filled from line, still editable) */}
-        <div>
-          <label className={labelCls}>Expense Type</label>
-          <div className="flex gap-3">
-            {(['CAPEX', 'OPEX'] as const).map(type => (
-              <button key={type} type="button"
-                onClick={() => setForm(f => ({ ...f, expenseType: type, category: '', subCategory: '' }))}
-                className={`flex-1 py-2.5 rounded-lg text-sm font-medium border transition-all ${
-                  form.expenseType === type
-                    ? type === 'CAPEX' ? 'bg-purple-500/15 border-purple-500/30 text-purple-400' : 'bg-cyan-500/15 border-cyan-500/30 text-cyan-400'
-                    : 'bg-white/5 border-white/10 text-white/40 hover:border-white/20'
-                }`}>
-                {type === 'CAPEX' ? 'CapEx' : 'OpEx'}
-              </button>
-            ))}
           </div>
         </div>
 

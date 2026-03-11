@@ -118,7 +118,7 @@ exports.getProject = async (req, res) => {
     const db      = tenantClient(req.user.tenantId)
     const project = await db.project.findFirst({
       where:   { id: req.params.id },
-      include: { fundingSources: true, expenses: true, documents: true, budgets: { include: { lines: true }, orderBy: { createdAt: 'desc' } } }
+      include: { fundingSources: true, expenses: true, documents: true, budgets: { include: { lines: true, fundingSources: true }, orderBy: { createdAt: 'desc' } } }
     })
     if (!project) return res.status(404).json({ error: 'Project not found' })
 

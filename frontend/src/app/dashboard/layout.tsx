@@ -94,12 +94,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         collapsed && !mobileOpen ? 'justify-center px-0' : 'px-5 gap-3'
       )}>
         <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-          style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
-          <span className="text-white font-bold text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>T</span>
+          style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+          <span className="text-white font-bold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>T</span>
         </div>
         {(!collapsed || mobileOpen) && (
-          <span className="font-bold text-gray-900 text-lg" style={{ fontFamily: 'Syne, sans-serif' }}>
-            tulip<span style={{ color: '#2563EB' }}>ds</span>
+          <span className="font-bold text-gray-900 text-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
+            tulip<span style={{ color: '#0c7aed' }}>ds</span>
           </span>
         )}
         {/* Close button — mobile only */}
@@ -118,7 +118,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link key={href} href={href} className={clsx(
               'relative flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg mb-0.5 transition-all group',
               active
-                ? 'bg-blue-50 text-[#2563EB]'
+                ? 'bg-blue-50 text-[#0c7aed]'
                 : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
             )}>
               <Icon size={18} className="shrink-0" />
@@ -130,10 +130,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-yellow-400" />
               )}
               {active && (!collapsed || mobileOpen) && label !== 'Workflow' && (
-                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#2563EB]" />
+                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#0c7aed]" />
               )}
               {active && (!collapsed || mobileOpen) && label === 'Workflow' && pendingCount === 0 && (
-                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#2563EB]" />
+                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#0c7aed]" />
               )}
             </Link>
           )
@@ -216,11 +216,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {/* Logo — mobile only (centered feel) */}
             <div className="md:hidden flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
-                <span className="text-white font-bold text-xs" style={{ fontFamily: 'Syne, sans-serif' }}>T</span>
+                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                <span className="text-white font-bold text-xs" style={{ fontFamily: 'Inter, sans-serif' }}>T</span>
               </div>
-              <span className="font-bold text-gray-900 text-base" style={{ fontFamily: 'Syne, sans-serif' }}>
-                tulip<span style={{ color: '#2563EB' }}>ds</span>
+              <span className="font-bold text-gray-900 text-base" style={{ fontFamily: 'Inter, sans-serif' }}>
+                tulip<span style={{ color: '#0c7aed' }}>ds</span>
               </span>
             </div>
 
@@ -238,11 +238,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-3">
             <button className="relative w-9 h-9 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition-all">
               <Bell size={16} className="text-gray-600" />
-              <div className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#2563EB]" />
+              <div className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#0c7aed]" />
             </button>
             <div className="flex items-center gap-2.5 pl-3 border-l border-gray-200">
               <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
                 N
               </div>
               <div className="hidden sm:block">

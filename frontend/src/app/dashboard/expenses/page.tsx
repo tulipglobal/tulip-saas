@@ -137,7 +137,7 @@ function ReceiptUploader({ expenseId, expenseTitle, onUploaded }: { expenseId: s
         {file && (
           <button onClick={upload} disabled={uploading}
             className="px-3 py-2 rounded-lg text-xs font-medium text-white disabled:opacity-50 shrink-0"
-            style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
             {uploading ? 'Uploading...' : 'Upload & Seal'}
           </button>
         )}
@@ -174,7 +174,7 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
               <span className="text-xs text-gray-500">{expense.category}{expense.subCategory ? ` / ${expense.subCategory}` : ''}</span>
             )}
             {expense.project && (
-              <span className="text-xs text-[#2563EB]/70">{expense.project.name}</span>
+              <span className="text-xs text-[#0c7aed]/70">{expense.project.name}</span>
             )}
             {expense.fundingAgreement && (
               <span className="text-xs text-emerald-400/60">{expense.fundingAgreement.title}</span>
@@ -195,7 +195,7 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
             )}
             {expense.dataHash && (
               <Link href={`/verify?hash=${expense.dataHash}`} target="_blank"
-                className="text-gray-300 hover:text-[#2563EB] transition-colors" title="Verify" onClick={e => e.stopPropagation()}>
+                className="text-gray-300 hover:text-[#0c7aed] transition-colors" title="Verify" onClick={e => e.stopPropagation()}>
                 <Shield size={13} />
               </Link>
             )}
@@ -232,7 +232,7 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
         <div className="hidden lg:flex items-center gap-2" onClick={e => e.stopPropagation()}>
           {expense.dataHash && (
             <Link href={`/verify?hash=${expense.dataHash}`} target="_blank"
-              className="text-gray-300 hover:text-[#2563EB] transition-colors" title="Verify on blockchain">
+              className="text-gray-300 hover:text-[#0c7aed] transition-colors" title="Verify on blockchain">
               <Shield size={13} />
             </Link>
           )}
@@ -291,7 +291,7 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
                 {expense.documents!.map(doc => (
                   <div key={doc.id} className="grid grid-cols-[2fr_80px_1fr_1fr_40px] gap-3 items-center px-4 py-2.5 border-b border-gray-100 last:border-0 hover:bg-gray-50">
                     <div className="flex items-center gap-2">
-                      <FileCheck size={12} className="text-[#2563EB]" />
+                      <FileCheck size={12} className="text-[#0c7aed]" />
                       <span className="text-sm text-gray-700">{doc.name}</span>
                     </div>
                     <span className="text-xs text-gray-500 uppercase">{doc.fileType ?? '—'}</span>
@@ -316,7 +316,7 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
                       </button>
                       {doc.sha256Hash && (
                         <Link href={`/verify?hash=${doc.sha256Hash}`} target="_blank"
-                          className="text-gray-300 hover:text-[#2563EB] transition-colors" title="Verify hash">
+                          className="text-gray-300 hover:text-[#0c7aed] transition-colors" title="Verify hash">
                           <Shield size={12} />
                         </Link>
                       )}
@@ -378,12 +378,12 @@ export default function ExpensesPage() {
     <div className="p-4 md:p-6 space-y-6 animate-fade-up">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>Expenses</h1>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>Expenses</h1>
           <p className="text-gray-500 text-sm mt-1">{expenses.length} expense{expenses.length !== 1 ? 's' : ''} — every entry blockchain anchored</p>
         </div>
         <Link href="/dashboard/expenses/new"
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white self-start"
-          style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+          style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
           <Plus size={16} /> Log Expense
         </Link>
       </div>
@@ -396,7 +396,7 @@ export default function ExpensesPage() {
             { label: 'Pending Anchor', value: filtered.filter(e => !e.receiptHash || !sealMap[e.receiptHash] || sealMap[e.receiptHash]?.anchorStatus === 'pending').length },
           ].map(({ label, value }) => (
             <div key={label} className="rounded-xl border border-gray-200 px-5 py-4" style={{ background: '#FFFFFF' }}>
-              <div className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>{value}</div>
+              <div className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
               <div className="text-xs text-gray-500 mt-1">{label}</div>
             </div>
           ))}
@@ -420,7 +420,7 @@ export default function ExpensesPage() {
           <div className="flex flex-col items-center py-16 gap-3">
             <Receipt size={32} className="text-gray-300" />
             <p className="text-gray-400 text-sm">No expenses logged yet</p>
-            <Link href="/dashboard/expenses/new" className="text-[#2563EB] text-sm hover:underline">Log your first expense</Link>
+            <Link href="/dashboard/expenses/new" className="text-[#0c7aed] text-sm hover:underline">Log your first expense</Link>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">

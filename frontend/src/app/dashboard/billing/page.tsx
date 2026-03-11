@@ -54,7 +54,7 @@ const PLANS = [
     priceLabel: 'AED 299',
     subLabel: '/month',
     icon: Zap,
-    color: '#2563EB',
+    color: '#0c7aed',
     colorDim: 'rgba(12,122,237,0.12)',
     colorBorder: 'rgba(12,122,237,0.25)',
     features: ['Up to 3 users', '100 documents/month', 'Blockchain anchoring', 'RFC 3161 timestamps', 'Email support'],
@@ -103,7 +103,7 @@ function UsageBar({ used, max, label }: { used: number; max: number; label: stri
           className="h-full rounded-full transition-all duration-500"
           style={{
             width: isUnlimited ? '5%' : `${Math.max(pct, 2)}%`,
-            background: isNear ? '#ef4444' : 'linear-gradient(90deg, #2563EB, #2563EB)',
+            background: isNear ? '#ef4444' : 'linear-gradient(90deg, #0c7aed, #0c7aed)',
           }}
         />
       </div>
@@ -170,7 +170,7 @@ export default function BillingPage() {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>
+        <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
           Billing
         </h1>
         <p className="text-gray-500 text-sm mt-1">Manage your subscription, usage, and payment history</p>
@@ -180,7 +180,7 @@ export default function BillingPage() {
       {data?.trialActive && currentPlan === 'FREE' && (
         <div className="rounded-xl border p-4 flex items-center gap-4"
           style={{ background: 'rgba(12,122,237,0.06)', borderColor: 'rgba(12,122,237,0.2)' }}>
-          <Sparkles size={20} className="text-[#2563EB] shrink-0" />
+          <Sparkles size={20} className="text-[#0c7aed] shrink-0" />
           <div className="flex-1">
             <div className="text-sm font-medium text-gray-900">
               {data.trialDaysLeft} day{data.trialDaysLeft !== 1 ? 's' : ''} left in your free trial
@@ -217,7 +217,7 @@ export default function BillingPage() {
               <CreditCard size={18} style={{ color: PLANS.find(p => p.id === currentPlan)?.color || '#64748b' }} />
             </div>
             <div>
-              <div className="text-lg font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>
+              <div className="text-lg font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
                 {PLANS.find(p => p.id === currentPlan)?.name || 'Free'}
               </div>
               <div className="text-xs text-gray-500">
@@ -272,7 +272,7 @@ export default function BillingPage() {
 
       {/* Plans grid */}
       <div>
-        <h2 className="text-lg font-bold text-gray-900 mb-4" style={{ fontFamily: 'Syne, sans-serif' }}>
+        <h2 className="text-lg font-bold text-gray-900 mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
           {currentPlan === 'FREE' ? 'Choose a Plan' : 'Available Plans'}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -297,12 +297,12 @@ export default function BillingPage() {
                     style={{ background: plan.colorDim, border: `1px solid ${plan.colorBorder}` }}>
                     <Icon size={16} style={{ color: plan.color }} />
                   </div>
-                  <div className="font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>
+                  <div className="font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
                     {plan.name}
                   </div>
                 </div>
                 <div className="mb-4">
-                  <span className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>
+                  <span className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
                     {plan.priceLabel}
                   </span>
                   {plan.subLabel && (
@@ -350,11 +350,11 @@ export default function BillingPage() {
       {data?.invoices && data.invoices.length > 0 && (
         <div className="rounded-xl border border-gray-200 overflow-hidden" style={{ background: '#FFFFFF' }}>
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-            <h2 className="font-semibold text-gray-900 text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>
+            <h2 className="font-semibold text-gray-900 text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
               Payment History
             </h2>
             {data.subscription && (
-              <button onClick={handlePortal} className="text-xs text-[#2563EB] hover:underline">
+              <button onClick={handlePortal} className="text-xs text-[#0c7aed] hover:underline">
                 View all in Stripe
               </button>
             )}
@@ -383,7 +383,7 @@ export default function BillingPage() {
                 </span>
                 {inv.invoiceUrl && (
                   <a href={inv.invoiceUrl} target="_blank" rel="noopener noreferrer"
-                    className="text-gray-300 hover:text-[#2563EB] transition-colors">
+                    className="text-gray-300 hover:text-[#0c7aed] transition-colors">
                     <ExternalLink size={14} />
                   </a>
                 )}

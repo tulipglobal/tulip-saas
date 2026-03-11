@@ -138,7 +138,7 @@ export default function TeamPage() {
 
   if (loading) return (
     <div className="p-6 animate-fade-up">
-      <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>Team</h1>
+      <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>Team</h1>
       <p className="text-gray-400 text-sm mt-4">Loading...</p>
     </div>
   )
@@ -149,11 +149,11 @@ export default function TeamPage() {
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>Team</h1>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>Team</h1>
           <p className="text-gray-500 text-sm mt-1">{members.length} member{members.length !== 1 ? 's' : ''}</p>
         </div>
         <button onClick={() => setShowInvite(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-[#2563EB] text-white hover:bg-[#2563EB]/80 transition-all self-start">
+          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-[#0c7aed] text-white hover:bg-[#0c7aed]/80 transition-all self-start">
           <Plus size={16} />
           Invite Member
         </button>
@@ -181,7 +181,7 @@ export default function TeamPage() {
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                        style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+                        style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
                         {m.name?.charAt(0)?.toUpperCase() || m.email.charAt(0).toUpperCase()}
                       </div>
                       <div>
@@ -199,7 +199,7 @@ export default function TeamPage() {
                       <select
                         value={roleName}
                         onChange={e => handleRoleChange(m.id, e.target.value)}
-                        className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#2563EB]/50 cursor-pointer"
+                        className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#0c7aed]/50 cursor-pointer"
                       >
                         {tableRoles.map(r => (
                           <option key={r} value={r} className="bg-white text-gray-900">{r}</option>
@@ -237,7 +237,7 @@ export default function TeamPage() {
               <div key={m.id} className="px-4 py-3.5">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                    style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+                    style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
                     {m.name?.charAt(0)?.toUpperCase() || m.email.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -260,7 +260,7 @@ export default function TeamPage() {
                     <select
                       value={roleName}
                       onChange={e => handleRoleChange(m.id, e.target.value)}
-                      className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#2563EB]/50 cursor-pointer"
+                      className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#0c7aed]/50 cursor-pointer"
                     >
                       {tableRoles.map(r => (
                         <option key={r} value={r} className="bg-white text-gray-900">{r}</option>
@@ -291,7 +291,7 @@ export default function TeamPage() {
             <div>
               <label className="text-xs text-gray-400 block mb-1">Email Address</label>
               <input
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50"
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50"
                 type="email" placeholder="colleague@example.com" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleInvite()}
               />
@@ -299,7 +299,7 @@ export default function TeamPage() {
             <div>
               <label className="text-xs text-gray-400 block mb-1">Role</label>
               <select
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-800 outline-none focus:border-[#2563EB]/50"
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-800 outline-none focus:border-[#0c7aed]/50"
                 value={inviteRole} onChange={e => setInviteRole(e.target.value)}
               >
                 {INVITE_ROLES.map(r => (
@@ -314,7 +314,7 @@ export default function TeamPage() {
                 Cancel
               </button>
               <button onClick={handleInvite} disabled={inviting || !inviteEmail}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#2563EB] text-white hover:bg-[#2563EB]/80 disabled:opacity-50 transition-all">
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#0c7aed] text-white hover:bg-[#0c7aed]/80 disabled:opacity-50 transition-all">
                 <Plus size={14} />
                 {inviting ? 'Sending...' : 'Send Invite'}
               </button>

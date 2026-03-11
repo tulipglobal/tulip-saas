@@ -38,7 +38,7 @@ export default function CountrySelect({ value, onChange, className = '', placeho
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-left outline-none focus:border-[#2563EB]/50 transition-all"
+        className="w-full flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-left outline-none focus:border-[#0c7aed]/50 transition-all"
       >
         <span className={value ? 'text-gray-900' : 'text-gray-400'}>{value || placeholder}</span>
         <ChevronDown size={14} className={`text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
@@ -72,7 +72,7 @@ export default function CountrySelect({ value, onChange, className = '', placeho
                   type="button"
                   onClick={() => { onChange(country); setOpen(false); setSearch('') }}
                   className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors ${
-                    value === country ? 'text-[#2563EB] bg-[#2563EB]/5' : 'text-gray-700'
+                    value === country ? 'text-[#0c7aed] bg-[#0c7aed]/5' : 'text-gray-700'
                   }`}
                 >
                   {country}

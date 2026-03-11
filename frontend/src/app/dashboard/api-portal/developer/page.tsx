@@ -246,7 +246,7 @@ export default function DeveloperApiPage() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+              style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
               <Code2 size={20} />
             </div>
             Developer API
@@ -266,7 +266,7 @@ export default function DeveloperApiPage() {
         {(['keys', 'usage', 'docs'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              activeTab === tab ? 'bg-blue-50 text-[#2563EB]' : 'text-gray-500 hover:text-gray-700'
+              activeTab === tab ? 'bg-blue-50 text-[#0c7aed]' : 'text-gray-500 hover:text-gray-700'
             }`}>
             {tab === 'keys' ? 'API Keys' : tab === 'usage' ? 'Usage' : 'Documentation'}
           </button>
@@ -311,18 +311,18 @@ export default function DeveloperApiPage() {
         <div className="space-y-4">
           {/* Create key */}
           {showCreate ? (
-            <div className="p-4 rounded-xl border border-[#2563EB]/30 bg-[#2563EB]/5">
+            <div className="p-4 rounded-xl border border-[#0c7aed]/30 bg-[#0c7aed]/5">
               <h3 className="text-sm font-semibold text-gray-800 mb-3">Create New API Key</h3>
               <div className="flex gap-3">
                 <input
                   type="text" value={newKeyName} onChange={e => setNewKeyName(e.target.value)}
                   placeholder="Key name (e.g. Production, CI Pipeline)"
-                  className="flex-1 px-4 py-2.5 rounded-lg bg-gray-50 border border-gray-200 text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-[#2563EB]/40"
+                  className="flex-1 px-4 py-2.5 rounded-lg bg-gray-50 border border-gray-200 text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-[#0c7aed]/40"
                   onKeyDown={e => { if (e.key === 'Enter') handleCreate() }}
                 />
                 <button onClick={handleCreate} disabled={creating || !newKeyName.trim()}
                   className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90 disabled:opacity-40"
-                  style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+                  style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
                   {creating ? <Loader2 size={14} className="animate-spin" /> : 'Create'}
                 </button>
                 <button onClick={() => { setShowCreate(false); setNewKeyName('') }}
@@ -337,7 +337,7 @@ export default function DeveloperApiPage() {
           ) : (
             <button onClick={() => setShowCreate(true)}
               className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90"
-              style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+              style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
               <Plus size={16} /> Create API Key
             </button>
           )}
@@ -529,7 +529,7 @@ export default function DeveloperApiPage() {
           <div className="p-5 rounded-2xl border border-gray-200 bg-white">
             <h3 className="font-semibold text-gray-900 mb-2">Getting Started</h3>
             <ol className="text-sm text-gray-600 space-y-1.5 list-decimal list-inside">
-              <li>Create an API key from the <button onClick={() => setActiveTab('keys')} className="text-[#2563EB] hover:underline">API Keys</button> tab</li>
+              <li>Create an API key from the <button onClick={() => setActiveTab('keys')} className="text-[#0c7aed] hover:underline">API Keys</button> tab</li>
               <li>Include it in the <code className="text-xs px-1.5 py-0.5 rounded bg-gray-50 text-gray-500 font-mono">Authorization: Bearer tl_live_...</code> header</li>
               <li>Call the endpoints below to process documents</li>
               <li>Poll the status endpoint until the job completes</li>
@@ -540,7 +540,7 @@ export default function DeveloperApiPage() {
           <div className="p-4 rounded-xl border border-gray-200 bg-white">
             <span className="text-xs text-gray-500 uppercase tracking-wider">Base URL</span>
             <div className="flex items-center gap-2 mt-1">
-              <code className="text-sm font-mono text-[#2563EB]">{apiUrl}</code>
+              <code className="text-sm font-mono text-[#0c7aed]">{apiUrl}</code>
               <button onClick={() => handleCopy(apiUrl)} className="p-1 rounded hover:bg-gray-50 transition-all">
                 <Copy size={12} className="text-gray-400" />
               </button>
@@ -551,13 +551,13 @@ export default function DeveloperApiPage() {
           <div className="flex gap-1 p-1 rounded-xl bg-gray-50 border border-gray-200 w-fit">
             <button onClick={() => setDocsSection('ocr')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                docsSection === 'ocr' ? 'bg-blue-50 text-[#2563EB]' : 'text-gray-500 hover:text-gray-700'
+                docsSection === 'ocr' ? 'bg-blue-50 text-[#0c7aed]' : 'text-gray-500 hover:text-gray-700'
               }`}>
               OCR Process
             </button>
             <button onClick={() => setDocsSection('bundle')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                docsSection === 'bundle' ? 'bg-blue-50 text-[#2563EB]' : 'text-gray-500 hover:text-gray-700'
+                docsSection === 'bundle' ? 'bg-blue-50 text-[#0c7aed]' : 'text-gray-500 hover:text-gray-700'
               }`}>
               Bundle Verify
             </button>

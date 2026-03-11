@@ -44,20 +44,20 @@ function TrustScore({ score }: { score: number }) {
 function NGOCard({ ngo }: { ngo: NGOProfile }) {
   return (
     <Link href={`/donors/${ngo.slug || ngo.id}`}
-      className="group block rounded-2xl border border-gray-200 hover:border-[#2563EB]/40 p-6 transition-all hover:bg-[#2563EB]/3"
+      className="group block rounded-2xl border border-gray-200 hover:border-[#0c7aed]/40 p-6 transition-all hover:bg-[#0c7aed]/3"
       style={{ background: '#FFFFFF' }}>
       <div className="flex items-start justify-between mb-4">
         <div className="w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold text-white shrink-0"
-          style={{ background: 'linear-gradient(135deg, #2563EB22, #1D4ED822)', border: '1px solid rgba(12,122,237,0.2)' }}>
+          style={{ background: 'linear-gradient(135deg, #0c7aed22, #004ea822)', border: '1px solid rgba(12,122,237,0.2)' }}>
           {ngo.name.charAt(0)}
         </div>
         <div className="flex items-center gap-2">
           <TrustScore score={ngo.integrityScore} />
-          <ArrowUpRight size={16} className="text-gray-300 group-hover:text-[#2563EB] transition-colors ml-1" />
+          <ArrowUpRight size={16} className="text-gray-300 group-hover:text-[#0c7aed] transition-colors ml-1" />
         </div>
       </div>
 
-      <h3 className="font-semibold text-gray-900 text-base mb-1" style={{ fontFamily: 'Syne, sans-serif' }}>
+      <h3 className="font-semibold text-gray-900 text-base mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
         {ngo.name}
       </h3>
       {ngo.description && (
@@ -151,11 +151,11 @@ export default function DonorPortalPage() {
         style={{ background: '#FFFFFF', backdropFilter: 'blur(12px)' }}>
         <Link href="/" className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
-            <span className="text-gray-900 font-bold text-xs" style={{ fontFamily: 'Syne, sans-serif' }}>T</span>
+            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+            <span className="text-gray-900 font-bold text-xs" style={{ fontFamily: 'Inter, sans-serif' }}>T</span>
           </div>
-          <span className="font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>
-            tulip<span style={{ color: '#2563EB' }}>ds</span>
+          <span className="font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
+            tulip<span style={{ color: '#0c7aed' }}>ds</span>
           </span>
         </Link>
         <div className="flex items-center gap-4">
@@ -168,13 +168,13 @@ export default function DonorPortalPage() {
 
       {/* Hero */}
       <div className="max-w-4xl mx-auto px-6 pt-16 pb-12 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#2563EB]/30 bg-[#2563EB]/10 text-xs text-[#2563EB] mb-6">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#0c7aed]/30 bg-[#0c7aed]/10 text-xs text-[#0c7aed] mb-6">
           <Shield size={12} />
           Every expense verified on Polygon blockchain
         </div>
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Syne, sans-serif' }}>
+        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
           Donate with<br />
-          <span style={{ background: 'linear-gradient(135deg, #2563EB, #2563EB)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          <span style={{ background: 'linear-gradient(135deg, #0c7aed, #0c7aed)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             cryptographic proof
           </span>
         </h1>
@@ -214,7 +214,7 @@ export default function DonorPortalPage() {
             { label: 'Avg Integrity Score', value: ngos.length ? `${Math.round(ngos.reduce((s, n) => s + n.integrityScore, 0) / ngos.length)}%` : '—' },
           ].map(({ label, value }) => (
             <div key={label}>
-              <div className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>{value}</div>
+              <div className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
               <div className="text-sm text-gray-500 mt-1">{label}</div>
             </div>
           ))}
@@ -224,7 +224,7 @@ export default function DonorPortalPage() {
       {/* NGO Grid */}
       <div className="max-w-4xl mx-auto px-6 pb-20">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="font-semibold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>
+          <h2 className="font-semibold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
             {filtered.length} Verified Organisation{filtered.length !== 1 ? 's' : ''}
           </h2>
           <div className="flex items-center gap-1.5 text-xs text-gray-400">

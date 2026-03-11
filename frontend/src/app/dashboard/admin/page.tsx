@@ -120,7 +120,7 @@ export default function AdminPage() {
   if (loading || !authorized) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-[#2563EB] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[#0c7aed] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -141,7 +141,7 @@ export default function AdminPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
             <Shield size={20} />
           </div>
           Admin Dashboard
@@ -163,7 +163,7 @@ export default function AdminPage() {
           ].map(({ label, value, icon: Icon }) => (
             <div key={label} className="bg-gray-50 border border-gray-200 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Icon size={14} className="text-[#2563EB]" />
+                <Icon size={14} className="text-[#0c7aed]" />
                 <span className="text-[10px] text-gray-500 uppercase font-medium">{label}</span>
               </div>
               <div className="text-2xl font-bold text-gray-900">{value.toLocaleString()}</div>

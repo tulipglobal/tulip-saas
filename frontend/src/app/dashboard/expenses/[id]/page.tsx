@@ -226,7 +226,7 @@ export default function ExpenseDetailPage() {
         <h2 className="text-lg font-semibold text-gray-900">Documents</h2>
         <label className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors ${
           uploading ? 'bg-gray-100 text-gray-500' : 'text-white'
-        }`} style={uploading ? {} : { background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+        }`} style={uploading ? {} : { background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
           <Upload size={14} />
           {uploading ? 'Uploading…' : 'Upload Document'}
           <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} />

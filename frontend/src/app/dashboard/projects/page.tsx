@@ -45,14 +45,14 @@ function StatusBadge({ status }: { status: string }) {
 function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
-      <div className="w-16 h-16 rounded-2xl bg-[#2563EB]/10 flex items-center justify-center mb-4">
-        <FolderOpen size={28} className="text-[#2563EB]" />
+      <div className="w-16 h-16 rounded-2xl bg-[#0c7aed]/10 flex items-center justify-center mb-4">
+        <FolderOpen size={28} className="text-[#0c7aed]" />
       </div>
-      <h3 className="text-gray-900 font-semibold text-lg mb-2" style={{ fontFamily: 'Syne, sans-serif' }}>No projects yet</h3>
+      <h3 className="text-gray-900 font-semibold text-lg mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>No projects yet</h3>
       <p className="text-gray-500 text-sm mb-6 max-w-xs">Create your first project to start tracking expenses and documents with blockchain verification.</p>
       <Link href="/dashboard/projects/new"
         className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white"
-        style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+        style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
         <Plus size={16} /> New Project
       </Link>
     </div>
@@ -81,12 +81,12 @@ export default function ProjectsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>Projects</h1>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>Projects</h1>
           <p className="text-gray-500 text-sm mt-1">{projects.length} project{projects.length !== 1 ? 's' : ''} total</p>
         </div>
         <Link href="/dashboard/projects/new"
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white"
-          style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+          style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
           <Plus size={16} /> New Project
         </Link>
       </div>
@@ -123,8 +123,8 @@ export default function ProjectsPage() {
               className="group rounded-xl border border-gray-200 hover:border-gray-200 p-5 space-y-4 transition-all hover:bg-gray-50"
               style={{ background: '#FFFFFF' }}>
               <div className="flex items-start justify-between">
-                <div className="w-10 h-10 rounded-lg bg-[#2563EB]/10 flex items-center justify-center">
-                  <FolderOpen size={18} className="text-[#2563EB]" />
+                <div className="w-10 h-10 rounded-lg bg-[#0c7aed]/10 flex items-center justify-center">
+                  <FolderOpen size={18} className="text-[#0c7aed]" />
                 </div>
                 <div className="flex items-center gap-2">
                   <StatusBadge status={project.status} />
@@ -132,7 +132,7 @@ export default function ProjectsPage() {
                 </div>
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>{project.name}</h3>
+                <h3 className="font-semibold text-gray-900 text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>{project.name}</h3>
                 {project.description && (
                   <p className="text-gray-500 text-xs mt-1 line-clamp-2">{project.description}</p>
                 )}

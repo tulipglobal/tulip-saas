@@ -34,22 +34,22 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+    <div className="min-h-screen flex" style={{ fontFamily: 'Inter, sans-serif' }}>
       {/* Left panel */}
       <div className="hidden lg:flex lg:w-1/2 tulip-mesh flex-col justify-between p-12">
         <Link href="/" className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg tulip-gradient flex items-center justify-center">
             <Shield className="w-4 h-4 text-gray-900" />
           </div>
-          <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px', color: 'white' }}>
-            tulip<span style={{ color: '#2563EB' }}>ds</span>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: 'white' }}>
+            tulip<span style={{ color: '#0c7aed' }}>ds</span>
           </span>
         </Link>
 
         <div>
-          <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '40px', color: 'white', lineHeight: 1.2, letterSpacing: '-0.02em' }}>
+          <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '40px', color: 'white', lineHeight: 1.2, letterSpacing: '-0.02em' }}>
             Tamper-proof.<br />
-            <span style={{ color: '#2563EB' }}>Verifiable.</span><br />
+            <span style={{ color: '#0c7aed' }}>Verifiable.</span><br />
             Trusted.
           </h2>
           <p style={{ color: '#64748b', fontSize: '16px', marginTop: '16px', lineHeight: 1.7 }}>
@@ -81,13 +81,13 @@ export default function LoginPage() {
             <div className="w-8 h-8 rounded-lg tulip-gradient flex items-center justify-center">
               <Shield className="w-4 h-4 text-gray-900" />
             </div>
-            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px' }}>
-              tulip<span style={{ color: '#2563EB' }}>ds</span>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px' }}>
+              tulip<span style={{ color: '#0c7aed' }}>ds</span>
             </span>
           </Link>
 
           <div className="animate-fade-up">
-            <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '30px', letterSpacing: '-0.02em' }}>
+            <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '30px', letterSpacing: '-0.02em' }}>
               Sign in
             </h1>
             <p style={{ color: '#64748b', fontSize: '15px', marginTop: '6px' }}>
@@ -115,7 +115,7 @@ export default function LoginPage() {
                 <label style={{ fontSize: '13px', fontWeight: 500, color: '#374151' }}>
                   Password
                 </label>
-                <a href="#" style={{ fontSize: '13px', color: '#2563EB' }} className="hover:underline">
+                <a href="#" style={{ fontSize: '13px', color: '#0c7aed' }} className="hover:underline">
                   Forgot password?
                 </a>
               </div>
@@ -154,7 +154,7 @@ export default function LoginPage() {
           <div className="mt-6 text-center animate-fade-up-delay-2">
             <p style={{ color: '#64748b', fontSize: '14px' }}>
               Don't have an account?{' '}
-              <a href="/register" style={{ color: '#2563EB', fontWeight: 500 }} className="hover:underline">
+              <a href="/register" style={{ color: '#0c7aed', fontWeight: 500 }} className="hover:underline">
                 Register here
               </a>
             </p>
@@ -163,7 +163,7 @@ export default function LoginPage() {
           <div className="mt-8 pt-6 border-t border-slate-100 animate-fade-up-delay-3">
             <p style={{ color: '#6B7280', fontSize: '12px', textAlign: 'center', lineHeight: 1.6 }}>
               Or try without logging in →{' '}
-              <Link href="/verify" style={{ color: '#2563EB' }} className="hover:underline">
+              <Link href="/verify" style={{ color: '#0c7aed' }} className="hover:underline">
                 Verify a hash publicly
               </Link>
             </p>

@@ -105,7 +105,7 @@ function actionLabel(action: string, entityType: string) {
 function ActionIcon({ action }: { action: string }) {
   if (action.includes('DOCUMENT')) return <Upload size={14} className="text-emerald-400" />
   if (action.includes('EXPENSE')) return <Receipt size={14} className="text-amber-400" />
-  if (action.includes('ANCHOR') || action.includes('BATCH')) return <Link2 size={14} className="text-[#2563EB]" />
+  if (action.includes('ANCHOR') || action.includes('BATCH')) return <Link2 size={14} className="text-[#0c7aed]" />
   if (action.includes('APPROVED')) return <CheckCircle2 size={14} className="text-emerald-400" />
   if (action.includes('REJECTED')) return <XCircle size={14} className="text-rose-400" />
   return <Clock size={14} className="text-gray-500" />
@@ -195,7 +195,7 @@ export default function DashboardPage() {
       {/* ── HERO GREETING ──────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
             {getGreeting()}, {data?.user?.name?.split(' ')[0] ?? 'there'} 👋
           </h1>
           <p className="text-gray-500 text-sm mt-1">
@@ -213,13 +213,13 @@ export default function DashboardPage() {
       {trial?.active && trial.plan === 'FREE' && (
         <div className="rounded-xl border p-4 flex items-center gap-4"
           style={{ background: 'rgba(12,122,237,0.06)', borderColor: 'rgba(12,122,237,0.2)' }}>
-          <Sparkles size={20} className="text-[#2563EB] shrink-0" />
+          <Sparkles size={20} className="text-[#0c7aed] shrink-0" />
           <div className="flex-1">
             <div className="text-sm font-medium text-gray-900">{trial.daysLeft} day{trial.daysLeft !== 1 ? 's' : ''} left in your free trial</div>
             <div className="text-xs text-gray-500 mt-0.5">Upgrade to unlock more features</div>
           </div>
           <Link href="/dashboard/billing" className="px-4 py-2 rounded-lg text-sm font-semibold text-white shrink-0"
-            style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>Upgrade</Link>
+            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>Upgrade</Link>
         </div>
       )}
       {trial && !trial.active && trial.plan === 'FREE' && (
@@ -231,7 +231,7 @@ export default function DashboardPage() {
             <div className="text-xs text-gray-500 mt-0.5">Upgrade to continue using all features</div>
           </div>
           <Link href="/dashboard/billing" className="px-4 py-2 rounded-lg text-sm font-semibold text-white shrink-0"
-            style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>Upgrade Now</Link>
+            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>Upgrade Now</Link>
         </div>
       )}
 
@@ -245,7 +245,7 @@ export default function DashboardPage() {
             <Shield size={18} />
           </div>
           <div>
-            <div className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>{loading ? '…' : verifiedCount.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>{loading ? '…' : verifiedCount.toLocaleString()}</div>
             <div className="text-sm text-gray-500 mt-0.5">Blockchain Verified</div>
             <div className="text-xs text-emerald-400/60 mt-1">+{s?.documentsThisMonth ?? 0} this month</div>
           </div>
@@ -257,7 +257,7 @@ export default function DashboardPage() {
             <DollarSign size={18} />
           </div>
           <div>
-            <div className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>
+            <div className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
               {loading ? '…' : formatAmount(fundingCount, s?.totalFundingCurrency ?? 'USD')}
             </div>
             <div className="text-sm text-gray-500 mt-0.5">Funding Secured</div>
@@ -271,7 +271,7 @@ export default function DashboardPage() {
             <FolderOpen size={18} />
           </div>
           <div>
-            <div className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>{loading ? '…' : projectCount}</div>
+            <div className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>{loading ? '…' : projectCount}</div>
             <div className="text-sm text-gray-500 mt-0.5">Active Projects</div>
             <div className="text-xs text-blue-400/60 mt-1">{s?.completedProjects ?? 0} completed</div>
           </div>
@@ -285,7 +285,7 @@ export default function DashboardPage() {
             <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400" />
           </div>
           <div>
-            <div className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>{loading ? '…' : blockchainCount.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>{loading ? '…' : blockchainCount.toLocaleString()}</div>
             <div className="text-sm text-gray-500 mt-0.5">Transactions on Polygon</div>
             <div className="text-xs text-emerald-400/60 mt-1">Immutable records</div>
           </div>
@@ -296,7 +296,7 @@ export default function DashboardPage() {
       <div className="rounded-xl border border-gray-200 p-5" style={{ background: '#FFFFFF' }}>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="font-semibold text-gray-900 text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>Organisation Activity</h2>
+            <h2 className="font-semibold text-gray-900 text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>Organisation Activity</h2>
             <p className="text-xs text-gray-400 mt-0.5">Last 6 months</p>
           </div>
           <div className="flex items-center gap-4 text-xs">
@@ -362,7 +362,7 @@ export default function DashboardPage() {
         {/* Projects (2/3 width) */}
         <div className="lg:col-span-2 space-y-4">
           <div>
-            <h2 className="font-semibold text-gray-900 text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>Project Health</h2>
+            <h2 className="font-semibold text-gray-900 text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>Project Health</h2>
             <p className="text-xs text-gray-400 mt-0.5">Budget tracking</p>
           </div>
 
@@ -418,7 +418,7 @@ export default function DashboardPage() {
                     {/* Completion badge */}
                     <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                       <span className="text-[11px] text-gray-400">Completion</span>
-                      <span className="text-sm font-bold" style={{ color: progressColor(completionPct), fontFamily: 'Syne, sans-serif' }}>
+                      <span className="text-sm font-bold" style={{ color: progressColor(completionPct), fontFamily: 'Inter, sans-serif' }}>
                         {completionPct}%
                       </span>
                     </div>
@@ -433,10 +433,10 @@ export default function DashboardPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="font-semibold text-gray-900 text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>Recent Activity</h2>
+              <h2 className="font-semibold text-gray-900 text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>Recent Activity</h2>
               <p className="text-xs text-gray-400 mt-0.5">Latest events</p>
             </div>
-            <Link href="/dashboard/audit" className="text-xs text-[#2563EB] hover:underline">View all</Link>
+            <Link href="/dashboard/audit" className="text-xs text-[#0c7aed] hover:underline">View all</Link>
           </div>
 
           <div className="rounded-xl border border-gray-200 overflow-hidden" style={{ background: '#FFFFFF' }}>

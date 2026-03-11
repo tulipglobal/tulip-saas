@@ -5,7 +5,7 @@ import { Shield, FileCheck, Lock, ArrowRight } from 'lucide-react'
 
 export default function DonorLandingPage() {
   return (
-    <div className="min-h-screen bg-[#F9FAFB] flex flex-col" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+    <div className="min-h-screen bg-[#F9FAFB] flex flex-col" style={{ fontFamily: 'Inter, sans-serif' }}>
 
       {/* Nav */}
       <nav className="border-b border-gray-200 bg-white/95 backdrop-blur-md">
@@ -15,7 +15,7 @@ export default function DonorLandingPage() {
               style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
               <Shield className="w-4 h-4 text-gray-900" />
             </div>
-            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px', color: 'white' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: 'white' }}>
               tulip<span style={{ color: '#10b981' }}>ds</span>
             </span>
             <span className="text-gray-300 text-sm ml-1">| Donor Portal</span>
@@ -32,7 +32,7 @@ export default function DonorLandingPage() {
           style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
           <Shield className="w-8 h-8 text-gray-900" />
         </div>
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Syne, sans-serif' }}>
+        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
           Donor Transparency Portal
         </h1>
         <p className="text-gray-500 text-lg max-w-xl mx-auto mb-10 leading-relaxed">
@@ -56,7 +56,7 @@ export default function DonorLandingPage() {
             <div className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center bg-emerald-500/10">
               <Shield className="w-6 h-6 text-emerald-400" />
             </div>
-            <h3 className="text-gray-900 font-semibold text-base mb-2" style={{ fontFamily: 'Syne, sans-serif' }}>
+            <h3 className="text-gray-900 font-semibold text-base mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
               Blockchain Verified
             </h3>
             <p className="text-gray-500 text-sm leading-relaxed">
@@ -69,7 +69,7 @@ export default function DonorLandingPage() {
             <div className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center bg-emerald-500/10">
               <FileCheck className="w-6 h-6 text-emerald-400" />
             </div>
-            <h3 className="text-gray-900 font-semibold text-base mb-2" style={{ fontFamily: 'Syne, sans-serif' }}>
+            <h3 className="text-gray-900 font-semibold text-base mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
               Real-Time Access
             </h3>
             <p className="text-gray-500 text-sm leading-relaxed">
@@ -82,7 +82,7 @@ export default function DonorLandingPage() {
             <div className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center bg-emerald-500/10">
               <Lock className="w-6 h-6 text-emerald-400" />
             </div>
-            <h3 className="text-gray-900 font-semibold text-base mb-2" style={{ fontFamily: 'Syne, sans-serif' }}>
+            <h3 className="text-gray-900 font-semibold text-base mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
               Tamper-Proof
             </h3>
             <p className="text-gray-500 text-sm leading-relaxed">

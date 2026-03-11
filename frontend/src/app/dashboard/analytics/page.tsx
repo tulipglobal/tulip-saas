@@ -89,7 +89,7 @@ function ChartCard({ title, subtitle, children, fullWidth = false }: {
     <div className={`rounded-xl border border-gray-200 p-5 ${fullWidth ? 'col-span-1 md:col-span-2' : ''}`}
       style={{ background: '#FFFFFF' }}>
       <div className="mb-4">
-        <h3 className="text-sm font-semibold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>{title}</h3>
+        <h3 className="text-sm font-semibold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>{title}</h3>
         <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>
       </div>
       {children}
@@ -473,7 +473,7 @@ function IEStatement() {
     finally { setExporting(false) }
   }
 
-  const inputCls = "bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#2563EB]/50 transition-all"
+  const inputCls = "bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#0c7aed]/50 transition-all"
 
   return (
     <div className="space-y-6">
@@ -489,7 +489,7 @@ function IEStatement() {
         </div>
         <button onClick={handleFilter}
           className="px-4 py-2 rounded-lg text-sm font-medium text-white"
-          style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+          style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
           Apply
         </button>
         <button onClick={exportPDF} disabled={exporting || !data}
@@ -508,20 +508,20 @@ function IEStatement() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="rounded-xl border border-gray-200 px-5 py-4" style={{ background: '#FFFFFF' }}>
               <div className="text-xs text-gray-500 mb-1">Total Income</div>
-              <div className="text-xl font-bold text-emerald-400" style={{ fontFamily: 'Syne, sans-serif' }}>
+              <div className="text-xl font-bold text-emerald-400" style={{ fontFamily: 'Inter, sans-serif' }}>
                 ${data.income.total.toLocaleString()}
               </div>
             </div>
             <div className="rounded-xl border border-gray-200 px-5 py-4" style={{ background: '#FFFFFF' }}>
               <div className="text-xs text-gray-500 mb-1">Total Expenditure</div>
-              <div className="text-xl font-bold text-orange-400" style={{ fontFamily: 'Syne, sans-serif' }}>
+              <div className="text-xl font-bold text-orange-400" style={{ fontFamily: 'Inter, sans-serif' }}>
                 ${data.expenditure.total.toLocaleString()}
               </div>
             </div>
             <div className="rounded-xl border border-gray-200 px-5 py-4" style={{ background: '#FFFFFF' }}>
               <div className="text-xs text-gray-500 mb-1">Net Balance</div>
               <div className={`text-xl font-bold ${data.netBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}
-                style={{ fontFamily: 'Syne, sans-serif' }}>
+                style={{ fontFamily: 'Inter, sans-serif' }}>
                 ${data.netBalance.toLocaleString()}
               </div>
             </div>
@@ -530,7 +530,7 @@ function IEStatement() {
           {/* Income Section */}
           <div className="rounded-xl border border-gray-200 overflow-hidden" style={{ background: '#FFFFFF' }}>
             <div className="px-5 py-3 border-b border-gray-200">
-              <h3 className="text-sm font-semibold text-emerald-400" style={{ fontFamily: 'Syne, sans-serif' }}>INCOME</h3>
+              <h3 className="text-sm font-semibold text-emerald-400" style={{ fontFamily: 'Inter, sans-serif' }}>INCOME</h3>
             </div>
             {data.income.bySource.length === 0 ? (
               <div className="px-5 py-8 text-center text-gray-300 text-sm">No income recorded in this period</div>
@@ -563,7 +563,7 @@ function IEStatement() {
           {/* Expenditure Section */}
           <div className="rounded-xl border border-gray-200 overflow-hidden" style={{ background: '#FFFFFF' }}>
             <div className="px-5 py-3 border-b border-gray-200">
-              <h3 className="text-sm font-semibold text-orange-400" style={{ fontFamily: 'Syne, sans-serif' }}>EXPENDITURE</h3>
+              <h3 className="text-sm font-semibold text-orange-400" style={{ fontFamily: 'Inter, sans-serif' }}>EXPENDITURE</h3>
             </div>
             <div className="divide-y divide-gray-100">
               {/* CapEx */}
@@ -624,9 +624,9 @@ function IEStatement() {
           {/* Net Balance */}
           <div className={`rounded-xl border px-5 py-4 ${data.netBalance >= 0 ? 'border-emerald-400/20 bg-emerald-400/5' : 'border-red-400/20 bg-red-400/5'}`}>
             <div className="flex items-center justify-between">
-              <span className="text-base font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>NET BALANCE</span>
+              <span className="text-base font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>NET BALANCE</span>
               <span className={`text-xl font-bold ${data.netBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}
-                style={{ fontFamily: 'Syne, sans-serif' }}>
+                style={{ fontFamily: 'Inter, sans-serif' }}>
                 ${data.netBalance.toLocaleString()}
               </span>
             </div>
@@ -671,7 +671,7 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>Analytics</h1>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>Analytics</h1>
           <p className="text-gray-500 text-sm mt-1">Charts, trends, and performance metrics</p>
         </div>
         <div className="flex items-center gap-3">
@@ -691,7 +691,7 @@ export default function AnalyticsPage() {
               </div>
               <button onClick={handleGenerateReport} disabled={generating}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90 transition-opacity disabled:opacity-50"
-                style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
                 {generating ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Download size={14} />}
                 <span className="hidden sm:inline">{generating ? 'Generating...' : 'Impact Report'}</span>
               </button>
@@ -745,7 +745,7 @@ export default function AnalyticsPage() {
                 </div>
                 <span className="text-gray-400 text-xs font-medium">{label}</span>
               </div>
-              <div className="text-lg font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>{value}</div>
+              <div className="text-lg font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
             </div>
           ))}
         </div>

@@ -56,18 +56,18 @@ export default function DonorLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] flex flex-col" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+    <div className="min-h-screen bg-[#F9FAFB] flex flex-col" style={{ fontFamily: 'Inter, sans-serif' }}>
 
       {/* Nav */}
       <nav className="border-b border-gray-200 bg-white/95 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+              style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
               <Shield className="w-4 h-4 text-gray-900" />
             </div>
-            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px', color: 'white' }}>
-              tulip<span style={{ color: '#2563EB' }}>ds</span>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: 'white' }}>
+              tulip<span style={{ color: '#0c7aed' }}>ds</span>
             </span>
             <span className="text-gray-300 text-sm ml-1">| Donor Portal</span>
           </Link>
@@ -87,7 +87,7 @@ export default function DonorLoginPage() {
               style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
               <Shield className="w-7 h-7 text-gray-900" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>
+            <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
               Donor Portal
             </h1>
             <p className="text-gray-500 text-sm mt-2">

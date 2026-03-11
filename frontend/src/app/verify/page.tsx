@@ -19,6 +19,8 @@ interface VerifyResult {
   entityId?: string
   action?: string
   recordedAt?: string
+  source?: string
+  pageHashes?: string[] | null
   entityDetails?: {
     organisationName?: string
     organisationType?: string
@@ -52,11 +54,44 @@ interface VerifyResult {
   reason?: string
 }
 
+interface PageVerifyResult {
+  page: number
+  status: 'intact' | 'tampered' | 'missing' | 'extra'
+  message: string
+}
+
 /* ─── SHA-256 in browser ─────────────────────────────────── */
 async function sha256File(file: File): Promise<string> {
   const buffer = await file.arrayBuffer()
   const hashBuffer = await crypto.subtle.digest('SHA-256', buffer)
   return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
+async function sha256Buffer(buffer: ArrayBuffer): Promise<string> {
+  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer)
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
+/* ─── Per-page PDF hashing in browser ─────────────────────── */
+async function hashPdfPagesBrowser(file: File): Promise<string[]> {
+  try {
+    const { PDFDocument } = await import('pdf-lib')
+    const arrayBuffer = await file.arrayBuffer()
+    const srcDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true })
+    const pageCount = srcDoc.getPageCount()
+    const hashes: string[] = []
+    for (let i = 0; i < pageCount; i++) {
+      const singleDoc = await PDFDocument.create()
+      const [page] = await singleDoc.copyPages(srcDoc, [i])
+      singleDoc.addPage(page)
+      const bytes = await singleDoc.save()
+      const hash = await sha256Buffer(bytes.buffer as ArrayBuffer)
+      hashes.push(hash)
+    }
+    return hashes
+  } catch {
+    return []
+  }
 }
 
 /* ─── PDF Certificate Generator ──────────────────────────── */
@@ -69,7 +104,7 @@ async function generateCertificate(result: VerifyResult, fileName?: string) {
   const verifyUrl = `${window.location.origin}/verify?hash=${result.dataHash}`
 
   // QR code
-  const qrDataUrl = await QRCode.toDataURL(verifyUrl, { width: 300, margin: 0, color: { dark: '#2563EB', light: '#ffffff' } })
+  const qrDataUrl = await QRCode.toDataURL(verifyUrl, { width: 300, margin: 0, color: { dark: '#0c7aed', light: '#ffffff' } })
 
   // Background
   doc.setFillColor(255, 255, 255)
@@ -347,7 +382,7 @@ async function generateProofBundle(result: VerifyResult, fileName?: string) {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
   const W = 210, H = 297
 
-  const qrDataUrl = await QRCode.toDataURL(verifyUrl, { width: 300, margin: 0, color: { dark: '#2563EB', light: '#ffffff' } })
+  const qrDataUrl = await QRCode.toDataURL(verifyUrl, { width: 300, margin: 0, color: { dark: '#0c7aed', light: '#ffffff' } })
 
   doc.setFillColor(255, 255, 255)
   doc.rect(0, 0, W, H, 'F')
@@ -502,7 +537,10 @@ function VerifyPageInner() {
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [copied, setCopied] = useState<string | null>(null)
   const [mode, setMode] = useState<'file' | 'hash'>('file')
+  const [pageResults, setPageResults] = useState<PageVerifyResult[] | null>(null)
+  const [pageVerifying, setPageVerifying] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const lastFileRef = useRef<File | null>(null)
 
   const doVerify = useCallback(async (hashToVerify: string) => {
     const cleaned = hashToVerify.trim().toLowerCase()
@@ -544,13 +582,45 @@ function VerifyPageInner() {
     setFileName(file.name)
     setHashing(true)
     setResult(null)
+    setPageResults(null)
+    lastFileRef.current = file
     try {
       const fileHash = await sha256File(file)
       setHash(fileHash)
       setHashing(false)
-      doVerify(fileHash)
+      // Run full-doc verify first
+      setLoading(true)
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      const res = await fetch(`${apiUrl}/api/verify/${fileHash.trim().toLowerCase()}`)
+      const data = await res.json()
+      if (res.ok) {
+        setResult(data)
+        // If result has pageHashes and file is PDF, run per-page verification
+        if (data.verified && data.pageHashes && Array.isArray(data.pageHashes) && data.pageHashes.length > 0 && file.name.toLowerCase().endsWith('.pdf')) {
+          setPageVerifying(true)
+          try {
+            const uploadedPageHashes = await hashPdfPagesBrowser(file)
+            if (uploadedPageHashes.length > 0) {
+              const pageRes = await fetch(`${apiUrl}/api/verify/pages`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ full_hash: fileHash, page_hashes: uploadedPageHashes }),
+              })
+              const pageData = await pageRes.json()
+              if (pageData.page_results) {
+                setPageResults(pageData.page_results)
+              }
+            }
+          } catch { /* page verification is non-fatal */ }
+          setPageVerifying(false)
+        }
+      } else {
+        setResult({ verified: false, dataHash: fileHash, reason: data.message || 'Hash not found' })
+      }
+      setLoading(false)
     } catch {
       setHashing(false)
+      setLoading(false)
     }
   }
 
@@ -584,21 +654,21 @@ function VerifyPageInner() {
   const isVerified = result?.verified === true
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB]" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+    <div className="min-h-screen bg-[#F9FAFB]" style={{ fontFamily: 'Inter, sans-serif' }}>
 
       {/* ── NAV ── */}
       <nav className="border-b border-gray-200 bg-white/95 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
               <Shield className="w-3.5 h-3.5 text-gray-900" />
             </div>
-            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '17px', color: 'white' }}>
-              tulip<span style={{ color: '#2563EB' }}>ds</span>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '17px', color: 'white' }}>
+              tulip<span style={{ color: '#0c7aed' }}>ds</span>
             </span>
           </Link>
           <Link href="/login" className="px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity"
-            style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
             Sign in
           </Link>
         </div>
@@ -610,7 +680,7 @@ function VerifyPageInner() {
           <Lock className="w-3 h-3 text-blue-400" />
           <span className="text-slate-400 text-xs font-medium">Public verification · No login required</span>
         </div>
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1 }}
+        <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1 }}
           className="text-3xl sm:text-5xl text-gray-900">
           Verify a document
         </h1>
@@ -625,11 +695,11 @@ function VerifyPageInner() {
         {/* Mode tabs */}
         <div className="flex gap-1 mb-4 bg-gray-50 p-1 rounded-lg w-fit mx-auto">
           <button onClick={() => setMode('file')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === 'file' ? 'bg-[#2563EB] text-white' : 'text-gray-500 hover:text-gray-700'}`}>
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === 'file' ? 'bg-[#0c7aed] text-white' : 'text-gray-500 hover:text-gray-700'}`}>
             <span className="flex items-center gap-2"><Upload className="w-3.5 h-3.5" /> Drop a file</span>
           </button>
           <button onClick={() => setMode('hash')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === 'hash' ? 'bg-[#2563EB] text-white' : 'text-gray-500 hover:text-gray-700'}`}>
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === 'hash' ? 'bg-[#0c7aed] text-white' : 'text-gray-500 hover:text-gray-700'}`}>
             <span className="flex items-center gap-2"><Hash className="w-3.5 h-3.5" /> Paste a hash</span>
           </button>
         </div>
@@ -643,7 +713,7 @@ function VerifyPageInner() {
             onClick={() => fileInputRef.current?.click()}
             className={`relative rounded-2xl border-2 border-dashed transition-all cursor-pointer group
               ${dragActive
-                ? 'border-[#2563EB] bg-[#2563EB]/10 scale-[1.01]'
+                ? 'border-[#0c7aed] bg-[#0c7aed]/10 scale-[1.01]'
                 : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
               }`}
             style={{ minHeight: '200px' }}
@@ -652,14 +722,14 @@ function VerifyPageInner() {
             <div className="flex flex-col items-center justify-center py-12 sm:py-16 px-6 text-center">
               {hashing ? (
                 <>
-                  <div className="w-10 h-10 border-2 border-[#2563EB] border-t-transparent rounded-full animate-spin mb-4" />
+                  <div className="w-10 h-10 border-2 border-[#0c7aed] border-t-transparent rounded-full animate-spin mb-4" />
                   <p className="text-gray-700 text-sm font-medium">Computing SHA-256 hash...</p>
                   <p className="text-gray-400 text-xs mt-1">{fileName}</p>
                 </>
               ) : (
                 <>
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-colors ${dragActive ? 'bg-[#2563EB]/20' : 'bg-gray-50'}`}>
-                    <Upload className={`w-7 h-7 transition-colors ${dragActive ? 'text-[#2563EB]' : 'text-gray-300 group-hover:text-gray-500'}`} />
+                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-colors ${dragActive ? 'bg-[#0c7aed]/20' : 'bg-gray-50'}`}>
+                    <Upload className={`w-7 h-7 transition-colors ${dragActive ? 'text-[#0c7aed]' : 'text-gray-300 group-hover:text-gray-500'}`} />
                   </div>
                   <p className="text-gray-700 text-base font-medium">
                     {dragActive ? 'Drop your file here' : 'Drag and drop any file here'}
@@ -686,7 +756,7 @@ function VerifyPageInner() {
               </div>
               <button type="submit" disabled={loading || !hash.trim()}
                 className="px-6 py-4 rounded-xl text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
-                style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
                 {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Verify'}
               </button>
             </div>
@@ -698,7 +768,7 @@ function VerifyPageInner() {
       {loading && (
         <div className="max-w-3xl mx-auto px-4 sm:px-6 pb-8">
           <div className="flex items-center justify-center gap-3 p-6 rounded-xl bg-white border border-gray-100">
-            <div className="w-5 h-5 border-2 border-[#2563EB] border-t-transparent rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-[#0c7aed] border-t-transparent rounded-full animate-spin" />
             <span className="text-gray-500 text-sm">Verifying on the blockchain...</span>
           </div>
         </div>
@@ -721,7 +791,7 @@ function VerifyPageInner() {
               }
             </div>
             <div className="flex-1 min-w-0">
-              <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700 }}
+              <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
                 className={`text-xl sm:text-2xl ${isVerified ? 'text-emerald-400' : 'text-red-400'}`}>
                 {isVerified ? 'Verified' : 'Not Verified'}
               </h2>
@@ -750,7 +820,7 @@ function VerifyPageInner() {
                           {result.documentHash ? 'Document' : 'Record'}
                         </p>
                         <div className="flex items-center gap-2.5">
-                          <FileText className="w-5 h-5 text-[#2563EB] flex-shrink-0" />
+                          <FileText className="w-5 h-5 text-[#0c7aed] flex-shrink-0" />
                           <span className="text-gray-900 text-base font-medium truncate">
                             {details?.documentName || fileName || details?.expenseDescription || result.action?.replace(/_/g, ' ')}
                           </span>
@@ -826,12 +896,66 @@ function VerifyPageInner() {
                         if (data.url) window.open(data.url, '_blank')
                       } catch {}
                     }} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90 transition-opacity"
-                      style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+                      style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
                       <ExternalLink className="w-4 h-4" /> View Document
                     </button>
                   </div>
                 )}
               </div>
+
+              {/* ── Per-page verification ── */}
+              {result.pageHashes && Array.isArray(result.pageHashes) && result.pageHashes.length > 0 && (
+                <div className="rounded-2xl border border-gray-200 overflow-hidden" style={{ background: '#FFFFFF' }}>
+                  <div className="p-5 sm:p-6">
+                    <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">Page-Level Verification</p>
+                    {pageVerifying ? (
+                      <div className="flex items-center gap-3 py-4">
+                        <div className="w-4 h-4 border-2 border-[#2563EB] border-t-transparent rounded-full animate-spin" />
+                        <span className="text-gray-500 text-sm">Verifying individual pages...</span>
+                      </div>
+                    ) : pageResults ? (
+                      <div className="space-y-2">
+                        {pageResults.map((pr) => (
+                          <div key={pr.page} className={`flex items-center gap-3 px-4 py-2.5 rounded-lg ${
+                            pr.status === 'intact' ? 'bg-emerald-500/5' : 'bg-red-500/5'
+                          }`}>
+                            {pr.status === 'intact'
+                              ? <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                              : <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                            }
+                            <span className={`text-sm font-medium ${pr.status === 'intact' ? 'text-emerald-600' : 'text-red-600'}`}>
+                              Page {pr.page}
+                            </span>
+                            <span className={`text-sm ${pr.status === 'intact' ? 'text-emerald-500' : 'text-red-500'}`}>
+                              — {pr.status === 'intact' ? 'Intact' : pr.status === 'tampered' ? 'TAMPERED — this page has been modified' : pr.status === 'missing' ? 'MISSING from uploaded document' : 'EXTRA — not in original document'}
+                            </span>
+                          </div>
+                        ))}
+                        <div className={`mt-3 flex items-center gap-2 px-4 py-2 rounded-lg ${
+                          pageResults.every(p => p.status === 'intact') ? 'bg-emerald-500/10' : 'bg-red-500/10'
+                        }`}>
+                          {pageResults.every(p => p.status === 'intact')
+                            ? <><CheckCircle className="w-4 h-4 text-emerald-500" /><span className="text-emerald-600 text-sm font-semibold">All {pageResults.length} pages verified intact</span></>
+                            : <><XCircle className="w-4 h-4 text-red-500" /><span className="text-red-600 text-sm font-semibold">Document tampered — {pageResults.filter(p => p.status !== 'intact').length} page(s) modified</span></>
+                          }
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-gray-400 text-sm">Drop a PDF file to verify individual pages</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Page hashes not available for old seals */}
+              {result.verified && result.source === 'seal' && (!result.pageHashes || !Array.isArray(result.pageHashes) || result.pageHashes.length === 0) && (
+                <div className="rounded-2xl border border-gray-200 overflow-hidden bg-white">
+                  <div className="p-5 sm:p-6 flex items-center gap-3">
+                    <AlertTriangle className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                    <span className="text-gray-500 text-sm">Full document verified — page-level verification not available for this seal</span>
+                  </div>
+                </div>
+              )}
 
               {/* ── Download buttons ── */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -936,8 +1060,8 @@ function VerifyPageInner() {
                             <div>
                               <p className="text-gray-400 text-xs">Network</p>
                               <div className="flex items-center gap-1">
-                                <Globe className="w-3 h-3 text-[#2563EB]" />
-                                <p className="text-[#2563EB] text-xs font-medium">Polygon Amoy</p>
+                                <Globe className="w-3 h-3 text-[#0c7aed]" />
+                                <p className="text-[#0c7aed] text-xs font-medium">Polygon Amoy</p>
                               </div>
                             </div>
                           </div>
@@ -975,7 +1099,7 @@ function VerifyPageInner() {
             ].map(item => (
               <div key={item.title} className="p-5 rounded-xl border border-gray-100 bg-white text-center">
                 <div className="w-11 h-11 rounded-xl bg-blue-500/10 flex items-center justify-center mx-auto mb-3 text-blue-400">{item.icon}</div>
-                <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'white', marginBottom: '6px' }}>{item.title}</p>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: 'white', marginBottom: '6px' }}>{item.title}</p>
                 <p className="text-slate-500 text-xs leading-relaxed">{item.desc}</p>
               </div>
             ))}
@@ -983,9 +1107,9 @@ function VerifyPageInner() {
           <div className="mt-8 p-5 rounded-xl border border-gray-100 bg-white text-center">
             <p className="text-slate-500 text-sm">
               Want to verify your own records?{' '}
-              <Link href="/login" className="text-[#2563EB] font-medium hover:underline">Sign in to your dashboard</Link>
+              <Link href="/login" className="text-[#0c7aed] font-medium hover:underline">Sign in to your dashboard</Link>
               {' '}or{' '}
-              <Link href="/register" className="text-[#2563EB] font-medium hover:underline">create an account</Link>
+              <Link href="/register" className="text-[#0c7aed] font-medium hover:underline">create an account</Link>
             </p>
           </div>
         </div>

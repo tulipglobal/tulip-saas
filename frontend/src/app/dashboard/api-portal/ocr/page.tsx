@@ -208,7 +208,7 @@ export default function OcrPage() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+              style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
               <ScanLine size={20} />
             </div>
             OCR Engine
@@ -228,7 +228,7 @@ export default function OcrPage() {
       <div
         className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${
           dragActive
-            ? 'border-[#2563EB] bg-[#2563EB]/5'
+            ? 'border-[#0c7aed] bg-[#0c7aed]/5'
             : 'border-gray-200 hover:border-gray-300 bg-white'
         }`}
         onDragOver={(e) => { e.preventDefault(); setDragActive(true) }}
@@ -240,13 +240,13 @@ export default function OcrPage() {
 
         {uploading ? (
           <div className="flex flex-col items-center gap-3">
-            <Loader2 size={32} className="text-[#2563EB] animate-spin" />
+            <Loader2 size={32} className="text-[#0c7aed] animate-spin" />
             <p className="text-gray-600 text-sm">Uploading and starting OCR...</p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-3">
-            <div className="w-14 h-14 rounded-2xl bg-[#2563EB]/10 flex items-center justify-center">
-              <Upload size={24} className="text-[#2563EB]" />
+            <div className="w-14 h-14 rounded-2xl bg-[#0c7aed]/10 flex items-center justify-center">
+              <Upload size={24} className="text-[#0c7aed]" />
             </div>
             <div>
               <p className="text-gray-700 font-medium">Drop a document here or click to upload</p>
@@ -287,7 +287,7 @@ export default function OcrPage() {
               onClick={() => setSelectedJob(job)}
               className={`w-full text-left p-4 rounded-xl border transition-all ${
                 selectedJob?.id === job.id
-                  ? 'bg-[#2563EB]/10 border-[#2563EB]/30'
+                  ? 'bg-[#0c7aed]/10 border-[#0c7aed]/30'
                   : 'bg-white border-gray-200 hover:bg-gray-50'
               }`}
             >
@@ -350,7 +350,7 @@ export default function OcrPage() {
                 {selectedJob.hashValue && (
                   <div className="mt-3 p-3 rounded-lg bg-gray-50 border border-gray-200">
                     <div className="flex items-center gap-2 text-xs">
-                      <Hash size={12} className="text-[#2563EB]" />
+                      <Hash size={12} className="text-[#0c7aed]" />
                       <span className="text-gray-400">SHA-256</span>
                       <code className="text-gray-500 font-mono text-[11px] break-all">{selectedJob.hashValue}</code>
                     </div>
@@ -368,7 +368,7 @@ export default function OcrPage() {
                   <button
                     onClick={() => handleDownloadPdf(selectedJob.id)}
                     className="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90"
-                    style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}
+                    style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}
                   >
                     <Download size={14} />
                     Download Normalised PDF
@@ -380,12 +380,12 @@ export default function OcrPage() {
               {selectedJob.status === 'completed' && (
                 <div className="p-5 rounded-2xl border border-gray-200 bg-white">
                   <h4 className="font-semibold text-sm text-gray-600 uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <Eye size={14} className="text-[#2563EB]" />
+                    <Eye size={14} className="text-[#0c7aed]" />
                     Original Document
                   </h4>
                   {docPreviewLoading ? (
                     <div className="flex items-center justify-center py-12">
-                      <Loader2 size={20} className="animate-spin text-[#2563EB]" />
+                      <Loader2 size={20} className="animate-spin text-[#0c7aed]" />
                       <span className="ml-3 text-sm text-gray-500">Loading preview...</span>
                     </div>
                   ) : docPreviewUrl ? (

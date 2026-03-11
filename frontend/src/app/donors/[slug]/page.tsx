@@ -120,11 +120,11 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
         </Link>
         <Link href="/" className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-md flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
-            <span className="text-gray-900 font-bold" style={{ fontFamily: 'Syne, sans-serif', fontSize: 10 }}>T</span>
+            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+            <span className="text-gray-900 font-bold" style={{ fontFamily: 'Inter, sans-serif', fontSize: 10 }}>T</span>
           </div>
-          <span className="font-bold text-gray-900 text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>
-            tulip<span style={{ color: '#2563EB' }}>ds</span>
+          <span className="font-bold text-gray-900 text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
+            tulip<span style={{ color: '#0c7aed' }}>ds</span>
           </span>
         </Link>
       </nav>
@@ -137,11 +137,11 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
           <div className="flex items-start justify-between flex-wrap gap-6">
             <div className="flex items-start gap-5">
               <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-white shrink-0"
-                style={{ background: 'linear-gradient(135deg, #2563EB22, #1D4ED822)', border: '1px solid rgba(12,122,237,0.3)' }}>
+                style={{ background: 'linear-gradient(135deg, #0c7aed22, #004ea822)', border: '1px solid rgba(12,122,237,0.3)' }}>
                 {profile.name.charAt(0)}
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Syne, sans-serif' }}>
+                <h1 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
                   {profile.name}
                 </h1>
                 <div className="flex items-center gap-3 flex-wrap">
@@ -158,7 +158,7 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
                   )}
                   {profile.website && (
                     <Link href={profile.website} target="_blank"
-                      className="flex items-center gap-1 text-sm text-[#2563EB] hover:underline">
+                      className="flex items-center gap-1 text-sm text-[#0c7aed] hover:underline">
                       <ExternalLink size={12} /> Website
                     </Link>
                   )}
@@ -172,7 +172,7 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
             {/* Integrity score */}
             <div className="rounded-xl border border-gray-200 p-5 text-center min-w-[120px]"
               style={{ background: '#FFFFFF' }}>
-              <div className="text-3xl font-bold mb-1" style={{ fontFamily: 'Syne, sans-serif', color: scoreColor }}>
+              <div className="text-3xl font-bold mb-1" style={{ fontFamily: 'Inter, sans-serif', color: scoreColor }}>
                 {pct}%
               </div>
               <div className="text-xs text-gray-500">Integrity Score</div>
@@ -191,9 +191,9 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
               { label: 'Blockchain Anchored', value: profile.totalAnchored, icon: Shield },
             ].map(({ label, value, icon: Icon }) => (
               <div key={label} className="flex items-center gap-3">
-                <Icon size={16} className="text-[#2563EB]" />
+                <Icon size={16} className="text-[#0c7aed]" />
                 <div>
-                  <div className="text-lg font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>{value}</div>
+                  <div className="text-lg font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
                   <div className="text-xs text-gray-400">{label}</div>
                 </div>
               </div>
@@ -223,7 +223,7 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
         {/* Projects */}
         {profile.projects.length > 0 && (
           <div>
-            <h2 className="font-semibold text-gray-900 mb-4" style={{ fontFamily: 'Syne, sans-serif' }}>
+            <h2 className="font-semibold text-gray-900 mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
               Projects
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -232,7 +232,7 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
                   onClick={() => setActiveProject(activeProject === project.id ? null : project.id)}
                   className={`text-left rounded-xl border p-4 transition-all ${
                     activeProject === project.id
-                      ? 'border-[#2563EB]/50 bg-[#2563EB]/8'
+                      ? 'border-[#0c7aed]/50 bg-[#0c7aed]/8'
                       : 'border-gray-200 hover:border-gray-200'
                   }`}
                   style={{ background: activeProject === project.id ? undefined : '#FFFFFF' }}>
@@ -259,11 +259,11 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
         {/* Expenses */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>
+            <h2 className="font-semibold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
               {activeProject ? 'Project Expenses' : 'Recent Expenses'}
             </h2>
             <div className="flex items-center gap-1.5 text-xs text-gray-400">
-              <Shield size={11} className="text-[#2563EB]" />
+              <Shield size={11} className="text-[#0c7aed]" />
               All verified on-chain
             </div>
           </div>
@@ -276,8 +276,8 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
               <div className="divide-y divide-gray-100">
                 {filteredExpenses.map(expense => (
                   <div key={expense.id} className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors">
-                    <div className="w-9 h-9 rounded-lg bg-[#2563EB]/10 flex items-center justify-center shrink-0">
-                      <Receipt size={15} className="text-[#2563EB]" />
+                    <div className="w-9 h-9 rounded-lg bg-[#0c7aed]/10 flex items-center justify-center shrink-0">
+                      <Receipt size={15} className="text-[#0c7aed]" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-gray-800">{expense.title}</div>
@@ -306,13 +306,13 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
                       )}
                       {expense.dataHash && (
                         <Link href={`/verify?hash=${expense.dataHash}`} target="_blank"
-                          className="text-gray-300 hover:text-[#2563EB] transition-colors" title="Verify on Tulip DS">
+                          className="text-gray-300 hover:text-[#0c7aed] transition-colors" title="Verify on Tulip DS">
                           <Shield size={14} />
                         </Link>
                       )}
                       {expense.blockchainTx && (
                         <Link href={`https://polygonscan.com/tx/${expense.blockchainTx}`} target="_blank"
-                          className="text-gray-300 hover:text-[#2563EB] transition-colors" title="View on Polygonscan">
+                          className="text-gray-300 hover:text-[#0c7aed] transition-colors" title="View on Polygonscan">
                           <ExternalLink size={14} />
                         </Link>
                       )}
@@ -325,10 +325,10 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
         </div>
 
         {/* CTA */}
-        <div className="rounded-2xl border border-[#2563EB]/20 p-8 text-center"
+        <div className="rounded-2xl border border-[#0c7aed]/20 p-8 text-center"
           style={{ background: 'linear-gradient(135deg, rgba(12,122,237,0.05), rgba(0,78,168,0.05))' }}>
-          <Shield size={28} className="text-[#2563EB] mx-auto mb-3" />
-          <h3 className="font-bold text-gray-900 text-lg mb-2" style={{ fontFamily: 'Syne, sans-serif' }}>
+          <Shield size={28} className="text-[#0c7aed] mx-auto mb-3" />
+          <h3 className="font-bold text-gray-900 text-lg mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
             Every figure is verifiable
           </h3>
           <p className="text-gray-500 text-sm max-w-sm mx-auto mb-4">
@@ -336,7 +336,7 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
           </p>
           <Link href="/verify"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white"
-            style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
             <Shield size={15} /> Open Verifier
           </Link>
         </div>

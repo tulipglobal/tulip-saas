@@ -69,18 +69,18 @@ export default function FundingPage() {
   return (
     <div className="p-4 md:p-6 space-y-6 animate-fade-up">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>Funding Sources</h1>
+        <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>Funding Sources</h1>
         <p className="text-gray-500 text-sm mt-1">Read-only summary of all funding across budgets. To add or edit, go to the budget page.</p>
       </div>
 
       {filtered.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="rounded-xl border border-gray-200 px-5 py-4" style={{ background: '#FFFFFF' }}>
-            <div className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>${totalFunding.toLocaleString()}</div>
+            <div className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>${totalFunding.toLocaleString()}</div>
             <div className="text-xs text-gray-500 mt-1">Total Funding</div>
           </div>
           <div className="rounded-xl border border-gray-200 px-5 py-4" style={{ background: '#FFFFFF' }}>
-            <div className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>{filtered.length}</div>
+            <div className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>{filtered.length}</div>
             <div className="text-xs text-gray-500 mt-1">Funding Sources</div>
           </div>
         </div>

@@ -71,7 +71,7 @@ export default function TrustSealCard({ sealId, onClose }: TrustSealCardProps) {
       .catch(() => { setError('Failed to load seal'); setLoading(false) })
 
     // Generate QR code
-    QRCode.toDataURL(verifyUrl, { width: 140, margin: 1, color: { dark: '#2563EB', light: '#FFFFFF' } })
+    QRCode.toDataURL(verifyUrl, { width: 140, margin: 1, color: { dark: '#0c7aed', light: '#FFFFFF' } })
       .then(url => setQrDataUrl(url))
       .catch(() => {})
   }, [sealId, verifyUrl])

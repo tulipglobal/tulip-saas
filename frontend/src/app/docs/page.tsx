@@ -28,7 +28,7 @@ function Endpoint({ method, path, description, children }: {
   const [open, setOpen] = useState(false)
   const colors: Record<string, string> = {
     GET: 'bg-green-400/10 text-green-400 border-green-400/20',
-    POST: 'bg-blue-400/10 text-[#2563EB] border-blue-400/20',
+    POST: 'bg-blue-400/10 text-[#0c7aed] border-blue-400/20',
     DELETE: 'bg-red-400/10 text-red-400 border-red-400/20',
   }
   return (
@@ -55,7 +55,7 @@ function Endpoint({ method, path, description, children }: {
 function Param({ name, type, required, desc }: { name: string; type: string; required?: boolean; desc: string }) {
   return (
     <div className="flex items-start gap-3 py-2 border-b border-gray-100 last:border-0">
-      <code className="text-xs font-mono text-[#2563EB] shrink-0 mt-0.5">{name}</code>
+      <code className="text-xs font-mono text-[#0c7aed] shrink-0 mt-0.5">{name}</code>
       <code className="text-xs font-mono text-gray-400 shrink-0 mt-0.5">{type}</code>
       {required && <span className="text-xs text-red-400 shrink-0 mt-0.5">required</span>}
       <span className="text-xs text-gray-500">{desc}</span>
@@ -89,16 +89,16 @@ export default function APIDocsPage() {
         style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(12px)' }}>
         <Link href="/" className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
-            <span className="text-gray-900 font-bold text-xs" style={{ fontFamily: 'Syne, sans-serif' }}>T</span>
+            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+            <span className="text-gray-900 font-bold text-xs" style={{ fontFamily: 'Inter, sans-serif' }}>T</span>
           </div>
-          <span className="font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>
-            tulip<span style={{ color: '#2563EB' }}>ds</span>
+          <span className="font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
+            tulip<span style={{ color: '#0c7aed' }}>ds</span>
             <span className="text-gray-400 font-normal text-sm ml-2">API Docs</span>
           </span>
         </Link>
         <div className="flex items-center gap-4">
-          <Link href="/dashboard/api-keys" className="flex items-center gap-1.5 text-sm text-[#2563EB] hover:underline">
+          <Link href="/dashboard/api-keys" className="flex items-center gap-1.5 text-sm text-[#0c7aed] hover:underline">
             <Key size={13} /> Get API Key
           </Link>
           <Link href="/login" className="px-4 py-1.5 rounded-lg text-sm font-medium text-gray-900 border border-gray-200 hover:border-white/30 transition-all">
@@ -116,7 +116,7 @@ export default function APIDocsPage() {
             <button key={id} onClick={() => scrollTo(id)}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm mb-0.5 transition-all text-left ${
                 activeSection === id
-                  ? 'bg-[#2563EB]/15 text-[#2563EB]'
+                  ? 'bg-[#0c7aed]/15 text-[#0c7aed]'
                   : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
               }`}>
               <Icon size={14} className="shrink-0" />
@@ -126,7 +126,7 @@ export default function APIDocsPage() {
           <div className="mt-6 pt-6 border-t border-gray-100">
             <div className="px-3">
               <div className="text-xs text-gray-300 mb-2">Base URL</div>
-              <code className="text-xs text-[#2563EB] font-mono">api.tulipds.com</code>
+              <code className="text-xs text-[#0c7aed] font-mono">api.tulipds.com</code>
             </div>
           </div>
         </aside>
@@ -136,10 +136,10 @@ export default function APIDocsPage() {
 
           {/* Quick Start */}
           <section id="quickstart">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#2563EB]/10 border border-[#2563EB]/20 text-xs text-[#2563EB] mb-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0c7aed]/10 border border-[#0c7aed]/20 text-xs text-[#0c7aed] mb-4">
               <Terminal size={12} /> Quick Start
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-3" style={{ fontFamily: 'Syne, sans-serif' }}>
+            <h1 className="text-3xl font-bold text-gray-900 mb-3" style={{ fontFamily: 'Inter, sans-serif' }}>
               Tulip DS API
             </h1>
             <p className="text-gray-500 text-base mb-8 max-w-2xl">
@@ -160,18 +160,18 @@ export default function APIDocsPage() {
               ))}
             </div>
 
-            <h2 className="text-lg font-semibold text-gray-900 mb-3" style={{ fontFamily: 'Syne, sans-serif' }}>
+            <h2 className="text-lg font-semibold text-gray-900 mb-3" style={{ fontFamily: 'Inter, sans-serif' }}>
               1. Get your API key
             </h2>
             <p className="text-gray-500 text-sm mb-4">Sign in to your NGO dashboard and create an API key under Settings → API Keys.</p>
 
-            <h2 className="text-lg font-semibold text-gray-900 mb-3 mt-6" style={{ fontFamily: 'Syne, sans-serif' }}>
+            <h2 className="text-lg font-semibold text-gray-900 mb-3 mt-6" style={{ fontFamily: 'Inter, sans-serif' }}>
               2. Make your first request
             </h2>
             <CodeBlock language="bash" code={`curl https://api.tulipds.com/api/verify/YOUR_HASH \\
   -H "X-API-Key: tulip_live_xxxxxxxxxxxx"`} />
 
-            <h2 className="text-lg font-semibold text-gray-900 mb-3 mt-6" style={{ fontFamily: 'Syne, sans-serif' }}>
+            <h2 className="text-lg font-semibold text-gray-900 mb-3 mt-6" style={{ fontFamily: 'Inter, sans-serif' }}>
               3. Or use the SDK
             </h2>
             <CodeBlock language="javascript" code={`import Tulip from 'tulip-js'
@@ -192,12 +192,12 @@ console.log(entry.dataHash)
 
           {/* Authentication */}
           <section id="auth">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#2563EB]/10 border border-[#2563EB]/20 text-xs text-[#2563EB] mb-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0c7aed]/10 border border-[#0c7aed]/20 text-xs text-[#0c7aed] mb-4">
               <Key size={12} /> Authentication
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-3" style={{ fontFamily: 'Syne, sans-serif' }}>Authentication</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3" style={{ fontFamily: 'Inter, sans-serif' }}>Authentication</h2>
             <p className="text-gray-500 text-sm mb-6">
-              All API requests must include your API key in the <code className="text-[#2563EB] bg-gray-50 px-1.5 py-0.5 rounded text-xs">X-API-Key</code> header.
+              All API requests must include your API key in the <code className="text-[#0c7aed] bg-gray-50 px-1.5 py-0.5 rounded text-xs">X-API-Key</code> header.
               Public endpoints (verify, donor portal) require no authentication.
             </p>
 
@@ -211,14 +211,14 @@ curl https://api.tulipds.com/api/audit \\
               <div className="text-xs text-gray-500">Never expose API keys in client-side code or public repositories. Use environment variables.</div>
             </div>
 
-            <h3 className="text-base font-semibold text-gray-900 mt-6 mb-3" style={{ fontFamily: 'Syne, sans-serif' }}>API Key format</h3>
+            <h3 className="text-base font-semibold text-gray-900 mt-6 mb-3" style={{ fontFamily: 'Inter, sans-serif' }}>API Key format</h3>
             <div className="space-y-2">
               <div className="flex items-center gap-3 text-sm">
-                <code className="text-[#2563EB] font-mono bg-gray-50 px-2 py-1 rounded text-xs">tulip_live_</code>
+                <code className="text-[#0c7aed] font-mono bg-gray-50 px-2 py-1 rounded text-xs">tulip_live_</code>
                 <span className="text-gray-500">Production key — real blockchain anchors</span>
               </div>
               <div className="flex items-center gap-3 text-sm">
-                <code className="text-[#2563EB] font-mono bg-gray-50 px-2 py-1 rounded text-xs">tulip_test_</code>
+                <code className="text-[#0c7aed] font-mono bg-gray-50 px-2 py-1 rounded text-xs">tulip_test_</code>
                 <span className="text-gray-500">Test key — Amoy testnet, no real cost</span>
               </div>
             </div>
@@ -226,10 +226,10 @@ curl https://api.tulipds.com/api/audit \\
 
           {/* Verify API */}
           <section id="verify">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#2563EB]/10 border border-[#2563EB]/20 text-xs text-[#2563EB] mb-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0c7aed]/10 border border-[#0c7aed]/20 text-xs text-[#0c7aed] mb-4">
               <Shield size={12} /> Verify API
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-3" style={{ fontFamily: 'Syne, sans-serif' }}>Verify API</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3" style={{ fontFamily: 'Inter, sans-serif' }}>Verify API</h2>
             <p className="text-gray-500 text-sm mb-6">
               Public endpoints — no authentication required. Anyone can verify a hash.
             </p>
@@ -272,10 +272,10 @@ curl https://api.tulipds.com/api/audit \\
 
           {/* Audit Log API */}
           <section id="audit">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#2563EB]/10 border border-[#2563EB]/20 text-xs text-[#2563EB] mb-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0c7aed]/10 border border-[#0c7aed]/20 text-xs text-[#0c7aed] mb-4">
               <FileCheck size={12} /> Audit Log API
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-3" style={{ fontFamily: 'Syne, sans-serif' }}>Audit Log API</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3" style={{ fontFamily: 'Inter, sans-serif' }}>Audit Log API</h2>
             <p className="text-gray-500 text-sm mb-6">
               Create and retrieve immutable audit log entries. Every entry is automatically SHA-256 hashed and queued for blockchain anchoring.
             </p>
@@ -327,18 +327,18 @@ const entry = await res.json()
 
           {/* Webhooks */}
           <section id="webhooks">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#2563EB]/10 border border-[#2563EB]/20 text-xs text-[#2563EB] mb-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0c7aed]/10 border border-[#0c7aed]/20 text-xs text-[#0c7aed] mb-4">
               <Webhook size={12} /> Webhooks
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-3" style={{ fontFamily: 'Syne, sans-serif' }}>Webhooks</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3" style={{ fontFamily: 'Inter, sans-serif' }}>Webhooks</h2>
             <p className="text-gray-500 text-sm mb-6">
               Receive real-time notifications when blockchain anchoring completes. Register a URL and we POST to it on every anchor event.
             </p>
 
-            <h3 className="text-sm font-semibold text-gray-900 mb-3" style={{ fontFamily: 'Syne, sans-serif' }}>Event types</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-3" style={{ fontFamily: 'Inter, sans-serif' }}>Event types</h3>
             <div className="grid grid-cols-2 gap-2 mb-6">
               {['audit.anchored', 'audit.failed', 'batch.confirmed', 'document.verified'].map(e => (
-                <code key={e} className="px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs text-[#2563EB] font-mono">{e}</code>
+                <code key={e} className="px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs text-[#0c7aed] font-mono">{e}</code>
               ))}
             </div>
 
@@ -368,17 +368,17 @@ const entry = await res.json()
 
           {/* SDK */}
           <section id="sdk">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#2563EB]/10 border border-[#2563EB]/20 text-xs text-[#2563EB] mb-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0c7aed]/10 border border-[#0c7aed]/20 text-xs text-[#0c7aed] mb-4">
               <Terminal size={12} /> JavaScript SDK
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-3" style={{ fontFamily: 'Syne, sans-serif' }}>JavaScript SDK</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3" style={{ fontFamily: 'Inter, sans-serif' }}>JavaScript SDK</h2>
             <p className="text-gray-500 text-sm mb-6">
-              The official <code className="text-[#2563EB] bg-gray-50 px-1 rounded text-xs">tulip-js</code> SDK wraps the REST API with a clean interface for Node.js and browser environments.
+              The official <code className="text-[#0c7aed] bg-gray-50 px-1 rounded text-xs">tulip-js</code> SDK wraps the REST API with a clean interface for Node.js and browser environments.
             </p>
 
             <CodeBlock language="bash" code={`npm install tulip-js`} />
 
-            <h3 className="text-sm font-semibold text-gray-900 mt-6 mb-3" style={{ fontFamily: 'Syne, sans-serif' }}>Full example</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mt-6 mb-3" style={{ fontFamily: 'Inter, sans-serif' }}>Full example</h3>
             <CodeBlock language="javascript" code={`import Tulip from 'tulip-js'
 
 const tulip = new Tulip({
@@ -403,10 +403,10 @@ const log = await tulip.audit.list({ limit: 10 })
 log.items.forEach(e => console.log(e.dataHash))`} />
 
             {/* CTA */}
-            <div className="mt-10 rounded-2xl border border-[#2563EB]/20 p-8 text-center"
+            <div className="mt-10 rounded-2xl border border-[#0c7aed]/20 p-8 text-center"
               style={{ background: 'linear-gradient(135deg, rgba(12,122,237,0.05), rgba(0,78,168,0.05))' }}>
-              <Shield size={28} className="text-[#2563EB] mx-auto mb-3" />
-              <h3 className="font-bold text-gray-900 text-lg mb-2" style={{ fontFamily: 'Syne, sans-serif' }}>
+              <Shield size={28} className="text-[#0c7aed] mx-auto mb-3" />
+              <h3 className="font-bold text-gray-900 text-lg mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
                 Ready to integrate?
               </h3>
               <p className="text-gray-500 text-sm max-w-sm mx-auto mb-5">
@@ -415,7 +415,7 @@ log.items.forEach(e => console.log(e.dataHash))`} />
               <div className="flex items-center justify-center gap-3">
                 <Link href="/dashboard/api-keys"
                   className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white"
-                  style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+                  style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
                   <Key size={15} /> Get API Key
                 </Link>
                 <Link href="https://github.com/tulipds" target="_blank"

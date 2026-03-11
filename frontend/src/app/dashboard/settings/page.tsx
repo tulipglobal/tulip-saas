@@ -158,19 +158,19 @@ export default function SettingsPage() {
 
   if (loading) return (
     <div className="p-6 animate-fade-up">
-      <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>Settings</h1>
+      <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>Settings</h1>
       <p className="text-gray-400 text-sm mt-4">Loading...</p>
     </div>
   )
 
-  const inputClass = 'w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50 focus:ring-1 focus:ring-[#2563EB]/30 transition-all'
+  const inputClass = 'w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 focus:ring-1 focus:ring-[#0c7aed]/30 transition-all'
 
   return (
     <div className="p-6 space-y-6 animate-fade-up max-w-3xl">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       <div>
-        <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>Settings</h1>
+        <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>Settings</h1>
         <p className="text-gray-500 text-sm mt-1">Account and organisation settings</p>
       </div>
 
@@ -178,7 +178,7 @@ export default function SettingsPage() {
       <div className="rounded-xl border border-gray-200 px-5 py-5 space-y-4" style={{ background: '#FFFFFF' }}>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
-            style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
             {profile?.name?.charAt(0)?.toUpperCase() ?? 'U'}
           </div>
           <div>
@@ -197,7 +197,7 @@ export default function SettingsPage() {
         </div>
         <div className="flex items-center gap-3 pt-1">
           <button onClick={saveProfile} disabled={savingProfile}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#2563EB] text-white hover:bg-[#2563EB]/80 disabled:opacity-50 transition-all">
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#0c7aed] text-white hover:bg-[#0c7aed]/80 disabled:opacity-50 transition-all">
             <Save size={14} />
             {savingProfile ? 'Saving...' : 'Save Profile'}
           </button>
@@ -226,7 +226,7 @@ export default function SettingsPage() {
           </div>
         </div>
         <button onClick={savePassword} disabled={savingPassword || !currentPassword || !newPassword}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#2563EB] text-white hover:bg-[#2563EB]/80 disabled:opacity-50 transition-all">
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#0c7aed] text-white hover:bg-[#0c7aed]/80 disabled:opacity-50 transition-all">
           <Save size={14} />
           {savingPassword ? 'Saving...' : 'Change Password'}
         </button>
@@ -262,7 +262,7 @@ export default function SettingsPage() {
         </div>
         <div className="flex items-center gap-3 pt-1">
           <button onClick={saveOrg} disabled={savingOrg}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#2563EB] text-white hover:bg-[#2563EB]/80 disabled:opacity-50 transition-all">
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#0c7aed] text-white hover:bg-[#0c7aed]/80 disabled:opacity-50 transition-all">
             <Save size={14} />
             {savingOrg ? 'Saving...' : 'Save Organisation'}
           </button>

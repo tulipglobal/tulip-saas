@@ -78,14 +78,14 @@ export default function ApiKeysPage() {
 
   if (loading) return (
     <div className="p-6 animate-fade-up">
-      <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>API Keys</h1>
+      <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>API Keys</h1>
       <p className="text-gray-400 text-sm mt-4">Loading...</p>
     </div>
   )
 
   if (error && keys.length === 0) return (
     <div className="p-6 animate-fade-up">
-      <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>API Keys</h1>
+      <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>API Keys</h1>
       <div className="mt-6 rounded-xl border border-red-400/20 bg-red-400/5 px-5 py-4">
         <p className="text-red-400 text-sm">{error}</p>
       </div>
@@ -96,7 +96,7 @@ export default function ApiKeysPage() {
     <div className="p-6 space-y-6 animate-fade-up">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>API Keys</h1>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>API Keys</h1>
           <p className="text-gray-500 text-sm mt-1">Manage programmatic access to the Tulip API</p>
         </div>
       </div>
@@ -129,7 +129,7 @@ export default function ApiKeysPage() {
         />
         <button onClick={handleCreate} disabled={creating || !newKeyName.trim()}
           className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white disabled:opacity-40"
-          style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+          style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
           <Plus size={16} />
           {creating ? 'Creating...' : 'Create Key'}
         </button>

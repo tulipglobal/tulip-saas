@@ -42,7 +42,7 @@ const jsonLd = {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+    <div className="min-h-screen" style={{ fontFamily: 'Inter, sans-serif' }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       {/* NAV */}
@@ -52,8 +52,8 @@ export default function HomePage() {
             <div className="w-8 h-8 rounded-lg tulip-gradient flex items-center justify-center">
               <Shield className="w-4 h-4 text-gray-900" />
             </div>
-            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px', color: 'white' }}>
-              tulip<span style={{ color: '#2563EB' }}>ds</span>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: 'white' }}>
+              tulip<span style={{ color: '#0c7aed' }}>ds</span>
             </span>
           </div>
           <div className="hidden md:flex items-center gap-8">
@@ -88,7 +88,7 @@ export default function HomePage() {
             </div>
 
             <h1 className="animate-fade-up-delay-1"
-              style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 'clamp(40px, 6vw, 72px)', color: 'white', lineHeight: 1.1, letterSpacing: '-0.03em' }}>
+              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: 'clamp(40px, 6vw, 72px)', color: 'white', lineHeight: 1.1, letterSpacing: '-0.03em' }}>
               Every Document. Blockchain Verified. Forever.
               
             </h1>
@@ -139,8 +139,8 @@ export default function HomePage() {
             { value: '100%', label: 'GDPR compliant', suffix: '' },
           ].map(stat => (
             <div key={stat.label} className="text-center">
-              <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '36px', color: 'white' }}>
-                {stat.value}<span style={{ color: '#2563EB' }}>{stat.suffix}</span>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '36px', color: 'white' }}>
+                {stat.value}<span style={{ color: '#0c7aed' }}>{stat.suffix}</span>
               </p>
               <p style={{ color: '#64748b', fontSize: '13px', marginTop: '4px' }}>{stat.label}</p>
             </div>
@@ -152,8 +152,8 @@ export default function HomePage() {
       <section className="bg-[#F9FAFB] py-24">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            <p style={{ color: '#2563EB', fontSize: '13px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Three products. One platform.</p>
-            <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 'clamp(28px, 4vw, 48px)', color: 'white', marginTop: '12px', letterSpacing: '-0.02em' }}>
+            <p style={{ color: '#0c7aed', fontSize: '13px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Three products. One platform.</p>
+            <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: 'clamp(28px, 4vw, 48px)', color: 'white', marginTop: '12px', letterSpacing: '-0.02em' }}>
               Built for transparency at scale
             </h2>
           </div>
@@ -167,7 +167,7 @@ export default function HomePage() {
                 desc: 'Project management, expense tracking, and verified impact reporting for NGOs. Every record anchored to blockchain automatically.',
                 href: '/dashboard',
                 cta: 'Manage your NGO',
-                color: '#2563EB',
+                color: '#0c7aed',
               },
               {
                 icon: <Shield className="w-6 h-6" />,
@@ -197,7 +197,7 @@ export default function HomePage() {
                 <p style={{ color: product.color, fontSize: '11px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                   {product.tag}
                 </p>
-                <h3 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '22px', color: 'white', marginTop: '6px' }}>
+                <h3 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '22px', color: 'white', marginTop: '6px' }}>
                   {product.title}
                 </h3>
                 <p style={{ color: '#64748b', fontSize: '14px', lineHeight: 1.6, marginTop: '8px' }}>
@@ -219,7 +219,7 @@ export default function HomePage() {
       <section className="bg-[#F9FAFB] py-24 border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 'clamp(28px, 4vw, 48px)', color: 'white', letterSpacing: '-0.02em' }}>
+            <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: 'clamp(28px, 4vw, 48px)', color: 'white', letterSpacing: '-0.02em' }}>
               How verification works
             </h2>
           </div>
@@ -234,10 +234,10 @@ export default function HomePage() {
                 <div className="w-12 h-12 rounded-full border border-blue-500/30 bg-blue-500/10 flex items-center justify-center mx-auto mb-4 text-blue-400">
                   {step.icon}
                 </div>
-                <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '11px', color: '#2563EB', letterSpacing: '0.1em' }}>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '11px', color: '#0c7aed', letterSpacing: '0.1em' }}>
                   STEP {step.step}
                 </p>
-                <h3 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px', color: 'white', marginTop: '6px' }}>
+                <h3 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: 'white', marginTop: '6px' }}>
                   {step.title}
                 </h3>
                 <p style={{ color: '#64748b', fontSize: '14px', lineHeight: 1.6, marginTop: '6px' }}>
@@ -252,7 +252,7 @@ export default function HomePage() {
       {/* CTA */}
       <section className="tulip-mesh py-24">
         <div className="max-w-3xl mx-auto px-6 text-center">
-          <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 'clamp(28px, 4vw, 48px)', color: 'white', letterSpacing: '-0.02em' }}>
+          <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: 'clamp(28px, 4vw, 48px)', color: 'white', letterSpacing: '-0.02em' }}>
             Ready to prove your integrity?
           </h2>
           <p style={{ color: '#6B7280', fontSize: '18px', marginTop: '16px', lineHeight: 1.7 }}>
@@ -280,8 +280,8 @@ export default function HomePage() {
               <div className="w-7 h-7 rounded-lg tulip-gradient flex items-center justify-center">
                 <Shield className="w-3.5 h-3.5 text-gray-900" />
               </div>
-              <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, color: 'white', fontSize: '16px' }}>
-                tulip<span style={{ color: '#2563EB' }}>ds</span>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, color: 'white', fontSize: '16px' }}>
+                tulip<span style={{ color: '#0c7aed' }}>ds</span>
               </span>
             </div>
             <p style={{ color: '#334155', fontSize: '13px', textAlign: 'center' }}>

@@ -103,7 +103,7 @@ function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50 transition-all [&>option]:bg-white"
+const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all [&>option]:bg-white"
 
 export default function BudgetDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -175,7 +175,7 @@ export default function BudgetDetailPage() {
         </Link>
         <div className="flex-1">
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>{budget.name}</h1>
+            <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>{budget.name}</h1>
             {editingStatus ? (
               <div className="flex items-center gap-1">
                 <select value={newStatus} onChange={e => setNewStatus(e.target.value)}
@@ -211,7 +211,7 @@ export default function BudgetDetailPage() {
           { label: 'Remaining', value: `$${budget.remaining.toLocaleString()}`, color: budget.remaining >= 0 ? 'text-green-400' : 'text-red-400' },
         ].map(({ label, value, sub, color }) => (
           <div key={label} className="rounded-xl border border-gray-200 px-5 py-4" style={{ background: '#FFFFFF' }}>
-            <div className={`text-lg font-bold ${color}`} style={{ fontFamily: 'Syne, sans-serif' }}>
+            <div className={`text-lg font-bold ${color}`} style={{ fontFamily: 'Inter, sans-serif' }}>
               {value} {sub && <span className="text-xs font-normal text-gray-400">{sub}</span>}
             </div>
             <div className="text-xs text-gray-500 mt-1">{label}</div>
@@ -339,14 +339,14 @@ export default function BudgetDetailPage() {
                   </select>
                   <input type="number" min="0" step="0.01" value={newFunding.amount}
                     onChange={e => setNewFunding(p => ({ ...p, amount: e.target.value }))} placeholder="0.00"
-                    className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50 transition-all" />
+                    className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all" />
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <button onClick={handleAddFunding} disabled={addingFunding || !newFunding.sourceType || !newFunding.donorName || !newFunding.amount}
                 className="px-4 py-1.5 rounded-lg text-xs font-medium text-white disabled:opacity-40 transition-all"
-                style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
                 {addingFunding ? 'Adding...' : 'Add Source'}
               </button>
               <button onClick={() => setShowAddFunding(false)} className="px-4 py-1.5 text-xs text-gray-500 hover:text-gray-600">Cancel</button>

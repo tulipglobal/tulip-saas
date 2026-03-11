@@ -99,7 +99,7 @@ function DeliveryLogModal({ webhookId, onClose }: { webhookId: string; onClose: 
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-[#0a1929] border border-gray-200 rounded-none md:rounded-2xl w-full h-full md:h-auto md:max-w-3xl md:max-h-[80vh] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-gray-200">
-          <h3 className="text-gray-900 font-semibold text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>Delivery Log</h3>
+          <h3 className="text-gray-900 font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>Delivery Log</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors"><X size={18} /></button>
         </div>
 
@@ -225,7 +225,7 @@ function WebhookFormModal({ webhook, onClose, onSaved }: {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-[#0a1929] border border-gray-200 rounded-none md:rounded-2xl w-full h-full md:h-auto md:max-w-lg md:max-h-[85vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-gray-200">
-          <h3 className="text-gray-900 font-semibold text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>
+          <h3 className="text-gray-900 font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
             {isEdit ? 'Edit Webhook' : 'Add Webhook'}
           </h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors"><X size={18} /></button>
@@ -242,7 +242,7 @@ function WebhookFormModal({ webhook, onClose, onSaved }: {
             <input
               value={url} onChange={e => setUrl(e.target.value)}
               placeholder="https://your-server.com/webhook"
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 placeholder-white/20 outline-none focus:border-[#2563EB]/40 transition-colors"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 placeholder-white/20 outline-none focus:border-[#0c7aed]/40 transition-colors"
             />
           </div>
 
@@ -252,7 +252,7 @@ function WebhookFormModal({ webhook, onClose, onSaved }: {
             <input
               value={description} onChange={e => setDescription(e.target.value)}
               placeholder="e.g., Slack notifications, Zapier integration"
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 placeholder-white/20 outline-none focus:border-[#2563EB]/40 transition-colors"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 placeholder-white/20 outline-none focus:border-[#0c7aed]/40 transition-colors"
             />
           </div>
 
@@ -261,7 +261,7 @@ function WebhookFormModal({ webhook, onClose, onSaved }: {
             <div className="flex items-center justify-between mb-2">
               <label className="text-gray-500 text-xs font-medium uppercase tracking-wider">Events</label>
               <div className="flex gap-2">
-                <button onClick={selectAll} className="text-[10px] text-[#2563EB] hover:underline">Select All</button>
+                <button onClick={selectAll} className="text-[10px] text-[#0c7aed] hover:underline">Select All</button>
                 <button onClick={deselectAll} className="text-[10px] text-gray-400 hover:underline">Deselect All</button>
               </div>
             </div>
@@ -274,7 +274,7 @@ function WebhookFormModal({ webhook, onClose, onSaved }: {
                       <button key={ev.id} onClick={() => toggleEvent(ev.id)}
                         className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
                           selectedEvents.includes(ev.id)
-                            ? 'bg-blue-50 text-[#2563EB] border-[#2563EB]/30'
+                            ? 'bg-blue-50 text-[#0c7aed] border-[#0c7aed]/30'
                             : 'text-gray-400 border-gray-200 hover:text-gray-500 hover:border-gray-200'
                         }`}>
                         {ev.id}
@@ -291,7 +291,7 @@ function WebhookFormModal({ webhook, onClose, onSaved }: {
           <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-gray-500 hover:text-gray-600 transition-colors">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 rounded-lg text-sm font-medium text-white disabled:opacity-40"
-            style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
             {saving ? 'Saving...' : isEdit ? 'Update' : 'Create Webhook'}
           </button>
         </div>
@@ -374,14 +374,14 @@ export default function WebhooksPage() {
 
   if (loading) return (
     <div className="p-6 animate-fade-up">
-      <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>Webhooks</h1>
+      <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>Webhooks</h1>
       <p className="text-gray-400 text-sm mt-4">Loading...</p>
     </div>
   )
 
   if (error && webhooks.length === 0) return (
     <div className="p-6 animate-fade-up">
-      <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>Webhooks</h1>
+      <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>Webhooks</h1>
       <div className="mt-6 rounded-xl border border-red-400/20 bg-red-400/5 px-5 py-4">
         <p className="text-red-400 text-sm">{error}</p>
       </div>
@@ -394,12 +394,12 @@ export default function WebhooksPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>Webhooks</h1>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>Webhooks</h1>
           <p className="text-gray-500 text-sm mt-1">Receive real-time notifications via HMAC-signed HTTP callbacks</p>
         </div>
         <button onClick={() => setFormModal({ open: true, webhook: null })}
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white self-start"
-          style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+          style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
           <Plus size={16} /> Add Webhook
         </button>
       </div>
@@ -429,7 +429,7 @@ export default function WebhooksPage() {
           <p className="text-gray-300 text-xs mt-1 mb-4">Add your first webhook to start receiving real-time event notifications</p>
           <button onClick={() => setFormModal({ open: true, webhook: null })}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white"
-            style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
             <Plus size={14} /> Add Webhook
           </button>
         </div>
@@ -455,7 +455,7 @@ export default function WebhooksPage() {
                     {wh.active ? <ToggleRight size={16} className="text-emerald-400" /> : <ToggleLeft size={16} />}
                   </button>
                   <button onClick={() => handleTest(wh.id)} disabled={testing === wh.id} title="Send test event"
-                    className="p-1.5 rounded-md text-gray-300 hover:text-[#2563EB] hover:bg-[#2563EB]/10 transition-colors disabled:opacity-30">
+                    className="p-1.5 rounded-md text-gray-300 hover:text-[#0c7aed] hover:bg-[#0c7aed]/10 transition-colors disabled:opacity-30">
                     <Send size={14} />
                   </button>
                   <button onClick={() => setDeliveryModal(wh.id)} title="View delivery log"
@@ -498,14 +498,14 @@ export default function WebhooksPage() {
       <div className="rounded-xl border border-gray-200 p-5" style={{ background: '#FFFFFF' }}>
         <div className="flex items-center gap-2 mb-3">
           <Code size={16} className="text-gray-400" />
-          <h3 className="text-gray-600 text-sm font-semibold" style={{ fontFamily: 'Syne, sans-serif' }}>How to verify webhooks</h3>
+          <h3 className="text-gray-600 text-sm font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>How to verify webhooks</h3>
         </div>
         <p className="text-gray-400 text-xs mb-3 leading-relaxed">
           Each delivery includes a <code className="text-gray-500 bg-gray-50 px-1 rounded">Tulip-Signature</code> header
           in the format <code className="text-gray-500 bg-gray-50 px-1 rounded">t=TIMESTAMP,v1=SIGNATURE</code>.
           Verify it like this:
         </p>
-        <pre className="text-xs text-[#2563EB]/80 bg-[#0c1a2e] border border-gray-100 rounded-lg p-4 overflow-x-auto leading-relaxed">
+        <pre className="text-xs text-[#0c7aed]/80 bg-[#0c1a2e] border border-gray-100 rounded-lg p-4 overflow-x-auto leading-relaxed">
 {`const crypto = require('crypto')
 
 // Parse the Tulip-Signature header

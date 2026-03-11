@@ -226,7 +226,7 @@ export default function BundlePage() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+              style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
               <FolderSearch size={20} />
             </div>
             Bundle Verify
@@ -249,12 +249,12 @@ export default function BundlePage() {
           value={bundleName}
           onChange={(e) => setBundleName(e.target.value)}
           placeholder="Bundle name (optional)"
-          className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-[#2563EB]/40 transition-all"
+          className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-[#0c7aed]/40 transition-all"
         />
         <div
           className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${
             dragActive
-              ? 'border-[#2563EB] bg-[#2563EB]/5'
+              ? 'border-[#0c7aed] bg-[#0c7aed]/5'
               : 'border-gray-200 hover:border-gray-300 bg-white'
           }`}
           onDragOver={(e) => { e.preventDefault(); setDragActive(true) }}
@@ -266,13 +266,13 @@ export default function BundlePage() {
 
           {uploading ? (
             <div className="flex flex-col items-center gap-3">
-              <Loader2 size={32} className="text-[#2563EB] animate-spin" />
+              <Loader2 size={32} className="text-[#0c7aed] animate-spin" />
               <p className="text-gray-600 text-sm">Uploading bundle and starting processing...</p>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-3">
-              <div className="w-14 h-14 rounded-2xl bg-[#2563EB]/10 flex items-center justify-center">
-                <Upload size={24} className="text-[#2563EB]" />
+              <div className="w-14 h-14 rounded-2xl bg-[#0c7aed]/10 flex items-center justify-center">
+                <Upload size={24} className="text-[#0c7aed]" />
               </div>
               <div>
                 <p className="text-gray-700 font-medium">Drop multiple documents here or click to upload</p>
@@ -314,7 +314,7 @@ export default function BundlePage() {
               onClick={() => setSelectedBundle(bundle)}
               className={`w-full text-left p-4 rounded-xl border transition-all ${
                 selectedBundle?.id === bundle.id
-                  ? 'bg-[#2563EB]/10 border-[#2563EB]/30'
+                  ? 'bg-[#0c7aed]/10 border-[#0c7aed]/30'
                   : 'bg-white border-gray-200 hover:bg-gray-50'
               }`}
             >
@@ -397,7 +397,7 @@ export default function BundlePage() {
                 {selectedBundle.bundleHash ? (
                   <div className="mt-3 p-3 rounded-lg bg-gray-50 border border-gray-200">
                     <div className="flex items-center gap-2 text-xs">
-                      <Hash size={12} className="text-[#2563EB]" />
+                      <Hash size={12} className="text-[#0c7aed]" />
                       <span className="text-gray-400">SHA-256</span>
                       <code className="text-gray-500 font-mono text-[11px] break-all">{selectedBundle.bundleHash}</code>
                     </div>
@@ -409,7 +409,7 @@ export default function BundlePage() {
                   <button
                     onClick={() => handleDownloadPdf(selectedBundle.id)}
                     className="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90"
-                    style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}
+                    style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}
                   >
                     <Download size={14} />
                     Download Master Report

@@ -224,7 +224,7 @@ export default function WorkflowPage() {
   return (
     <div className="p-4 md:p-6 space-y-6 animate-fade-up">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>Workflow</h1>
+        <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>Workflow</h1>
         <p className="text-gray-500 text-sm mt-1">Approval tasks for documents & expenses</p>
       </div>
 
@@ -237,7 +237,7 @@ export default function WorkflowPage() {
           { label: 'Rejected', value: summary.rejected, color: 'text-red-400' },
         ].map(({ label, value, color }) => (
           <div key={label} className="rounded-xl border border-gray-200 px-4 py-3" style={{ background: '#FFFFFF' }}>
-            <div className={`text-xl font-bold ${color}`} style={{ fontFamily: 'Syne, sans-serif' }}>{value}</div>
+            <div className={`text-xl font-bold ${color}`} style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
             <div className="text-xs text-gray-500 mt-0.5">{label}</div>
           </div>
         ))}
@@ -249,7 +249,7 @@ export default function WorkflowPage() {
           <button key={key} onClick={() => setTab(key)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
               tab === key
-                ? 'bg-blue-50 text-[#2563EB]'
+                ? 'bg-blue-50 text-[#0c7aed]'
                 : 'text-gray-500 hover:text-gray-600 hover:bg-gray-50'
             }`}>
             {label}

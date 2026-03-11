@@ -72,12 +72,12 @@ export default function BudgetsPage() {
     <div className="p-4 md:p-6 space-y-6 animate-fade-up">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>Budgets</h1>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>Budgets</h1>
           <p className="text-gray-500 text-sm mt-1">{budgets.length} budget{budgets.length !== 1 ? 's' : ''}</p>
         </div>
         <Link href="/dashboard/budgets/new"
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white self-start"
-          style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+          style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
           <Plus size={16} /> New Budget
         </Link>
       </div>
@@ -91,7 +91,7 @@ export default function BudgetsPage() {
           ].map(({ label, value }) => (
             <div key={label} className="rounded-xl border border-gray-200 px-5 py-4"
               style={{ background: '#FFFFFF' }}>
-              <div className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>{value}</div>
+              <div className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
               <div className="text-xs text-gray-500 mt-1">{label}</div>
             </div>
           ))}
@@ -116,7 +116,7 @@ export default function BudgetsPage() {
           <div className="flex flex-col items-center py-16 gap-3">
             <BarChart3 size={32} className="text-gray-300" />
             <p className="text-gray-400 text-sm">No budgets yet</p>
-            <Link href="/dashboard/budgets/new" className="text-[#2563EB] text-sm hover:underline">Create your first budget</Link>
+            <Link href="/dashboard/budgets/new" className="text-[#0c7aed] text-sm hover:underline">Create your first budget</Link>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">

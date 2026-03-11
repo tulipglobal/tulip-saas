@@ -141,7 +141,7 @@ export default function FundingDetailPage() {
   const linkedProjectIds = new Set(agreement.projectFunding.map(pf => pf.project.id))
   const availableProjects = projects.filter(p => !linkedProjectIds.has(p.id))
 
-  const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50 transition-all"
+  const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all"
 
   return (
     <div className="p-6 max-w-5xl mx-auto animate-fade-up">
@@ -286,7 +286,7 @@ export default function FundingDetailPage() {
             </div>
             <button onClick={linkProject}
               className="px-4 py-2.5 rounded-lg text-sm font-medium text-white shrink-0"
-              style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+              style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
               Link
             </button>
           </div>
@@ -362,7 +362,7 @@ export default function FundingDetailPage() {
               </div>
               <button onClick={addRepayment}
                 className="px-4 py-2.5 rounded-lg text-sm font-medium text-white shrink-0"
-                style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
                 Add
               </button>
             </div>

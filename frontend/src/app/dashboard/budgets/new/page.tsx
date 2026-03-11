@@ -43,7 +43,7 @@ function emptyFunding(): FundingSourceForm {
 }
 
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'KES', 'UGX', 'TZS', 'INR', 'NGN', 'ZAR', 'GHS', 'ETB', 'RWF']
-const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50 transition-all [color-scheme:light]"
+const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all [color-scheme:light]"
 
 export default function NewBudgetPage() {
   return (
@@ -189,7 +189,7 @@ function NewBudgetInner() {
           <ArrowLeft size={16} className="text-gray-600" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>New Budget</h1>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>New Budget</h1>
           <p className="text-gray-500 text-sm mt-0.5">Plan your CapEx &amp; OpEx line items</p>
         </div>
       </div>
@@ -279,7 +279,7 @@ function NewBudgetInner() {
                   <div>
                     <label className="text-xs text-gray-500 mb-1 block">Category *</label>
                     <select value={line.category} onChange={e => updateLine(line.key, 'category', e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#2563EB]/50 transition-all [&>option]:bg-white">
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#0c7aed]/50 transition-all [&>option]:bg-white">
                       <option value="">Select...</option>
                       {categoryKeys.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
@@ -288,7 +288,7 @@ function NewBudgetInner() {
                     <label className="text-xs text-gray-500 mb-1 block">Sub-category</label>
                     <select value={line.subCategory} onChange={e => updateLine(line.key, 'subCategory', e.target.value)}
                       disabled={subCategories.length === 0}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#2563EB]/50 transition-all disabled:opacity-40 [&>option]:bg-white">
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#0c7aed]/50 transition-all disabled:opacity-40 [&>option]:bg-white">
                       <option value="">Select...</option>
                       {subCategories.map((s: string) => <option key={s} value={s}>{s}</option>)}
                     </select>
@@ -302,14 +302,14 @@ function NewBudgetInner() {
                       </select>
                       <input type="number" min="0" step="0.01" value={line.approvedAmount}
                         onChange={e => updateLine(line.key, 'approvedAmount', e.target.value)} placeholder="0.00"
-                        className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50 transition-all" />
+                        className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all" />
                     </div>
                   </div>
                 </div>
                 <div>
                   <label className="text-xs text-gray-500 mb-1 block">Description</label>
                   <input value={line.description} onChange={e => updateLine(line.key, 'description', e.target.value)}
-                    placeholder="Optional line item description..." className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50 transition-all" />
+                    placeholder="Optional line item description..." className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all" />
                 </div>
               </div>
             )
@@ -344,7 +344,7 @@ function NewBudgetInner() {
                   <div>
                     <label className="text-xs text-gray-500 mb-1 block">Source Type *</label>
                     <select value={fs.sourceType} onChange={e => updateFunding(fs.key, 'sourceType', e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#2563EB]/50 transition-all [&>option]:bg-white">
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#0c7aed]/50 transition-all [&>option]:bg-white">
                       <option value="">Select...</option>
                       {FUNDING_SOURCE_TYPE_KEYS.map(t => <option key={t} value={t}>{t}</option>)}
                     </select>
@@ -353,7 +353,7 @@ function NewBudgetInner() {
                     <label className="text-xs text-gray-500 mb-1 block">Sub-Type</label>
                     <select value={fs.sourceSubType} onChange={e => updateFunding(fs.key, 'sourceSubType', e.target.value)}
                       disabled={subTypes.length === 0}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#2563EB]/50 transition-all disabled:opacity-40 [&>option]:bg-white">
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#0c7aed]/50 transition-all disabled:opacity-40 [&>option]:bg-white">
                       <option value="">Select...</option>
                       {subTypes.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
@@ -362,7 +362,7 @@ function NewBudgetInner() {
                     <label className="text-xs text-gray-500 mb-1 block">Donor Name *</label>
                     <input value={fs.donorName} onChange={e => updateFunding(fs.key, 'donorName', e.target.value)}
                       placeholder="e.g. USAID, Gates Foundation"
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50 transition-all" />
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all" />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -375,7 +375,7 @@ function NewBudgetInner() {
                       </select>
                       <input type="number" min="0" step="0.01" value={fs.amount}
                         onChange={e => updateFunding(fs.key, 'amount', e.target.value)} placeholder="0.00"
-                        className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50 transition-all" />
+                        className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all" />
                     </div>
                   </div>
                 </div>
@@ -419,7 +419,7 @@ function NewBudgetInner() {
           )}
           <button onClick={handleSubmit} disabled={saving}
             className="px-6 py-2.5 rounded-lg text-sm font-medium text-white disabled:opacity-50 transition-all"
-            style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
             {saving ? 'Creating...' : 'Create Budget'}
           </button>
         </div>

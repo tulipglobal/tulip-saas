@@ -126,15 +126,15 @@ export default function EmbedPage() {
     <div className="p-6 space-y-6 animate-fade-up max-w-4xl">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>Embed Badge</h1>
+        <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>Embed Badge</h1>
         <p className="text-gray-500 text-sm mt-1">Add a verification badge to any website to prove your documents are blockchain-verified.</p>
       </div>
 
       {/* Quick start */}
       <div className="rounded-xl border border-gray-200 p-5 space-y-4" style={{ background: '#FFFFFF' }}>
         <div className="flex items-center gap-2">
-          <Code2 size={18} className="text-[#2563EB]" />
-          <h2 className="text-gray-900 font-semibold text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>Quick Start</h2>
+          <Code2 size={18} className="text-[#0c7aed]" />
+          <h2 className="text-gray-900 font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>Quick Start</h2>
         </div>
         <p className="text-gray-500 text-sm">Paste this snippet into any HTML page. Replace <code className="text-gray-600 bg-gray-50 px-1.5 py-0.5 rounded text-xs">YOUR_DOCUMENT_HASH</code> with a SHA-256 hash from your verified documents.</p>
         <CodeBlock code={genericSnippet} label="HTML" />
@@ -142,7 +142,7 @@ export default function EmbedPage() {
 
       {/* Options */}
       <div className="rounded-xl border border-gray-200 p-5 space-y-4" style={{ background: '#FFFFFF' }}>
-        <h2 className="text-gray-900 font-semibold text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>Options</h2>
+        <h2 className="text-gray-900 font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>Options</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -176,8 +176,8 @@ export default function EmbedPage() {
       {/* Live preview */}
       <div className="rounded-xl border border-gray-200 p-5 space-y-4" style={{ background: '#FFFFFF' }}>
         <div className="flex items-center gap-2">
-          <Eye size={18} className="text-[#2563EB]" />
-          <h2 className="text-gray-900 font-semibold text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>Live Preview</h2>
+          <Eye size={18} className="text-[#0c7aed]" />
+          <h2 className="text-gray-900 font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>Live Preview</h2>
         </div>
 
         {/* Controls */}
@@ -205,7 +205,7 @@ export default function EmbedPage() {
             <div className="flex gap-1">
               {(['light', 'dark'] as const).map(t => (
                 <button key={t} onClick={() => setTheme(t)}
-                  className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${theme === t ? 'bg-[#2563EB]/20 border-[#2563EB]/40 text-[#2563EB]' : 'bg-gray-50 border-gray-200 text-gray-500 hover:text-gray-600'}`}>
+                  className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${theme === t ? 'bg-[#0c7aed]/20 border-[#0c7aed]/40 text-[#0c7aed]' : 'bg-gray-50 border-gray-200 text-gray-500 hover:text-gray-600'}`}>
                   {t.charAt(0).toUpperCase() + t.slice(1)}
                 </button>
               ))}
@@ -216,7 +216,7 @@ export default function EmbedPage() {
             <div className="flex gap-1">
               {(['default', 'compact'] as const).map(s => (
                 <button key={s} onClick={() => setSize(s)}
-                  className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${size === s ? 'bg-[#2563EB]/20 border-[#2563EB]/40 text-[#2563EB]' : 'bg-gray-50 border-gray-200 text-gray-500 hover:text-gray-600'}`}>
+                  className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${size === s ? 'bg-[#0c7aed]/20 border-[#0c7aed]/40 text-[#0c7aed]' : 'bg-gray-50 border-gray-200 text-gray-500 hover:text-gray-600'}`}>
                   {s.charAt(0).toUpperCase() + s.slice(1)}
                 </button>
               ))}

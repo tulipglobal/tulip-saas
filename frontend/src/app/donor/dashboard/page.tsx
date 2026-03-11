@@ -191,7 +191,7 @@ function AgreementCard({ agreement, documents, token }: {
       >
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="text-gray-900 font-semibold text-sm truncate" style={{ fontFamily: 'Syne, sans-serif' }}>
+            <h3 className="text-gray-900 font-semibold text-sm truncate" style={{ fontFamily: 'Inter, sans-serif' }}>
               {agreement.title}
             </h3>
             <StatusBadge status={agreement.status} />
@@ -692,7 +692,7 @@ export default function DonorDashboardPage() {
   /* ---------------------------------------------------------------- */
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB]" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+    <div className="min-h-screen bg-[#F9FAFB]" style={{ fontFamily: 'Inter, sans-serif' }}>
 
       {/* ── Nav ── */}
       <nav className="border-b border-gray-200 bg-white/95 backdrop-blur-md sticky top-0 z-50">
@@ -703,7 +703,7 @@ export default function DonorDashboardPage() {
                 style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
                 <Shield className="w-4 h-4 text-gray-900" />
               </div>
-              <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px', color: 'white' }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: 'white' }}>
                 tulip<span style={{ color: '#34d399' }}>ds</span>
               </span>
             </Link>
@@ -726,7 +726,7 @@ export default function DonorDashboardPage() {
 
         {/* ── Header ── */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
             Welcome, {user?.firstName || 'Donor'}
           </h1>
           <p className="text-gray-500 text-sm mt-1">
@@ -756,7 +756,7 @@ export default function DonorDashboardPage() {
                     </div>
                     <span className="text-gray-400 text-xs font-medium">{label}</span>
                   </div>
-                  <div className="text-lg font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>{value}</div>
+                  <div className="text-lg font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
                 </div>
               ))}
             </div>

@@ -1,9 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-display: 'Syne', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
+  --font-display: 'Inter', sans-serif;
+  --font-body: 'Inter', sans-serif;
 }
 
 :root {
@@ -11,7 +11,7 @@
   --foreground: 222 47% 11%;
   --border: 214 32% 91%;
   --input: 214 32% 91%;
-  --ring: 214 100% 49%;
+  --ring: 211 93% 49%;
   --radius: 0.5rem;
 }
 
@@ -20,24 +20,23 @@
 body {
   background: hsl(var(--background));
   color: hsl(var(--foreground));
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Syne', sans-serif;
-  letter-spacing: -0.02em;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 .tulip-gradient {
-  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+  background: linear-gradient(135deg, #0c7aed 0%, #004ea8 100%);
 }
 
 .tulip-mesh {
   background-color: #F9FAFB;
   background-image:
-    radial-gradient(at 20% 20%, rgba(37,99,235,0.06) 0px, transparent 60%),
-    radial-gradient(at 80% 80%, rgba(37,99,235,0.04) 0px, transparent 60%);
+    radial-gradient(at 20% 20%, rgba(12,122,237,0.06) 0px, transparent 60%),
+    radial-gradient(at 80% 80%, rgba(12,122,237,0.04) 0px, transparent 60%);
 }
 
 .hash-mono {

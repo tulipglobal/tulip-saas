@@ -45,7 +45,7 @@ function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     confirmed:  'bg-green-400/10 text-green-400 border-green-400/20',
     pending:    'bg-yellow-400/10 text-yellow-400 border-yellow-400/20',
-    processing: 'bg-blue-400/10 text-[#2563EB] border-blue-400/20',
+    processing: 'bg-blue-400/10 text-[#0c7aed] border-blue-400/20',
     failed:     'bg-red-400/10 text-red-400 border-red-400/20',
   }
   return (
@@ -129,13 +129,13 @@ export default function AuditPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>Audit Log</h1>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>Audit Log</h1>
           <p className="text-gray-500 text-sm mt-1">{total} entries — immutable blockchain hash chain</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setShowExport(true)}
             className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90 transition-opacity"
-            style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
             <Download size={14} />
             Export
           </button>
@@ -152,8 +152,8 @@ export default function AuditPage() {
         <div className="rounded-xl border border-gray-200 p-5 space-y-5" style={{ background: '#FFFFFF' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <FileArchive size={18} className="text-[#2563EB]" />
-              <h3 className="text-gray-900 font-semibold text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>Export Audit Log</h3>
+              <FileArchive size={18} className="text-[#0c7aed]" />
+              <h3 className="text-gray-900 font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>Export Audit Log</h3>
             </div>
             <button onClick={() => setShowExport(false)} className="text-gray-400 hover:text-gray-900 transition-colors">
               <X size={16} />
@@ -204,7 +204,7 @@ export default function AuditPage() {
             {/* Include files toggle */}
             <label className="flex items-center gap-2.5 cursor-pointer select-none">
               <button onClick={() => setExportOpts(o => ({ ...o, includeFiles: !o.includeFiles }))}
-                className={`w-9 h-5 rounded-full transition-colors relative ${exportOpts.includeFiles ? 'bg-[#2563EB]' : 'bg-gray-100'}`}>
+                className={`w-9 h-5 rounded-full transition-colors relative ${exportOpts.includeFiles ? 'bg-[#0c7aed]' : 'bg-gray-100'}`}>
                 <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${exportOpts.includeFiles ? 'left-[18px]' : 'left-0.5'}`} />
               </button>
               <span className="text-gray-500 text-sm">Include document files in ZIP</span>
@@ -212,7 +212,7 @@ export default function AuditPage() {
 
             <button onClick={doExport} disabled={exporting}
               className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white hover:opacity-90 transition-opacity disabled:opacity-50"
-              style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+              style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
               {exporting ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               {exporting ? 'Exporting…' : 'Download ZIP'}
             </button>
@@ -232,7 +232,7 @@ export default function AuditPage() {
           {['all', 'confirmed', 'pending', 'failed'].map(f => (
             <button key={f} onClick={() => setFilter(f)}
               className={`px-3 py-1.5 rounded-md text-xs font-medium capitalize transition-all ${
-                filter === f ? 'bg-[#2563EB] text-white' : 'text-gray-500 hover:text-gray-900'
+                filter === f ? 'bg-[#0c7aed] text-white' : 'text-gray-500 hover:text-gray-900'
               }`}>
               {f}
             </button>
@@ -277,7 +277,7 @@ export default function AuditPage() {
                 </div>
                 <div className="flex items-center gap-1">
                   <Link href={`/verify?hash=${entry.dataHash}`} target="_blank"
-                    className="text-gray-300 hover:text-[#2563EB] transition-colors" title="Verify">
+                    className="text-gray-300 hover:text-[#0c7aed] transition-colors" title="Verify">
                     <Shield size={13} />
                   </Link>
                 </div>

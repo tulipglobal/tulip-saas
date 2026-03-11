@@ -171,18 +171,18 @@ export default function SetupWizardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#070B0F]" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="min-h-screen bg-[#070B0F]" style={{ fontFamily: "'Inter', sans-serif" }}>
 
       {/* Top bar */}
       <div className="border-b border-white/6 bg-[#0C1117]/80 backdrop-blur-md">
         <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+              style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
               <Building2 className="w-3.5 h-3.5 text-gray-900" />
             </div>
-            <span className="text-gray-900 font-bold text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>
-              tulip<span style={{ color: '#2563EB' }}>ds</span>
+            <span className="text-gray-900 font-bold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
+              tulip<span style={{ color: '#0c7aed' }}>ds</span>
             </span>
             {tenantName && (
               <>
@@ -242,7 +242,7 @@ export default function SetupWizardPage() {
         {/* Step 1: Organisation Details */}
         {step === 1 && (
           <div className="animate-in">
-            <h1 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Syne, sans-serif' }}>
+            <h1 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
               Organisation Details
             </h1>
             <p className="text-gray-500 text-sm mb-8">Tell us a bit about your organisation. You can update this later in settings.</p>
@@ -332,7 +332,7 @@ export default function SetupWizardPage() {
               </button>
               <button onClick={handleOrgSubmit} disabled={loading}
                 className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-white text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
-                style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Save & Continue</span><ChevronRight className="w-4 h-4" /></>}
               </button>
             </div>
@@ -342,7 +342,7 @@ export default function SetupWizardPage() {
         {/* Step 2: First Project */}
         {step === 2 && (
           <div className="animate-in">
-            <h1 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Syne, sans-serif' }}>
+            <h1 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
               Create Your First Project
             </h1>
             <p className="text-gray-500 text-sm mb-8">Projects help you organise expenses, documents, and funding sources.</p>
@@ -389,7 +389,7 @@ export default function SetupWizardPage() {
               </button>
               <button onClick={handleProjectSubmit} disabled={loading}
                 className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-white text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
-                style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Create Project</span><ChevronRight className="w-4 h-4" /></>}
               </button>
             </div>
@@ -399,7 +399,7 @@ export default function SetupWizardPage() {
         {/* Step 3: Invite Team */}
         {step === 3 && (
           <div className="animate-in">
-            <h1 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Syne, sans-serif' }}>
+            <h1 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
               Invite Your Team
             </h1>
             <p className="text-gray-500 text-sm mb-8">Add up to 3 colleagues. They&apos;ll receive an email invitation to join your workspace.</p>
@@ -441,7 +441,7 @@ export default function SetupWizardPage() {
               </button>
               <button onClick={handleInviteSubmit} disabled={loading}
                 className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-white text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
-                style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
+                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Send Invitations</span><ChevronRight className="w-4 h-4" /></>}
               </button>
             </div>
@@ -455,7 +455,7 @@ export default function SetupWizardPage() {
               style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.15), rgba(5,150,105,0.15))', border: '1px solid rgba(16,185,129,0.25)' }}>
               <Rocket className="w-9 h-9 text-emerald-400" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Syne, sans-serif' }}>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
               Your workspace is ready!
             </h1>
             <p className="text-gray-500 text-sm mb-8 max-w-md mx-auto">

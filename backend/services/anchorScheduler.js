@@ -13,6 +13,7 @@ const { stampPendingLogs }        = require('./timestampService')
 const { checkTrialExpirations }  = require('./emailNotificationService')
 const { checkDocumentExpiry }   = require('../jobs/expiryAlerts')
 const { runEngagementEmails }  = require('./engagementEmailService')
+const { retryFailedAnchors }   = require('./anchorRetryService')
 const logger  = require('../lib/logger')
 
 function startAnchorScheduler() {
@@ -79,7 +80,18 @@ function startAnchorScheduler() {
     } catch (err) { logger.error('Engagement email job failed', { error: err.message }) }
   })
 
+  // Anchor retry worker — every 5 minutes (retries failed seal anchors)
+  cron.schedule('*/5 * * * *', async () => {
+    try {
+      const result = await retryFailedAnchors()
+      if (result.retried > 0 || result.alerted > 0) {
+        logger.info('[anchor-retry] Complete', result)
+      }
+    } catch (err) { logger.error('Anchor retry failed', { error: err.message }) }
+  })
+
   logger.info('Blockchain anchor scheduler started (every 5 minutes)')
+  logger.info('Anchor retry worker started (every 5 minutes)')
   logger.info('Webhook retry worker started (every 5 minutes)')
   logger.info('RFC 3161 timestamp job started (every 10 minutes)')
   logger.info('Refresh token cleanup scheduled (daily 3am)')

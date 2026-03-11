@@ -40,6 +40,16 @@ module.exports = function tenantClient(tenantId) {
       count:     (args = {}) => prisma.document.count({ ...args, where: { ...args.where, tenantId } }),
     },
 
+    budget: {
+      findMany:  (args = {}) => prisma.budget.findMany({ ...args, where: { ...args.where, tenantId } }),
+      findFirst: (args = {}) => prisma.budget.findFirst({ ...args, where: { ...args.where, tenantId } }),
+      findUnique:(args = {}) => prisma.budget.findUnique(args),
+      create:    (args = {}) => prisma.budget.create({ ...args, data: { ...args.data, tenantId } }),
+      update:    (args = {}) => prisma.budget.update(args),
+      delete:    (args = {}) => prisma.budget.delete(args),
+      count:     (args = {}) => prisma.budget.count({ ...args, where: { ...args.where, tenantId } }),
+    },
+
     fundingAgreement: {
       findMany:  (args = {}) => prisma.fundingAgreement.findMany({ ...args, where: { ...args.where, tenantId } }),
       findFirst: (args = {}) => prisma.fundingAgreement.findFirst({ ...args, where: { ...args.where, tenantId } }),

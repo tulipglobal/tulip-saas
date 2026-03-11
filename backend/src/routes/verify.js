@@ -77,6 +77,12 @@ router.get('/document/:id/view', async (req, res) => {
  */
 router.get('/batch/:batchId', async (req, res) => {
   const { batchId } = req.params
+
+  // Sanitize: accept only 64 lowercase hex characters
+  if (!/^[a-f0-9]{64}$/.test(batchId)) {
+    return res.status(400).json({ verified: false, error: 'Invalid batch ID format. Expected 64 hex characters [a-f0-9].' })
+  }
+
   try {
     const records = await prisma.auditLog.findMany({
       where:   { batchId },
@@ -147,6 +153,12 @@ router.get('/batch/:batchId', async (req, res) => {
  */
 router.get('/:dataHash', async (req, res) => {
   const { dataHash } = req.params
+
+  // Sanitize: accept only 64 lowercase hex characters
+  if (!/^[a-f0-9]{64}$/.test(dataHash)) {
+    return res.status(400).json({ verified: false, error: 'Invalid hash format. Expected 64 hex characters [a-f0-9].' })
+  }
+
   try {
     const record = await prisma.auditLog.findFirst({
       where:  { dataHash },

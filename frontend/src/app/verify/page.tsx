@@ -505,11 +505,19 @@ function VerifyPageInner() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const doVerify = useCallback(async (hashToVerify: string) => {
-    if (!hashToVerify.trim()) return
+    const cleaned = hashToVerify.trim().toLowerCase()
+    if (!cleaned) return
+
+    // Validate hash format: must be exactly 64 hex characters
+    if (!/^[a-f0-9]{64}$/.test(cleaned)) {
+      setResult({ verified: false, dataHash: cleaned, reason: 'Invalid hash format. Expected 64 hex characters (SHA-256).' })
+      return
+    }
+
     setLoading(true)
     setResult(null)
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/verify/${hashToVerify.trim()}`)
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/verify/${cleaned}`)
       const data = await res.json()
       if (res.ok) {
         setResult(data)

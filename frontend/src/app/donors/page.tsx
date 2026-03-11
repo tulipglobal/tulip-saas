@@ -25,7 +25,7 @@ function TrustScore({ score }: { score: number }) {
     <div className="flex items-center gap-2">
       <div className="relative w-8 h-8">
         <svg className="w-8 h-8 -rotate-90" viewBox="0 0 32 32">
-          <circle cx="16" cy="16" r="12" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3" />
+          <circle cx="16" cy="16" r="12" fill="none" stroke="#E5E7EB" strokeWidth="3" />
           <circle cx="16" cy="16" r="12" fill="none" stroke={color} strokeWidth="3"
             strokeDasharray={`${(score / 100) * 75.4} 75.4`} strokeLinecap="round" />
         </svg>
@@ -44,16 +44,16 @@ function TrustScore({ score }: { score: number }) {
 function NGOCard({ ngo }: { ngo: NGOProfile }) {
   return (
     <Link href={`/donors/${ngo.slug || ngo.id}`}
-      className="group block rounded-2xl border border-gray-200 hover:border-[#0c7aed]/40 p-6 transition-all hover:bg-[#0c7aed]/3"
+      className="group block rounded-2xl border border-gray-200 hover:border-[#2563EB]/40 p-6 transition-all hover:bg-[#2563EB]/3"
       style={{ background: '#FFFFFF' }}>
       <div className="flex items-start justify-between mb-4">
-        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold text-gray-900 shrink-0"
-          style={{ background: 'linear-gradient(135deg, #0c7aed22, #004ea822)', border: '1px solid rgba(12,122,237,0.2)' }}>
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold text-white shrink-0"
+          style={{ background: 'linear-gradient(135deg, #2563EB22, #1D4ED822)', border: '1px solid rgba(12,122,237,0.2)' }}>
           {ngo.name.charAt(0)}
         </div>
         <div className="flex items-center gap-2">
           <TrustScore score={ngo.integrityScore} />
-          <ArrowUpRight size={16} className="text-gray-300 group-hover:text-[#369bff] transition-colors ml-1" />
+          <ArrowUpRight size={16} className="text-gray-300 group-hover:text-[#2563EB] transition-colors ml-1" />
         </div>
       </div>
 
@@ -143,19 +143,19 @@ export default function DonorPortalPage() {
 
   return (
     <div className="min-h-screen" style={{
-      background: '#040f1f',
+      background: '#FFFFFF',
       backgroundImage: 'radial-gradient(at 20% 10%, rgba(12,122,237,0.12) 0px, transparent 50%), radial-gradient(at 80% 80%, rgba(0,78,168,0.08) 0px, transparent 50%)'
     }}>
       {/* Nav */}
       <nav className="border-b border-gray-200 px-6 h-16 flex items-center justify-between"
-        style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(12px)' }}>
+        style={{ background: '#FFFFFF', backdropFilter: 'blur(12px)' }}>
         <Link href="/" className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+            style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
             <span className="text-gray-900 font-bold text-xs" style={{ fontFamily: 'Syne, sans-serif' }}>T</span>
           </div>
           <span className="font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>
-            tulip<span style={{ color: '#369bff' }}>ds</span>
+            tulip<span style={{ color: '#2563EB' }}>ds</span>
           </span>
         </Link>
         <div className="flex items-center gap-4">
@@ -168,13 +168,13 @@ export default function DonorPortalPage() {
 
       {/* Hero */}
       <div className="max-w-4xl mx-auto px-6 pt-16 pb-12 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#0c7aed]/30 bg-[#0c7aed]/10 text-xs text-[#369bff] mb-6">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#2563EB]/30 bg-[#2563EB]/10 text-xs text-[#2563EB] mb-6">
           <Shield size={12} />
           Every expense verified on Polygon blockchain
         </div>
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Syne, sans-serif' }}>
           Donate with<br />
-          <span style={{ background: 'linear-gradient(135deg, #0c7aed, #369bff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          <span style={{ background: 'linear-gradient(135deg, #2563EB, #2563EB)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             cryptographic proof
           </span>
         </h1>
@@ -206,7 +206,7 @@ export default function DonorPortalPage() {
 
       {/* Stats bar */}
       <div className="border-y border-gray-100 py-6 mb-12"
-        style={{ background: 'rgba(255,255,255,0.01)' }}>
+        style={{ background: '#FFFFFF' }}>
         <div className="max-w-4xl mx-auto px-6 grid grid-cols-3 gap-6 text-center">
           {[
             { label: 'Verified NGOs', value: ngos.length },

@@ -178,15 +178,15 @@ export default function SetupWizardPage() {
         <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+              style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
               <Building2 className="w-3.5 h-3.5 text-gray-900" />
             </div>
             <span className="text-gray-900 font-bold text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>
-              tulip<span style={{ color: '#369bff' }}>ds</span>
+              tulip<span style={{ color: '#2563EB' }}>ds</span>
             </span>
             {tenantName && (
               <>
-                <span className="text-white/15 text-sm ml-1">|</span>
+                <span className="text-gray-300 text-sm ml-1">|</span>
                 <span className="text-gray-500 text-sm">{tenantName}</span>
               </>
             )}
@@ -331,8 +331,8 @@ export default function SetupWizardPage() {
                 <SkipForward className="w-3.5 h-3.5" /> Skip this step
               </button>
               <button onClick={handleOrgSubmit} disabled={loading}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-gray-900 text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
-                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-white text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
+                style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Save & Continue</span><ChevronRight className="w-4 h-4" /></>}
               </button>
             </div>
@@ -388,8 +388,8 @@ export default function SetupWizardPage() {
                 <SkipForward className="w-3.5 h-3.5" /> Skip this step
               </button>
               <button onClick={handleProjectSubmit} disabled={loading}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-gray-900 text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
-                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-white text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
+                style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Create Project</span><ChevronRight className="w-4 h-4" /></>}
               </button>
             </div>
@@ -440,8 +440,8 @@ export default function SetupWizardPage() {
                 <SkipForward className="w-3.5 h-3.5" /> Skip this step
               </button>
               <button onClick={handleInviteSubmit} disabled={loading}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-gray-900 text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
-                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-white text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
+                style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Send Invitations</span><ChevronRight className="w-4 h-4" /></>}
               </button>
             </div>
@@ -503,7 +503,7 @@ export default function SetupWizardPage() {
             </div>
 
             <button onClick={handleComplete} disabled={loading}
-              className="px-8 py-3 rounded-xl text-gray-900 font-semibold text-sm transition-all hover:opacity-90"
+              className="px-8 py-3 rounded-xl text-white font-semibold text-sm transition-all hover:opacity-90"
               style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Go to Dashboard →'}
             </button>

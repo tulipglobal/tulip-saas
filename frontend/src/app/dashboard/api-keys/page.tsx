@@ -128,8 +128,8 @@ export default function ApiKeysPage() {
           onKeyDown={e => e.key === 'Enter' && handleCreate()}
         />
         <button onClick={handleCreate} disabled={creating || !newKeyName.trim()}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-900 disabled:opacity-40"
-          style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white disabled:opacity-40"
+          style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
           <Plus size={16} />
           {creating ? 'Creating...' : 'Create Key'}
         </button>

@@ -81,8 +81,8 @@ function AcceptInviteForm() {
         <CheckCircle size={48} className="text-emerald-400 mx-auto mb-4" />
         <h1 className="text-xl font-semibold text-gray-900 mb-2">Invitation Accepted</h1>
         <p className="text-gray-500 text-sm mb-6">Your donor account has been created. You can now access the donor portal to view verified financial records.</p>
-        <Link href="/login" className="inline-block px-6 py-3 rounded-lg text-sm font-medium text-gray-900"
-          style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+        <Link href="/login" className="inline-block px-6 py-3 rounded-lg text-sm font-medium text-white"
+          style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
           Go to Login
         </Link>
       </div>
@@ -95,7 +95,7 @@ function AcceptInviteForm() {
     </div>
   )
 
-  const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all"
+  const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50 transition-all"
   const labelCls = "block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide"
 
   return (
@@ -103,7 +103,7 @@ function AcceptInviteForm() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+            style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
             <span className="text-gray-900 font-bold text-lg" style={{ fontFamily: 'Syne, sans-serif' }}>T</span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>Accept Invitation</h1>
@@ -166,8 +166,8 @@ function AcceptInviteForm() {
           )}
 
           <button onClick={submit}
-            className="w-full py-3 rounded-lg text-sm font-medium text-gray-900 transition-all"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+            className="w-full py-3 rounded-lg text-sm font-medium text-white transition-all"
+            style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
             Accept & Create Account
           </button>
         </div>

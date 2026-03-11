@@ -53,18 +53,19 @@ const RANGES = [
 ]
 
 /* ------------------------------------------------------------------ */
-/*  Tooltip styling (dark theme)                                       */
+/*  Tooltip styling (light theme)                                      */
 /* ------------------------------------------------------------------ */
 
 const tooltipStyle = {
   contentStyle: {
-    background: '#0a1628',
-    border: '1px solid rgba(255,255,255,0.1)',
+    background: '#FFFFFF',
+    border: '1px solid #E5E7EB',
     borderRadius: 8,
     fontSize: 12,
-    color: 'rgba(255,255,255,0.8)',
+    color: '#111827',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
   },
-  labelStyle: { color: 'rgba(255,255,255,0.5)' },
+  labelStyle: { color: '#6B7280' },
 }
 
 function formatShortDate(value: string | number) {
@@ -472,7 +473,7 @@ function IEStatement() {
     finally { setExporting(false) }
   }
 
-  const inputCls = "bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#0c7aed]/50 transition-all"
+  const inputCls = "bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#2563EB]/50 transition-all"
 
   return (
     <div className="space-y-6">
@@ -487,8 +488,8 @@ function IEStatement() {
           <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className={inputCls} />
         </div>
         <button onClick={handleFilter}
-          className="px-4 py-2 rounded-lg text-sm font-medium text-gray-900"
-          style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+          className="px-4 py-2 rounded-lg text-sm font-medium text-white"
+          style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
           Apply
         </button>
         <button onClick={exportPDF} disabled={exporting || !data}
@@ -689,8 +690,8 @@ export default function AnalyticsPage() {
                 ))}
               </div>
               <button onClick={handleGenerateReport} disabled={generating}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-900 hover:opacity-90 transition-opacity disabled:opacity-50"
-                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+                style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
                 {generating ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Download size={14} />}
                 <span className="hidden sm:inline">{generating ? 'Generating...' : 'Impact Report'}</span>
               </button>
@@ -758,7 +759,7 @@ export default function AnalyticsPage() {
               style={{ background: '#FFFFFF' }}>
               <div className="h-4 bg-gray-50 rounded w-32 mb-2" />
               <div className="h-3 bg-gray-50 rounded w-48 mb-4" />
-              <div className="h-48 bg-white/[0.015] rounded-lg animate-pulse" />
+              <div className="h-48 bg-gray-50 rounded-lg animate-pulse" />
             </div>
           ))}
         </div>
@@ -772,9 +773,9 @@ export default function AnalyticsPage() {
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={data.documentsOverTime}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="date" tickFormatter={formatShortDate} tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F9FAFB" />
+                  <XAxis dataKey="date" tickFormatter={formatShortDate} tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} allowDecimals={false} />
                   <Tooltip {...tooltipStyle} labelFormatter={tooltipLabelFormatter} />
                   <Line type="monotone" dataKey="count" stroke="#6366f1" strokeWidth={2} dot={false} name="Documents" />
                 </LineChart>
@@ -789,9 +790,9 @@ export default function AnalyticsPage() {
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={data.blockchainVerifications}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="date" tickFormatter={formatShortDate} tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F9FAFB" />
+                  <XAxis dataKey="date" tickFormatter={formatShortDate} tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} allowDecimals={false} />
                   <Tooltip {...tooltipStyle} labelFormatter={tooltipLabelFormatter} />
                   <Line type="monotone" dataKey="count" stroke="#10b981" strokeWidth={2} dot={false} name="Verified" />
                 </LineChart>
@@ -806,11 +807,11 @@ export default function AnalyticsPage() {
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={data.fundingVsSpent}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F9FAFB" />
+                  <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
                   <Tooltip {...tooltipStyle} />
-                  <Legend wrapperStyle={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }} />
+                  <Legend wrapperStyle={{ fontSize: 12, color: '#6B7280' }} />
                   <Bar dataKey="received" fill="#3b82f6" name="Received" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="spent" fill="#f97316" name="Spent" radius={[4, 4, 0, 0]} />
                 </BarChart>
@@ -870,11 +871,11 @@ export default function AnalyticsPage() {
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={data.donorEngagement}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="date" tickFormatter={formatShortDate} tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F9FAFB" />
+                  <XAxis dataKey="date" tickFormatter={formatShortDate} tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} allowDecimals={false} />
                   <Tooltip {...tooltipStyle} labelFormatter={tooltipLabelFormatter} />
-                  <Legend wrapperStyle={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }} />
+                  <Legend wrapperStyle={{ fontSize: 12, color: '#6B7280' }} />
                   <Line type="monotone" dataKey="logins" stroke="#8b5cf6" strokeWidth={2} dot={false} name="Logins" />
                   <Line type="monotone" dataKey="views" stroke="#06b6d4" strokeWidth={2} dot={false} name="Doc Views" />
                 </LineChart>

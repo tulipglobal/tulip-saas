@@ -20,7 +20,7 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
   const [error, setError] = useState('')
   const [dragOver, setDragOver] = useState(false)
 
-  const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all"
+  const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50 transition-all"
   const labelCls = "block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide"
 
   const handleFile = (f: File) => {
@@ -85,7 +85,7 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
     <div className="rounded-xl border border-gray-200 p-5 space-y-4"
       style={{ background: '#FFFFFF' }}>
       <div className="flex items-center gap-2">
-        <Paperclip size={14} className="text-[#369bff]" />
+        <Paperclip size={14} className="text-[#2563EB]" />
         <span className="text-sm font-medium text-gray-700">Attach Document <span className="text-gray-400 text-xs">(optional)</span></span>
       </div>
 
@@ -96,7 +96,7 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
         onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f) }}
         onClick={() => document.getElementById(`file-input-${entityId}`)?.click()}
         className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all ${
-          dragOver ? 'border-[#0c7aed] bg-[#0c7aed]/5' : file ? 'border-green-500/40 bg-green-500/5' : 'border-gray-200 hover:border-gray-300'
+          dragOver ? 'border-[#2563EB] bg-[#2563EB]/5' : file ? 'border-green-500/40 bg-green-500/5' : 'border-gray-200 hover:border-gray-300'
         }`}
       >
         <input id={`file-input-${entityId}`} type="file" className="hidden"
@@ -114,7 +114,7 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
         ) : (
           <div>
             <Upload size={20} className="text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">Drop file here or <span className="text-[#369bff]">browse</span></p>
+            <p className="text-sm text-gray-500">Drop file here or <span className="text-[#2563EB]">browse</span></p>
             <p className="text-xs text-gray-300 mt-1">PDF, Word, Excel, Image — max 20MB</p>
           </div>
         )}
@@ -147,8 +147,8 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
 
       {file && (
         <button onClick={upload} disabled={uploading}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-900 disabled:opacity-50 transition-all"
-          style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white disabled:opacity-50 transition-all"
+          style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
           <Upload size={14} />
           {uploading ? 'Uploading…' : 'Upload Document'}
         </button>

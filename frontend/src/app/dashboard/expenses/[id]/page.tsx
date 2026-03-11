@@ -225,8 +225,8 @@ export default function ExpenseDetailPage() {
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-900">Documents</h2>
         <label className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors ${
-          uploading ? 'bg-gray-100 text-gray-500' : 'text-gray-900'
-        }`} style={uploading ? {} : { background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+          uploading ? 'bg-gray-100 text-gray-500' : 'text-white'
+        }`} style={uploading ? {} : { background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
           <Upload size={14} />
           {uploading ? 'Uploading…' : 'Upload Document'}
           <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} />
@@ -260,7 +260,7 @@ export default function ExpenseDetailPage() {
             </thead>
             <tbody>
               {docs.map((doc, i) => (
-                <tr key={doc.id} className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${i % 2 === 0 ? '' : 'bg-white/[0.02]'}`}>
+                <tr key={doc.id} className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${i % 2 === 0 ? '' : 'bg-white'}`}>
                   <td className="px-4 py-3 text-sm text-gray-800">{doc.name}</td>
                   <td className="px-4 py-3">
                     <span className="text-xs font-mono text-gray-500 uppercase">{doc.fileType ?? '—'}</span>

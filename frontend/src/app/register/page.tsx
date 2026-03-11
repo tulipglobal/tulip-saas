@@ -144,7 +144,7 @@ export default function RegisterPage() {
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
           --bg:#070B0F; --surface:#0C1117; --surface2:#111820;
-          --border:rgba(255,255,255,0.06); --border2:rgba(255,255,255,0.1);
+          --border:#E5E7EB; --border2:#E5E7EB;
           --text:#E2E8F0; --text2:#64748B; --text3:#3A4A5C;
           --fd:'Bricolage Grotesque',sans-serif; --fb:'Instrument Sans',sans-serif;
         }
@@ -276,7 +276,7 @@ export default function RegisterPage() {
                       }}
                       onMouseLeave={e => {
                         const el = e.currentTarget as HTMLElement
-                        el.style.borderColor = 'rgba(255,255,255,0.06)'
+                        el.style.borderColor = '#E5E7EB'
                         el.style.background = 'var(--surface)'
                         el.style.transform = 'translateX(0)'
                       }}

@@ -76,8 +76,8 @@ export default function BudgetsPage() {
           <p className="text-gray-500 text-sm mt-1">{budgets.length} budget{budgets.length !== 1 ? 's' : ''}</p>
         </div>
         <Link href="/dashboard/budgets/new"
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-900 self-start"
-          style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white self-start"
+          style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
           <Plus size={16} /> New Budget
         </Link>
       </div>
@@ -116,7 +116,7 @@ export default function BudgetsPage() {
           <div className="flex flex-col items-center py-16 gap-3">
             <BarChart3 size={32} className="text-gray-300" />
             <p className="text-gray-400 text-sm">No budgets yet</p>
-            <Link href="/dashboard/budgets/new" className="text-[#369bff] text-sm hover:underline">Create your first budget</Link>
+            <Link href="/dashboard/budgets/new" className="text-[#2563EB] text-sm hover:underline">Create your first budget</Link>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">

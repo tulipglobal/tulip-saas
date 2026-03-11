@@ -249,7 +249,7 @@ export default function WorkflowPage() {
           <button key={key} onClick={() => setTab(key)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
               tab === key
-                ? 'bg-[#0c7aed]/20 text-[#369bff]'
+                ? 'bg-blue-50 text-[#2563EB]'
                 : 'text-gray-500 hover:text-gray-600 hover:bg-gray-50'
             }`}>
             {label}

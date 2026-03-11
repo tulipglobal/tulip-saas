@@ -54,7 +54,7 @@ const PLANS = [
     priceLabel: 'AED 299',
     subLabel: '/month',
     icon: Zap,
-    color: '#0c7aed',
+    color: '#2563EB',
     colorDim: 'rgba(12,122,237,0.12)',
     colorBorder: 'rgba(12,122,237,0.25)',
     features: ['Up to 3 users', '100 documents/month', 'Blockchain anchoring', 'RFC 3161 timestamps', 'Email support'],
@@ -103,7 +103,7 @@ function UsageBar({ used, max, label }: { used: number; max: number; label: stri
           className="h-full rounded-full transition-all duration-500"
           style={{
             width: isUnlimited ? '5%' : `${Math.max(pct, 2)}%`,
-            background: isNear ? '#ef4444' : 'linear-gradient(90deg, #0c7aed, #369bff)',
+            background: isNear ? '#ef4444' : 'linear-gradient(90deg, #2563EB, #2563EB)',
           }}
         />
       </div>
@@ -180,7 +180,7 @@ export default function BillingPage() {
       {data?.trialActive && currentPlan === 'FREE' && (
         <div className="rounded-xl border p-4 flex items-center gap-4"
           style={{ background: 'rgba(12,122,237,0.06)', borderColor: 'rgba(12,122,237,0.2)' }}>
-          <Sparkles size={20} className="text-[#369bff] shrink-0" />
+          <Sparkles size={20} className="text-[#2563EB] shrink-0" />
           <div className="flex-1">
             <div className="text-sm font-medium text-gray-900">
               {data.trialDaysLeft} day{data.trialDaysLeft !== 1 ? 's' : ''} left in your free trial
@@ -284,11 +284,11 @@ export default function BillingPage() {
                 className="rounded-xl border p-5 relative flex flex-col"
                 style={{
                   background: isCurrent ? `${plan.colorDim}` : '#FFFFFF',
-                  borderColor: isCurrent ? plan.colorBorder : 'rgba(255,255,255,0.08)',
+                  borderColor: isCurrent ? plan.colorBorder : '#E5E7EB',
                 }}>
                 {plan.popular && (
                   <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-xs font-bold"
-                    style={{ background: plan.color, color: '#fff' }}>
+                    style={{ background: plan.color, color: '#111827' }}>
                     Most Popular
                   </div>
                 )}
@@ -331,7 +331,7 @@ export default function BillingPage() {
                   <button
                     onClick={() => handleCheckout(plan.id)}
                     disabled={!!checkoutLoading}
-                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-gray-900 transition-all hover:opacity-90 disabled:opacity-40"
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-40"
                     style={{ background: `linear-gradient(135deg, ${plan.color}, ${plan.color}dd)` }}>
                     {checkoutLoading === plan.id ? (
                       <Loader2 size={14} className="animate-spin" />
@@ -354,14 +354,14 @@ export default function BillingPage() {
               Payment History
             </h2>
             {data.subscription && (
-              <button onClick={handlePortal} className="text-xs text-[#369bff] hover:underline">
+              <button onClick={handlePortal} className="text-xs text-[#2563EB] hover:underline">
                 View all in Stripe
               </button>
             )}
           </div>
           <div className="divide-y divide-gray-100">
             {data.invoices.map(inv => (
-              <div key={inv.id} className="flex items-center gap-4 px-5 py-3 hover:bg-white/[0.02] transition-colors">
+              <div key={inv.id} className="flex items-center gap-4 px-5 py-3 hover:bg-white transition-colors">
                 <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
                   <Receipt size={14} className="text-gray-500" />
                 </div>
@@ -383,7 +383,7 @@ export default function BillingPage() {
                 </span>
                 {inv.invoiceUrl && (
                   <a href={inv.invoiceUrl} target="_blank" rel="noopener noreferrer"
-                    className="text-gray-300 hover:text-[#369bff] transition-colors">
+                    className="text-gray-300 hover:text-[#2563EB] transition-colors">
                     <ExternalLink size={14} />
                   </a>
                 )}

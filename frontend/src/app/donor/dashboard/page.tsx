@@ -187,7 +187,7 @@ function AgreementCard({ agreement, documents, token }: {
       {/* Card header — clickable */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full text-left p-5 flex items-start justify-between gap-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
+        className="w-full text-left p-5 flex items-start justify-between gap-4 cursor-pointer hover:bg-white transition-colors"
       >
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
@@ -236,7 +236,7 @@ function AgreementCard({ agreement, documents, token }: {
             <div>
               <h4 className="text-gray-400 text-xs uppercase tracking-wide font-medium mb-2">
                 Budget: {agreement.budget.name}
-                <span className="text-white/15 normal-case ml-2">
+                <span className="text-gray-300 normal-case ml-2">
                   {formatDate(agreement.budget.periodFrom)} – {formatDate(agreement.budget.periodTo)}
                 </span>
               </h4>
@@ -317,7 +317,7 @@ function AgreementCard({ agreement, documents, token }: {
           )}
 
           {linkedDocs.length === 0 && agreement.projectFunding.length > 0 && (
-            <p className="text-white/15 text-xs">No documents uploaded to linked projects yet</p>
+            <p className="text-gray-300 text-xs">No documents uploaded to linked projects yet</p>
           )}
         </div>
       )}
@@ -351,14 +351,14 @@ function DocumentRow({ doc, token, compact = false }: { doc: Document; token: st
 
   if (compact) {
     return (
-      <div className="flex items-center gap-3 py-1.5 px-2 rounded-lg hover:bg-white/[0.03] transition-colors group">
-        <FileText size={12} className="text-white/15 shrink-0" />
+      <div className="flex items-center gap-3 py-1.5 px-2 rounded-lg hover:bg-gray-50 transition-colors group">
+        <FileText size={12} className="text-gray-300 shrink-0" />
         <span className="text-gray-600 text-xs truncate flex-1">{doc.name}</span>
-        {doc.fileType && <span className="text-white/15 text-[10px] uppercase">{doc.fileType}</span>}
+        {doc.fileType && <span className="text-gray-300 text-[10px] uppercase">{doc.fileType}</span>}
         {doc.anchorStatus === 'confirmed' ? (
           <CheckCircle size={11} className="text-emerald-400 shrink-0" />
         ) : (
-          <Clock size={11} className="text-white/15 shrink-0" />
+          <Clock size={11} className="text-gray-300 shrink-0" />
         )}
         {doc.fileUrl && (
           <button onClick={openFile} disabled={viewLoading}
@@ -371,7 +371,7 @@ function DocumentRow({ doc, token, compact = false }: { doc: Document; token: st
   }
 
   return (
-    <div className="md:grid md:grid-cols-[2.5fr_1fr_1fr_1fr_1.5fr_1fr] gap-4 items-center px-5 py-3 hover:bg-white/[0.02] transition-colors">
+    <div className="md:grid md:grid-cols-[2.5fr_1fr_1fr_1fr_1.5fr_1fr] gap-4 items-center px-5 py-3 hover:bg-white transition-colors">
       {/* Document name — clickable to open */}
       <div
         className={`flex items-center gap-2.5 min-w-0 ${doc.fileUrl ? 'cursor-pointer group' : ''}`}
@@ -385,7 +385,7 @@ function DocumentRow({ doc, token, compact = false }: { doc: Document; token: st
             <p className={`text-sm font-medium truncate ${doc.fileUrl ? 'text-gray-800 group-hover:text-emerald-400' : 'text-gray-800'} transition-colors`}>
               {doc.name}
             </p>
-            {doc.fileUrl && <ExternalLink size={10} className="text-white/15 group-hover:text-emerald-400/60 shrink-0 transition-colors" />}
+            {doc.fileUrl && <ExternalLink size={10} className="text-gray-300 group-hover:text-emerald-400/60 shrink-0 transition-colors" />}
           </div>
           <p className="text-gray-300 text-xs truncate">
             {doc.description ? (doc.description.length > 50 ? doc.description.slice(0, 50) + '...' : doc.description) : ''}
@@ -438,7 +438,7 @@ function DocumentRow({ doc, token, compact = false }: { doc: Document; token: st
           </span>
         )}
         {doc.anchoredAt && (
-          <p className="text-white/15 text-[10px] mt-0.5 pl-1">Anchored {formatDate(doc.anchoredAt)}</p>
+          <p className="text-gray-300 text-[10px] mt-0.5 pl-1">Anchored {formatDate(doc.anchoredAt)}</p>
         )}
       </div>
 
@@ -695,7 +695,7 @@ export default function DonorDashboardPage() {
     <div className="min-h-screen bg-[#F9FAFB]" style={{ fontFamily: 'DM Sans, sans-serif' }}>
 
       {/* ── Nav ── */}
-      <nav className="border-b border-gray-200 bg-[#07224a]/80 backdrop-blur-md sticky top-0 z-50">
+      <nav className="border-b border-gray-200 bg-white/95 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/donor/dashboard" className="flex items-center gap-2">
@@ -707,7 +707,7 @@ export default function DonorDashboardPage() {
                 tulip<span style={{ color: '#34d399' }}>ds</span>
               </span>
             </Link>
-            <span className="text-white/15 text-sm">|</span>
+            <span className="text-gray-300 text-sm">|</span>
             <span className="text-gray-500 text-sm font-medium">{user?.donor?.name || 'Donor Portal'}</span>
           </div>
           <div className="flex items-center gap-4">
@@ -788,7 +788,7 @@ export default function DonorDashboardPage() {
                   placeholder="Search by document name or project..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white/[0.02] text-gray-900 text-sm placeholder:text-gray-300 focus:outline-none focus:border-emerald-400/30 transition-colors"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm placeholder:text-gray-300 focus:outline-none focus:border-emerald-400/30 transition-colors"
                 />
               </div>
 
@@ -799,7 +799,7 @@ export default function DonorDashboardPage() {
                   <p className="text-gray-400 text-sm font-medium">
                     {search ? 'No documents match your search' : 'No documents shared yet'}
                   </p>
-                  <p className="text-white/15 text-xs mt-1">
+                  <p className="text-gray-300 text-xs mt-1">
                     {search ? 'Try a different search term' : 'Documents uploaded by your NGO partner will appear here'}
                   </p>
                 </div>
@@ -831,7 +831,7 @@ export default function DonorDashboardPage() {
       {/* ── Footer ── */}
       <footer className="border-t border-gray-100 py-6 mt-8">
         <div className="max-w-6xl mx-auto px-4 md:px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-white/15 text-xs">
+          <p className="text-gray-300 text-xs">
             &copy; 2026 Tulip DS &middot; Bright Bytes Technology &middot; Dubai, UAE
           </p>
           <Link href="/verify" className="flex items-center gap-1.5 text-gray-300 text-xs hover:text-gray-500 transition-colors">

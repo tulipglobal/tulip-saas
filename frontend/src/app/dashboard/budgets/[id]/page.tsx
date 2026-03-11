@@ -103,7 +103,7 @@ function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all [&>option]:bg-[#0a1628]"
+const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50 transition-all [&>option]:bg-white"
 
 export default function BudgetDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -179,7 +179,7 @@ export default function BudgetDetailPage() {
             {editingStatus ? (
               <div className="flex items-center gap-1">
                 <select value={newStatus} onChange={e => setNewStatus(e.target.value)}
-                  className="bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-900 outline-none [&>option]:bg-[#0a1628]">
+                  className="bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-900 outline-none [&>option]:bg-white">
                   {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
                 <button onClick={handleStatusChange} className="text-green-400 hover:text-green-300"><Check size={14} /></button>
@@ -296,7 +296,7 @@ export default function BudgetDetailPage() {
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-medium text-gray-900">{f.currency} {f.amount.toLocaleString()}</span>
                   <button onClick={() => handleRemoveFunding(f.id)}
-                    className="text-white/15 hover:text-red-400 transition-colors" title="Remove">
+                    className="text-gray-300 hover:text-red-400 transition-colors" title="Remove">
                     <Trash2 size={13} />
                   </button>
                 </div>
@@ -334,19 +334,19 @@ export default function BudgetDetailPage() {
                 <label className="text-xs text-gray-500 mb-1 block">Amount *</label>
                 <div className="flex gap-1.5">
                   <select value={newFunding.currency} onChange={e => setNewFunding(p => ({ ...p, currency: e.target.value }))}
-                    className="bg-gray-50 border border-gray-200 rounded-lg px-2 py-2 text-xs text-gray-600 outline-none [&>option]:bg-[#0a1628] w-20 shrink-0">
+                    className="bg-gray-50 border border-gray-200 rounded-lg px-2 py-2 text-xs text-gray-600 outline-none [&>option]:bg-white w-20 shrink-0">
                     {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                   <input type="number" min="0" step="0.01" value={newFunding.amount}
                     onChange={e => setNewFunding(p => ({ ...p, amount: e.target.value }))} placeholder="0.00"
-                    className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all" />
+                    className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50 transition-all" />
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <button onClick={handleAddFunding} disabled={addingFunding || !newFunding.sourceType || !newFunding.donorName || !newFunding.amount}
-                className="px-4 py-1.5 rounded-lg text-xs font-medium text-gray-900 disabled:opacity-40 transition-all"
-                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                className="px-4 py-1.5 rounded-lg text-xs font-medium text-white disabled:opacity-40 transition-all"
+                style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
                 {addingFunding ? 'Adding...' : 'Add Source'}
               </button>
               <button onClick={() => setShowAddFunding(false)} className="px-4 py-1.5 text-xs text-gray-500 hover:text-gray-600">Cancel</button>

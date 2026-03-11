@@ -175,7 +175,7 @@ export default function TrustSealPage() {
     return true
   })
 
-  const inputCls = "bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50"
+  const inputCls = "bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50"
 
   return (
     <div className="p-4 md:p-8 space-y-6 max-w-6xl">
@@ -186,8 +186,8 @@ export default function TrustSealPage() {
           <p className="text-sm text-gray-500 mt-1">Every document in the system is automatically sealed and anchored to Polygon</p>
         </div>
         <button onClick={() => { setShowCreate(true); setCreateError('') }}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-900 transition-all hover:opacity-90"
-          style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90"
+          style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
           <Plus size={16} /> Issue New Seal
         </button>
       </div>
@@ -215,14 +215,14 @@ export default function TrustSealPage() {
             className="bg-transparent text-sm text-gray-800 placeholder-gray-400 outline-none w-full" />
         </div>
         <select value={filterSource} onChange={e => setFilterSource(e.target.value)}
-          className={`${inputCls} min-w-[140px] [&>option]:bg-[#0a1628]`}>
+          className={`${inputCls} min-w-[140px] [&>option]:bg-white`}>
           <option value="">All Sources</option>
           {Object.entries(SOURCE_MAP).map(([key, { label }]) => (
             <option key={key} value={key}>{label}</option>
           ))}
         </select>
         <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-          className={`${inputCls} min-w-[130px] [&>option]:bg-[#0a1628]`}>
+          className={`${inputCls} min-w-[130px] [&>option]:bg-white`}>
           <option value="">All Status</option>
           <option value="confirmed">Confirmed</option>
           <option value="pending">Pending</option>
@@ -232,7 +232,7 @@ export default function TrustSealPage() {
       {/* Seals table */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-2 border-[#0c7aed] border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-[#2563EB] border-t-transparent rounded-full animate-spin" />
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-20">
@@ -307,7 +307,7 @@ export default function TrustSealPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowCreate(false)}>
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
           <div className="relative bg-[#0a1929] border border-gray-200 rounded-xl w-full max-w-lg max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
+            <div className="flex items-center justify-between p-5 border-b border-gray-200">
               <h3 className="font-semibold text-gray-900 text-lg">Issue New Trust Seal</h3>
               <button onClick={() => setShowCreate(false)} className="text-gray-500 hover:text-gray-900"><X size={18} /></button>
             </div>
@@ -321,7 +321,7 @@ export default function TrustSealPage() {
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1.5 block">Document Type</label>
-                <select value={formType} onChange={e => setFormType(e.target.value)} className={`w-full ${inputCls} [&>option]:bg-[#0a1628]`}>
+                <select value={formType} onChange={e => setFormType(e.target.value)} className={`w-full ${inputCls} [&>option]:bg-white`}>
                   {TYPE_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
@@ -349,7 +349,7 @@ export default function TrustSealPage() {
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-xs font-medium text-gray-600">Custom Metadata</label>
-                  <button onClick={addMetadataRow} className="text-[10px] text-[#369bff] hover:underline">+ Add field</button>
+                  <button onClick={addMetadataRow} className="text-[10px] text-[#2563EB] hover:underline">+ Add field</button>
                 </div>
                 <div className="space-y-2">
                   {metadataKeys.map((key, idx) => (
@@ -366,11 +366,11 @@ export default function TrustSealPage() {
                 </div>
               </div>
             </div>
-            <div className="flex justify-end gap-3 p-5 border-t border-white/[0.06]">
+            <div className="flex justify-end gap-3 p-5 border-t border-gray-200">
               <button onClick={() => setShowCreate(false)} className="px-4 py-2 rounded-lg text-sm text-gray-600 hover:text-gray-900 transition-colors">Cancel</button>
               <button onClick={handleCreate} disabled={creating || !formTitle.trim() || !formTo.trim()}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-900 disabled:opacity-40 transition-all hover:opacity-90"
-                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white disabled:opacity-40 transition-all hover:opacity-90"
+                style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
                 {creating && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                 {creating ? 'Issuing...' : 'Issue Seal'}
               </button>
@@ -398,7 +398,7 @@ export default function TrustSealPage() {
               <div className="space-y-3 mb-5">
                 <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2.5">
                   <code className="text-xs text-gray-600 truncate flex-1">{createdSeal.verifyUrl || `https://verify.tulipds.com/seal/${createdSeal.id}`}</code>
-                  <button onClick={() => copyUrl(createdSeal.id)} className="text-[#369bff] hover:underline text-xs shrink-0">
+                  <button onClick={() => copyUrl(createdSeal.id)} className="text-[#2563EB] hover:underline text-xs shrink-0">
                     {copied ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
@@ -412,8 +412,8 @@ export default function TrustSealPage() {
                   </button>
                 )}
                 <button onClick={() => setCreatedSeal(null)}
-                  className="px-4 py-2 rounded-lg text-sm font-medium text-gray-900 transition-all hover:opacity-90"
-                  style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90"
+                  style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
                   Done
                 </button>
               </div>

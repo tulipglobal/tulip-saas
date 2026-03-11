@@ -141,28 +141,28 @@ export default function PricingPage() {
 
   return (
     <div className="min-h-screen" style={{
-      background: '#040f1f',
+      background: '#FFFFFF',
       backgroundImage: 'radial-gradient(at 50% 0%, rgba(12,122,237,0.12) 0px, transparent 60%)'
     }}>
 
       {/* Nav */}
       <nav className="border-b border-gray-200 px-6 h-16 flex items-center justify-between sticky top-0 z-10"
-        style={{ background: 'rgba(4,15,31,0.9)', backdropFilter: 'blur(12px)' }}>
+        style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(12px)' }}>
         <Link href="/" className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+            style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
             <span className="text-gray-900 font-bold text-xs" style={{ fontFamily: 'Syne, sans-serif' }}>T</span>
           </div>
           <span className="font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>
-            tulip<span style={{ color: '#369bff' }}>ds</span>
+            tulip<span style={{ color: '#2563EB' }}>ds</span>
           </span>
         </Link>
         <div className="flex items-center gap-4">
           <Link href="/docs" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">API Docs</Link>
           <Link href="/donors" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Donor Portal</Link>
           <Link href="/register"
-            className="px-4 py-1.5 rounded-lg text-sm font-medium text-gray-900"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+            className="px-4 py-1.5 rounded-lg text-sm font-medium text-white"
+            style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
             Get started
           </Link>
         </div>
@@ -170,7 +170,7 @@ export default function PricingPage() {
 
       {/* Hero */}
       <div className="max-w-5xl mx-auto px-6 pt-16 pb-10 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#0c7aed]/30 bg-[#0c7aed]/10 text-xs text-[#369bff] mb-6">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#2563EB]/30 bg-[#2563EB]/10 text-xs text-[#2563EB] mb-6">
           <CheckCircle size={12} />
           No setup fees · Cancel anytime
         </div>
@@ -184,11 +184,11 @@ export default function PricingPage() {
         {/* Billing toggle */}
         <div className="inline-flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl p-1.5">
           <button onClick={() => setAnnual(false)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${!annual ? 'bg-white text-[#040f1f]' : 'text-gray-500 hover:text-gray-900'}`}>
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${!annual ? 'bg-white text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}>
             Monthly
           </button>
           <button onClick={() => setAnnual(true)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${annual ? 'bg-white text-[#040f1f]' : 'text-gray-500 hover:text-gray-900'}`}>
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${annual ? 'bg-white text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}>
             Annual
             <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${annual ? 'bg-green-500 text-gray-900' : 'bg-green-500/20 text-green-400'}`}>
               −20%
@@ -207,7 +207,7 @@ export default function PricingPage() {
               <div key={plan.name}
                 className={`relative rounded-2xl border p-7 flex flex-col transition-all ${
                   plan.highlight
-                    ? 'border-[#0c7aed]/50 shadow-lg shadow-[#0c7aed]/10'
+                    ? 'border-[#2563EB]/50 shadow-lg shadow-[#2563EB]/10'
                     : 'border-gray-200'
                 }`}
                 style={{
@@ -218,8 +218,8 @@ export default function PricingPage() {
 
                 {plan.badge && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                    <span className="px-3 py-1 rounded-full text-xs font-semibold text-gray-900"
-                      style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold text-white"
+                      style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
                       {plan.badge}
                     </span>
                   </div>
@@ -228,7 +228,7 @@ export default function PricingPage() {
                 <div className="flex items-start justify-between mb-5">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <Icon size={16} className="text-[#369bff]" />
+                      <Icon size={16} className="text-[#2563EB]" />
                       <span className="font-bold text-gray-900 text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>
                         {plan.name}
                       </span>
@@ -278,7 +278,7 @@ export default function PricingPage() {
                       ? 'text-gray-900 hover:opacity-90'
                       : 'text-gray-800 border border-gray-200 hover:border-white/30 hover:text-gray-900'
                   }`}
-                  style={plan.highlight ? { background: 'linear-gradient(135deg, #0c7aed, #004ea8)' } : {}}>
+                  style={plan.highlight ? { background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' } : {}}>
                   {plan.cta}
                   <ArrowRight size={14} />
                 </Link>
@@ -306,7 +306,7 @@ export default function PricingPage() {
 
       {/* Trust row */}
       <div className="border-y border-gray-100 py-8"
-        style={{ background: 'rgba(255,255,255,0.01)' }}>
+        style={{ background: '#FFFFFF' }}>
         <div className="max-w-4xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
@@ -334,7 +334,7 @@ export default function PricingPage() {
           <div className="grid grid-cols-5 border-b border-gray-200">
             <div className="px-4 py-4 text-xs text-gray-400 uppercase tracking-wide font-medium">Feature</div>
             {['Starter', 'Growth', 'NGO', 'Enterprise'].map(p => (
-              <div key={p} className={`px-4 py-4 text-sm font-semibold text-center ${p === 'NGO' ? 'text-[#369bff]' : 'text-gray-900'}`}
+              <div key={p} className={`px-4 py-4 text-sm font-semibold text-center ${p === 'NGO' ? 'text-[#2563EB]' : 'text-gray-900'}`}
                 style={{ fontFamily: 'Syne, sans-serif' }}>{p}</div>
             ))}
           </div>
@@ -357,8 +357,8 @@ export default function PricingPage() {
               {[starter, growth, ngo, enterprise].map((val, i) => (
                 <div key={i} className={`px-4 py-3.5 text-sm text-center ${
                   val === '✓' ? 'text-green-400' :
-                  val === '—' ? 'text-white/15' :
-                  i === 2 ? 'text-[#369bff] font-medium' : 'text-gray-600'
+                  val === '—' ? 'text-gray-300' :
+                  i === 2 ? 'text-[#2563EB] font-medium' : 'text-gray-600'
                 }`}>{val}</div>
               ))}
             </div>
@@ -369,7 +369,7 @@ export default function PricingPage() {
       {/* FAQ */}
       <div className="max-w-2xl mx-auto px-6 pb-20">
         <div className="flex items-center gap-2 justify-center mb-10">
-          <HelpCircle size={18} className="text-[#369bff]" />
+          <HelpCircle size={18} className="text-[#2563EB]" />
           <h2 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Syne, sans-serif' }}>
             Frequently asked questions
           </h2>
@@ -382,7 +382,7 @@ export default function PricingPage() {
 
       {/* Final CTA */}
       <div className="max-w-3xl mx-auto px-6 pb-20 text-center">
-        <div className="rounded-2xl border border-[#0c7aed]/20 p-10"
+        <div className="rounded-2xl border border-[#2563EB]/20 p-10"
           style={{ background: 'linear-gradient(135deg, rgba(12,122,237,0.06), rgba(0,78,168,0.06))' }}>
           <h2 className="text-2xl font-bold text-gray-900 mb-3" style={{ fontFamily: 'Syne, sans-serif' }}>
             Start proving your integrity today
@@ -392,8 +392,8 @@ export default function PricingPage() {
           </p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <Link href="/register"
-              className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium text-gray-900"
-              style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+              className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium text-white"
+              style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
               Start free <ArrowRight size={15} />
             </Link>
             <Link href="mailto:hello@tulipds.com"

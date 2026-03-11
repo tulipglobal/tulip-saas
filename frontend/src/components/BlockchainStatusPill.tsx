@@ -27,7 +27,7 @@ export default function BlockchainStatusPill({ sealId, anchorStatus, txHash, onC
     return (
       <button
         onClick={onClick}
-        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-400/10 text-green-400 border border-green-400/20 hover:border-green-400/40 transition-all cursor-pointer"
+        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-50 text-green-600 border border-green-200 hover:border-green-300 transition-all cursor-pointer"
       >
         <CheckCircle size={10} /> Anchored
       </button>
@@ -37,7 +37,7 @@ export default function BlockchainStatusPill({ sealId, anchorStatus, txHash, onC
   return (
     <button
       onClick={onClick}
-      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-yellow-400/10 text-yellow-400 border border-yellow-400/20 hover:border-yellow-400/40 transition-all cursor-pointer"
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-yellow-50 text-yellow-600 border border-yellow-200 hover:border-yellow-300 transition-all cursor-pointer"
     >
       <Clock size={10} /> Pending
     </button>

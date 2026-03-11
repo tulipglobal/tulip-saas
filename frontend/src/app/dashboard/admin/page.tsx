@@ -120,7 +120,7 @@ export default function AdminPage() {
   if (loading || !authorized) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-[#0c7aed] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[#2563EB] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -141,7 +141,7 @@ export default function AdminPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+            style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
             <Shield size={20} />
           </div>
           Admin Dashboard
@@ -161,9 +161,9 @@ export default function AdminPage() {
             { label: 'Signups This Week', value: stats.signupsThisWeek, icon: TrendingUp },
             { label: 'Total Bundles', value: stats.totalBundles, icon: BarChart3 },
           ].map(({ label, value, icon: Icon }) => (
-            <div key={label} className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
+            <div key={label} className="bg-gray-50 border border-gray-200 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Icon size={14} className="text-[#369bff]" />
+                <Icon size={14} className="text-[#2563EB]" />
                 <span className="text-[10px] text-gray-500 uppercase font-medium">{label}</span>
               </div>
               <div className="text-2xl font-bold text-gray-900">{value.toLocaleString()}</div>
@@ -175,8 +175,8 @@ export default function AdminPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: Customers Table */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl">
-            <div className="p-4 border-b border-white/[0.06]">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl">
+            <div className="p-4 border-b border-gray-200">
               <h2 className="font-semibold text-gray-900 flex items-center gap-2 mb-3">
                 <Users size={16} /> Customers
               </h2>
@@ -199,7 +199,7 @@ export default function AdminPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-white/[0.06] text-gray-400 uppercase">
+                  <tr className="border-b border-gray-200 text-gray-400 uppercase">
                     <th className="text-left px-4 py-3 font-medium">Organisation</th>
                     <th className="text-left px-4 py-3 font-medium">Email</th>
                     <th className="text-left px-4 py-3 font-medium">Plan</th>
@@ -212,7 +212,7 @@ export default function AdminPage() {
                   {customers.length === 0 ? (
                     <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">No customers found</td></tr>
                   ) : customers.map(c => (
-                    <tr key={c.id} className="hover:bg-white/[0.02] transition-colors">
+                    <tr key={c.id} className="hover:bg-white transition-colors">
                       <td className="px-4 py-3">
                         <div className="text-gray-900 font-medium truncate max-w-[160px]">{c.name}</div>
                       </td>
@@ -237,8 +237,8 @@ export default function AdminPage() {
         <div className="space-y-6">
           {/* Hot Leads */}
           {hotLeads.length > 0 && (
-            <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl">
-              <div className="p-4 border-b border-white/[0.06]">
+            <div className="bg-gray-50 border border-gray-200 rounded-xl">
+              <div className="p-4 border-b border-gray-200">
                 <h2 className="font-semibold text-gray-900 flex items-center gap-2">
                   <Flame size={16} className="text-orange-400" /> Hot Leads
                 </h2>
@@ -262,8 +262,8 @@ export default function AdminPage() {
           )}
 
           {/* Engagement Feed */}
-          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl">
-            <div className="p-4 border-b border-white/[0.06]">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl">
+            <div className="p-4 border-b border-gray-200">
               <h2 className="font-semibold text-gray-900 flex items-center gap-2">
                 <Clock size={16} /> Recent Engagement
               </h2>

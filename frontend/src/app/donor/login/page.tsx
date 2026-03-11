@@ -59,15 +59,15 @@ export default function DonorLoginPage() {
     <div className="min-h-screen bg-[#F9FAFB] flex flex-col" style={{ fontFamily: 'DM Sans, sans-serif' }}>
 
       {/* Nav */}
-      <nav className="border-b border-gray-200 bg-[#07224a]/80 backdrop-blur-md">
+      <nav className="border-b border-gray-200 bg-white/95 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+              style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
               <Shield className="w-4 h-4 text-gray-900" />
             </div>
             <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px', color: 'white' }}>
-              tulip<span style={{ color: '#369bff' }}>ds</span>
+              tulip<span style={{ color: '#2563EB' }}>ds</span>
             </span>
             <span className="text-gray-300 text-sm ml-1">| Donor Portal</span>
           </Link>
@@ -139,7 +139,7 @@ export default function DonorLoginPage() {
             </div>
 
             <button type="submit" disabled={loading || !email || !password}
-              className="w-full py-3 rounded-xl text-gray-900 font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-xl text-white font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
               {loading
                 ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -156,7 +156,7 @@ export default function DonorLoginPage() {
 
       {/* Footer */}
       <footer className="border-t border-gray-100 py-4">
-        <p className="text-center text-white/15 text-xs">
+        <p className="text-center text-gray-300 text-xs">
           Tulip DS &middot; Bright Bytes Technology &middot; Dubai, UAE
         </p>
       </footer>

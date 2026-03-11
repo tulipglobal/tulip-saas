@@ -43,7 +43,7 @@ function emptyFunding(): FundingSourceForm {
 }
 
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'KES', 'UGX', 'TZS', 'INR', 'NGN', 'ZAR', 'GHS', 'ETB', 'RWF']
-const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all [color-scheme:dark]"
+const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50 transition-all [color-scheme:light]"
 
 export default function NewBudgetPage() {
   return (
@@ -208,7 +208,7 @@ function NewBudgetInner() {
               <div className={inputCls + ' text-gray-400'}>Loading projects...</div>
             ) : (
               <select value={projectId} onChange={e => handleProjectChange(e.target.value)}
-                className={inputCls + ' [&>option]:bg-[#0a1628]'}>
+                className={inputCls + ' [&>option]:bg-white'}>
                 <option value="">Select a project...</option>
                 {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
@@ -254,7 +254,7 @@ function NewBudgetInner() {
             const categoryKeys = Object.keys(categories)
             const subCategories = line.category ? categories[line.category] || [] : []
             return (
-              <div key={line.key} className="rounded-lg border border-gray-200 p-4 space-y-3" style={{ background: 'rgba(255,255,255,0.01)' }}>
+              <div key={line.key} className="rounded-lg border border-gray-200 p-4 space-y-3" style={{ background: '#FFFFFF' }}>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-400 font-medium">Line {i + 1}</span>
                   <button onClick={() => { if (lines.length > 1) setLines(prev => prev.filter(l => l.key !== line.key)) }}
@@ -279,7 +279,7 @@ function NewBudgetInner() {
                   <div>
                     <label className="text-xs text-gray-500 mb-1 block">Category *</label>
                     <select value={line.category} onChange={e => updateLine(line.key, 'category', e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#0c7aed]/50 transition-all [&>option]:bg-[#0a1628]">
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#2563EB]/50 transition-all [&>option]:bg-white">
                       <option value="">Select...</option>
                       {categoryKeys.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
@@ -288,7 +288,7 @@ function NewBudgetInner() {
                     <label className="text-xs text-gray-500 mb-1 block">Sub-category</label>
                     <select value={line.subCategory} onChange={e => updateLine(line.key, 'subCategory', e.target.value)}
                       disabled={subCategories.length === 0}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#0c7aed]/50 transition-all disabled:opacity-40 [&>option]:bg-[#0a1628]">
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#2563EB]/50 transition-all disabled:opacity-40 [&>option]:bg-white">
                       <option value="">Select...</option>
                       {subCategories.map((s: string) => <option key={s} value={s}>{s}</option>)}
                     </select>
@@ -297,19 +297,19 @@ function NewBudgetInner() {
                     <label className="text-xs text-gray-500 mb-1 block">Amount *</label>
                     <div className="flex gap-1.5">
                       <select value={line.currency} onChange={e => updateLine(line.key, 'currency', e.target.value)}
-                        className="bg-gray-50 border border-gray-200 rounded-lg px-2 py-2 text-xs text-gray-600 outline-none [&>option]:bg-[#0a1628] w-20 shrink-0">
+                        className="bg-gray-50 border border-gray-200 rounded-lg px-2 py-2 text-xs text-gray-600 outline-none [&>option]:bg-white w-20 shrink-0">
                         {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
                       </select>
                       <input type="number" min="0" step="0.01" value={line.approvedAmount}
                         onChange={e => updateLine(line.key, 'approvedAmount', e.target.value)} placeholder="0.00"
-                        className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all" />
+                        className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50 transition-all" />
                     </div>
                   </div>
                 </div>
                 <div>
                   <label className="text-xs text-gray-500 mb-1 block">Description</label>
                   <input value={line.description} onChange={e => updateLine(line.key, 'description', e.target.value)}
-                    placeholder="Optional line item description..." className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all" />
+                    placeholder="Optional line item description..." className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50 transition-all" />
                 </div>
               </div>
             )
@@ -332,7 +332,7 @@ function NewBudgetInner() {
           {fundingSources.map((fs, i) => {
             const subTypes = fs.sourceType ? (FUNDING_SOURCE_TYPES[fs.sourceType] || []) : []
             return (
-              <div key={fs.key} className="rounded-lg border border-gray-200 p-4 space-y-3" style={{ background: 'rgba(255,255,255,0.01)' }}>
+              <div key={fs.key} className="rounded-lg border border-gray-200 p-4 space-y-3" style={{ background: '#FFFFFF' }}>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-400 font-medium">Source {i + 1}</span>
                   <button onClick={() => { if (fundingSources.length > 1) setFundingSources(prev => prev.filter(f => f.key !== fs.key)) }}
@@ -344,7 +344,7 @@ function NewBudgetInner() {
                   <div>
                     <label className="text-xs text-gray-500 mb-1 block">Source Type *</label>
                     <select value={fs.sourceType} onChange={e => updateFunding(fs.key, 'sourceType', e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#0c7aed]/50 transition-all [&>option]:bg-[#0a1628]">
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#2563EB]/50 transition-all [&>option]:bg-white">
                       <option value="">Select...</option>
                       {FUNDING_SOURCE_TYPE_KEYS.map(t => <option key={t} value={t}>{t}</option>)}
                     </select>
@@ -353,7 +353,7 @@ function NewBudgetInner() {
                     <label className="text-xs text-gray-500 mb-1 block">Sub-Type</label>
                     <select value={fs.sourceSubType} onChange={e => updateFunding(fs.key, 'sourceSubType', e.target.value)}
                       disabled={subTypes.length === 0}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#0c7aed]/50 transition-all disabled:opacity-40 [&>option]:bg-[#0a1628]">
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#2563EB]/50 transition-all disabled:opacity-40 [&>option]:bg-white">
                       <option value="">Select...</option>
                       {subTypes.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
@@ -362,7 +362,7 @@ function NewBudgetInner() {
                     <label className="text-xs text-gray-500 mb-1 block">Donor Name *</label>
                     <input value={fs.donorName} onChange={e => updateFunding(fs.key, 'donorName', e.target.value)}
                       placeholder="e.g. USAID, Gates Foundation"
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all" />
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50 transition-all" />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -370,12 +370,12 @@ function NewBudgetInner() {
                     <label className="text-xs text-gray-500 mb-1 block">Amount *</label>
                     <div className="flex gap-1.5">
                       <select value={fs.currency} onChange={e => updateFunding(fs.key, 'currency', e.target.value)}
-                        className="bg-gray-50 border border-gray-200 rounded-lg px-2 py-2 text-xs text-gray-600 outline-none [&>option]:bg-[#0a1628] w-20 shrink-0">
+                        className="bg-gray-50 border border-gray-200 rounded-lg px-2 py-2 text-xs text-gray-600 outline-none [&>option]:bg-white w-20 shrink-0">
                         {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
                       </select>
                       <input type="number" min="0" step="0.01" value={fs.amount}
                         onChange={e => updateFunding(fs.key, 'amount', e.target.value)} placeholder="0.00"
-                        className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all" />
+                        className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50 transition-all" />
                     </div>
                   </div>
                 </div>
@@ -418,8 +418,8 @@ function NewBudgetInner() {
             <span className="text-xs text-yellow-400/70">Saves as DRAFT (not fully funded)</span>
           )}
           <button onClick={handleSubmit} disabled={saving}
-            className="px-6 py-2.5 rounded-lg text-sm font-medium text-gray-900 disabled:opacity-50 transition-all"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+            className="px-6 py-2.5 rounded-lg text-sm font-medium text-white disabled:opacity-50 transition-all"
+            style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
             {saving ? 'Creating...' : 'Create Budget'}
           </button>
         </div>

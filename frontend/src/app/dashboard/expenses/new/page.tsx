@@ -183,7 +183,7 @@ export default function NewExpensePage() {
     setSaving(false)
   }
 
-  const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all [&>option]:bg-[#0a1628] [color-scheme:dark]"
+  const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50 transition-all [&>option]:bg-white [color-scheme:light]"
   const labelCls = "block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide"
 
   return (
@@ -359,8 +359,8 @@ export default function NewExpensePage() {
                 </label>
                 {receiptFile && (
                   <button onClick={handleReceiptUpload} disabled={uploading}
-                    className="px-4 py-2.5 rounded-lg text-xs font-medium text-gray-900 disabled:opacity-50 shrink-0"
-                    style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                    className="px-4 py-2.5 rounded-lg text-xs font-medium text-white disabled:opacity-50 shrink-0"
+                    style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
                     {uploading ? 'Uploading...' : 'Upload & Seal'}
                   </button>
                 )}
@@ -382,8 +382,8 @@ export default function NewExpensePage() {
 
         <div className="flex items-center gap-3 pt-2">
           <button onClick={submit} disabled={saving}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-gray-900 disabled:opacity-50"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white disabled:opacity-50"
+            style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
             <Save size={15} /> {saving ? 'Saving...' : 'Log Expense'}
           </button>
           <Link href="/dashboard/expenses" className="px-5 py-2.5 rounded-lg text-sm text-gray-500 hover:text-gray-900 transition-colors">

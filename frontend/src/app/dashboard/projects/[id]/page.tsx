@@ -149,8 +149,8 @@ export default function ProjectDetailPage() {
           </div>
         </div>
         <Link href={`/dashboard/budgets/new?projectId=${id}`}
-          className="flex items-center gap-2 text-sm font-medium text-gray-900 px-4 py-2 rounded-lg transition-all shrink-0"
-          style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+          className="flex items-center gap-2 text-sm font-medium text-white px-4 py-2 rounded-lg transition-all shrink-0"
+          style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
           <Plus size={14} /> Create Budget
         </Link>
       </div>
@@ -216,7 +216,7 @@ export default function ProjectDetailPage() {
               </thead>
               <tbody>
                 {expenses.map((exp, i) => (
-                  <tr key={exp.id} className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${i % 2 === 0 ? '' : 'bg-white/[0.02]'}`}>
+                  <tr key={exp.id} className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${i % 2 === 0 ? '' : 'bg-white'}`}>
                     <td className="px-4 py-3 text-sm text-gray-800">{exp.description}</td>
                     <td className="px-4 py-3 text-sm text-gray-900 font-medium">{exp.currency} {exp.amount.toLocaleString()}</td>
                     <td className="px-4 py-3">

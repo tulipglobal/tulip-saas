@@ -30,14 +30,14 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .tulip-gradient {
-  background: linear-gradient(135deg, #0c7aed 0%, #004ea8 100%);
+  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
 }
 
 .tulip-mesh {
-  background-color: #07224a;
+  background-color: #F9FAFB;
   background-image:
-    radial-gradient(at 20% 20%, rgba(12,122,237,0.2) 0px, transparent 60%),
-    radial-gradient(at 80% 80%, rgba(0,78,168,0.2) 0px, transparent 60%);
+    radial-gradient(at 20% 20%, rgba(37,99,235,0.06) 0px, transparent 60%),
+    radial-gradient(at 80% 80%, rgba(37,99,235,0.04) 0px, transparent 60%);
 }
 
 .hash-mono {
@@ -49,7 +49,7 @@ h1, h2, h3, h4, h5, h6 {
 
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 3px; }
 
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(12px); }

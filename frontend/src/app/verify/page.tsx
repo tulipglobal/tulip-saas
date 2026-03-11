@@ -69,7 +69,7 @@ async function generateCertificate(result: VerifyResult, fileName?: string) {
   const verifyUrl = `${window.location.origin}/verify?hash=${result.dataHash}`
 
   // QR code
-  const qrDataUrl = await QRCode.toDataURL(verifyUrl, { width: 300, margin: 0, color: { dark: '#0c7aed', light: '#ffffff' } })
+  const qrDataUrl = await QRCode.toDataURL(verifyUrl, { width: 300, margin: 0, color: { dark: '#2563EB', light: '#ffffff' } })
 
   // Background
   doc.setFillColor(255, 255, 255)
@@ -347,7 +347,7 @@ async function generateProofBundle(result: VerifyResult, fileName?: string) {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
   const W = 210, H = 297
 
-  const qrDataUrl = await QRCode.toDataURL(verifyUrl, { width: 300, margin: 0, color: { dark: '#0c7aed', light: '#ffffff' } })
+  const qrDataUrl = await QRCode.toDataURL(verifyUrl, { width: 300, margin: 0, color: { dark: '#2563EB', light: '#ffffff' } })
 
   doc.setFillColor(255, 255, 255)
   doc.rect(0, 0, W, H, 'F')
@@ -587,18 +587,18 @@ function VerifyPageInner() {
     <div className="min-h-screen bg-[#F9FAFB]" style={{ fontFamily: 'DM Sans, sans-serif' }}>
 
       {/* ── NAV ── */}
-      <nav className="border-b border-gray-200 bg-[#07224a]/80 backdrop-blur-md">
+      <nav className="border-b border-gray-200 bg-white/95 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
               <Shield className="w-3.5 h-3.5 text-gray-900" />
             </div>
             <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '17px', color: 'white' }}>
-              tulip<span style={{ color: '#369bff' }}>ds</span>
+              tulip<span style={{ color: '#2563EB' }}>ds</span>
             </span>
           </Link>
-          <Link href="/login" className="px-4 py-2 rounded-lg text-gray-900 text-sm font-medium hover:opacity-90 transition-opacity"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+          <Link href="/login" className="px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity"
+            style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
             Sign in
           </Link>
         </div>
@@ -625,11 +625,11 @@ function VerifyPageInner() {
         {/* Mode tabs */}
         <div className="flex gap-1 mb-4 bg-gray-50 p-1 rounded-lg w-fit mx-auto">
           <button onClick={() => setMode('file')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === 'file' ? 'bg-[#0c7aed] text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === 'file' ? 'bg-[#2563EB] text-white' : 'text-gray-500 hover:text-gray-700'}`}>
             <span className="flex items-center gap-2"><Upload className="w-3.5 h-3.5" /> Drop a file</span>
           </button>
           <button onClick={() => setMode('hash')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === 'hash' ? 'bg-[#0c7aed] text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === 'hash' ? 'bg-[#2563EB] text-white' : 'text-gray-500 hover:text-gray-700'}`}>
             <span className="flex items-center gap-2"><Hash className="w-3.5 h-3.5" /> Paste a hash</span>
           </button>
         </div>
@@ -643,8 +643,8 @@ function VerifyPageInner() {
             onClick={() => fileInputRef.current?.click()}
             className={`relative rounded-2xl border-2 border-dashed transition-all cursor-pointer group
               ${dragActive
-                ? 'border-[#0c7aed] bg-[#0c7aed]/10 scale-[1.01]'
-                : 'border-gray-200 bg-white/[0.02] hover:border-gray-300 hover:bg-white/[0.04]'
+                ? 'border-[#2563EB] bg-[#2563EB]/10 scale-[1.01]'
+                : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
               }`}
             style={{ minHeight: '200px' }}
           >
@@ -652,14 +652,14 @@ function VerifyPageInner() {
             <div className="flex flex-col items-center justify-center py-12 sm:py-16 px-6 text-center">
               {hashing ? (
                 <>
-                  <div className="w-10 h-10 border-2 border-[#0c7aed] border-t-transparent rounded-full animate-spin mb-4" />
+                  <div className="w-10 h-10 border-2 border-[#2563EB] border-t-transparent rounded-full animate-spin mb-4" />
                   <p className="text-gray-700 text-sm font-medium">Computing SHA-256 hash...</p>
                   <p className="text-gray-400 text-xs mt-1">{fileName}</p>
                 </>
               ) : (
                 <>
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-colors ${dragActive ? 'bg-[#0c7aed]/20' : 'bg-gray-50'}`}>
-                    <Upload className={`w-7 h-7 transition-colors ${dragActive ? 'text-[#0c7aed]' : 'text-gray-300 group-hover:text-gray-500'}`} />
+                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-colors ${dragActive ? 'bg-[#2563EB]/20' : 'bg-gray-50'}`}>
+                    <Upload className={`w-7 h-7 transition-colors ${dragActive ? 'text-[#2563EB]' : 'text-gray-300 group-hover:text-gray-500'}`} />
                   </div>
                   <p className="text-gray-700 text-base font-medium">
                     {dragActive ? 'Drop your file here' : 'Drag and drop any file here'}
@@ -685,8 +685,8 @@ function VerifyPageInner() {
                   className="w-full pl-11 pr-4 py-4 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50 transition-all text-sm font-mono" />
               </div>
               <button type="submit" disabled={loading || !hash.trim()}
-                className="px-6 py-4 rounded-xl text-gray-900 font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
-                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                className="px-6 py-4 rounded-xl text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
+                style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
                 {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Verify'}
               </button>
             </div>
@@ -697,8 +697,8 @@ function VerifyPageInner() {
       {/* ── LOADING ── */}
       {loading && (
         <div className="max-w-3xl mx-auto px-4 sm:px-6 pb-8">
-          <div className="flex items-center justify-center gap-3 p-6 rounded-xl bg-white/[0.02] border border-gray-100">
-            <div className="w-5 h-5 border-2 border-[#0c7aed] border-t-transparent rounded-full animate-spin" />
+          <div className="flex items-center justify-center gap-3 p-6 rounded-xl bg-white border border-gray-100">
+            <div className="w-5 h-5 border-2 border-[#2563EB] border-t-transparent rounded-full animate-spin" />
             <span className="text-gray-500 text-sm">Verifying on the blockchain...</span>
           </div>
         </div>
@@ -750,7 +750,7 @@ function VerifyPageInner() {
                           {result.documentHash ? 'Document' : 'Record'}
                         </p>
                         <div className="flex items-center gap-2.5">
-                          <FileText className="w-5 h-5 text-[#369bff] flex-shrink-0" />
+                          <FileText className="w-5 h-5 text-[#2563EB] flex-shrink-0" />
                           <span className="text-gray-900 text-base font-medium truncate">
                             {details?.documentName || fileName || details?.expenseDescription || result.action?.replace(/_/g, ' ')}
                           </span>
@@ -825,8 +825,8 @@ function VerifyPageInner() {
                         const data = await res.json()
                         if (data.url) window.open(data.url, '_blank')
                       } catch {}
-                    }} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-900 hover:opacity-90 transition-opacity"
-                      style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                    }} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90 transition-opacity"
+                      style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
                       <ExternalLink className="w-4 h-4" /> View Document
                     </button>
                   </div>
@@ -836,7 +836,7 @@ function VerifyPageInner() {
               {/* ── Download buttons ── */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button onClick={() => generateCertificate(result, fileName || undefined)}
-                  className="flex items-center justify-center gap-2.5 py-3.5 rounded-xl border border-gray-200 bg-white/[0.03] text-gray-700 text-sm font-medium hover:bg-white/[0.06] hover:text-gray-900 transition-all">
+                  className="flex items-center justify-center gap-2.5 py-3.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-700 text-sm font-medium hover:bg-gray-100 hover:text-gray-900 transition-all">
                   <Download className="w-4 h-4" /> Download PDF
                 </button>
                 <button onClick={() => generateProofBundle(result, fileName || undefined)}
@@ -848,7 +848,7 @@ function VerifyPageInner() {
               {/* ── Advanced / Technical section ── */}
               <div className="rounded-2xl border border-gray-200 overflow-hidden" style={{ background: '#FFFFFF' }}>
                 <button onClick={() => setShowAdvanced(!showAdvanced)}
-                  className="w-full flex items-center justify-between px-5 sm:px-6 py-4 text-left hover:bg-white/[0.02] transition-colors">
+                  className="w-full flex items-center justify-between px-5 sm:px-6 py-4 text-left hover:bg-white transition-colors">
                   <span className="text-gray-500 text-sm font-medium">Technical Details</span>
                   {showAdvanced ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
                 </button>
@@ -936,8 +936,8 @@ function VerifyPageInner() {
                             <div>
                               <p className="text-gray-400 text-xs">Network</p>
                               <div className="flex items-center gap-1">
-                                <Globe className="w-3 h-3 text-[#369bff]" />
-                                <p className="text-[#369bff] text-xs font-medium">Polygon Amoy</p>
+                                <Globe className="w-3 h-3 text-[#2563EB]" />
+                                <p className="text-[#2563EB] text-xs font-medium">Polygon Amoy</p>
                               </div>
                             </div>
                           </div>
@@ -973,19 +973,19 @@ function VerifyPageInner() {
               { icon: <Globe className="w-5 h-5" />, title: 'Blockchain check', desc: 'We look up the fingerprint on the Polygon blockchain to confirm the document was registered.' },
               { icon: <CheckCircle className="w-5 h-5" />, title: 'Instant proof', desc: 'Get a clear result with all the details, and download a printable proof certificate with QR code.' },
             ].map(item => (
-              <div key={item.title} className="p-5 rounded-xl border border-gray-100 bg-white/[0.02] text-center">
+              <div key={item.title} className="p-5 rounded-xl border border-gray-100 bg-white text-center">
                 <div className="w-11 h-11 rounded-xl bg-blue-500/10 flex items-center justify-center mx-auto mb-3 text-blue-400">{item.icon}</div>
                 <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'white', marginBottom: '6px' }}>{item.title}</p>
                 <p className="text-slate-500 text-xs leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
-          <div className="mt-8 p-5 rounded-xl border border-gray-100 bg-white/[0.02] text-center">
+          <div className="mt-8 p-5 rounded-xl border border-gray-100 bg-white text-center">
             <p className="text-slate-500 text-sm">
               Want to verify your own records?{' '}
-              <Link href="/login" className="text-[#369bff] font-medium hover:underline">Sign in to your dashboard</Link>
+              <Link href="/login" className="text-[#2563EB] font-medium hover:underline">Sign in to your dashboard</Link>
               {' '}or{' '}
-              <Link href="/register" className="text-[#369bff] font-medium hover:underline">create an account</Link>
+              <Link href="/register" className="text-[#2563EB] font-medium hover:underline">create an account</Link>
             </p>
           </div>
         </div>

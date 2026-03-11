@@ -41,7 +41,7 @@ export default function NewProjectPage() {
     setSaving(false)
   }
 
-  const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 focus:bg-white/8 transition-all"
+  const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50 focus:bg-white transition-all"
   const labelCls = "block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide"
 
   return (
@@ -101,8 +101,8 @@ export default function NewProjectPage() {
 
             <div className="flex items-center gap-3 pt-2">
               <button onClick={submit} disabled={saving}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-gray-900 disabled:opacity-50 transition-all"
-                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white disabled:opacity-50 transition-all"
+                style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
                 <Save size={15} />
                 {saving ? 'Creating…' : 'Create Project'}
               </button>
@@ -123,8 +123,8 @@ export default function NewProjectPage() {
             <DocumentUploadSection entityType="project" entityId={savedProjectId} />
             <div className="flex items-center gap-3">
               <button onClick={() => router.push(`/dashboard/projects/${savedProjectId}`)}
-                className="px-5 py-2.5 rounded-lg text-sm font-medium text-gray-900"
-                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                className="px-5 py-2.5 rounded-lg text-sm font-medium text-white"
+                style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
                 View Project
               </button>
               <button onClick={() => router.push('/dashboard/projects/new')}

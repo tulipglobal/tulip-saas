@@ -226,7 +226,7 @@ export default function BundlePage() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+              style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
               <FolderSearch size={20} />
             </div>
             Bundle Verify
@@ -249,13 +249,13 @@ export default function BundlePage() {
           value={bundleName}
           onChange={(e) => setBundleName(e.target.value)}
           placeholder="Bundle name (optional)"
-          className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-gray-200 text-sm text-gray-800 placeholder-white/25 outline-none focus:border-[#0c7aed]/40 transition-all"
+          className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-[#2563EB]/40 transition-all"
         />
         <div
           className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${
             dragActive
-              ? 'border-[#0c7aed] bg-[#0c7aed]/5'
-              : 'border-gray-200 hover:border-gray-300 bg-white/[0.02]'
+              ? 'border-[#2563EB] bg-[#2563EB]/5'
+              : 'border-gray-200 hover:border-gray-300 bg-white'
           }`}
           onDragOver={(e) => { e.preventDefault(); setDragActive(true) }}
           onDragLeave={() => setDragActive(false)}
@@ -266,13 +266,13 @@ export default function BundlePage() {
 
           {uploading ? (
             <div className="flex flex-col items-center gap-3">
-              <Loader2 size={32} className="text-[#0c7aed] animate-spin" />
+              <Loader2 size={32} className="text-[#2563EB] animate-spin" />
               <p className="text-gray-600 text-sm">Uploading bundle and starting processing...</p>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-3">
-              <div className="w-14 h-14 rounded-2xl bg-[#0c7aed]/10 flex items-center justify-center">
-                <Upload size={24} className="text-[#0c7aed]" />
+              <div className="w-14 h-14 rounded-2xl bg-[#2563EB]/10 flex items-center justify-center">
+                <Upload size={24} className="text-[#2563EB]" />
               </div>
               <div>
                 <p className="text-gray-700 font-medium">Drop multiple documents here or click to upload</p>
@@ -314,8 +314,8 @@ export default function BundlePage() {
               onClick={() => setSelectedBundle(bundle)}
               className={`w-full text-left p-4 rounded-xl border transition-all ${
                 selectedBundle?.id === bundle.id
-                  ? 'bg-[#0c7aed]/10 border-[#0c7aed]/30'
-                  : 'bg-white/[0.02] border-gray-200 hover:bg-white/[0.04]'
+                  ? 'bg-[#2563EB]/10 border-[#2563EB]/30'
+                  : 'bg-white border-gray-200 hover:bg-gray-50'
               }`}
             >
               <div className="flex items-start justify-between gap-2">
@@ -349,7 +349,7 @@ export default function BundlePage() {
         {/* Detail panel */}
         <div className="lg:col-span-2">
           {!selectedBundle ? (
-            <div className="flex items-center justify-center h-64 rounded-2xl border border-gray-200 bg-white/[0.02]">
+            <div className="flex items-center justify-center h-64 rounded-2xl border border-gray-200 bg-white">
               <div className="text-center text-gray-400">
                 <Eye size={32} className="mx-auto mb-2 opacity-40" />
                 <p className="text-sm">Select a bundle to view results</p>
@@ -358,7 +358,7 @@ export default function BundlePage() {
           ) : (
             <div className="space-y-4">
               {/* Bundle header */}
-              <div className="p-5 rounded-2xl border border-gray-200 bg-white/[0.02]">
+              <div className="p-5 rounded-2xl border border-gray-200 bg-white">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-lg truncate pr-3">{selectedBundle.name}</h3>
                   <StatusBadge status={selectedBundle.status} />
@@ -395,9 +395,9 @@ export default function BundlePage() {
 
                 {/* Hash */}
                 {selectedBundle.bundleHash ? (
-                  <div className="mt-3 p-3 rounded-lg bg-white/[0.03] border border-gray-200">
+                  <div className="mt-3 p-3 rounded-lg bg-gray-50 border border-gray-200">
                     <div className="flex items-center gap-2 text-xs">
-                      <Hash size={12} className="text-[#0c7aed]" />
+                      <Hash size={12} className="text-[#2563EB]" />
                       <span className="text-gray-400">SHA-256</span>
                       <code className="text-gray-500 font-mono text-[11px] break-all">{selectedBundle.bundleHash}</code>
                     </div>
@@ -408,8 +408,8 @@ export default function BundlePage() {
                 {selectedBundle.masterReportS3 ? (
                   <button
                     onClick={() => handleDownloadPdf(selectedBundle.id)}
-                    className="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-lg text-sm font-medium text-gray-900 transition-all hover:opacity-90"
-                    style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}
+                    className="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90"
+                    style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}
                   >
                     <Download size={14} />
                     Download Master Report
@@ -419,14 +419,14 @@ export default function BundlePage() {
 
               {/* Documents in bundle */}
               {selectedBundle.ocrJobs && selectedBundle.ocrJobs.length > 0 ? (
-                <div className="p-5 rounded-2xl border border-gray-200 bg-white/[0.02]">
+                <div className="p-5 rounded-2xl border border-gray-200 bg-white">
                   <h4 className="font-semibold text-sm text-gray-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <FileText size={14} className="text-blue-400" />
                     Documents ({selectedBundle.ocrJobs.length})
                   </h4>
                   <div className="space-y-2">
                     {selectedBundle.ocrJobs.map((job, i) => (
-                      <div key={job.id} className="flex items-center justify-between p-3 rounded-lg bg-white/[0.03] border border-gray-200">
+                      <div key={job.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-200">
                         <div className="flex items-center gap-3 min-w-0 flex-1">
                           <span className="text-gray-300 text-xs font-mono w-5 text-right">{i + 1}</span>
                           <span className="text-sm text-gray-800 truncate">{job.originalFilename}</span>
@@ -451,7 +451,7 @@ export default function BundlePage() {
               {cross ? (
                 <>
                   {/* Summary & scores */}
-                  <div className="p-5 rounded-2xl border border-gray-200 bg-white/[0.02]">
+                  <div className="p-5 rounded-2xl border border-gray-200 bg-white">
                     <h4 className="font-semibold text-sm text-gray-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                       <ShieldCheck size={14} className="text-green-400" />
                       Cross-Analysis Results
@@ -476,14 +476,14 @@ export default function BundlePage() {
 
                   {/* Cross-check findings */}
                   {cross.crossChecks && cross.crossChecks.length > 0 ? (
-                    <div className="p-5 rounded-2xl border border-gray-200 bg-white/[0.02]">
+                    <div className="p-5 rounded-2xl border border-gray-200 bg-white">
                       <h4 className="font-semibold text-sm text-gray-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <AlertTriangle size={14} className="text-yellow-400" />
                         Cross-Check Findings ({cross.crossChecks.length})
                       </h4>
                       <div className="space-y-3">
                         {cross.crossChecks.map((check, i) => (
-                          <div key={i} className="p-3 rounded-lg bg-white/[0.03] border border-gray-200">
+                          <div key={i} className="p-3 rounded-lg bg-gray-50 border border-gray-200">
                             <div className="flex items-center gap-2 mb-1">
                               <SeverityBadge severity={check.severity} />
                               <span className="text-xs text-gray-500 uppercase">{check.checkType}</span>
@@ -501,7 +501,7 @@ export default function BundlePage() {
 
                   {/* Document relationships */}
                   {cross.documentRelationships && cross.documentRelationships.length > 0 ? (
-                    <div className="p-5 rounded-2xl border border-gray-200 bg-white/[0.02]">
+                    <div className="p-5 rounded-2xl border border-gray-200 bg-white">
                       <h4 className="font-semibold text-sm text-gray-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <ArrowRightLeft size={14} className="text-indigo-400" />
                         Document Relationships
@@ -511,7 +511,7 @@ export default function BundlePage() {
                           const d1 = selectedBundle.ocrJobs[rel.doc1 - 1]?.originalFilename || `Doc ${rel.doc1}`
                           const d2 = selectedBundle.ocrJobs[rel.doc2 - 1]?.originalFilename || `Doc ${rel.doc2}`
                           return (
-                            <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] border border-gray-200 text-sm">
+                            <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border border-gray-200 text-sm">
                               <span className="text-gray-700 truncate flex-1">{d1}</span>
                               <span className="text-gray-300">↔</span>
                               <span className="text-gray-700 truncate flex-1">{d2}</span>
@@ -526,7 +526,7 @@ export default function BundlePage() {
 
                   {/* Missing documents */}
                   {cross.missingDocuments && cross.missingDocuments.length > 0 ? (
-                    <div className="p-5 rounded-2xl border border-gray-200 bg-white/[0.02]">
+                    <div className="p-5 rounded-2xl border border-gray-200 bg-white">
                       <h4 className="font-semibold text-sm text-gray-600 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <FileWarning size={14} className="text-orange-400" />
                         Missing Documents

@@ -153,7 +153,7 @@ export default function TeamPage() {
           <p className="text-gray-500 text-sm mt-1">{members.length} member{members.length !== 1 ? 's' : ''}</p>
         </div>
         <button onClick={() => setShowInvite(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-[#0c7aed] text-gray-900 hover:bg-[#0c7aed]/80 transition-all self-start">
+          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-[#2563EB] text-white hover:bg-[#2563EB]/80 transition-all self-start">
           <Plus size={16} />
           Invite Member
         </button>
@@ -177,11 +177,11 @@ export default function TeamPage() {
               const roleName = rawRole === 'editor' ? 'member' : rawRole
               const isCurrentUser = m.id === currentUserId
               return (
-                <tr key={m.id} className="border-b border-gray-100 last:border-0 hover:bg-white/[0.02] transition-colors">
+                <tr key={m.id} className="border-b border-gray-100 last:border-0 hover:bg-white transition-colors">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                        style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                        style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
                         {m.name?.charAt(0)?.toUpperCase() || m.email.charAt(0).toUpperCase()}
                       </div>
                       <div>
@@ -199,10 +199,10 @@ export default function TeamPage() {
                       <select
                         value={roleName}
                         onChange={e => handleRoleChange(m.id, e.target.value)}
-                        className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#0c7aed]/50 cursor-pointer"
+                        className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#2563EB]/50 cursor-pointer"
                       >
                         {tableRoles.map(r => (
-                          <option key={r} value={r} className="bg-[#0a1628] text-gray-900">{r}</option>
+                          <option key={r} value={r} className="bg-white text-gray-900">{r}</option>
                         ))}
                       </select>
                     )}
@@ -237,7 +237,7 @@ export default function TeamPage() {
               <div key={m.id} className="px-4 py-3.5">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                    style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                    style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
                     {m.name?.charAt(0)?.toUpperCase() || m.email.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -260,10 +260,10 @@ export default function TeamPage() {
                     <select
                       value={roleName}
                       onChange={e => handleRoleChange(m.id, e.target.value)}
-                      className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#0c7aed]/50 cursor-pointer"
+                      className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#2563EB]/50 cursor-pointer"
                     >
                       {tableRoles.map(r => (
-                        <option key={r} value={r} className="bg-[#0a1628] text-gray-900">{r}</option>
+                        <option key={r} value={r} className="bg-white text-gray-900">{r}</option>
                       ))}
                     </select>
                   )}
@@ -283,7 +283,7 @@ export default function TeamPage() {
       {/* Invite Modal */}
       {showInvite && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowInvite(false)}>
-          <div className="bg-[#0a1628] border border-gray-200 rounded-none md:rounded-xl p-6 w-full h-full md:h-auto md:max-w-md space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-white border border-gray-200 rounded-none md:rounded-xl p-6 w-full h-full md:h-auto md:max-w-md space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">Invite Team Member</h3>
               <button onClick={() => setShowInvite(false)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
@@ -291,7 +291,7 @@ export default function TeamPage() {
             <div>
               <label className="text-xs text-gray-400 block mb-1">Email Address</label>
               <input
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50"
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50"
                 type="email" placeholder="colleague@example.com" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleInvite()}
               />
@@ -299,11 +299,11 @@ export default function TeamPage() {
             <div>
               <label className="text-xs text-gray-400 block mb-1">Role</label>
               <select
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-800 outline-none focus:border-[#0c7aed]/50"
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-800 outline-none focus:border-[#2563EB]/50"
                 value={inviteRole} onChange={e => setInviteRole(e.target.value)}
               >
                 {INVITE_ROLES.map(r => (
-                  <option key={r} value={r} className="bg-[#0a1628] text-gray-900">{r}</option>
+                  <option key={r} value={r} className="bg-white text-gray-900">{r}</option>
                 ))}
               </select>
             </div>
@@ -314,7 +314,7 @@ export default function TeamPage() {
                 Cancel
               </button>
               <button onClick={handleInvite} disabled={inviting || !inviteEmail}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#0c7aed] text-gray-900 hover:bg-[#0c7aed]/80 disabled:opacity-50 transition-all">
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#2563EB] text-white hover:bg-[#2563EB]/80 disabled:opacity-50 transition-all">
                 <Plus size={14} />
                 {inviting ? 'Sending...' : 'Send Invite'}
               </button>
@@ -326,7 +326,7 @@ export default function TeamPage() {
       {/* Remove Confirmation Modal */}
       {removeTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setRemoveTarget(null)}>
-          <div className="bg-[#0a1628] border border-gray-200 rounded-none md:rounded-xl p-6 w-full h-full md:h-auto md:max-w-sm space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-white border border-gray-200 rounded-none md:rounded-xl p-6 w-full h-full md:h-auto md:max-w-sm space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-semibold text-gray-900">Remove Member</h3>
             <p className="text-sm text-gray-600">
               Are you sure you want to remove <strong className="text-gray-900">{removeTarget.name || removeTarget.email}</strong> from your team? They will lose access immediately.

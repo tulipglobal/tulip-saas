@@ -162,8 +162,8 @@ export default function DocumentsPage() {
           <p className="text-gray-500 text-sm mt-1">{docs.length} document{docs.length !== 1 ? 's' : ''} — SHA-256 fingerprinted</p>
         </div>
         <Link href="/dashboard/documents/new"
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-900 self-start"
-          style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white self-start"
+          style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
           <Plus size={16} /> Add Document
         </Link>
       </div>
@@ -194,7 +194,7 @@ export default function DocumentsPage() {
           <div className="flex flex-col items-center py-16 gap-3">
             <FileCheck size={32} className="text-gray-300" />
             <p className="text-gray-400 text-sm">No documents yet</p>
-            <Link href="/dashboard/documents/new" className="text-[#369bff] text-sm hover:underline">Add your first document</Link>
+            <Link href="/dashboard/documents/new" className="text-[#2563EB] text-sm hover:underline">Add your first document</Link>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
@@ -202,12 +202,12 @@ export default function DocumentsPage() {
               <div key={doc.id} className="px-4 py-3.5 hover:bg-gray-50 transition-colors lg:grid lg:grid-cols-[2fr_70px_80px_70px_1fr_80px_1fr_80px_40px] lg:gap-3 lg:items-center lg:px-5">
                 {/* Document name + info — always visible */}
                 <div className="flex items-center gap-3 cursor-pointer" onClick={() => openDoc(doc.id)}>
-                  <div className="w-8 h-8 rounded-lg bg-[#0c7aed]/10 flex items-center justify-center shrink-0">
-                    <FileCheck size={14} className="text-[#369bff]" />
+                  <div className="w-8 h-8 rounded-lg bg-[#2563EB]/10 flex items-center justify-center shrink-0">
+                    <FileCheck size={14} className="text-[#2563EB]" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-800 truncate hover:text-[#369bff] transition-colors">{doc.name}</span>
+                      <span className="text-sm font-medium text-gray-800 truncate hover:text-[#2563EB] transition-colors">{doc.name}</span>
                       <span className="hidden lg:inline-flex"><ApprovalBadge status={doc.approvalStatus} /></span>
                     </div>
                     {doc.description && <div className="text-xs text-gray-400 truncate">{doc.description}</div>}
@@ -231,7 +231,7 @@ export default function DocumentsPage() {
                     </button>
                     {doc.sha256Hash && (
                       <Link href={`/verify?hash=${doc.sha256Hash}`} target="_blank"
-                        className="text-gray-300 hover:text-[#369bff] transition-colors" title="Verify">
+                        className="text-gray-300 hover:text-[#2563EB] transition-colors" title="Verify">
                         <Shield size={15} />
                       </Link>
                     )}

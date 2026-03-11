@@ -105,7 +105,7 @@ function actionLabel(action: string, entityType: string) {
 function ActionIcon({ action }: { action: string }) {
   if (action.includes('DOCUMENT')) return <Upload size={14} className="text-emerald-400" />
   if (action.includes('EXPENSE')) return <Receipt size={14} className="text-amber-400" />
-  if (action.includes('ANCHOR') || action.includes('BATCH')) return <Link2 size={14} className="text-[#369bff]" />
+  if (action.includes('ANCHOR') || action.includes('BATCH')) return <Link2 size={14} className="text-[#2563EB]" />
   if (action.includes('APPROVED')) return <CheckCircle2 size={14} className="text-emerald-400" />
   if (action.includes('REJECTED')) return <XCircle size={14} className="text-rose-400" />
   return <Clock size={14} className="text-gray-500" />
@@ -213,13 +213,13 @@ export default function DashboardPage() {
       {trial?.active && trial.plan === 'FREE' && (
         <div className="rounded-xl border p-4 flex items-center gap-4"
           style={{ background: 'rgba(12,122,237,0.06)', borderColor: 'rgba(12,122,237,0.2)' }}>
-          <Sparkles size={20} className="text-[#369bff] shrink-0" />
+          <Sparkles size={20} className="text-[#2563EB] shrink-0" />
           <div className="flex-1">
             <div className="text-sm font-medium text-gray-900">{trial.daysLeft} day{trial.daysLeft !== 1 ? 's' : ''} left in your free trial</div>
             <div className="text-xs text-gray-500 mt-0.5">Upgrade to unlock more features</div>
           </div>
-          <Link href="/dashboard/billing" className="px-4 py-2 rounded-lg text-sm font-semibold text-gray-900 shrink-0"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>Upgrade</Link>
+          <Link href="/dashboard/billing" className="px-4 py-2 rounded-lg text-sm font-semibold text-white shrink-0"
+            style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>Upgrade</Link>
         </div>
       )}
       {trial && !trial.active && trial.plan === 'FREE' && (
@@ -230,8 +230,8 @@ export default function DashboardPage() {
             <div className="text-sm font-medium text-gray-900">Your free trial has expired</div>
             <div className="text-xs text-gray-500 mt-0.5">Upgrade to continue using all features</div>
           </div>
-          <Link href="/dashboard/billing" className="px-4 py-2 rounded-lg text-sm font-semibold text-gray-900 shrink-0"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>Upgrade Now</Link>
+          <Link href="/dashboard/billing" className="px-4 py-2 rounded-lg text-sm font-semibold text-white shrink-0"
+            style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>Upgrade Now</Link>
         </div>
       )}
 
@@ -321,14 +321,14 @@ export default function DashboardPage() {
                   <stop offset="95%" stopColor="#F59E0B" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 12 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+              <XAxis dataKey="month" tick={{ fill: '#9CA3AF', fontSize: 12 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: '#9CA3AF', fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip
                 labelFormatter={tooltipLabelFormatter}
-                contentStyle={{ background: '#0a1628', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 13, color: '#fff' }}
-                itemStyle={{ color: '#fff' }}
-                labelStyle={{ color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}
+                contentStyle={{ background: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 13, color: '#111827', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}
+                itemStyle={{ color: '#374151' }}
+                labelStyle={{ color: '#6B7280', marginBottom: 4 }}
               />
               <Area type="monotone" dataKey="documents" name="Documents" stroke="#10B981" fill="url(#emeraldGrad)" strokeWidth={2} />
               <Area type="monotone" dataKey="funding" name="Funding" stroke="#F59E0B" fill="url(#amberGrad)" strokeWidth={2} />
@@ -407,7 +407,7 @@ export default function DashboardPage() {
                         <span className="text-[11px] text-gray-400 uppercase tracking-wide">Budget Used</span>
                         <span className="text-xs text-gray-500">{budgetPct}%</span>
                       </div>
-                      <div className="h-1.5 rounded-full bg-gray-50 overflow-hidden">
+                      <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden">
                         <div className="h-full rounded-full transition-all duration-700" style={{ width: `${budgetPct}%`, background: progressColor(budgetPct) }} />
                       </div>
                       <div className="text-[11px] text-gray-400 mt-1">
@@ -436,7 +436,7 @@ export default function DashboardPage() {
               <h2 className="font-semibold text-gray-900 text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>Recent Activity</h2>
               <p className="text-xs text-gray-400 mt-0.5">Latest events</p>
             </div>
-            <Link href="/dashboard/audit" className="text-xs text-[#369bff] hover:underline">View all</Link>
+            <Link href="/dashboard/audit" className="text-xs text-[#2563EB] hover:underline">View all</Link>
           </div>
 
           <div className="rounded-xl border border-gray-200 overflow-hidden" style={{ background: '#FFFFFF' }}>

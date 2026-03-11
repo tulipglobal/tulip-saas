@@ -68,8 +68,8 @@ export default function EmbedPage() {
       .tulip-badge.light.unverified { background: #f9fafb; border-color: #e5e7eb; color: #6b7280; }
       .tulip-badge.light.loading { background: #f9fafb; border-color: #e5e7eb; color: #9ca3af; }
       .tulip-badge.dark.verified { background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.25); color: #4ade80; }
-      .tulip-badge.dark.unverified { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.4); }
-      .tulip-badge.dark.loading { background: #FFFFFF; border-color: rgba(255,255,255,0.08); color: rgba(255,255,255,0.3); }
+      .tulip-badge.dark.unverified { background: #F9FAFB; border-color: #E5E7EB; color: #9CA3AF; }
+      .tulip-badge.dark.loading { background: #FFFFFF; border-color: #E5E7EB; color: #9CA3AF; }
       .tulip-badge.compact { padding: 5px 10px; gap: 6px; border-radius: 6px; }
       .tulip-badge.compact .tulip-icon { width: 14px; height: 14px; }
       .tulip-badge.compact .tulip-text { font-size: 11px; }
@@ -133,7 +133,7 @@ export default function EmbedPage() {
       {/* Quick start */}
       <div className="rounded-xl border border-gray-200 p-5 space-y-4" style={{ background: '#FFFFFF' }}>
         <div className="flex items-center gap-2">
-          <Code2 size={18} className="text-[#369bff]" />
+          <Code2 size={18} className="text-[#2563EB]" />
           <h2 className="text-gray-900 font-semibold text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>Quick Start</h2>
         </div>
         <p className="text-gray-500 text-sm">Paste this snippet into any HTML page. Replace <code className="text-gray-600 bg-gray-50 px-1.5 py-0.5 rounded text-xs">YOUR_DOCUMENT_HASH</code> with a SHA-256 hash from your verified documents.</p>
@@ -176,7 +176,7 @@ export default function EmbedPage() {
       {/* Live preview */}
       <div className="rounded-xl border border-gray-200 p-5 space-y-4" style={{ background: '#FFFFFF' }}>
         <div className="flex items-center gap-2">
-          <Eye size={18} className="text-[#369bff]" />
+          <Eye size={18} className="text-[#2563EB]" />
           <h2 className="text-gray-900 font-semibold text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>Live Preview</h2>
         </div>
 
@@ -205,7 +205,7 @@ export default function EmbedPage() {
             <div className="flex gap-1">
               {(['light', 'dark'] as const).map(t => (
                 <button key={t} onClick={() => setTheme(t)}
-                  className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${theme === t ? 'bg-[#0c7aed]/20 border-[#0c7aed]/40 text-[#369bff]' : 'bg-gray-50 border-gray-200 text-gray-500 hover:text-gray-600'}`}>
+                  className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${theme === t ? 'bg-[#2563EB]/20 border-[#2563EB]/40 text-[#2563EB]' : 'bg-gray-50 border-gray-200 text-gray-500 hover:text-gray-600'}`}>
                   {t.charAt(0).toUpperCase() + t.slice(1)}
                 </button>
               ))}
@@ -216,7 +216,7 @@ export default function EmbedPage() {
             <div className="flex gap-1">
               {(['default', 'compact'] as const).map(s => (
                 <button key={s} onClick={() => setSize(s)}
-                  className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${size === s ? 'bg-[#0c7aed]/20 border-[#0c7aed]/40 text-[#369bff]' : 'bg-gray-50 border-gray-200 text-gray-500 hover:text-gray-600'}`}>
+                  className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${size === s ? 'bg-[#2563EB]/20 border-[#2563EB]/40 text-[#2563EB]' : 'bg-gray-50 border-gray-200 text-gray-500 hover:text-gray-600'}`}>
                   {s.charAt(0).toUpperCase() + s.slice(1)}
                 </button>
               ))}

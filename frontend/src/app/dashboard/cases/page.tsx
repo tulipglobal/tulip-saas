@@ -277,7 +277,7 @@ export default function CasesPage() {
         {/* Actions */}
         <div className="flex flex-wrap gap-3">
           <button onClick={() => copyShareLink(c.shareToken)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#0c7aed]/20 text-[#369bff] hover:bg-[#0c7aed]/30 transition-all text-sm font-medium">
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 text-[#2563EB] hover:bg-[#2563EB]/30 transition-all text-sm font-medium">
             <Copy size={14} /> {copied ? 'Copied!' : 'Copy Share Link'}
           </button>
           <a href={`https://verify.tulipds.com/case/${c.shareToken}`} target="_blank" rel="noopener noreferrer"
@@ -306,32 +306,32 @@ export default function CasesPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
             <div className="text-xs text-gray-500 mb-1">Documents</div>
             <div className="text-2xl font-bold text-gray-900">{c.ocrJobs?.length || 0}</div>
           </div>
-          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
             <div className="text-xs text-gray-500 mb-1">Bundles</div>
             <div className="text-2xl font-bold text-gray-900">{c.bundleJobs?.length || 0}</div>
           </div>
-          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
             <div className="text-xs text-gray-500 mb-1">Overall Risk</div>
             <div className={`text-2xl font-bold ${riskColor(c.overallRiskScore)}`}>
               {c.overallRiskScore !== null ? `${c.overallRiskScore}/100` : 'N/A'}
             </div>
           </div>
-          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
             <div className="text-xs text-gray-500 mb-1">Created</div>
             <div className="text-sm font-medium text-gray-900">{new Date(c.createdAt).toLocaleDateString()}</div>
           </div>
         </div>
 
         {/* Documents */}
-        <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl">
-          <div className="flex items-center justify-between p-4 border-b border-white/[0.06]">
+        <div className="bg-gray-50 border border-gray-200 rounded-xl">
+          <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <h2 className="font-semibold text-gray-900 flex items-center gap-2"><FileCheck size={16} /> Documents</h2>
             <button onClick={loadAvailableJobs}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0c7aed]/20 text-[#369bff] hover:bg-[#0c7aed]/30 transition-all text-xs font-medium">
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 text-[#2563EB] hover:bg-[#2563EB]/30 transition-all text-xs font-medium">
               <Plus size={12} /> Add Document
             </button>
           </div>
@@ -375,11 +375,11 @@ export default function CasesPage() {
         </div>
 
         {/* Bundles */}
-        <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl">
-          <div className="flex items-center justify-between p-4 border-b border-white/[0.06]">
+        <div className="bg-gray-50 border border-gray-200 rounded-xl">
+          <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <h2 className="font-semibold text-gray-900 flex items-center gap-2"><FolderSearch size={16} /> Bundles</h2>
             <button onClick={loadAvailableBundles}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0c7aed]/20 text-[#369bff] hover:bg-[#0c7aed]/30 transition-all text-xs font-medium">
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 text-[#2563EB] hover:bg-[#2563EB]/30 transition-all text-xs font-medium">
               <Plus size={12} /> Add Bundle
             </button>
           </div>
@@ -424,13 +424,13 @@ export default function CasesPage() {
                     return (
                       <div className="mt-3 ml-14 space-y-3">
                         {analysis.summary && (
-                          <div className="p-3 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                          <div className="p-3 rounded-lg bg-gray-50 border border-gray-200">
                             <div className="text-xs font-medium text-gray-600 mb-1.5">Summary</div>
                             <div className="text-sm text-gray-700 leading-relaxed">{analysis.summary}</div>
                           </div>
                         )}
                         {analysis.findings && Array.isArray(analysis.findings) && analysis.findings.length > 0 && (
-                          <div className="p-3 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                          <div className="p-3 rounded-lg bg-gray-50 border border-gray-200">
                             <div className="text-xs font-medium text-gray-600 mb-2">Findings</div>
                             <div className="space-y-2">
                               {analysis.findings.map((f: any, idx: number) => (
@@ -468,7 +468,7 @@ export default function CasesPage() {
                           </div>
                         )}
                         {!analysis.summary && !analysis.findings && !analysis.inconsistencies && (
-                          <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                          <div className="p-3 rounded-lg bg-white border border-gray-100">
                             <div className="text-xs font-medium text-gray-600 mb-1">Cross-Analysis</div>
                             <div className="text-xs text-gray-500 whitespace-pre-wrap">{JSON.stringify(analysis, null, 2)}</div>
                           </div>
@@ -487,19 +487,19 @@ export default function CasesPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setPreviewDoc(null)}>
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
             <div className="relative bg-[#0a1929] border border-gray-200 rounded-xl w-full max-w-2xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-              <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
+              <div className="flex items-center justify-between p-5 border-b border-gray-200">
                 <h3 className="font-semibold text-gray-900 text-lg truncate pr-4">{previewDoc.originalFilename}</h3>
                 <button onClick={() => setPreviewDoc(null)} className="text-gray-500 hover:text-gray-900 shrink-0"><X size={18} /></button>
               </div>
               <div className="p-5 space-y-4">
                 {/* Document preview */}
                 {previewLoading ? (
-                  <div className="flex items-center justify-center py-16 bg-white/[0.02] rounded-xl border border-white/[0.06]">
-                    <div className="w-6 h-6 border-2 border-[#0c7aed] border-t-transparent rounded-full animate-spin" />
+                  <div className="flex items-center justify-center py-16 bg-white rounded-xl border border-gray-200">
+                    <div className="w-6 h-6 border-2 border-[#2563EB] border-t-transparent rounded-full animate-spin" />
                     <span className="ml-3 text-sm text-gray-500">Loading document...</span>
                   </div>
                 ) : previewUrl ? (
-                  <div className="rounded-xl overflow-hidden border border-white/[0.06] bg-white">
+                  <div className="rounded-xl overflow-hidden border border-gray-200 bg-white">
                     {previewUrl.match(/\.(jpg|jpeg|png|gif|webp)/i) || previewDoc.originalFilename.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
                       <img src={previewUrl} alt={previewDoc.originalFilename} className="max-h-[400px] w-full object-contain" />
                     ) : (
@@ -507,18 +507,18 @@ export default function CasesPage() {
                     )}
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center py-12 bg-white/[0.02] rounded-xl border border-white/[0.06]">
+                  <div className="flex items-center justify-center py-12 bg-white rounded-xl border border-gray-200">
                     <span className="text-sm text-gray-400">Document preview not available</span>
                   </div>
                 )}
 
                 {/* Details */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3">
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
                     <div className="text-[10px] text-gray-500 uppercase font-medium mb-1">Document Type</div>
                     <div className="text-sm text-gray-900">{previewDoc.documentType || 'Unknown'}</div>
                   </div>
-                  <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3">
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
                     <div className="text-[10px] text-gray-500 uppercase font-medium mb-1">Risk Score</div>
                     <div className={`text-sm font-semibold ${riskColor(previewDoc.assessmentScore)}`}>
                       {previewDoc.assessmentScore !== null ? `${previewDoc.assessmentScore}/100` : 'N/A'}
@@ -527,7 +527,7 @@ export default function CasesPage() {
                       <div className="text-xs text-gray-500 mt-0.5">{previewDoc.assessmentResult}</div>
                     )}
                   </div>
-                  <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3">
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
                     <div className="text-[10px] text-gray-500 uppercase font-medium mb-1">Blockchain</div>
                     {previewDoc.anchorTxHash ? (
                       <a href={`https://polygonscan.com/tx/${previewDoc.anchorTxHash}`} target="_blank" rel="noopener noreferrer"
@@ -538,7 +538,7 @@ export default function CasesPage() {
                       <span className="text-xs text-yellow-400 flex items-center gap-1"><Clock size={12} /> Pending</span>
                     )}
                   </div>
-                  <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3">
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
                     <div className="text-[10px] text-gray-500 uppercase font-medium mb-1">Processed</div>
                     <div className="text-sm text-gray-900">{new Date(previewDoc.createdAt).toLocaleDateString()}</div>
                   </div>
@@ -546,7 +546,7 @@ export default function CasesPage() {
 
                 {/* Hash */}
                 {previewDoc.hashValue && (
-                  <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3">
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
                     <div className="text-[10px] text-gray-500 uppercase font-medium mb-1">SHA-256 Hash</div>
                     <code className="text-xs text-gray-600 font-mono break-all">{previewDoc.hashValue}</code>
                   </div>
@@ -554,16 +554,16 @@ export default function CasesPage() {
 
                 {/* Polygon TX */}
                 {previewDoc.anchorTxHash && (
-                  <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3">
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
                     <div className="text-[10px] text-gray-500 uppercase font-medium mb-1">Polygon Transaction</div>
                     <a href={`https://polygonscan.com/tx/${previewDoc.anchorTxHash}`} target="_blank" rel="noopener noreferrer"
-                      className="text-xs text-[#369bff] hover:underline font-mono break-all">
+                      className="text-xs text-[#2563EB] hover:underline font-mono break-all">
                       {previewDoc.anchorTxHash}
                     </a>
                   </div>
                 )}
               </div>
-              <div className="flex justify-end gap-3 p-5 border-t border-white/[0.06]">
+              <div className="flex justify-end gap-3 p-5 border-t border-gray-200">
                 {previewUrl && (
                   <a href={previewUrl} target="_blank" rel="noopener noreferrer"
                     className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-50 text-gray-700 hover:bg-gray-100 transition-all text-sm">
@@ -571,8 +571,8 @@ export default function CasesPage() {
                   </a>
                 )}
                 <button onClick={() => setPreviewDoc(null)}
-                  className="px-4 py-2 rounded-lg text-sm font-medium text-gray-900 transition-all hover:opacity-90"
-                  style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90"
+                  style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
                   Close
                 </button>
               </div>
@@ -585,7 +585,7 @@ export default function CasesPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowAddDoc(false)}>
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
             <div className="relative bg-[#0a1929] border border-gray-200 rounded-xl w-full max-w-lg max-h-[70vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-              <div className="flex items-center justify-between p-4 border-b border-white/[0.06]">
+              <div className="flex items-center justify-between p-4 border-b border-gray-200">
                 <h3 className="font-semibold text-gray-900">Add Document to Case</h3>
                 <button onClick={() => setShowAddDoc(false)} className="text-gray-500 hover:text-gray-900"><X size={16} /></button>
               </div>
@@ -615,7 +615,7 @@ export default function CasesPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowAddBundle(false)}>
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
             <div className="relative bg-[#0a1929] border border-gray-200 rounded-xl w-full max-w-lg max-h-[70vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-              <div className="flex items-center justify-between p-4 border-b border-white/[0.06]">
+              <div className="flex items-center justify-between p-4 border-b border-gray-200">
                 <h3 className="font-semibold text-gray-900">Add Bundle to Case</h3>
                 <button onClick={() => setShowAddBundle(false)} className="text-gray-500 hover:text-gray-900"><X size={16} /></button>
               </div>
@@ -653,8 +653,8 @@ export default function CasesPage() {
           <p className="text-sm text-gray-500 mt-1">Organise documents into client cases and share verification links</p>
         </div>
         <button onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-900 transition-all hover:opacity-90"
-          style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90"
+          style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
           <Plus size={16} /> New Case
         </button>
       </div>
@@ -687,7 +687,7 @@ export default function CasesPage() {
       {/* Cases Grid */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-2 border-[#0c7aed] border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-[#2563EB] border-t-transparent rounded-full animate-spin" />
         </div>
       ) : cases.length === 0 ? (
         <div className="text-center py-20">
@@ -703,7 +703,7 @@ export default function CasesPage() {
             const bundleCount = c._count?.bundleJobs || 0
             return (
               <button key={c.id} onClick={() => openDetail(c)}
-                className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5 text-left hover:bg-white/[0.05] hover:border-white/[0.1] transition-all group">
+                className="bg-gray-50 border border-gray-200 rounded-xl p-5 text-left hover:bg-gray-50 hover:border-gray-200 transition-all group">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase ${TYPE_COLORS[c.caseType] || TYPE_COLORS.OTHER}`}>
@@ -717,7 +717,7 @@ export default function CasesPage() {
                 </div>
                 <h3 className="text-sm font-semibold text-gray-900 mb-1 truncate">{c.name}</h3>
                 <p className="text-xs text-gray-500 truncate">{c.clientName}</p>
-                <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/[0.06]">
+                <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-200">
                   <div className="flex items-center gap-3 text-xs text-gray-500">
                     <span className="flex items-center gap-1"><FileCheck size={12} /> {docCount}</span>
                     <span className="flex items-center gap-1"><FolderSearch size={12} /> {bundleCount}</span>
@@ -737,7 +737,7 @@ export default function CasesPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowCreate(false)}>
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
           <div className="relative bg-[#0a1929] border border-gray-200 rounded-xl w-full max-w-md" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
+            <div className="flex items-center justify-between p-5 border-b border-gray-200">
               <h3 className="font-semibold text-gray-900 text-lg">Create New Case</h3>
               <button onClick={() => setShowCreate(false)} className="text-gray-500 hover:text-gray-900"><X size={18} /></button>
             </div>
@@ -745,22 +745,22 @@ export default function CasesPage() {
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1.5 block">Case Name *</label>
                 <input value={createName} onChange={e => setCreateName(e.target.value)} placeholder="e.g. Smith Mortgage Application"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50" />
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50" />
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1.5 block">Client Name *</label>
                 <input value={createClient} onChange={e => setCreateClient(e.target.value)} placeholder="e.g. John Smith"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50" />
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50" />
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1.5 block">Client Email</label>
                 <input value={createEmail} onChange={e => setCreateEmail(e.target.value)} placeholder="john@example.com" type="email"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50" />
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#2563EB]/50" />
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1.5 block">Case Type</label>
                 <select value={createType} onChange={e => setCreateType(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-[#0c7aed]/50">
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-[#2563EB]/50">
                   <option value="MORTGAGE">Mortgage</option>
                   <option value="INSURANCE">Insurance</option>
                   <option value="REAL_ESTATE">Real Estate</option>
@@ -769,12 +769,12 @@ export default function CasesPage() {
                 </select>
               </div>
             </div>
-            <div className="flex justify-end gap-3 p-5 border-t border-white/[0.06]">
+            <div className="flex justify-end gap-3 p-5 border-t border-gray-200">
               <button onClick={() => setShowCreate(false)}
                 className="px-4 py-2 rounded-lg text-sm text-gray-600 hover:text-gray-900 transition-colors">Cancel</button>
               <button onClick={handleCreate} disabled={creating || !createName.trim() || !createClient.trim()}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-gray-900 disabled:opacity-40 transition-all hover:opacity-90"
-                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                className="px-4 py-2 rounded-lg text-sm font-medium text-white disabled:opacity-40 transition-all hover:opacity-90"
+                style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
                 {creating ? 'Creating...' : 'Create Case'}
               </button>
             </div>

@@ -233,7 +233,7 @@ exports.uploadReceipt = async (req, res) => {
     let ocrFields = null
     try {
       const ocrExtractable = ['pdf', 'jpg', 'jpeg', 'png', 'tiff', 'tif'].includes(ext)
-      if (req.body.expenseId && ocrExtractable) {
+      if (ocrExtractable) {
         const { extractText } = require('../services/ocrService')
         const { extractExpenseFields } = require('../lib/ocrFieldExtractor')
 
@@ -242,7 +242,7 @@ exports.uploadReceipt = async (req, res) => {
         ocrFields = fields
 
         // Build update data — only update fields that OCR found AND that are empty/default on the expense
-        const existing = await db.expense.findFirst({ where: { id: req.body.expenseId } })
+        const existing = req.body.expenseId ? await db.expense.findFirst({ where: { id: req.body.expenseId } }) : null
         if (existing) {
           const updateData = {}
 

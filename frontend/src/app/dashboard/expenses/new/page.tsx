@@ -134,6 +134,16 @@ export default function NewExpensePage() {
       if (res.ok) {
         const data = await res.json()
         setReceiptData({ fileKey: data.fileKey, hash: data.hash, sealId: data.sealId })
+        // Auto-fill form fields from OCR results (only fill empty fields)
+        if (data.ocrFields) {
+          setForm(f => ({
+            ...f,
+            ...(data.ocrFields.amount && !f.amount ? { amount: String(data.ocrFields.amount) } : {}),
+            ...(data.ocrFields.currency ? { currency: data.ocrFields.currency } : {}),
+            ...(data.ocrFields.vendor && !f.vendor ? { vendor: data.ocrFields.vendor } : {}),
+            ...(data.ocrFields.date ? { expenseDate: data.ocrFields.date } : {}),
+          }))
+        }
       } else {
         const d = await res.json().catch(() => ({}))
         setError(d.error || 'Failed to upload receipt')

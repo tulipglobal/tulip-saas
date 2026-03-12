@@ -29,6 +29,7 @@
     "ethers": "^6.16.0",
     "express": "^5.2.1",
     "express-rate-limit": "^7.1.5",
+    "jimp": "^1.6.0",
     "jsonwebtoken": "^9.0.3",
     "keccak256": "^1.0.6",
     "merkletreejs": "^0.6.0",

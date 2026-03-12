@@ -1,26 +1,23 @@
-const sharp = require('sharp')
+const Jimp = require('jimp')
 
 /**
  * Compute a perceptual hash (pHash) from an image buffer.
  * Returns a 64-bit hex string (16 hex chars).
  *
- * Algorithm: resize to 32x32 greyscale, compute DCT-like average,
+ * Algorithm: resize to 32x32 greyscale, take 8x8 low-frequency block,
  * threshold each pixel against the mean to produce a 64-bit hash.
  */
 async function computePHash(buffer) {
   try {
-    // Resize to 32x32 greyscale
-    const pixels = await sharp(buffer)
-      .greyscale()
-      .resize(32, 32, { fit: 'fill' })
-      .raw()
-      .toBuffer()
+    const image = await Jimp.read(buffer)
+    image.greyscale().resize(32, 32)
 
     // Take top-left 8x8 block (low-frequency components)
     const block = []
     for (let y = 0; y < 8; y++) {
       for (let x = 0; x < 8; x++) {
-        block.push(pixels[y * 32 + x])
+        const { r } = Jimp.intToRGBA(image.getPixelColor(x, y))
+        block.push(r)
       }
     }
 
@@ -47,23 +44,6 @@ async function computePHash(buffer) {
 }
 
 /**
- * Compute pHash from a PDF buffer by rendering the first page as an image.
- */
-async function computePHashFromPdf(buffer) {
-  try {
-    // sharp can render first page of PDF if built with poppler/libvips support
-    // Fallback: try to render it; if sharp can't handle PDF, return null
-    const imgBuffer = await sharp(buffer, { page: 0, density: 150 })
-      .png()
-      .toBuffer()
-    return computePHash(imgBuffer)
-  } catch (err) {
-    console.error('[pHash] PDF render failed:', err.message)
-    return null
-  }
-}
-
-/**
  * Compute Hamming distance between two hex pHash strings.
  * Returns number of differing bits (0 = identical, 64 = completely different).
  */
@@ -73,7 +53,6 @@ function hammingDistance(hash1, hash2) {
   let distance = 0
   for (let i = 0; i < hash1.length; i++) {
     const xor = parseInt(hash1[i], 16) ^ parseInt(hash2[i], 16)
-    // Count bits in xor
     let bits = xor
     while (bits) {
       distance += bits & 1
@@ -85,17 +64,19 @@ function hammingDistance(hash1, hash2) {
 
 /**
  * Compute pHash from a file buffer, detecting type automatically.
- * Supports images (jpg, png, tiff, webp, gif) and PDFs.
+ * Supports images (jpg, png, tiff, webp, gif). PDFs are not supported
+ * by jimp — returns null for PDFs.
  */
 async function computePHashFromFile(buffer, fileType) {
   const ft = (fileType || '').toLowerCase().replace('.', '')
-  const isPdf = ft === 'pdf' || ft === 'application/pdf'
-  const isImage = ['jpg', 'jpeg', 'png', 'tiff', 'tif', 'webp', 'gif',
-    'image/jpeg', 'image/png', 'image/tiff', 'image/webp', 'image/gif'].includes(ft)
-
-  if (isPdf) return computePHashFromPdf(buffer)
+  const isImage = ['jpg', 'jpeg', 'png', 'tiff', 'tif', 'bmp', 'gif'].includes(ft)
   if (isImage) return computePHash(buffer)
+  // jimp cannot render PDFs — skip
+  if (ft === 'pdf') {
+    console.log('[pHash] PDF skipped — jimp does not support PDF rendering')
+    return null
+  }
   return null
 }
 
-module.exports = { computePHash, computePHashFromPdf, computePHashFromFile, hammingDistance }
+module.exports = { computePHash, computePHashFromFile, hammingDistance }

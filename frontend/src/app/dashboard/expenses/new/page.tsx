@@ -30,6 +30,7 @@ export default function NewExpensePage() {
   const [ocrValues, setOcrValues] = useState<{ amount?: number; vendor?: string; date?: string } | null>(null)
   const [duplicateInfo, setDuplicateInfo] = useState<{ name: string; uploadedAt: string } | null>(null)
   const [crossTenantDuplicate, setCrossTenantDuplicate] = useState(false)
+  const [duplicateConfidence, setDuplicateConfidence] = useState<string | null>(null)
 
   const [form, setForm] = useState({
     title: '', amount: '', currency: 'USD', expenseType: '' as '' | ExpenseType,
@@ -144,6 +145,7 @@ export default function NewExpensePage() {
           setDuplicateInfo(null)
         }
         setCrossTenantDuplicate(!!data.ocrFields?.crossTenantDuplicate)
+        setDuplicateConfidence(data.ocrFields?.duplicateConfidence || null)
         // Auto-fill form fields from OCR results (only fill empty fields)
         if (data.ocrFields) {
           setForm(f => ({
@@ -379,26 +381,57 @@ export default function NewExpensePage() {
               {crossTenantDuplicate && (
                 <div className="rounded-xl bg-red-600 p-5 space-y-2">
                   <div className="flex items-center gap-3 text-white font-bold text-lg">
-                    <AlertTriangle size={24} className="shrink-0" /> HIGH RISK
+                    <AlertTriangle size={24} className="shrink-0" /> HIGH RISK — Cross-Organisation Duplicate
                   </div>
                   <p className="text-white font-bold text-base">This document was uploaded by another organisation. This is a serious fraud indicator.</p>
-                  <button onClick={() => { setReceiptData(null); setReceiptFile(null); setDuplicateInfo(null); setCrossTenantDuplicate(false) }}
+                  <button onClick={() => { setReceiptData(null); setReceiptFile(null); setDuplicateInfo(null); setCrossTenantDuplicate(false); setDuplicateConfidence(null) }}
                     className="text-white/80 hover:text-white text-sm font-medium underline">Replace file</button>
                 </div>
               )}
-              {duplicateInfo && !crossTenantDuplicate && (
+              {duplicateInfo && !crossTenantDuplicate && duplicateConfidence === 'HIGH' && (
+                <div className="rounded-xl bg-red-600 p-5 space-y-2">
+                  <div className="flex items-center gap-3 text-white font-bold text-lg">
+                    <AlertTriangle size={24} className="shrink-0" /> DUPLICATE CONFIRMED
+                  </div>
+                  <p className="text-white font-bold text-base">This file matches &quot;{duplicateInfo.name}&quot; by both text content and visual appearance. This is almost certainly a duplicate receipt.</p>
+                  <button onClick={() => { setReceiptData(null); setReceiptFile(null); setDuplicateInfo(null); setCrossTenantDuplicate(false); setDuplicateConfidence(null) }}
+                    className="text-white/80 hover:text-white text-sm font-medium underline">Replace file</button>
+                </div>
+              )}
+              {duplicateInfo && !crossTenantDuplicate && duplicateConfidence === 'MEDIUM' && (
+                <div className="rounded-xl bg-orange-500 p-5 space-y-2">
+                  <div className="flex items-center gap-3 text-white font-bold text-lg">
+                    <AlertTriangle size={24} className="shrink-0" /> LIKELY DUPLICATE
+                  </div>
+                  <p className="text-white font-bold text-base">This file has the same text content as &quot;{duplicateInfo.name}&quot; uploaded on {new Date(duplicateInfo.uploadedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}. This may be a duplicate expense claim.</p>
+                  <button onClick={() => { setReceiptData(null); setReceiptFile(null); setDuplicateInfo(null); setCrossTenantDuplicate(false); setDuplicateConfidence(null) }}
+                    className="text-white/80 hover:text-white text-sm font-medium underline">Replace file</button>
+                </div>
+              )}
+              {!crossTenantDuplicate && !duplicateInfo && duplicateConfidence === 'LOW' && (
+                <div className="rounded-xl bg-yellow-500 p-5 space-y-2">
+                  <div className="flex items-center gap-3 text-[#183a1d] font-bold text-lg">
+                    <AlertTriangle size={24} className="shrink-0" /> POSSIBLE DUPLICATE
+                  </div>
+                  <p className="text-[#183a1d] font-bold text-base">This file looks visually similar to another document on file. Please verify this is not a duplicate.</p>
+                  <button onClick={() => { setReceiptData(null); setReceiptFile(null); setDuplicateInfo(null); setCrossTenantDuplicate(false); setDuplicateConfidence(null) }}
+                    className="text-[#183a1d]/80 hover:text-[#183a1d] text-sm font-medium underline">Replace file</button>
+                </div>
+              )}
+              {/* Legacy fallback for MEDIUM/null without new confidence field */}
+              {duplicateInfo && !crossTenantDuplicate && !duplicateConfidence && (
                 <div className="rounded-xl bg-red-600 p-5 space-y-2">
                   <div className="flex items-center gap-3 text-white font-bold text-lg">
                     <AlertTriangle size={24} className="shrink-0" /> DUPLICATE DOCUMENT
                   </div>
                   <p className="text-white font-bold text-base">This file was uploaded before as &quot;{duplicateInfo.name}&quot; on {new Date(duplicateInfo.uploadedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}. Uploading the same receipt twice may indicate duplicate expense claims.</p>
-                  <button onClick={() => { setReceiptData(null); setReceiptFile(null); setDuplicateInfo(null); setCrossTenantDuplicate(false) }}
+                  <button onClick={() => { setReceiptData(null); setReceiptFile(null); setDuplicateInfo(null); setCrossTenantDuplicate(false); setDuplicateConfidence(null) }}
                     className="text-white/80 hover:text-white text-sm font-medium underline">Replace file</button>
                 </div>
               )}
 
-              {!crossTenantDuplicate && !duplicateInfo && (
-                <button onClick={() => { setReceiptData(null); setReceiptFile(null); setDuplicateInfo(null); setCrossTenantDuplicate(false) }}
+              {!crossTenantDuplicate && !duplicateInfo && duplicateConfidence !== 'LOW' && (
+                <button onClick={() => { setReceiptData(null); setReceiptFile(null); setDuplicateInfo(null); setCrossTenantDuplicate(false); setDuplicateConfidence(null) }}
                   className="text-xs text-[#183a1d]/40 hover:text-[#183a1d]/60">Replace file</button>
               )}
             </div>

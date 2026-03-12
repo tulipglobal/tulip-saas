@@ -34,6 +34,8 @@ interface Document {
   isVisualDuplicate?: boolean
   visualDuplicateOfName?: string | null
   crossTenantVisualDuplicate?: boolean
+  duplicateConfidence?: string | null
+  duplicateMethod?: string | null
   project?: { id: string; name: string }
   expense?: { id: string; description: string; amount: number; currency: string } | null
 }
@@ -55,34 +57,58 @@ function ApprovalBadge({ status }: { status?: string }) {
 }
 
 function DuplicateBadge({ doc }: { doc: Document }) {
-  const badges = []
-  if (doc.crossTenantDuplicate) {
-    badges.push(
-      <span key="cross-ocr" className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white" title="Same content found in another organisation — high fraud risk">
-        <AlertTriangle size={9} /> Cross-Org Duplicate
+  const conf = doc.duplicateConfidence
+  const method = doc.duplicateMethod
+  const isCrossTenant = doc.crossTenantDuplicate || doc.crossTenantVisualDuplicate
+
+  // Cross-tenant always shows as HIGH risk regardless of confidence field
+  if (isCrossTenant) {
+    return (
+      <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white" title="Same document found in another organisation — high fraud risk">
+        <AlertTriangle size={9} /> HIGH RISK — Cross-Org Duplicate
       </span>
     )
-  } else if (doc.isDuplicate) {
-    badges.push(
-      <span key="ocr-dup" className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white" title={`Duplicate of "${doc.duplicateOfName}"`}>
+  }
+
+  // Tiered confidence badges
+  if (conf === 'HIGH') {
+    return (
+      <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white" title={`Confirmed duplicate — ${method === 'HYBRID' ? 'text + visual match' : method}`}>
+        <AlertTriangle size={9} /> DUPLICATE CONFIRMED
+      </span>
+    )
+  }
+  if (conf === 'MEDIUM') {
+    return (
+      <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500 text-white" title="OCR content matches another document">
+        <AlertTriangle size={9} /> LIKELY DUPLICATE
+      </span>
+    )
+  }
+  if (conf === 'LOW') {
+    return (
+      <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-500 text-white" title="Visually similar to another document">
+        <AlertTriangle size={9} /> POSSIBLE DUPLICATE
+      </span>
+    )
+  }
+
+  // Fallback for legacy data without confidence field
+  if (doc.isDuplicate) {
+    return (
+      <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white" title={`Duplicate of "${doc.duplicateOfName}"`}>
         <AlertTriangle size={9} /> Duplicate
       </span>
     )
   }
-  if (doc.crossTenantVisualDuplicate) {
-    badges.push(
-      <span key="cross-visual" className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white" title="Visually identical document found in another organisation — high fraud risk">
-        <AlertTriangle size={9} /> Cross-Org Visual Match
-      </span>
-    )
-  } else if (doc.isVisualDuplicate) {
-    badges.push(
-      <span key="visual-dup" className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white" title={`Looks identical to "${doc.visualDuplicateOfName}"`}>
+  if (doc.isVisualDuplicate) {
+    return (
+      <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-500 text-white" title={`Looks identical to "${doc.visualDuplicateOfName}"`}>
         <AlertTriangle size={9} /> Visual Duplicate
       </span>
     )
   }
-  return badges.length > 0 ? <>{badges}</> : null
+  return null
 }
 
 function HashCell({ hash }: { hash: string }) {

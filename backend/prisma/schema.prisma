@@ -342,6 +342,8 @@ model Document {
   visualDuplicateOfId        String?
   visualDuplicateOfName      String?
   crossTenantVisualDuplicate Boolean   @default(false)
+  duplicateConfidence        String?
+  duplicateMethod            String?
   expenseId                  String?
   projectId             String?
   tenantId              String

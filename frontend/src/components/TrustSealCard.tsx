@@ -34,6 +34,7 @@ export default function TrustSealCard({ sealId, onClose }: TrustSealCardProps) {
   const [docError, setDocError] = useState(false)
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [downloading, setDownloading] = useState(false)
 
   const verifyUrl = `https://verify.tulipds.com/seal/${sealId}`
 
@@ -82,6 +83,31 @@ export default function TrustSealCard({ sealId, onClose }: TrustSealCardProps) {
     setCopied(true)
     setTimeout(() => setCopied(false), 1500)
   }, [seal])
+
+  const downloadSealedPdf = useCallback(async () => {
+    setDownloading(true)
+    try {
+      const token = localStorage.getItem('tulip_token')
+      const api = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5050'
+      const resp = await fetch(`${api}/api/trust-seal/${sealId}/sealed-pdf`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+      if (!resp.ok) throw new Error('Download failed')
+      const blob = await resp.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `sealed_${seal?.documentTitle?.replace(/[^a-zA-Z0-9_-]/g, '_') || sealId}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Sealed PDF download failed:', err)
+    } finally {
+      setDownloading(false)
+    }
+  }, [sealId, seal])
 
   const isAnchored = seal?.anchorTxHash || seal?.status === 'anchored'
   const ft = (seal?.fileType || '').toLowerCase()
@@ -245,6 +271,20 @@ export default function TrustSealCard({ sealId, onClose }: TrustSealCardProps) {
                   {verifyUrl}
                 </a>
               </div>
+
+              {/* Download Seal PDF */}
+              <button
+                onClick={downloadSealedPdf}
+                disabled={downloading}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {downloading ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Download size={15} />
+                )}
+                {downloading ? 'Generating...' : 'Download Seal PDF'}
+              </button>
 
               {/* Footer */}
               <div className="border-t border-gray-200 pt-3 flex items-center justify-center gap-2 text-xs text-gray-400">

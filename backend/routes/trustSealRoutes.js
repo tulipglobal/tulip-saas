@@ -14,6 +14,7 @@ const { createAuditLog } = require('../services/auditService')
 const { trackEvent } = require('../services/engagementService')
 const { uploadToS3, getPresignedUrlFromKey } = require('../lib/s3Upload')
 const { hashPdfPages } = require('../lib/pdfPageHasher')
+const { generateSealedPdf } = require('../lib/sealedPdfGenerator')
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } })
 
@@ -224,6 +225,85 @@ router.get('/:id/preview-url', async (req, res) => {
   } catch (err) {
     console.error('Failed to get seal preview URL:', err)
     res.status(500).json({ error: 'Failed to generate preview URL' })
+  }
+})
+
+// GET /api/trust-seal/:id/sealed-pdf — generate & download sealed PDF with QR stamp
+router.get('/:id/sealed-pdf', async (req, res) => {
+  try {
+    const seal = await prisma.trustSeal.findFirst({
+      where: { id: req.params.id, tenantId: req.user.tenantId },
+    })
+    if (!seal) return res.status(404).json({ error: 'Seal not found' })
+
+    // Try to fetch original PDF from S3
+    let originalPdf = null
+    if (seal.s3Key) {
+      try {
+        const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3')
+        const s3 = new S3Client({
+          region: process.env.AWS_REGION || 'ap-south-1',
+          credentials: {
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+          },
+        })
+        const s3Resp = await s3.send(new GetObjectCommand({
+          Bucket: process.env.S3_BUCKET || 'tulipglobal.org',
+          Key: seal.s3Key,
+        }))
+        const chunks = []
+        for await (const chunk of s3Resp.Body) chunks.push(chunk)
+        originalPdf = Buffer.concat(chunks)
+      } catch (err) {
+        console.warn('Could not fetch original PDF from S3:', err.message)
+      }
+    }
+
+    // Only include original if it's a PDF
+    const isPdf = (seal.fileType || '').toLowerCase().includes('pdf')
+    const sealedPdfBuffer = await generateSealedPdf({
+      originalPdf: isPdf ? originalPdf : null,
+      sealId: seal.id,
+      rawHash: seal.rawHash,
+      documentTitle: seal.documentTitle,
+      issuedBy: seal.issuedBy,
+      issuedTo: seal.issuedTo,
+      createdAt: seal.createdAt?.toISOString(),
+      anchorTxHash: seal.anchorTxHash,
+      blockNumber: seal.blockNumber,
+      anchoredAt: seal.anchoredAt?.toISOString(),
+    })
+
+    // Store sealed PDF in S3 alongside original
+    const sealedKey = `sealed/${req.user.tenantId}/${seal.id}.pdf`
+    try {
+      const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3')
+      const s3 = new S3Client({
+        region: process.env.AWS_REGION || 'ap-south-1',
+        credentials: {
+          accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        },
+      })
+      await s3.send(new PutObjectCommand({
+        Bucket: process.env.S3_BUCKET || 'tulipglobal.org',
+        Key: sealedKey,
+        Body: sealedPdfBuffer,
+        ContentType: 'application/pdf',
+        ServerSideEncryption: 'AES256',
+      }))
+    } catch (err) {
+      console.warn('Could not store sealed PDF in S3:', err.message)
+    }
+
+    const safeName = seal.documentTitle.replace(/[^a-zA-Z0-9_-]/g, '_')
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Disposition', `attachment; filename="sealed_${safeName}.pdf"`)
+    res.send(sealedPdfBuffer)
+  } catch (err) {
+    console.error('Failed to generate sealed PDF:', err)
+    res.status(500).json({ error: 'Failed to generate sealed PDF' })
   }
 })
 

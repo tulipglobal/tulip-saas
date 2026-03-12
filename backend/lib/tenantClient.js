@@ -36,6 +36,7 @@ module.exports = function tenantClient(tenantId) {
       findMany:  (args = {}) => prisma.document.findMany({ ...args, where: { ...args.where, tenantId } }),
       findFirst: (args = {}) => prisma.document.findFirst({ ...args, where: { ...args.where, tenantId } }),
       create:    (args = {}) => prisma.document.create({ ...args, data: { ...args.data, tenantId } }),
+      update:    (args = {}) => prisma.document.update(args),
       delete:    (args = {}) => prisma.document.delete(args),
       count:     (args = {}) => prisma.document.count({ ...args, where: { ...args.where, tenantId } }),
     },

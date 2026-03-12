@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { apiGet, apiPost } from '@/lib/api'
 import Link from 'next/link'
-import { Receipt, Plus, Search, ExternalLink, Shield, Copy, Check, CheckCircle, ChevronDown, ChevronUp, FileCheck, Upload } from 'lucide-react'
+import { Receipt, Plus, Search, ExternalLink, Shield, Copy, Check, CheckCircle, ChevronDown, ChevronUp, FileCheck, Upload, AlertTriangle } from 'lucide-react'
 import DocumentUploadSection from '@/components/DocumentUploadSection'
 import BlockchainStatusPill from '@/components/BlockchainStatusPill'
 import TrustSealCard from '@/components/TrustSealCard'
@@ -34,6 +34,13 @@ interface Expense {
   receiptHash: string | null
   receiptFileKey: string | null
   receiptSealId: string | null
+  ocrAmount: number | null
+  ocrVendor: string | null
+  ocrDate: string | null
+  amountMismatch: boolean
+  vendorMismatch: boolean
+  dateMismatch: boolean
+  mismatchNote: string | null
   project?: { id: string; name: string }
   fundingAgreement?: { id: string; title: string; donor: { name: string } | null } | null
   documents?: Document[]
@@ -175,7 +182,7 @@ function ReceiptUploader({ expenseId, expenseTitle, onUploaded }: { expenseId: s
   )
 }
 
-function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expense; onRefresh: () => void; onOpenSeal: (sealId: string) => void; sealMap: Record<string, { sealId: string; anchorStatus: string; txHash: string | null }> }) {
+function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expense; onRefresh: () => void; onOpenSeal: (sealId: string, expense: Expense) => void; sealMap: Record<string, { sealId: string; anchorStatus: string; txHash: string | null }> }) {
   const [expanded, setExpanded] = useState(false)
 
   return (
@@ -210,6 +217,11 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
             {expense.description?.includes('[OCR]') && (
               <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-600 border border-emerald-200">
                 <FileCheck size={9} /> OCR
+              </span>
+            )}
+            {(expense.amountMismatch || expense.vendorMismatch || expense.dateMismatch) && (
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-orange-50 text-orange-600 border border-orange-200" title={expense.mismatchNote || 'Mismatch detected'}>
+                <AlertTriangle size={9} /> Mismatch
               </span>
             )}
             {(expense.documents?.length ?? 0) > 0 && (
@@ -251,7 +263,7 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
               sealId={expense.receiptSealId}
               anchorStatus={expense.receiptHash && sealMap[expense.receiptHash] ? sealMap[expense.receiptHash].anchorStatus : undefined}
               txHash={expense.receiptHash && sealMap[expense.receiptHash] ? sealMap[expense.receiptHash].txHash : undefined}
-              onClick={() => onOpenSeal(expense.receiptSealId!)}
+              onClick={() => onOpenSeal(expense.receiptSealId!, expense)}
             />
           ) : (
             <span className="text-[#183a1d]/30 text-xs">No receipt</span>
@@ -296,7 +308,7 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
                   <div className="text-xs text-[#183a1d]/40 font-mono break-all">SHA-256: {expense.receiptHash}</div>
                   <div className="flex items-center gap-3">
                     {expense.receiptSealId && (
-                      <button onClick={(e) => { e.stopPropagation(); onOpenSeal(expense.receiptSealId!) }}
+                      <button onClick={(e) => { e.stopPropagation(); onOpenSeal(expense.receiptSealId!, expense) }}
                         className="text-xs text-[#183a1d] hover:text-[#f6c453] flex items-center gap-1">
                         <Shield size={11} /> View Seal
                       </button>
@@ -313,6 +325,26 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
                 <ReceiptUploader expenseId={expense.id} expenseTitle={expense.title ?? expense.description} onUploaded={onRefresh} />
               )}
             </div>
+
+            {/* Mismatch warnings */}
+            {(expense.amountMismatch || expense.vendorMismatch || expense.dateMismatch) && (
+              <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-orange-600">
+                  <AlertTriangle size={13} /> OCR Mismatch Detected
+                </div>
+                <div className="space-y-1 text-xs text-orange-700">
+                  {expense.amountMismatch && (
+                    <div>Amount altered: OCR read <span className="font-medium">{expense.ocrAmount?.toLocaleString()}</span>, saved as <span className="font-medium">{expense.amount.toLocaleString()}</span></div>
+                  )}
+                  {expense.vendorMismatch && (
+                    <div>Vendor altered: OCR read <span className="font-medium">&quot;{expense.ocrVendor}&quot;</span>, saved as <span className="font-medium">&quot;{expense.vendor}&quot;</span></div>
+                  )}
+                  {expense.dateMismatch && (
+                    <div>Date altered: OCR read <span className="font-medium">{expense.ocrDate}</span>, expense date differs by 30+ days</div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Documents list */}
             {(expense.documents?.length ?? 0) > 0 && (
@@ -372,6 +404,7 @@ export default function ExpensesPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [activeSealId, setActiveSealId] = useState<string | null>(null)
+  const [activeMismatch, setActiveMismatch] = useState<Expense | null>(null)
   const [sealMap, setSealMap] = useState<Record<string, { sealId: string; anchorStatus: string; txHash: string | null }>>({})
 
   const resolveSeals = useCallback((items: Expense[]) => {
@@ -456,7 +489,7 @@ export default function ExpensesPage() {
         ) : (
           <div className="divide-y divide-[#c8d6c0]">
             {filtered.map(expense => (
-              <ExpenseRow key={expense.id} expense={expense} onRefresh={load} onOpenSeal={setActiveSealId} sealMap={sealMap} />
+              <ExpenseRow key={expense.id} expense={expense} onRefresh={load} onOpenSeal={(sealId, exp) => { setActiveSealId(sealId); setActiveMismatch(exp) }} sealMap={sealMap} />
             ))}
           </div>
         )}
@@ -464,7 +497,19 @@ export default function ExpensesPage() {
       <p className="text-xs text-[#183a1d]/30 text-center">Click any expense row to view documents and upload receipts</p>
 
       {activeSealId && (
-        <TrustSealCard sealId={activeSealId} onClose={() => { setActiveSealId(null); resolveSeals(expenses) }} />
+        <TrustSealCard sealId={activeSealId} onClose={() => { setActiveSealId(null); setActiveMismatch(null); resolveSeals(expenses) }}
+          mismatch={activeMismatch ? {
+            amountMismatch: activeMismatch.amountMismatch,
+            vendorMismatch: activeMismatch.vendorMismatch,
+            dateMismatch: activeMismatch.dateMismatch,
+            mismatchNote: activeMismatch.mismatchNote,
+            ocrAmount: activeMismatch.ocrAmount,
+            ocrVendor: activeMismatch.ocrVendor,
+            ocrDate: activeMismatch.ocrDate,
+            amount: activeMismatch.amount,
+            vendor: activeMismatch.vendor,
+          } : undefined}
+        />
       )}
     </div>
   )

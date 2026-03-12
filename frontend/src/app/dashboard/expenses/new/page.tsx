@@ -27,6 +27,7 @@ export default function NewExpensePage() {
   const [receiptFile, setReceiptFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [receiptData, setReceiptData] = useState<{ fileKey: string; hash: string; sealId: string } | null>(null)
+  const [ocrValues, setOcrValues] = useState<{ amount?: number; vendor?: string; date?: string } | null>(null)
 
   const [form, setForm] = useState({
     title: '', amount: '', currency: 'USD', expenseType: '' as '' | ExpenseType,
@@ -143,6 +144,12 @@ export default function NewExpensePage() {
             ...(data.ocrFields.vendor && !f.vendor ? { vendor: data.ocrFields.vendor } : {}),
             ...(data.ocrFields.date ? { expenseDate: data.ocrFields.date } : {}),
           }))
+          // Store original OCR values for mismatch detection on save
+          setOcrValues({
+            ...(data.ocrFields.amount != null ? { amount: data.ocrFields.amount } : {}),
+            ...(data.ocrFields.vendor ? { vendor: data.ocrFields.vendor } : {}),
+            ...(data.ocrFields.date ? { date: data.ocrFields.date } : {}),
+          })
         }
       } else {
         const d = await res.json().catch(() => ({}))
@@ -182,6 +189,11 @@ export default function NewExpensePage() {
           receiptFileKey: receiptData.fileKey,
           receiptHash: receiptData.hash,
           receiptSealId: receiptData.sealId,
+        }),
+        ...(ocrValues && {
+          ocrAmount: ocrValues.amount ?? null,
+          ocrVendor: ocrValues.vendor ?? null,
+          ocrDate: ocrValues.date ?? null,
         }),
       })
       if (res.ok) { router.push('/dashboard/expenses') }

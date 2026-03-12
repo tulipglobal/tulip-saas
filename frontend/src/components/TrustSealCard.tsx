@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { X, Copy, Check, ExternalLink, Shield, Download, FileText, Image as ImageIcon, CheckCircle, Clock } from 'lucide-react'
+import { X, Copy, Check, ExternalLink, Shield, Download, FileText, Image as ImageIcon, CheckCircle, Clock, AlertTriangle } from 'lucide-react'
 import QRCode from 'qrcode'
 
 interface SealData {
@@ -20,12 +20,25 @@ interface SealData {
   createdAt: string
 }
 
+interface MismatchInfo {
+  amountMismatch?: boolean
+  vendorMismatch?: boolean
+  dateMismatch?: boolean
+  mismatchNote?: string | null
+  ocrAmount?: number | null
+  ocrVendor?: string | null
+  ocrDate?: string | null
+  amount?: number
+  vendor?: string | null
+}
+
 interface TrustSealCardProps {
   sealId: string
   onClose: () => void
+  mismatch?: MismatchInfo
 }
 
-export default function TrustSealCard({ sealId, onClose }: TrustSealCardProps) {
+export default function TrustSealCard({ sealId, onClose, mismatch }: TrustSealCardProps) {
   const [seal, setSeal] = useState<SealData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -262,6 +275,28 @@ export default function TrustSealCard({ sealId, onClose }: TrustSealCardProps) {
                   </div>
                 )}
               </div>
+
+              {/* Mismatch warnings */}
+              {mismatch && (mismatch.amountMismatch || mismatch.vendorMismatch || mismatch.dateMismatch) && (
+                <div className="rounded-xl border border-orange-300 p-4 space-y-2 bg-orange-50">
+                  <div className="flex items-center gap-2">
+                    <span className="flex items-center gap-1.5 text-sm font-medium text-orange-600">
+                      <AlertTriangle size={15} /> OCR Mismatch
+                    </span>
+                  </div>
+                  <div className="space-y-1.5 text-xs text-orange-700">
+                    {mismatch.amountMismatch && (
+                      <p>Amount altered: OCR read <strong>{mismatch.ocrAmount?.toLocaleString()}</strong>, saved as <strong>{mismatch.amount?.toLocaleString()}</strong></p>
+                    )}
+                    {mismatch.vendorMismatch && (
+                      <p>Vendor altered: OCR read <strong>&quot;{mismatch.ocrVendor}&quot;</strong>, saved as <strong>&quot;{mismatch.vendor}&quot;</strong></p>
+                    )}
+                    {mismatch.dateMismatch && (
+                      <p>Date altered: OCR read <strong>{mismatch.ocrDate}</strong>, expense date differs by 30+ days</p>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* QR Code */}
               <div className="flex flex-col items-center gap-2 py-2">

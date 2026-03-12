@@ -1,6 +1,8 @@
 const { createAuditLog } = require('../services/auditService')
 const { notifyExpenseAdded } = require('../services/emailNotificationService')
 const { dispatch: webhookDispatch } = require('../services/webhookService')
+const { checkMismatches } = require('../lib/mismatchChecker')
+const { generateOcrFingerprint } = require('../lib/ocrFingerprint')
 const prisma = require('../lib/client')
 // ─────────────────────────────────────────────────────────────
 //  controllers/expenseController.js — v2
@@ -22,7 +24,7 @@ exports.getExpenses = async (req, res) => {
     const [expenses, total] = await Promise.all([
       db.expense.findMany({
         where, skip, take,
-        include: { fundingSource: true, fundingAgreement: { select: { id: true, title: true, donor: { select: { name: true } } } }, budget: { select: { id: true, name: true } }, budgetLine: { select: { id: true, category: true, subCategory: true, approvedAmount: true } }, project: { select: { id: true, name: true } }, documents: { select: { id: true, name: true, sha256Hash: true, fileType: true, uploadedAt: true } } },
+        include: { fundingSource: true, fundingAgreement: { select: { id: true, title: true, donor: { select: { name: true } } } }, budget: { select: { id: true, name: true } }, budgetLine: { select: { id: true, category: true, subCategory: true, approvedAmount: true } }, project: { select: { id: true, name: true } }, documents: { select: { id: true, name: true, sha256Hash: true, fileType: true, uploadedAt: true, isDuplicate: true, duplicateOfName: true, crossTenantDuplicate: true } } },
         orderBy: { createdAt: 'desc' }
       }),
       db.expense.count({ where })
@@ -53,7 +55,8 @@ exports.createExpense = async (req, res) => {
     const db = tenantClient(req.user.tenantId)
     const { title, description, amount, currency, projectId, fundingSourceId, fundingAgreementId,
             expenseType, category, subCategory, budgetId, budgetLineId, vendor,
-            receiptFileKey, receiptHash, receiptSealId } = req.body
+            receiptFileKey, receiptHash, receiptSealId,
+            ocrAmount, ocrVendor, ocrDate, expenseDate } = req.body
     const expenseTitle = title || description
     if (!expenseTitle || !amount) {
       return res.status(400).json({ error: 'title and amount are required' })
@@ -80,6 +83,14 @@ exports.createExpense = async (req, res) => {
       }
     }
 
+    // Compute mismatch flags if OCR values provided
+    const mismatch = (ocrAmount != null || ocrVendor || ocrDate)
+      ? checkMismatches(
+          { amount: parseFloat(amount), vendor: vendor || null, expenseDate: expenseDate || null },
+          { ocrAmount: ocrAmount != null ? parseFloat(ocrAmount) : null, ocrVendor: ocrVendor || null, ocrDate: ocrDate || null }
+        )
+      : { amountMismatch: false, vendorMismatch: false, dateMismatch: false, mismatchNote: null }
+
     const expense = await db.expense.create({
       data: {
         description:        expenseTitle,
@@ -98,9 +109,27 @@ exports.createExpense = async (req, res) => {
         receiptHash:        receiptHash || null,
         receiptSealId:      receiptSealId || null,
         approvalStatus:     'pending_review',
+        ocrAmount:          ocrAmount != null ? parseFloat(ocrAmount) : null,
+        ocrVendor:          ocrVendor || null,
+        ocrDate:            ocrDate || null,
+        amountMismatch:     mismatch.amountMismatch,
+        vendorMismatch:     mismatch.vendorMismatch,
+        dateMismatch:       mismatch.dateMismatch,
+        mismatchNote:       mismatch.mismatchNote,
       }
     })
     await createAuditLog({ action: 'EXPENSE_CREATED', entityType: 'Expense', entityId: expense.id, userId: req.user.id, tenantId: req.user.tenantId }).catch(() => {})
+
+    // Log mismatch in audit log if any flag is set
+    if (mismatch.amountMismatch || mismatch.vendorMismatch || mismatch.dateMismatch) {
+      createAuditLog({
+        action: 'EXPENSE_MISMATCH_FLAGGED',
+        entityType: 'Expense',
+        entityId: expense.id,
+        userId: req.user.id,
+        tenantId: req.user.tenantId,
+      }).catch(() => {})
+    }
 
     // Auto-create workflow task for expense approval
     prisma.workflowTask.create({
@@ -146,24 +175,51 @@ exports.updateExpense = async (req, res) => {
     if (amount !== undefined && parseFloat(amount) <= 0) {
       return res.status(400).json({ error: 'Amount must be a positive number greater than zero' })
     }
+
+    const updateData = {
+      ...(description        !== undefined && { description }),
+      ...(amount             !== undefined && { amount: parseFloat(amount) }),
+      ...(currency           !== undefined && { currency }),
+      ...(fundingSourceId    !== undefined && { fundingSourceId }),
+      ...(fundingAgreementId !== undefined && { fundingAgreementId }),
+      ...(budgetId           !== undefined && { budgetId: budgetId || null }),
+      ...(budgetLineId       !== undefined && { budgetLineId: budgetLineId || null }),
+      ...(expenseType        !== undefined && { expenseType }),
+      ...(category           !== undefined && { category }),
+      ...(subCategory        !== undefined && { subCategory }),
+      ...(vendor             !== undefined && { vendor: vendor || null }),
+      ...(receiptFileKey     !== undefined && { receiptFileKey }),
+      ...(receiptHash        !== undefined && { receiptHash }),
+      ...(receiptSealId      !== undefined && { receiptSealId }),
+    }
+
+    // Recompute mismatches if OCR values exist on the record
+    if (existing.ocrAmount != null || existing.ocrVendor || existing.ocrDate) {
+      const finalAmount = amount !== undefined ? parseFloat(amount) : existing.amount
+      const finalVendor = vendor !== undefined ? (vendor || null) : existing.vendor
+      const mismatch = checkMismatches(
+        { amount: finalAmount, vendor: finalVendor, expenseDate: existing.createdAt?.toISOString().split('T')[0] },
+        { ocrAmount: existing.ocrAmount, ocrVendor: existing.ocrVendor, ocrDate: existing.ocrDate }
+      )
+      updateData.amountMismatch = mismatch.amountMismatch
+      updateData.vendorMismatch = mismatch.vendorMismatch
+      updateData.dateMismatch = mismatch.dateMismatch
+      updateData.mismatchNote = mismatch.mismatchNote
+
+      if (mismatch.amountMismatch || mismatch.vendorMismatch || mismatch.dateMismatch) {
+        createAuditLog({
+          action: 'EXPENSE_MISMATCH_FLAGGED',
+          entityType: 'Expense',
+          entityId: req.params.id,
+          userId: req.user.id,
+          tenantId: req.user.tenantId,
+          }).catch(() => {})
+      }
+    }
+
     const expense = await db.expense.update({
       where: { id: req.params.id },
-      data: {
-        ...(description        !== undefined && { description }),
-        ...(amount             !== undefined && { amount: parseFloat(amount) }),
-        ...(currency           !== undefined && { currency }),
-        ...(fundingSourceId    !== undefined && { fundingSourceId }),
-        ...(fundingAgreementId !== undefined && { fundingAgreementId }),
-        ...(budgetId           !== undefined && { budgetId: budgetId || null }),
-        ...(budgetLineId       !== undefined && { budgetLineId: budgetLineId || null }),
-        ...(expenseType        !== undefined && { expenseType }),
-        ...(category           !== undefined && { category }),
-        ...(subCategory        !== undefined && { subCategory }),
-        ...(vendor             !== undefined && { vendor: vendor || null }),
-        ...(receiptFileKey     !== undefined && { receiptFileKey }),
-        ...(receiptHash        !== undefined && { receiptHash }),
-        ...(receiptSealId      !== undefined && { receiptSealId }),
-      }
+      data: updateData,
     })
     res.json(expense)
   } catch (err) {
@@ -241,6 +297,44 @@ exports.uploadReceipt = async (req, res) => {
         const fields = extractExpenseFields(ocrResult)
         ocrFields = fields
 
+        // Generate OCR fingerprint for duplicate detection
+        const fingerprint = generateOcrFingerprint(ocrResult.rawText)
+        if (fingerprint) {
+          ocrFields.ocrFingerprint = fingerprint
+
+          // Check same-tenant duplicate across documents
+          const sameDup = await prisma.document.findFirst({
+            where: { ocrFingerprint: fingerprint, tenantId: req.user.tenantId },
+            select: { id: true, name: true, uploadedAt: true },
+          })
+          if (sameDup) {
+            ocrFields.duplicateOf = { id: sameDup.id, name: sameDup.name, uploadedAt: sameDup.uploadedAt }
+            createAuditLog({
+              action: 'DUPLICATE_DOCUMENT_DETECTED',
+              entityType: 'Expense',
+              entityId: req.body.expenseId || 'receipt',
+              userId: req.user.userId,
+              tenantId: req.user.tenantId,
+            }).catch(() => {})
+          }
+
+          // Cross-tenant duplicate check
+          const crossDup = await prisma.document.findFirst({
+            where: { ocrFingerprint: fingerprint, tenantId: { not: req.user.tenantId } },
+            select: { id: true, tenantId: true },
+          })
+          if (crossDup) {
+            ocrFields.crossTenantDuplicate = true
+            createAuditLog({
+              action: 'CROSS_ORG_DUPLICATE_DETECTED',
+              entityType: 'Expense',
+              entityId: req.body.expenseId || 'receipt',
+              userId: req.user.userId,
+              tenantId: req.user.tenantId,
+            }).catch(() => {})
+          }
+        }
+
         // Build update data — only update fields that OCR found AND that are empty/default on the expense
         const existing = req.body.expenseId ? await db.expense.findFirst({ where: { id: req.body.expenseId } }) : null
         if (existing) {
@@ -273,12 +367,39 @@ exports.uploadReceipt = async (req, res) => {
             }
           }
 
+          // Always store OCR extracted values for mismatch tracking
+          if (fields.amount) updateData.ocrAmount = fields.amount
+          if (fields.vendor) updateData.ocrVendor = fields.vendor
+          if (fields.date) updateData.ocrDate = fields.date
+
+          // Compute mismatches against current (possibly auto-filled) values
+          const finalAmount = updateData.amount ?? existing.amount
+          const finalVendor = updateData.vendor ?? existing.vendor
+          const mismatch = checkMismatches(
+            { amount: finalAmount, vendor: finalVendor, expenseDate: existing.createdAt?.toISOString().split('T')[0] },
+            { ocrAmount: fields.amount, ocrVendor: fields.vendor, ocrDate: fields.date }
+          )
+          updateData.amountMismatch = mismatch.amountMismatch
+          updateData.vendorMismatch = mismatch.vendorMismatch
+          updateData.dateMismatch = mismatch.dateMismatch
+          updateData.mismatchNote = mismatch.mismatchNote
+
           if (Object.keys(updateData).length > 0) {
             await db.expense.update({
               where: { id: req.body.expenseId },
               data: updateData,
             })
             console.log(`[OCR auto-fill] expense=${req.body.expenseId} fields=${Object.keys(updateData).join(',')}`)
+          }
+
+          if (mismatch.amountMismatch || mismatch.vendorMismatch || mismatch.dateMismatch) {
+            createAuditLog({
+              action: 'EXPENSE_MISMATCH_FLAGGED',
+              entityType: 'Expense',
+              entityId: req.body.expenseId,
+              userId: req.user.id,
+              tenantId: req.user.tenantId,
+                  }).catch(() => {})
           }
         }
       }

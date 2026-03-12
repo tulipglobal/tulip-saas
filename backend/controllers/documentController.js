@@ -6,6 +6,7 @@ const { notifyDocumentUploaded, notifyDonorsNewDocument } = require('../services
 const { dispatch: webhookDispatch } = require('../services/webhookService')
 const { KEY_DOCUMENT_CATEGORIES, isKeyCategory } = require('../lib/documentCategories')
 const { autoIssueSeal } = require('../services/universalSealService')
+const { generateOcrFingerprint } = require('../lib/ocrFingerprint')
 const multer = require('multer')
 
 // Multer — memory storage (buffer for SHA-256 + S3)
@@ -186,6 +187,69 @@ exports.createDocument = async (req, res) => {
       fileType: document.fileType,
       metadata: { source: 'document-upload', documentId: document.id, documentLevel: document.documentLevel },
     }).catch(err => console.error('[seal] auto-issue failed:', err.message))
+
+    // OCR text fingerprint — detect content-level duplicates (non-blocking)
+    const ocrExtTypes = ['pdf', 'jpg', 'jpeg', 'png', 'tiff', 'tif']
+    if (ocrExtTypes.includes((document.fileType || '').toLowerCase())) {
+      ;(async () => {
+        try {
+          const { extractText } = require('../services/ocrService')
+          const ocrResult = await extractText(s3FileKey)
+          const fingerprint = generateOcrFingerprint(ocrResult.rawText)
+          if (!fingerprint) return
+
+          const updateData = { ocrFingerprint: fingerprint }
+
+          // Same-tenant duplicate check
+          const sameTenantDup = await db.document.findFirst({
+            where: { ocrFingerprint: fingerprint, id: { not: document.id } },
+            select: { id: true, name: true, uploadedAt: true },
+          })
+          if (sameTenantDup) {
+            updateData.isDuplicate = true
+            updateData.duplicateOfId = sameTenantDup.id
+            updateData.duplicateOfName = sameTenantDup.name
+            console.log(`[OCR fingerprint] Duplicate detected: doc=${document.id} duplicateOf=${sameTenantDup.id}`)
+
+            createAuditLog({
+              action: 'DUPLICATE_DOCUMENT_DETECTED',
+              entityType: 'Document',
+              entityId: document.id,
+              userId: req.user.userId,
+              tenantId: req.user.tenantId,
+            }).catch(() => {})
+          }
+
+          // Cross-tenant duplicate check (use raw prisma, not tenant-scoped)
+          const crossTenantDup = await prisma.document.findFirst({
+            where: {
+              ocrFingerprint: fingerprint,
+              tenantId: { not: req.user.tenantId },
+            },
+            select: { id: true, tenantId: true },
+          })
+          if (crossTenantDup) {
+            updateData.crossTenantDuplicate = true
+            console.log(`[OCR fingerprint] Cross-tenant duplicate: doc=${document.id} otherTenant=${crossTenantDup.tenantId}`)
+
+            createAuditLog({
+              action: 'CROSS_ORG_DUPLICATE_DETECTED',
+              entityType: 'Document',
+              entityId: document.id,
+              userId: req.user.userId,
+              tenantId: req.user.tenantId,
+            }).catch(() => {})
+          }
+
+          await db.document.update({
+            where: { id: document.id },
+            data: updateData,
+          })
+        } catch (err) {
+          console.error('[OCR fingerprint] failed:', err.message)
+        }
+      })()
+    }
 
     // Notify admin (non-blocking)
     notifyDocumentUploaded({

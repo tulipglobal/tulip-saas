@@ -11,6 +11,7 @@ const { normaliseDocument, assessDocument, crossAnalyseBundle } = require('../se
 const { generateOcrPdf, generateBundlePdf } = require('../services/ocrPdfService')
 const { createAuditLog } = require('../services/auditService')
 const { trackEvent, hasEvent } = require('../services/engagementService')
+const { generateOcrFingerprint } = require('../lib/ocrFingerprint')
 const logger  = require('../lib/logger')
 
 // Multer — memory storage, max 20MB
@@ -87,10 +88,17 @@ async function processOcrJob(jobId, tenantId, userId, file) {
     logger.info({ jobId }, 'Starting OCR extraction')
     const ocrResult = await extractText(s3Key)
 
+    // 2b. Generate OCR text fingerprint
+    const ocrFp = generateOcrFingerprint(ocrResult.rawText)
+
     await prisma.ocrJob.update({
       where: { id: jobId },
-      data: { rawText: ocrResult.rawText, confidence: ocrResult.confidence, status: 'normalising' }
+      data: { rawText: ocrResult.rawText, confidence: ocrResult.confidence, ocrFingerprint: ocrFp, status: 'normalising' }
     })
+
+    if (ocrFp) {
+      logger.info({ jobId, ocrFingerprint: ocrFp.slice(0, 16) }, 'OCR fingerprint generated')
+    }
 
     // 3. Normalise via Claude AI
     logger.info({ jobId }, 'Normalising document')
@@ -327,9 +335,11 @@ async function processBundleJob(bundleId, tenantId, userId, ocrJobs) {
         logger.info({ jobId: job.id, bundleId }, 'Bundle: extracting text')
         const ocrResult = await extractText(s3Key)
 
+        const bundleFp = generateOcrFingerprint(ocrResult.rawText)
+
         await prisma.ocrJob.update({
           where: { id: job.id },
-          data: { rawText: ocrResult.rawText, confidence: ocrResult.confidence, status: 'normalising' }
+          data: { rawText: ocrResult.rawText, confidence: ocrResult.confidence, ocrFingerprint: bundleFp, status: 'normalising' }
         })
 
         // 3. Normalise via Claude

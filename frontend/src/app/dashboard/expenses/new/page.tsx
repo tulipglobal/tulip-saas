@@ -377,23 +377,30 @@ export default function NewExpensePage() {
               <div className="text-xs text-[#183a1d]/40 font-mono break-all">SHA-256: {receiptData.hash}</div>
 
               {crossTenantDuplicate && (
-                <div className="rounded-lg bg-red-600 p-4">
-                  <div className="flex items-center gap-2 text-white font-bold text-sm">
-                    <AlertTriangle size={18} /> HIGH RISK — This document was uploaded by another organisation
+                <div className="rounded-xl bg-red-600 p-5 space-y-2">
+                  <div className="flex items-center gap-3 text-white font-bold text-lg">
+                    <AlertTriangle size={24} className="shrink-0" /> HIGH RISK
                   </div>
+                  <p className="text-white font-bold text-base">This document was uploaded by another organisation. This is a serious fraud indicator.</p>
+                  <button onClick={() => { setReceiptData(null); setReceiptFile(null); setDuplicateInfo(null); setCrossTenantDuplicate(false) }}
+                    className="text-white/80 hover:text-white text-sm font-medium underline">Replace file</button>
                 </div>
               )}
               {duplicateInfo && !crossTenantDuplicate && (
-                <div className="rounded-lg bg-red-600 p-4">
-                  <div className="flex items-start gap-2 text-white font-bold text-sm">
-                    <AlertTriangle size={18} className="shrink-0 mt-0.5" />
-                    <span>DUPLICATE DOCUMENT DETECTED — This receipt was already uploaded as &quot;{duplicateInfo.name}&quot; on {new Date(duplicateInfo.uploadedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                <div className="rounded-xl bg-red-600 p-5 space-y-2">
+                  <div className="flex items-center gap-3 text-white font-bold text-lg">
+                    <AlertTriangle size={24} className="shrink-0" /> DUPLICATE DOCUMENT
                   </div>
+                  <p className="text-white font-bold text-base">This file was uploaded before as &quot;{duplicateInfo.name}&quot; on {new Date(duplicateInfo.uploadedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}. Uploading the same receipt twice may indicate duplicate expense claims.</p>
+                  <button onClick={() => { setReceiptData(null); setReceiptFile(null); setDuplicateInfo(null); setCrossTenantDuplicate(false) }}
+                    className="text-white/80 hover:text-white text-sm font-medium underline">Replace file</button>
                 </div>
               )}
 
-              <button onClick={() => { setReceiptData(null); setReceiptFile(null); setDuplicateInfo(null); setCrossTenantDuplicate(false) }}
-                className="text-xs text-[#183a1d]/40 hover:text-[#183a1d]/60">Replace file</button>
+              {!crossTenantDuplicate && !duplicateInfo && (
+                <button onClick={() => { setReceiptData(null); setReceiptFile(null); setDuplicateInfo(null); setCrossTenantDuplicate(false) }}
+                  className="text-xs text-[#183a1d]/40 hover:text-[#183a1d]/60">Replace file</button>
+              )}
             </div>
           ) : (
             <div className="space-y-2">

@@ -276,6 +276,7 @@ exports.uploadReceipt = async (req, res) => {
         fileType: ext,
         anchorTxHash: null,
         status: 'pending',
+        sourceType: 'DASHBOARD',
       }
     })
 
@@ -408,6 +409,16 @@ exports.uploadReceipt = async (req, res) => {
               where: { id: req.body.expenseId },
               data: { fraudRiskScore: risk.score, fraudRiskLevel: risk.level, fraudSignals: risk.breakdown.signals },
             })
+            // Copy fraud risk to the TrustSeal so public seal page shows it
+            await prisma.trustSeal.update({
+              where: { id: seal.id },
+              data: {
+                fraudRiskScore: risk.score,
+                fraudRiskLevel: risk.level,
+                fraudSignals: risk.breakdown.signals,
+                sourceType: 'DASHBOARD',
+              },
+            }).catch(err => console.error('[fraud-risk] seal update failed:', err.message))
             if (risk.score > 0) {
               createAuditLog({
                 action: 'FRAUD_RISK_SCORED',

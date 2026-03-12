@@ -7,6 +7,34 @@ const router = express.Router()
 const prisma = require('../lib/client')
 const { getPresignedUrlFromKey } = require('../lib/s3Upload')
 
+// GET /api/public/seal/case/:caseId — all seals for a case (for tulip-verify)
+router.get('/case/:caseId', async (req, res) => {
+  try {
+    const seals = await prisma.trustSeal.findMany({
+      where: {
+        metadata: { path: ['caseId'], equals: req.params.caseId },
+      },
+      orderBy: { createdAt: 'asc' },
+    })
+
+    res.json(seals.map(s => ({
+      id: s.id,
+      documentTitle: s.documentTitle,
+      documentType: s.documentType,
+      rawHash: s.rawHash,
+      status: s.status,
+      anchorTxHash: s.anchorTxHash,
+      anchoredAt: s.anchoredAt,
+      blockNumber: s.blockNumber,
+      metadata: s.metadata,
+      createdAt: s.createdAt,
+    })))
+  } catch (err) {
+    console.error('Failed to fetch case seals:', err)
+    res.status(500).json({ error: 'Internal error' })
+  }
+})
+
 // GET /api/public/seal/:id — public seal verification
 router.get('/:id', async (req, res) => {
   try {

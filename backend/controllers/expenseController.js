@@ -3,6 +3,7 @@ const { notifyExpenseAdded } = require('../services/emailNotificationService')
 const { dispatch: webhookDispatch } = require('../services/webhookService')
 const { checkMismatches } = require('../lib/mismatchChecker')
 const { generateOcrFingerprint } = require('../lib/ocrFingerprint')
+const { computePHashFromFile, hammingDistance } = require('../lib/pHashService')
 const prisma = require('../lib/client')
 // ─────────────────────────────────────────────────────────────
 //  controllers/expenseController.js — v2
@@ -24,7 +25,7 @@ exports.getExpenses = async (req, res) => {
     const [expenses, total] = await Promise.all([
       db.expense.findMany({
         where, skip, take,
-        include: { fundingSource: true, fundingAgreement: { select: { id: true, title: true, donor: { select: { name: true } } } }, budget: { select: { id: true, name: true } }, budgetLine: { select: { id: true, category: true, subCategory: true, approvedAmount: true } }, project: { select: { id: true, name: true } }, documents: { select: { id: true, name: true, sha256Hash: true, fileType: true, uploadedAt: true, isDuplicate: true, duplicateOfName: true, crossTenantDuplicate: true } } },
+        include: { fundingSource: true, fundingAgreement: { select: { id: true, title: true, donor: { select: { name: true } } } }, budget: { select: { id: true, name: true } }, budgetLine: { select: { id: true, category: true, subCategory: true, approvedAmount: true } }, project: { select: { id: true, name: true } }, documents: { select: { id: true, name: true, sha256Hash: true, fileType: true, uploadedAt: true, isDuplicate: true, duplicateOfName: true, crossTenantDuplicate: true, isVisualDuplicate: true, visualDuplicateOfName: true, crossTenantVisualDuplicate: true } } },
         orderBy: { createdAt: 'desc' }
       }),
       db.expense.count({ where })
@@ -302,13 +303,33 @@ exports.uploadReceipt = async (req, res) => {
         if (fingerprint) {
           ocrFields.ocrFingerprint = fingerprint
 
-          // Check same-tenant duplicate across documents
-          const sameDup = await prisma.document.findFirst({
-            where: { ocrFingerprint: fingerprint, tenantId: req.user.tenantId },
-            select: { id: true, name: true, uploadedAt: true },
-          })
+          // Store fingerprint on the TrustSeal so future uploads can match against it
+          await prisma.trustSeal.update({
+            where: { id: seal.id },
+            data: { ocrFingerprint: fingerprint },
+          }).catch(err => console.error('[OCR fingerprint] seal update failed:', err.message))
+
+          // Check same-tenant duplicate across documents AND trust seals (receipts)
+          const [sameDupDoc, sameDupSeal] = await Promise.all([
+            prisma.document.findFirst({
+              where: { ocrFingerprint: fingerprint, tenantId: req.user.tenantId },
+              select: { id: true, name: true, uploadedAt: true },
+            }),
+            prisma.trustSeal.findFirst({
+              where: { ocrFingerprint: fingerprint, tenantId: req.user.tenantId, id: { not: seal.id } },
+              select: { id: true, documentTitle: true, createdAt: true },
+            }),
+          ])
+
+          const sameDup = sameDupDoc
+            ? { id: sameDupDoc.id, name: sameDupDoc.name, uploadedAt: sameDupDoc.uploadedAt }
+            : sameDupSeal
+              ? { id: sameDupSeal.id, name: sameDupSeal.documentTitle, uploadedAt: sameDupSeal.createdAt }
+              : null
+
           if (sameDup) {
-            ocrFields.duplicateOf = { id: sameDup.id, name: sameDup.name, uploadedAt: sameDup.uploadedAt }
+            ocrFields.duplicateOf = sameDup
+            console.log(`[OCR duplicate] receipt duplicate detected: fingerprint=${fingerprint.slice(0, 12)}... matchedDoc=${sameDup.name}`)
             createAuditLog({
               action: 'DUPLICATE_DOCUMENT_DETECTED',
               entityType: 'Expense',
@@ -318,13 +339,21 @@ exports.uploadReceipt = async (req, res) => {
             }).catch(() => {})
           }
 
-          // Cross-tenant duplicate check
-          const crossDup = await prisma.document.findFirst({
-            where: { ocrFingerprint: fingerprint, tenantId: { not: req.user.tenantId } },
-            select: { id: true, tenantId: true },
-          })
-          if (crossDup) {
+          // Cross-tenant duplicate check across documents AND trust seals
+          const [crossDupDoc, crossDupSeal] = await Promise.all([
+            prisma.document.findFirst({
+              where: { ocrFingerprint: fingerprint, tenantId: { not: req.user.tenantId } },
+              select: { id: true, tenantId: true },
+            }),
+            prisma.trustSeal.findFirst({
+              where: { ocrFingerprint: fingerprint, tenantId: { not: req.user.tenantId } },
+              select: { id: true, tenantId: true },
+            }),
+          ])
+
+          if (crossDupDoc || crossDupSeal) {
             ocrFields.crossTenantDuplicate = true
+            console.log(`[OCR duplicate] cross-org duplicate detected: fingerprint=${fingerprint.slice(0, 12)}...`)
             createAuditLog({
               action: 'CROSS_ORG_DUPLICATE_DETECTED',
               entityType: 'Expense',
@@ -408,6 +437,55 @@ exports.uploadReceipt = async (req, res) => {
       console.error('[OCR auto-fill] failed:', ocrErr.message)
     }
 
+    // pHash visual duplicate detection (non-blocking, runs after response)
+    let pHashResult = null
+    try {
+      const fileHash = await computePHashFromFile(req.file.buffer, ext)
+      if (fileHash) {
+        pHashResult = { pHash: fileHash }
+
+        // Same-tenant visual duplicate check
+        const sameTenantDocs = await prisma.document.findMany({
+          where: { pHash: { not: null }, tenantId: req.user.tenantId },
+          select: { id: true, name: true, pHash: true, uploadedAt: true },
+        })
+        for (const existing of sameTenantDocs) {
+          if (hammingDistance(fileHash, existing.pHash) <= 10) {
+            pHashResult.visualDuplicateOf = { id: existing.id, name: existing.name, uploadedAt: existing.uploadedAt }
+            createAuditLog({
+              action: 'VISUAL_DUPLICATE_DETECTED',
+              entityType: 'Expense',
+              entityId: req.body.expenseId || 'receipt',
+              userId: req.user.userId,
+              tenantId: req.user.tenantId,
+            }).catch(() => {})
+            break
+          }
+        }
+
+        // Cross-tenant visual duplicate check
+        const crossTenantDocs = await prisma.document.findMany({
+          where: { pHash: { not: null }, tenantId: { not: req.user.tenantId } },
+          select: { id: true, tenantId: true, pHash: true },
+        })
+        for (const existing of crossTenantDocs) {
+          if (hammingDistance(fileHash, existing.pHash) <= 10) {
+            pHashResult.crossTenantVisualDuplicate = true
+            createAuditLog({
+              action: 'CROSS_ORG_VISUAL_DUPLICATE_DETECTED',
+              entityType: 'Expense',
+              entityId: req.body.expenseId || 'receipt',
+              userId: req.user.userId,
+              tenantId: req.user.tenantId,
+            }).catch(() => {})
+            break
+          }
+        }
+      }
+    } catch (phashErr) {
+      console.error('[pHash receipt] failed:', phashErr.message)
+    }
+
     res.json({
       fileKey: s3Key,
       fileUrl,
@@ -415,6 +493,7 @@ exports.uploadReceipt = async (req, res) => {
       sealId: seal.id,
       sealStatus: seal.status,
       ocrFields,
+      pHashResult,
     })
   } catch (err) {
     console.error('uploadReceipt error:', err)

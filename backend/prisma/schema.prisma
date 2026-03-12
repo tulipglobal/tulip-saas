@@ -332,12 +332,17 @@ model Document {
   fileType              String?
   fileSize              Int?
   sha256Hash            String?
-  ocrFingerprint        String?
-  isDuplicate           Boolean   @default(false)
-  duplicateOfId         String?
-  duplicateOfName       String?
-  crossTenantDuplicate  Boolean   @default(false)
-  expenseId             String?
+  ocrFingerprint             String?
+  isDuplicate                Boolean   @default(false)
+  duplicateOfId              String?
+  duplicateOfName            String?
+  crossTenantDuplicate       Boolean   @default(false)
+  pHash                      String?
+  isVisualDuplicate          Boolean   @default(false)
+  visualDuplicateOfId        String?
+  visualDuplicateOfName      String?
+  crossTenantVisualDuplicate Boolean   @default(false)
+  expenseId                  String?
   projectId             String?
   tenantId              String
   uploadedById          String?
@@ -354,6 +359,7 @@ model Document {
   @@index([uploadedById])
   @@index([sha256Hash])
   @@index([ocrFingerprint])
+  @@index([pHash])
   @@index([expiryDate])
 }
 
@@ -599,6 +605,7 @@ model OcrJob {
   flags            Json?
   hashValue        String?
   ocrFingerprint   String?
+  pHash            String?
   anchorTxHash     String?
   anchoredAt       DateTime?
   proofBundleS3    String?
@@ -615,6 +622,7 @@ model OcrJob {
   @@index([bundleJobId])
   @@index([caseId])
   @@index([ocrFingerprint])
+  @@index([pHash])
 }
 
 model BundleJob {
@@ -668,6 +676,7 @@ model TrustSeal {
   ipAddress        String?
   anchorRetryCount Int       @default(0)
   anchorLastRetryAt DateTime?
+  ocrFingerprint   String?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
@@ -675,6 +684,7 @@ model TrustSeal {
   @@index([rawHash])
   @@index([status])
   @@index([createdAt])
+  @@index([ocrFingerprint])
 }
 
 model EngagementEvent {

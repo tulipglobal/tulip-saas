@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Save, Upload, CheckCircle, FileText } from 'lucide-react'
+import { ArrowLeft, Save, Upload, CheckCircle, FileText, AlertTriangle } from 'lucide-react'
 import { apiGet, apiPost } from '@/lib/api'
 import { getCategoriesForType, type ExpenseType } from '@/lib/ngo-categories'
 
@@ -28,6 +28,8 @@ export default function NewExpensePage() {
   const [uploading, setUploading] = useState(false)
   const [receiptData, setReceiptData] = useState<{ fileKey: string; hash: string; sealId: string } | null>(null)
   const [ocrValues, setOcrValues] = useState<{ amount?: number; vendor?: string; date?: string } | null>(null)
+  const [duplicateInfo, setDuplicateInfo] = useState<{ name: string; uploadedAt: string } | null>(null)
+  const [crossTenantDuplicate, setCrossTenantDuplicate] = useState(false)
 
   const [form, setForm] = useState({
     title: '', amount: '', currency: 'USD', expenseType: '' as '' | ExpenseType,
@@ -135,6 +137,13 @@ export default function NewExpensePage() {
       if (res.ok) {
         const data = await res.json()
         setReceiptData({ fileKey: data.fileKey, hash: data.hash, sealId: data.sealId })
+        // Check for duplicate detection
+        if (data.ocrFields?.duplicateOf) {
+          setDuplicateInfo({ name: data.ocrFields.duplicateOf.name, uploadedAt: data.ocrFields.duplicateOf.uploadedAt })
+        } else {
+          setDuplicateInfo(null)
+        }
+        setCrossTenantDuplicate(!!data.ocrFields?.crossTenantDuplicate)
         // Auto-fill form fields from OCR results (only fill empty fields)
         if (data.ocrFields) {
           setForm(f => ({
@@ -361,12 +370,29 @@ export default function NewExpensePage() {
         <div className="rounded-lg border border-[#c8d6c0] p-4 space-y-3 bg-[#e1eedd]">
           <label className={labelCls + ' mb-0'}>Receipt / Invoice</label>
           {receiptData ? (
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="flex items-center gap-2 text-green-400 text-sm">
                 <CheckCircle size={16} /> Sealed
               </div>
               <div className="text-xs text-[#183a1d]/40 font-mono break-all">SHA-256: {receiptData.hash}</div>
-              <button onClick={() => { setReceiptData(null); setReceiptFile(null) }}
+
+              {crossTenantDuplicate && (
+                <div className="rounded-lg bg-red-600 p-4">
+                  <div className="flex items-center gap-2 text-white font-bold text-sm">
+                    <AlertTriangle size={18} /> HIGH RISK — This document was uploaded by another organisation
+                  </div>
+                </div>
+              )}
+              {duplicateInfo && !crossTenantDuplicate && (
+                <div className="rounded-lg bg-red-600 p-4">
+                  <div className="flex items-start gap-2 text-white font-bold text-sm">
+                    <AlertTriangle size={18} className="shrink-0 mt-0.5" />
+                    <span>DUPLICATE DOCUMENT DETECTED — This receipt was already uploaded as &quot;{duplicateInfo.name}&quot; on {new Date(duplicateInfo.uploadedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                  </div>
+                </div>
+              )}
+
+              <button onClick={() => { setReceiptData(null); setReceiptFile(null); setDuplicateInfo(null); setCrossTenantDuplicate(false) }}
                 className="text-xs text-[#183a1d]/40 hover:text-[#183a1d]/60">Replace file</button>
             </div>
           ) : (

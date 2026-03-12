@@ -201,24 +201,19 @@ function ReceiptUploader({ expenseId, expenseTitle, onUploaded }: { expenseId: s
           <p className="text-[10px] text-emerald-500">Fields are editable — OCR is a suggestion, not a lock</p>
         </div>
       )}
-      {ocrResult?.duplicateOf && (
-        <div className="rounded-lg border border-orange-200 bg-orange-50 p-3 space-y-1">
-          <div className="flex items-center gap-1.5 text-xs font-medium text-orange-600">
-            <AlertTriangle size={12} /> Duplicate Document Detected
+      {ocrResult?.crossTenantDuplicate && (
+        <div className="rounded-lg bg-red-600 p-4">
+          <div className="flex items-center gap-2 text-white font-bold text-sm">
+            <AlertTriangle size={18} /> HIGH RISK — This document was uploaded by another organisation
           </div>
-          <p className="text-[11px] text-orange-700">
-            This document appears to be a duplicate of <strong>&quot;{ocrResult.duplicateOf.name}&quot;</strong> uploaded on {new Date(ocrResult.duplicateOf.uploadedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-          </p>
         </div>
       )}
-      {ocrResult?.crossTenantDuplicate && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 space-y-1">
-          <div className="flex items-center gap-1.5 text-xs font-medium text-red-600">
-            <AlertTriangle size={12} /> Cross-Organisation Duplicate (High Fraud Risk)
+      {ocrResult?.duplicateOf && !ocrResult?.crossTenantDuplicate && (
+        <div className="rounded-lg bg-red-600 p-4">
+          <div className="flex items-start gap-2 text-white font-bold text-sm">
+            <AlertTriangle size={18} className="shrink-0 mt-0.5" />
+            <span>DUPLICATE DOCUMENT DETECTED — This receipt was already uploaded as &quot;{ocrResult.duplicateOf.name}&quot; on {new Date(ocrResult.duplicateOf.uploadedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
           </div>
-          <p className="text-[11px] text-red-700">
-            This document&apos;s content matches a document uploaded by another organisation. This may indicate document fraud.
-          </p>
         </div>
       )}
       {!ocrResult && <p className="text-[10px] text-[#183a1d]/30">File will be SHA-256 hashed, OCR scanned, and a Trust Seal created automatically</p>}
@@ -264,18 +259,18 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
               </span>
             )}
             {(expense.amountMismatch || expense.vendorMismatch || expense.dateMismatch) && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-orange-50 text-orange-600 border border-orange-200" title={expense.mismatchNote || 'Mismatch detected'}>
+              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white" title={expense.mismatchNote || 'Mismatch detected'}>
                 <AlertTriangle size={9} /> Mismatch
               </span>
             )}
             {expense.documents?.some(d => d.crossTenantDuplicate) && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-red-400/10 text-red-500 border border-red-400/20">
+              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white">
                 <AlertTriangle size={9} /> Cross-Org Duplicate
               </span>
             )}
             {expense.documents?.some(d => d.isDuplicate && !d.crossTenantDuplicate) && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-orange-400/10 text-orange-500 border border-orange-400/20">
-                <AlertTriangle size={9} /> Duplicate Doc
+              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white">
+                <AlertTriangle size={9} /> Duplicate
               </span>
             )}
             {(expense.documents?.length ?? 0) > 0 && (
@@ -382,19 +377,19 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
 
             {/* Mismatch warnings */}
             {(expense.amountMismatch || expense.vendorMismatch || expense.dateMismatch) && (
-              <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 space-y-2">
-                <div className="flex items-center gap-1.5 text-xs font-medium text-orange-600">
-                  <AlertTriangle size={13} /> OCR Mismatch Detected
+              <div className="rounded-lg bg-red-600 p-4 space-y-2">
+                <div className="flex items-center gap-2 text-white font-bold text-sm">
+                  <AlertTriangle size={16} /> OCR Mismatch Detected
                 </div>
-                <div className="space-y-1 text-xs text-orange-700">
+                <div className="space-y-1 text-sm text-white/90">
                   {expense.amountMismatch && (
-                    <div>Amount altered: OCR read <span className="font-medium">{expense.ocrAmount?.toLocaleString()}</span>, saved as <span className="font-medium">{expense.amount.toLocaleString()}</span></div>
+                    <div>Amount altered: OCR read <strong>{expense.ocrAmount?.toLocaleString()}</strong>, saved as <strong>{expense.amount.toLocaleString()}</strong></div>
                   )}
                   {expense.vendorMismatch && (
-                    <div>Vendor altered: OCR read <span className="font-medium">&quot;{expense.ocrVendor}&quot;</span>, saved as <span className="font-medium">&quot;{expense.vendor}&quot;</span></div>
+                    <div>Vendor altered: OCR read <strong>&quot;{expense.ocrVendor}&quot;</strong>, saved as <strong>&quot;{expense.vendor}&quot;</strong></div>
                   )}
                   {expense.dateMismatch && (
-                    <div>Date altered: OCR read <span className="font-medium">{expense.ocrDate}</span>, expense date differs by 30+ days</div>
+                    <div>Date altered: OCR read <strong>{expense.ocrDate}</strong>, expense date differs by 30+ days</div>
                   )}
                 </div>
               </div>

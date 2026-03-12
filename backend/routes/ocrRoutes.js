@@ -12,6 +12,7 @@ const { generateOcrPdf, generateBundlePdf } = require('../services/ocrPdfService
 const { createAuditLog } = require('../services/auditService')
 const { trackEvent, hasEvent } = require('../services/engagementService')
 const { generateOcrFingerprint } = require('../lib/ocrFingerprint')
+const { computePHashFromFile } = require('../lib/pHashService')
 const logger  = require('../lib/logger')
 
 // Multer — memory storage, max 20MB
@@ -98,6 +99,16 @@ async function processOcrJob(jobId, tenantId, userId, file) {
 
     if (ocrFp) {
       logger.info({ jobId, ocrFingerprint: ocrFp.slice(0, 16) }, 'OCR fingerprint generated')
+    }
+
+    // 2c. Generate pHash for visual duplicate detection
+    const filePHash = await computePHashFromFile(file.buffer, file.mimetype).catch(() => null)
+    if (filePHash) {
+      await prisma.ocrJob.update({
+        where: { id: jobId },
+        data: { pHash: filePHash }
+      })
+      logger.info({ jobId, pHash: filePHash }, 'pHash generated')
     }
 
     // 3. Normalise via Claude AI
@@ -337,9 +348,11 @@ async function processBundleJob(bundleId, tenantId, userId, ocrJobs) {
 
         const bundleFp = generateOcrFingerprint(ocrResult.rawText)
 
+        const bundlePHash = await computePHashFromFile(file.buffer, file.mimetype).catch(() => null)
+
         await prisma.ocrJob.update({
           where: { id: job.id },
-          data: { rawText: ocrResult.rawText, confidence: ocrResult.confidence, ocrFingerprint: bundleFp, status: 'normalising' }
+          data: { rawText: ocrResult.rawText, confidence: ocrResult.confidence, ocrFingerprint: bundleFp, pHash: bundlePHash, status: 'normalising' }
         })
 
         // 3. Normalise via Claude

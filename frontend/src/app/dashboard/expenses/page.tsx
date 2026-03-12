@@ -17,6 +17,9 @@ interface Document {
   isDuplicate?: boolean
   duplicateOfName?: string | null
   crossTenantDuplicate?: boolean
+  isVisualDuplicate?: boolean
+  visualDuplicateOfName?: string | null
+  crossTenantVisualDuplicate?: boolean
 }
 
 interface Expense {
@@ -105,21 +108,18 @@ function AnchorBadge({ status }: { status: string }) {
 }
 
 function DuplicateDocBadge({ doc }: { doc: Document }) {
+  const badges = []
   if (doc.crossTenantDuplicate) {
-    return (
-      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-red-400/10 text-red-500 border border-red-400/20" title="Same content found in another organisation — high fraud risk">
-        <AlertTriangle size={9} /> Cross-Org
-      </span>
-    )
+    badges.push(<span key="cross-ocr" className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white" title="Same content found in another organisation — high fraud risk"><AlertTriangle size={9} /> Cross-Org Duplicate</span>)
+  } else if (doc.isDuplicate) {
+    badges.push(<span key="ocr-dup" className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white" title={`Duplicate of "${doc.duplicateOfName}"`}><AlertTriangle size={9} /> Duplicate</span>)
   }
-  if (doc.isDuplicate) {
-    return (
-      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-orange-400/10 text-orange-500 border border-orange-400/20" title={`Duplicate of "${doc.duplicateOfName}"`}>
-        <AlertTriangle size={9} /> Duplicate
-      </span>
-    )
+  if (doc.crossTenantVisualDuplicate) {
+    badges.push(<span key="cross-visual" className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white" title="Visually similar document found in another organisation — high fraud risk"><AlertTriangle size={9} /> Cross-Org Visual Match</span>)
+  } else if (doc.isVisualDuplicate) {
+    badges.push(<span key="visual-dup" className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white" title={`Visual duplicate of "${doc.visualDuplicateOfName}"`}><AlertTriangle size={9} /> Visual Duplicate</span>)
   }
-  return null
+  return badges.length > 0 ? <>{badges}</> : null
 }
 
 interface OcrFields {
@@ -133,15 +133,21 @@ interface OcrFields {
   crossTenantDuplicate?: boolean
 }
 
+interface PHashResult {
+  visualDuplicateOf?: { id: string; name: string } | null
+  crossTenantVisualDuplicate?: boolean
+}
+
 function ReceiptUploader({ expenseId, expenseTitle, onUploaded }: { expenseId: string; expenseTitle: string; onUploaded: () => void }) {
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
   const [ocrResult, setOcrResult] = useState<OcrFields | null>(null)
+  const [pHashResult, setPHashResult] = useState<PHashResult | null>(null)
 
   const upload = async () => {
     if (!file) return
-    setUploading(true); setError(''); setOcrResult(null)
+    setUploading(true); setError(''); setOcrResult(null); setPHashResult(null)
     try {
       const token = localStorage.getItem('tulip_token')
       const fd = new FormData()
@@ -157,6 +163,7 @@ function ReceiptUploader({ expenseId, expenseTitle, onUploaded }: { expenseId: s
         const data = await res.json()
         setFile(null)
         if (data.ocrFields) setOcrResult(data.ocrFields)
+        if (data.pHashResult) setPHashResult(data.pHashResult)
         onUploaded()
       } else {
         const d = await res.json().catch(() => ({}))
@@ -216,7 +223,22 @@ function ReceiptUploader({ expenseId, expenseTitle, onUploaded }: { expenseId: s
           </div>
         </div>
       )}
-      {!ocrResult && <p className="text-[10px] text-[#183a1d]/30">File will be SHA-256 hashed, OCR scanned, and a Trust Seal created automatically</p>}
+      {pHashResult?.crossTenantVisualDuplicate && (
+        <div className="rounded-lg bg-red-600 p-4">
+          <div className="flex items-center gap-2 text-white font-bold text-sm">
+            <AlertTriangle size={18} /> HIGH RISK — Visually similar document found in another organisation
+          </div>
+        </div>
+      )}
+      {pHashResult?.visualDuplicateOf && !pHashResult?.crossTenantVisualDuplicate && (
+        <div className="rounded-lg bg-red-600 p-4">
+          <div className="flex items-start gap-2 text-white font-bold text-sm">
+            <AlertTriangle size={18} className="shrink-0 mt-0.5" />
+            <span>VISUAL DUPLICATE — This receipt looks identical to &quot;{pHashResult.visualDuplicateOf.name}&quot;</span>
+          </div>
+        </div>
+      )}
+      {!ocrResult && !pHashResult && <p className="text-[10px] text-[#183a1d]/30">File will be SHA-256 hashed, OCR scanned, and a Trust Seal created automatically</p>}
     </div>
   )
 }
@@ -271,6 +293,16 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
             {expense.documents?.some(d => d.isDuplicate && !d.crossTenantDuplicate) && (
               <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white">
                 <AlertTriangle size={9} /> Duplicate
+              </span>
+            )}
+            {expense.documents?.some(d => d.crossTenantVisualDuplicate) && (
+              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white">
+                <AlertTriangle size={9} /> Cross-Org Visual Match
+              </span>
+            )}
+            {expense.documents?.some(d => d.isVisualDuplicate && !d.crossTenantVisualDuplicate) && (
+              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white">
+                <AlertTriangle size={9} /> Visual Duplicate
               </span>
             )}
             {(expense.documents?.length ?? 0) > 0 && (

@@ -7,6 +7,7 @@ const { dispatch: webhookDispatch } = require('../services/webhookService')
 const { KEY_DOCUMENT_CATEGORIES, isKeyCategory } = require('../lib/documentCategories')
 const { autoIssueSeal } = require('../services/universalSealService')
 const { generateOcrFingerprint } = require('../lib/ocrFingerprint')
+const { computePHashFromFile, hammingDistance } = require('../lib/pHashService')
 const multer = require('multer')
 
 // Multer — memory storage (buffer for SHA-256 + S3)
@@ -247,6 +248,70 @@ exports.createDocument = async (req, res) => {
           })
         } catch (err) {
           console.error('[OCR fingerprint] failed:', err.message)
+        }
+      })()
+    }
+
+    // pHash visual duplicate detection (non-blocking)
+    const pHashTypes = ['pdf', 'jpg', 'jpeg', 'png', 'tiff', 'tif', 'webp', 'gif']
+    if (pHashTypes.includes((document.fileType || '').toLowerCase())) {
+      ;(async () => {
+        try {
+          const fileHash = await computePHashFromFile(req.file.buffer, document.fileType)
+          if (!fileHash) return
+
+          const updateData = { pHash: fileHash }
+
+          // Same-tenant visual duplicate check
+          const sameTenantDocs = await db.document.findMany({
+            where: { pHash: { not: null }, id: { not: document.id } },
+            select: { id: true, name: true, pHash: true, uploadedAt: true },
+          })
+          for (const existing of sameTenantDocs) {
+            if (hammingDistance(fileHash, existing.pHash) <= 10) {
+              updateData.isVisualDuplicate = true
+              updateData.visualDuplicateOfId = existing.id
+              updateData.visualDuplicateOfName = existing.name
+              console.log(`[pHash] Visual duplicate detected: doc=${document.id} duplicateOf=${existing.id} distance=${hammingDistance(fileHash, existing.pHash)}`)
+
+              createAuditLog({
+                action: 'VISUAL_DUPLICATE_DETECTED',
+                entityType: 'Document',
+                entityId: document.id,
+                userId: req.user.userId,
+                tenantId: req.user.tenantId,
+              }).catch(() => {})
+              break
+            }
+          }
+
+          // Cross-tenant visual duplicate check
+          const crossTenantDocs = await prisma.document.findMany({
+            where: { pHash: { not: null }, tenantId: { not: req.user.tenantId } },
+            select: { id: true, tenantId: true, pHash: true },
+          })
+          for (const existing of crossTenantDocs) {
+            if (hammingDistance(fileHash, existing.pHash) <= 10) {
+              updateData.crossTenantVisualDuplicate = true
+              console.log(`[pHash] Cross-tenant visual duplicate: doc=${document.id} otherTenant=${existing.tenantId}`)
+
+              createAuditLog({
+                action: 'CROSS_ORG_VISUAL_DUPLICATE_DETECTED',
+                entityType: 'Document',
+                entityId: document.id,
+                userId: req.user.userId,
+                tenantId: req.user.tenantId,
+              }).catch(() => {})
+              break
+            }
+          }
+
+          await db.document.update({
+            where: { id: document.id },
+            data: updateData,
+          })
+        } catch (err) {
+          console.error('[pHash] failed:', err.message)
         }
       })()
     }

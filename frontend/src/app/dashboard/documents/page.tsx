@@ -31,6 +31,9 @@ interface Document {
   isDuplicate?: boolean
   duplicateOfName?: string | null
   crossTenantDuplicate?: boolean
+  isVisualDuplicate?: boolean
+  visualDuplicateOfName?: string | null
+  crossTenantVisualDuplicate?: boolean
   project?: { id: string; name: string }
   expense?: { id: string; description: string; amount: number; currency: string } | null
 }
@@ -52,21 +55,34 @@ function ApprovalBadge({ status }: { status?: string }) {
 }
 
 function DuplicateBadge({ doc }: { doc: Document }) {
+  const badges = []
   if (doc.crossTenantDuplicate) {
-    return (
-      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-red-400/10 text-red-500 border border-red-400/20" title="Same content found in another organisation — high fraud risk">
+    badges.push(
+      <span key="cross-ocr" className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white" title="Same content found in another organisation — high fraud risk">
         <AlertTriangle size={9} /> Cross-Org Duplicate
       </span>
     )
-  }
-  if (doc.isDuplicate) {
-    return (
-      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-orange-400/10 text-orange-500 border border-orange-400/20" title={`Duplicate of "${doc.duplicateOfName}"`}>
+  } else if (doc.isDuplicate) {
+    badges.push(
+      <span key="ocr-dup" className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white" title={`Duplicate of "${doc.duplicateOfName}"`}>
         <AlertTriangle size={9} /> Duplicate
       </span>
     )
   }
-  return null
+  if (doc.crossTenantVisualDuplicate) {
+    badges.push(
+      <span key="cross-visual" className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white" title="Visually identical document found in another organisation — high fraud risk">
+        <AlertTriangle size={9} /> Cross-Org Visual Match
+      </span>
+    )
+  } else if (doc.isVisualDuplicate) {
+    badges.push(
+      <span key="visual-dup" className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white" title={`Looks identical to "${doc.visualDuplicateOfName}"`}>
+        <AlertTriangle size={9} /> Visual Duplicate
+      </span>
+    )
+  }
+  return badges.length > 0 ? <>{badges}</> : null
 }
 
 function HashCell({ hash }: { hash: string }) {

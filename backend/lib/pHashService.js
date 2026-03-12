@@ -1,4 +1,4 @@
-const Jimp = require('jimp')
+const { Jimp, intToRGBA } = require('jimp')
 
 /**
  * Compute a perceptual hash (pHash) from an image buffer.
@@ -10,13 +10,13 @@ const Jimp = require('jimp')
 async function computePHash(buffer) {
   try {
     const image = await Jimp.read(buffer)
-    image.greyscale().resize(32, 32)
+    image.greyscale().resize({ w: 32, h: 32 })
 
     // Take top-left 8x8 block (low-frequency components)
     const block = []
     for (let y = 0; y < 8; y++) {
       for (let x = 0; x < 8; x++) {
-        const { r } = Jimp.intToRGBA(image.getPixelColor(x, y))
+        const { r } = intToRGBA(image.getPixelColor(x, y))
         block.push(r)
       }
     }

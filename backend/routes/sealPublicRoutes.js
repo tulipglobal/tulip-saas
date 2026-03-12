@@ -77,6 +77,12 @@ router.get('/:id', async (req, res) => {
         logoUrl: seal.tenant.logoUrl,
         country: seal.tenant.country,
       },
+      fraudRisk: seal.fraudRiskScore != null ? {
+        score: seal.fraudRiskScore,
+        level: seal.fraudRiskLevel,
+        signals: seal.fraudSignals || [],
+      } : null,
+      sourceType: seal.sourceType || null,
     })
   } catch (err) {
     console.error('Failed to verify seal:', err)

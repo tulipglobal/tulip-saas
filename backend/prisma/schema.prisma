@@ -685,6 +685,10 @@ model TrustSeal {
   anchorRetryCount Int       @default(0)
   anchorLastRetryAt DateTime?
   ocrFingerprint   String?
+  fraudRiskScore   Int?
+  fraudRiskLevel   String?
+  fraudSignals     Json?
+  sourceType       String?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 

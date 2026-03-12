@@ -70,6 +70,7 @@ const sealPublicRoutes   = require('./routes/sealPublicRoutes')
 const budgetRoutes       = require('./routes/budgetRoutes')
 const adminRoutes        = require('./routes/adminRoutes')
 const ocrPublicRoutes    = require('./routes/ocrPublicRoutes')
+const internalSealRoutes = require('./routes/internalSealRoutes')
 
 app.get('/', (req, res) => res.send('Tulip API Running'))
 
@@ -125,6 +126,7 @@ app.use('/api/public/cases', verifyLimiter,  casePublicRoutes)
 app.use('/api/public/seal',  apiLimiter,  sealPublicRoutes)
 app.use('/api/public/ocr',   apiLimiter,  ocrPublicRoutes)
 app.use('/api/external',     apiLimiter,  externalAuth, externalApiRoutes)
+app.use('/api/internal/seals', apiLimiter,  internalSealRoutes)
 
 app.use((err, req, res, next) => {
   logger.error('Unhandled error', { error: err.message, path: req.path })

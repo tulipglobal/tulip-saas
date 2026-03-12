@@ -174,10 +174,10 @@ exports.createDocument = async (req, res) => {
       }
     })
 
-    // Auto-issue Trust Seal (non-blocking)
+    // Auto-issue Trust Seal (non-blocking but awaited for documentId linkage)
     const tenant = await prisma.tenant.findUnique({ where: { id: req.user.tenantId }, select: { name: true } })
     const orgName = tenant?.name || 'Organization'
-    autoIssueSeal({
+    const docSeal = await autoIssueSeal({
       documentTitle: name,
       documentType: 'ngo-document',
       rawHash: sha256Hash,
@@ -187,7 +187,14 @@ exports.createDocument = async (req, res) => {
       fileKey: s3FileKey,
       fileType: document.fileType,
       metadata: { source: 'document-upload', documentId: document.id, documentLevel: document.documentLevel },
-    }).catch(err => console.error('[seal] auto-issue failed:', err.message))
+    }).catch(err => { console.error('[seal] auto-issue failed:', err.message); return null })
+    // Set entity reference + ocrEngine on seal
+    if (docSeal) {
+      prisma.trustSeal.update({
+        where: { id: docSeal.id },
+        data: { documentId: document.id, ocrEngine: 'TEXTRACT', sourceType: 'DASHBOARD' },
+      }).catch(err => console.error('[seal] documentId update failed:', err.message))
+    }
 
     // Hybrid duplicate detection — OCR fingerprint + pHash combined (non-blocking)
     const ocrExtTypes = ['pdf', 'jpg', 'jpeg', 'png', 'tiff', 'tif']
@@ -220,6 +227,28 @@ exports.createDocument = async (req, res) => {
             })
           }
 
+          // Copy duplicate detection fields to TrustSeal
+          if (docSeal) {
+            const sealDupData = {}
+            if (dupResult.ocrFingerprint) sealDupData.ocrFingerprint = dupResult.ocrFingerprint
+            if (dupResult.pHash) sealDupData.pHash = dupResult.pHash
+            if (dupResult.updateData) {
+              if (dupResult.updateData.isDuplicate) sealDupData.isDuplicate = true
+              if (dupResult.updateData.duplicateOfId) sealDupData.duplicateOfId = dupResult.updateData.duplicateOfId
+              if (dupResult.updateData.duplicateOfName) sealDupData.duplicateOfName = dupResult.updateData.duplicateOfName
+              if (dupResult.updateData.crossTenantDuplicate) sealDupData.crossTenantDuplicate = true
+              if (dupResult.updateData.isVisualDuplicate) sealDupData.isVisualDuplicate = true
+            }
+            if (dupResult.confidence) sealDupData.duplicateConfidence = dupResult.confidence
+            if (dupResult.method) sealDupData.duplicateMethod = dupResult.method
+            if (Object.keys(sealDupData).length > 0) {
+              prisma.trustSeal.update({
+                where: { id: docSeal.id },
+                data: sealDupData,
+              }).catch(err => console.error('[seal-dup] update failed:', err.message))
+            }
+          }
+
           // Fraud risk scoring
           const updatedDoc = await db.document.findFirst({ where: { id: document.id } })
           if (updatedDoc) {
@@ -228,6 +257,17 @@ exports.createDocument = async (req, res) => {
               where: { id: document.id },
               data: { fraudRiskScore: risk.score, fraudRiskLevel: risk.level, fraudSignals: risk.breakdown.signals },
             })
+            // Copy fraud risk to TrustSeal
+            if (docSeal) {
+              prisma.trustSeal.update({
+                where: { id: docSeal.id },
+                data: {
+                  fraudRiskScore: risk.score,
+                  fraudRiskLevel: risk.level,
+                  fraudSignals: risk.breakdown.signals,
+                },
+              }).catch(err => console.error('[seal-fraud] update failed:', err.message))
+            }
             if (risk.score > 0) {
               createAuditLog({
                 action: 'FRAUD_RISK_SCORED',

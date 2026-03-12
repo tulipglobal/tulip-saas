@@ -83,6 +83,23 @@ router.get('/:id', async (req, res) => {
         signals: seal.fraudSignals || [],
       } : null,
       sourceType: seal.sourceType || null,
+      // OCR fields
+      ocrAmount: seal.ocrAmount,
+      ocrVendor: seal.ocrVendor,
+      ocrDate: seal.ocrDate,
+      ocrEngine: seal.ocrEngine,
+      ocrConfidence: seal.ocrConfidence,
+      // Mismatch fields
+      amountMismatch: seal.amountMismatch,
+      vendorMismatch: seal.vendorMismatch,
+      dateMismatch: seal.dateMismatch,
+      mismatchNote: seal.mismatchNote,
+      // Duplicate detection fields
+      isDuplicate: seal.isDuplicate,
+      duplicateConfidence: seal.duplicateConfidence,
+      duplicateMethod: seal.duplicateMethod,
+      isVisualDuplicate: seal.isVisualDuplicate,
+      crossTenantDuplicate: seal.crossTenantDuplicate,
     })
   } catch (err) {
     console.error('Failed to verify seal:', err)

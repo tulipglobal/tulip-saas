@@ -689,6 +689,36 @@ model TrustSeal {
   fraudRiskLevel   String?
   fraudSignals     Json?
   sourceType       String?
+
+  // OCR fields
+  ocrRawText          String?   @db.Text
+  ocrAmount           Float?
+  ocrVendor           String?
+  ocrDate             String?
+  ocrConfidence       Float?
+  ocrEngine           String?
+
+  // Mismatch fields
+  amountMismatch      Boolean   @default(false)
+  vendorMismatch      Boolean   @default(false)
+  dateMismatch        Boolean   @default(false)
+  mismatchNote        String?
+
+  // Duplicate detection fields
+  isDuplicate         Boolean   @default(false)
+  duplicateOfId       String?
+  duplicateOfName     String?
+  crossTenantDuplicate Boolean  @default(false)
+  duplicateConfidence String?
+  duplicateMethod     String?
+  isVisualDuplicate   Boolean   @default(false)
+  pHash               String?
+
+  // Entity reference fields
+  expenseId           String?
+  documentId          String?
+  caseId              String?
+
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
@@ -697,6 +727,9 @@ model TrustSeal {
   @@index([status])
   @@index([createdAt])
   @@index([ocrFingerprint])
+  @@index([expenseId])
+  @@index([documentId])
+  @@index([caseId])
 }
 
 model EngagementEvent {

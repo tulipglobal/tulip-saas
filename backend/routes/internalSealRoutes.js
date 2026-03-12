@@ -23,6 +23,9 @@ router.post('/create', internalAuth, async (req, res) => {
       issuedTo, issuedBy, rawHash,
       fileKey, fileType, metadata,
       sourceType, fraudContext,
+      // OCR + entity fields
+      ocrAmount, ocrVendor, ocrDate, ocrConfidence, ocrEngine,
+      caseId,
     } = req.body
 
     if (!tenantId || !rawHash || !documentTitle) {
@@ -42,6 +45,19 @@ router.post('/create', internalAuth, async (req, res) => {
       sourceType: sourceType || 'VERIFY',
       fraudContext,
     })
+
+    // Store OCR + entity fields on the seal if provided
+    const extraData = {}
+    if (ocrAmount != null) extraData.ocrAmount = parseFloat(ocrAmount)
+    if (ocrVendor) extraData.ocrVendor = ocrVendor
+    if (ocrDate) extraData.ocrDate = ocrDate
+    if (ocrConfidence != null) extraData.ocrConfidence = parseFloat(ocrConfidence)
+    if (ocrEngine) extraData.ocrEngine = ocrEngine
+    if (caseId) extraData.caseId = caseId
+    if (Object.keys(extraData).length > 0) {
+      const prisma = require('../lib/client')
+      await prisma.trustSeal.update({ where: { id: seal.id }, data: extraData })
+    }
 
     res.json(seal)
   } catch (err) {

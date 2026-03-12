@@ -277,6 +277,8 @@ exports.uploadReceipt = async (req, res) => {
         anchorTxHash: null,
         status: 'pending',
         sourceType: 'DASHBOARD',
+        ocrEngine: 'TEXTRACT',
+        expenseId: req.body.expenseId || null,
       }
     })
 
@@ -311,13 +313,27 @@ exports.uploadReceipt = async (req, res) => {
           entityTable: 'trustseal',
         })
 
-        // Store fingerprint on the TrustSeal
+        // Store fingerprint + duplicate detection fields on the TrustSeal
+        const sealDupData = {}
         if (dupResult.ocrFingerprint) {
           ocrFields.ocrFingerprint = dupResult.ocrFingerprint
+          sealDupData.ocrFingerprint = dupResult.ocrFingerprint
+        }
+        if (dupResult.updateData) {
+          if (dupResult.updateData.isDuplicate) sealDupData.isDuplicate = true
+          if (dupResult.updateData.duplicateOfId) sealDupData.duplicateOfId = dupResult.updateData.duplicateOfId
+          if (dupResult.updateData.duplicateOfName) sealDupData.duplicateOfName = dupResult.updateData.duplicateOfName
+          if (dupResult.updateData.crossTenantDuplicate) sealDupData.crossTenantDuplicate = true
+          if (dupResult.updateData.isVisualDuplicate) sealDupData.isVisualDuplicate = true
+        }
+        if (dupResult.confidence) sealDupData.duplicateConfidence = dupResult.confidence
+        if (dupResult.method) sealDupData.duplicateMethod = dupResult.method
+        if (dupResult.pHash) sealDupData.pHash = dupResult.pHash
+        if (Object.keys(sealDupData).length > 0) {
           await prisma.trustSeal.update({
             where: { id: seal.id },
-            data: { ocrFingerprint: dupResult.ocrFingerprint },
-          }).catch(err => console.error('[OCR fingerprint] seal update failed:', err.message))
+            data: sealDupData,
+          }).catch(err => console.error('[dup-detect] seal update failed:', err.message))
         }
 
         // Map hybrid result to ocrFields for frontend
@@ -409,7 +425,7 @@ exports.uploadReceipt = async (req, res) => {
               where: { id: req.body.expenseId },
               data: { fraudRiskScore: risk.score, fraudRiskLevel: risk.level, fraudSignals: risk.breakdown.signals },
             })
-            // Copy fraud risk to the TrustSeal so public seal page shows it
+            // Copy fraud risk + OCR/mismatch/duplicate data to the TrustSeal
             await prisma.trustSeal.update({
               where: { id: seal.id },
               data: {
@@ -417,6 +433,13 @@ exports.uploadReceipt = async (req, res) => {
                 fraudRiskLevel: risk.level,
                 fraudSignals: risk.breakdown.signals,
                 sourceType: 'DASHBOARD',
+                ocrAmount: freshExpense.ocrAmount,
+                ocrVendor: freshExpense.ocrVendor,
+                ocrDate: freshExpense.ocrDate,
+                amountMismatch: freshExpense.amountMismatch || false,
+                vendorMismatch: freshExpense.vendorMismatch || false,
+                dateMismatch: freshExpense.dateMismatch || false,
+                mismatchNote: freshExpense.mismatchNote || null,
               },
             }).catch(err => console.error('[fraud-risk] seal update failed:', err.message))
             if (risk.score > 0) {

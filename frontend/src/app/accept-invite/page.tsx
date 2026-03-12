@@ -8,8 +8,8 @@ import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 export default function AcceptInvitePage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
-        <Loader2 size={32} className="text-cyan-400 animate-spin" />
+      <div className="min-h-screen bg-[#fefbe9] flex items-center justify-center">
+        <Loader2 size={32} className="text-[#f6c453] animate-spin" />
       </div>
     }>
       <AcceptInviteForm />
@@ -66,23 +66,23 @@ function AcceptInviteForm() {
   }
 
   if (!token) return (
-    <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+    <div className="min-h-screen bg-[#fefbe9] flex items-center justify-center">
       <div className="text-center">
         <AlertCircle size={48} className="text-red-400 mx-auto mb-4" />
-        <h1 className="text-xl font-semibold text-gray-900 mb-2">Invalid Invite Link</h1>
-        <p className="text-gray-500 text-sm">This invitation link is missing the token parameter.</p>
+        <h1 className="text-xl font-semibold text-[#183a1d] mb-2">Invalid Invite Link</h1>
+        <p className="text-[#183a1d]/60 text-sm">This invitation link is missing the token parameter.</p>
       </div>
     </div>
   )
 
   if (step === 'success') return (
-    <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+    <div className="min-h-screen bg-[#fefbe9] flex items-center justify-center">
       <div className="text-center max-w-md">
         <CheckCircle size={48} className="text-emerald-400 mx-auto mb-4" />
-        <h1 className="text-xl font-semibold text-gray-900 mb-2">Invitation Accepted</h1>
-        <p className="text-gray-500 text-sm mb-6">Your donor account has been created. You can now access the donor portal to view verified financial records.</p>
-        <Link href="/login" className="inline-block px-6 py-3 rounded-lg text-sm font-medium text-white"
-          style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+        <h1 className="text-xl font-semibold text-[#183a1d] mb-2">Invitation Accepted</h1>
+        <p className="text-[#183a1d]/60 text-sm mb-6">Your donor account has been created. You can now access the donor portal to view verified financial records.</p>
+        <Link href="/login" className="inline-block px-6 py-3 rounded-lg text-sm font-medium text-[#183a1d]"
+          style={{ background: '#f6c453' }}>
           Go to Login
         </Link>
       </div>
@@ -90,28 +90,28 @@ function AcceptInviteForm() {
   )
 
   if (step === 'loading') return (
-    <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
-      <Loader2 size={32} className="text-cyan-400 animate-spin" />
+    <div className="min-h-screen bg-[#fefbe9] flex items-center justify-center">
+      <Loader2 size={32} className="text-[#f6c453] animate-spin" />
     </div>
   )
 
-  const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all"
-  const labelCls = "block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide"
+  const inputCls = "w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all"
+  const labelCls = "block text-xs font-medium text-[#183a1d]/60 mb-1.5 uppercase tracking-wide"
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#fefbe9] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
-            <span className="text-gray-900 font-bold text-lg" style={{ fontFamily: 'Inter, sans-serif' }}>T</span>
+            style={{ background: '#f6c453' }}>
+            <span className="text-[#183a1d] font-bold text-lg" style={{ fontFamily: 'Inter, sans-serif' }}>T</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>Accept Invitation</h1>
-          <p className="text-gray-500 text-sm mt-2">Create your donor account to view verified financial records</p>
+          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Accept Invitation</h1>
+          <p className="text-[#183a1d]/60 text-sm mt-2">Create your donor account to view verified financial records</p>
         </div>
 
-        <div className="rounded-xl border border-gray-200 p-6 space-y-4"
-          style={{ background: '#FFFFFF' }}>
+        <div className="rounded-xl border border-[#c8d6c0] p-6 space-y-4"
+          style={{ background: '#e1eedd' }}>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -166,13 +166,13 @@ function AcceptInviteForm() {
           )}
 
           <button onClick={submit}
-            className="w-full py-3 rounded-lg text-sm font-medium text-white transition-all"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+            className="w-full py-3 rounded-lg text-sm font-medium text-[#183a1d] transition-all"
+            style={{ background: '#f6c453' }}>
             Accept & Create Account
           </button>
         </div>
 
-        <p className="text-center text-gray-300 text-xs mt-6">Tulip DS · Blockchain-Verified Financial Transparency</p>
+        <p className="text-center text-[#183a1d]/30 text-xs mt-6">Tulip DS · Blockchain-Verified Financial Transparency</p>
       </div>
     </div>
   )

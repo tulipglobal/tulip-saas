@@ -125,13 +125,13 @@ const faqs = [
 function FAQ({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false)
   return (
-    <div className="border-b border-gray-200 last:border-0">
+    <div className="border-b border-[#c8d6c0] last:border-0">
       <button onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between py-5 text-left gap-4 hover:text-gray-900 transition-colors">
-        <span className="text-sm font-medium text-gray-800">{q}</span>
-        <ChevronDown size={16} className={`text-gray-400 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+        className="w-full flex items-center justify-between py-5 text-left gap-4 hover:text-[#183a1d] transition-colors">
+        <span className="text-sm font-medium text-[#183a1d]">{q}</span>
+        <ChevronDown size={16} className={`text-[#183a1d]/40 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
-      {open && <p className="text-sm text-gray-500 pb-5 leading-relaxed">{a}</p>}
+      {open && <p className="text-sm text-[#183a1d]/60 pb-5 leading-relaxed">{a}</p>}
     </div>
   )
 }
@@ -141,28 +141,28 @@ export default function PricingPage() {
 
   return (
     <div className="min-h-screen" style={{
-      background: '#FFFFFF',
-      backgroundImage: 'radial-gradient(at 50% 0%, rgba(12,122,237,0.12) 0px, transparent 60%)'
+      background: '#fefbe9',
+      backgroundImage: 'radial-gradient(at 50% 0%, rgba(246,196,83,0.12) 0px, transparent 60%)'
     }}>
 
       {/* Nav */}
-      <nav className="border-b border-gray-200 px-6 h-16 flex items-center justify-between sticky top-0 z-10"
-        style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(12px)' }}>
+      <nav className="border-b border-[#c8d6c0] px-6 h-16 flex items-center justify-between sticky top-0 z-10"
+        style={{ background: 'rgba(254,251,233,0.95)', backdropFilter: 'blur(12px)' }}>
         <Link href="/" className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
-            <span className="text-gray-900 font-bold text-xs" style={{ fontFamily: 'Inter, sans-serif' }}>T</span>
+            style={{ background: '#f6c453' }}>
+            <span className="text-[#183a1d] font-bold text-xs" style={{ fontFamily: 'Inter, sans-serif' }}>T</span>
           </div>
-          <span className="font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
-            tulip<span style={{ color: '#0c7aed' }}>ds</span>
+          <span className="font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
+            tulip<span style={{ color: '#f6c453' }}>ds</span>
           </span>
         </Link>
         <div className="flex items-center gap-4">
-          <Link href="/docs" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">API Docs</Link>
-          <Link href="/donors" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Donor Portal</Link>
+          <Link href="/docs" className="text-sm text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">API Docs</Link>
+          <Link href="/donors" className="text-sm text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">Donor Portal</Link>
           <Link href="/register"
-            className="px-4 py-1.5 rounded-lg text-sm font-medium text-white"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+            className="px-4 py-1.5 rounded-lg text-sm font-medium text-[#183a1d]"
+            style={{ background: '#f6c453' }}>
             Get started
           </Link>
         </div>
@@ -170,27 +170,27 @@ export default function PricingPage() {
 
       {/* Hero */}
       <div className="max-w-5xl mx-auto px-6 pt-16 pb-10 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#0c7aed]/30 bg-[#0c7aed]/10 text-xs text-[#0c7aed] mb-6">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#f6c453]/30 bg-[#f6c453]/10 text-xs text-[#183a1d] mb-6">
           <CheckCircle size={12} />
           No setup fees · Cancel anytime
         </div>
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
+        <h1 className="text-4xl md:text-5xl font-bold text-[#183a1d] mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
           Simple, transparent pricing
         </h1>
-        <p className="text-gray-500 text-lg max-w-xl mx-auto mb-8">
+        <p className="text-[#183a1d]/60 text-lg max-w-xl mx-auto mb-8">
           Start free. Upgrade when you need more. Every plan includes blockchain anchoring and public verification.
         </p>
 
         {/* Billing toggle */}
-        <div className="inline-flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl p-1.5">
+        <div className="inline-flex items-center gap-3 bg-[#e1eedd] border border-[#c8d6c0] rounded-xl p-1.5">
           <button onClick={() => setAnnual(false)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${!annual ? 'bg-white text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}>
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${!annual ? 'bg-[#fefbe9] text-[#183a1d]' : 'text-[#183a1d]/60 hover:text-[#183a1d]'}`}>
             Monthly
           </button>
           <button onClick={() => setAnnual(true)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${annual ? 'bg-white text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}>
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${annual ? 'bg-[#fefbe9] text-[#183a1d]' : 'text-[#183a1d]/60 hover:text-[#183a1d]'}`}>
             Annual
-            <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${annual ? 'bg-green-500 text-gray-900' : 'bg-green-500/20 text-green-400'}`}>
+            <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${annual ? 'bg-green-500 text-[#183a1d]' : 'bg-green-500/20 text-green-400'}`}>
               −20%
             </span>
           </button>
@@ -207,19 +207,19 @@ export default function PricingPage() {
               <div key={plan.name}
                 className={`relative rounded-2xl border p-7 flex flex-col transition-all ${
                   plan.highlight
-                    ? 'border-[#0c7aed]/50 shadow-lg shadow-[#0c7aed]/10'
-                    : 'border-gray-200'
+                    ? 'border-[#f6c453]/50 shadow-lg shadow-[#f6c453]/10'
+                    : 'border-[#c8d6c0]'
                 }`}
                 style={{
                   background: plan.highlight
-                    ? 'linear-gradient(135deg, rgba(12,122,237,0.08), rgba(0,78,168,0.06))'
-                    : '#FFFFFF'
+                    ? 'linear-gradient(135deg, rgba(246,196,83,0.08), rgba(246,196,83,0.06))'
+                    : '#e1eedd'
                 }}>
 
                 {plan.badge && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                    <span className="px-3 py-1 rounded-full text-xs font-semibold text-white"
-                      style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold text-[#183a1d]"
+                      style={{ background: '#f6c453' }}>
                       {plan.badge}
                     </span>
                   </div>
@@ -228,12 +228,12 @@ export default function PricingPage() {
                 <div className="flex items-start justify-between mb-5">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <Icon size={16} className="text-[#0c7aed]" />
-                      <span className="font-bold text-gray-900 text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      <Icon size={16} className="text-[#f6c453]" />
+                      <span className="font-bold text-[#183a1d] text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
                         {plan.name}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-500 leading-relaxed">{plan.description}</p>
+                    <p className="text-xs text-[#183a1d]/60 leading-relaxed">{plan.description}</p>
                   </div>
                 </div>
 
@@ -241,26 +241,26 @@ export default function PricingPage() {
                 <div className="mb-6">
                   {price === null ? (
                     <div>
-                      <div className="text-3xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      <div className="text-3xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
                         Custom
                       </div>
-                      <div className="text-xs text-gray-400 mt-1">Contact us for a quote</div>
+                      <div className="text-xs text-[#183a1d]/40 mt-1">Contact us for a quote</div>
                     </div>
                   ) : price === 0 ? (
                     <div>
-                      <div className="text-3xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      <div className="text-3xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
                         Free
                       </div>
-                      <div className="text-xs text-gray-400 mt-1">Forever</div>
+                      <div className="text-xs text-[#183a1d]/40 mt-1">Forever</div>
                     </div>
                   ) : (
                     <div>
                       <div className="flex items-end gap-1">
-                        <span className="text-gray-500 text-lg mb-1">$</span>
-                        <span className="text-3xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
+                        <span className="text-[#183a1d]/60 text-lg mb-1">$</span>
+                        <span className="text-3xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
                           {price}
                         </span>
-                        <span className="text-gray-500 text-sm mb-1">/mo</span>
+                        <span className="text-[#183a1d]/60 text-sm mb-1">/mo</span>
                       </div>
                       {annual && (
                         <div className="text-xs text-green-400 mt-1">
@@ -275,10 +275,10 @@ export default function PricingPage() {
                 <Link href={plan.ctaHref}
                   className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-medium mb-6 transition-all ${
                     plan.highlight
-                      ? 'text-gray-900 hover:opacity-90'
-                      : 'text-gray-800 border border-gray-200 hover:border-white/30 hover:text-gray-900'
+                      ? 'text-[#183a1d] hover:opacity-90'
+                      : 'text-[#183a1d] border border-[#c8d6c0] hover:border-[#f6c453]/30 hover:text-[#183a1d]'
                   }`}
-                  style={plan.highlight ? { background: 'linear-gradient(135deg, #0c7aed, #004ea8)' } : {}}>
+                  style={plan.highlight ? { background: '#f6c453' } : {}}>
                   {plan.cta}
                   <ArrowRight size={14} />
                 </Link>
@@ -288,13 +288,13 @@ export default function PricingPage() {
                   {plan.features.map(f => (
                     <div key={f} className="flex items-start gap-2.5">
                       <CheckCircle size={13} className="text-green-400 shrink-0 mt-0.5" />
-                      <span className="text-xs text-gray-600">{f}</span>
+                      <span className="text-xs text-[#183a1d]/70">{f}</span>
                     </div>
                   ))}
                   {plan.limits.map(f => (
                     <div key={f} className="flex items-start gap-2.5">
-                      <div className="w-3 h-3 rounded-full border border-gray-200 shrink-0 mt-0.5" />
-                      <span className="text-xs text-gray-400">{f}</span>
+                      <div className="w-3 h-3 rounded-full border border-[#c8d6c0] shrink-0 mt-0.5" />
+                      <span className="text-xs text-[#183a1d]/40">{f}</span>
                     </div>
                   ))}
                 </div>
@@ -305,8 +305,8 @@ export default function PricingPage() {
       </div>
 
       {/* Trust row */}
-      <div className="border-y border-gray-100 py-8"
-        style={{ background: '#FFFFFF' }}>
+      <div className="border-y border-[#c8d6c0] py-8"
+        style={{ background: '#e1eedd' }}>
         <div className="max-w-4xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
@@ -316,8 +316,8 @@ export default function PricingPage() {
               { value: '99.9%', label: 'Uptime SLA (Enterprise)' },
             ].map(({ value, label }) => (
               <div key={label}>
-                <div className="text-xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
-                <div className="text-xs text-gray-400">{label}</div>
+                <div className="text-xl font-bold text-[#183a1d] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
+                <div className="text-xs text-[#183a1d]/40">{label}</div>
               </div>
             ))}
           </div>
@@ -326,15 +326,15 @@ export default function PricingPage() {
 
       {/* Compare table */}
       <div className="max-w-4xl mx-auto px-6 py-16">
-        <h2 className="text-2xl font-bold text-gray-900 text-center mb-10" style={{ fontFamily: 'Inter, sans-serif' }}>
+        <h2 className="text-2xl font-bold text-[#183a1d] text-center mb-10" style={{ fontFamily: 'Inter, sans-serif' }}>
           Compare plans
         </h2>
-        <div className="rounded-2xl border border-gray-200 overflow-hidden"
-          style={{ background: '#FFFFFF' }}>
-          <div className="grid grid-cols-5 border-b border-gray-200">
-            <div className="px-4 py-4 text-xs text-gray-400 uppercase tracking-wide font-medium">Feature</div>
+        <div className="rounded-2xl border border-[#c8d6c0] overflow-hidden"
+          style={{ background: '#e1eedd' }}>
+          <div className="grid grid-cols-5 border-b border-[#c8d6c0]">
+            <div className="px-4 py-4 text-xs text-[#183a1d]/40 uppercase tracking-wide font-medium">Feature</div>
             {['Starter', 'Growth', 'NGO', 'Enterprise'].map(p => (
-              <div key={p} className={`px-4 py-4 text-sm font-semibold text-center ${p === 'NGO' ? 'text-[#0c7aed]' : 'text-gray-900'}`}
+              <div key={p} className={`px-4 py-4 text-sm font-semibold text-center ${p === 'NGO' ? 'text-[#f6c453]' : 'text-[#183a1d]'}`}
                 style={{ fontFamily: 'Inter, sans-serif' }}>{p}</div>
             ))}
           </div>
@@ -352,13 +352,13 @@ export default function PricingPage() {
             ['SLA', '—', '—', '—', '99.9%'],
             ['Support', 'Community', 'Email', 'Email', 'Dedicated'],
           ].map(([feature, starter, growth, ngo, enterprise]) => (
-            <div key={feature} className="grid grid-cols-5 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors">
-              <div className="px-4 py-3.5 text-sm text-gray-500">{feature}</div>
+            <div key={feature} className="grid grid-cols-5 border-b border-[#c8d6c0]/50 last:border-0 hover:bg-[#e1eedd]/50 transition-colors">
+              <div className="px-4 py-3.5 text-sm text-[#183a1d]/60">{feature}</div>
               {[starter, growth, ngo, enterprise].map((val, i) => (
                 <div key={i} className={`px-4 py-3.5 text-sm text-center ${
                   val === '✓' ? 'text-green-400' :
-                  val === '—' ? 'text-gray-300' :
-                  i === 2 ? 'text-[#0c7aed] font-medium' : 'text-gray-600'
+                  val === '—' ? 'text-[#183a1d]/30' :
+                  i === 2 ? 'text-[#f6c453] font-medium' : 'text-[#183a1d]/70'
                 }`}>{val}</div>
               ))}
             </div>
@@ -369,43 +369,43 @@ export default function PricingPage() {
       {/* FAQ */}
       <div className="max-w-2xl mx-auto px-6 pb-20">
         <div className="flex items-center gap-2 justify-center mb-10">
-          <HelpCircle size={18} className="text-[#0c7aed]" />
-          <h2 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
+          <HelpCircle size={18} className="text-[#f6c453]" />
+          <h2 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
             Frequently asked questions
           </h2>
         </div>
-        <div className="rounded-2xl border border-gray-200 px-6"
-          style={{ background: '#FFFFFF' }}>
+        <div className="rounded-2xl border border-[#c8d6c0] px-6"
+          style={{ background: '#e1eedd' }}>
           {faqs.map(({ q, a }) => <FAQ key={q} q={q} a={a} />)}
         </div>
       </div>
 
       {/* Final CTA */}
       <div className="max-w-3xl mx-auto px-6 pb-20 text-center">
-        <div className="rounded-2xl border border-[#0c7aed]/20 p-10"
-          style={{ background: 'linear-gradient(135deg, rgba(12,122,237,0.06), rgba(0,78,168,0.06))' }}>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3" style={{ fontFamily: 'Inter, sans-serif' }}>
+        <div className="rounded-2xl border border-[#f6c453]/20 p-10"
+          style={{ background: 'rgba(246,196,83,0.08)' }}>
+          <h2 className="text-2xl font-bold text-[#183a1d] mb-3" style={{ fontFamily: 'Inter, sans-serif' }}>
             Start proving your integrity today
           </h2>
-          <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">
+          <p className="text-[#183a1d]/60 text-sm mb-6 max-w-md mx-auto">
             Free to start. No credit card required. Your first blockchain anchor in under 5 minutes.
           </p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <Link href="/register"
-              className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium text-white"
-              style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+              className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium text-[#183a1d]"
+              style={{ background: '#f6c453' }}>
               Start free <ArrowRight size={15} />
             </Link>
             <Link href="mailto:hello@tulipds.com"
-              className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm text-gray-600 border border-gray-200 hover:border-gray-300 hover:text-gray-900 transition-all">
+              className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm text-[#183a1d]/70 border border-[#c8d6c0] hover:border-[#c8d6c0] hover:text-[#183a1d] transition-all">
               Talk to us
             </Link>
           </div>
         </div>
       </div>
 
-      <footer className="border-t border-gray-100 py-8 text-center">
-        <p className="text-gray-300 text-xs">© 2026 Tulip DS · Bright Bytes Technology · Dubai UAE</p>
+      <footer className="border-t border-[#c8d6c0] py-8 text-center">
+        <p className="text-[#183a1d]/30 text-xs">© 2026 Tulip DS · Bright Bytes Technology · Dubai UAE</p>
       </footer>
     </div>
   )

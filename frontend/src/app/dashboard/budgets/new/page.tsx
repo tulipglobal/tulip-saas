@@ -43,7 +43,7 @@ function emptyFunding(): FundingSourceForm {
 }
 
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'KES', 'UGX', 'TZS', 'INR', 'NGN', 'ZAR', 'GHS', 'ETB', 'RWF']
-const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all [color-scheme:light]"
+const inputCls = "w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all [color-scheme:light]"
 
 export default function NewBudgetPage() {
   return (
@@ -185,12 +185,12 @@ function NewBudgetInner() {
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-6 animate-fade-up">
       <div className="flex items-center gap-3">
-        <Link href="/dashboard/budgets" className="w-9 h-9 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition-all">
-          <ArrowLeft size={16} className="text-gray-600" />
+        <Link href="/dashboard/budgets" className="w-9 h-9 rounded-lg bg-[#e1eedd] border border-[#c8d6c0] flex items-center justify-center hover:bg-[#e1eedd] transition-all">
+          <ArrowLeft size={16} className="text-[#183a1d]/70" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>New Budget</h1>
-          <p className="text-gray-500 text-sm mt-0.5">Plan your CapEx &amp; OpEx line items</p>
+          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>New Budget</h1>
+          <p className="text-[#183a1d]/60 text-sm mt-0.5">Plan your CapEx &amp; OpEx line items</p>
         </div>
       </div>
 
@@ -198,53 +198,53 @@ function NewBudgetInner() {
         <div className="rounded-lg border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-400">{error}</div>
       )}
 
-      {/* ─── Budget Details ─── */}
-      <div className="rounded-xl border border-gray-200 p-5 space-y-4" style={{ background: '#FFFFFF' }}>
-        <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Budget Details</h2>
+      {/* Budget Details */}
+      <div className="rounded-xl border border-[#c8d6c0] p-5 space-y-4" style={{ background: '#e1eedd' }}>
+        <h2 className="text-sm font-semibold text-[#183a1d]/70 uppercase tracking-wide">Budget Details</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
-            <label className="text-xs text-gray-500 mb-1 block">Project *</label>
+            <label className="text-xs text-[#183a1d]/60 mb-1 block">Project *</label>
             {loadingProjects ? (
-              <div className={inputCls + ' text-gray-400'}>Loading projects...</div>
+              <div className={inputCls + ' text-[#183a1d]/40'}>Loading projects...</div>
             ) : (
               <select value={projectId} onChange={e => handleProjectChange(e.target.value)}
-                className={inputCls + ' [&>option]:bg-white'}>
+                className={inputCls + ' [&>option]:bg-[#e1eedd]'}>
                 <option value="">Select a project...</option>
                 {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             )}
           </div>
           <div className="md:col-span-2">
-            <label className="text-xs text-gray-500 mb-1 block">Budget Name *</label>
+            <label className="text-xs text-[#183a1d]/60 mb-1 block">Budget Name *</label>
             <input value={name} onChange={e => setName(e.target.value)}
               placeholder="e.g. FY 2026-27 Annual Budget" className={inputCls} />
           </div>
           <div>
-            <label className="text-xs text-gray-500 mb-1 block">Period From *</label>
+            <label className="text-xs text-[#183a1d]/60 mb-1 block">Period From *</label>
             <input type="date" value={periodFrom} onChange={e => setPeriodFrom(e.target.value)} className={inputCls} />
-            {selectedProject?.startDate && <p className="text-[10px] text-gray-300 mt-0.5">From project start date</p>}
+            {selectedProject?.startDate && <p className="text-[10px] text-[#183a1d]/30 mt-0.5">From project start date</p>}
           </div>
           <div>
-            <label className="text-xs text-gray-500 mb-1 block">Period To *</label>
+            <label className="text-xs text-[#183a1d]/60 mb-1 block">Period To *</label>
             <input type="date" value={periodTo} onChange={e => setPeriodTo(e.target.value)} className={inputCls} />
-            {selectedProject?.endDate && <p className="text-[10px] text-gray-300 mt-0.5">From project end date</p>}
+            {selectedProject?.endDate && <p className="text-[10px] text-[#183a1d]/30 mt-0.5">From project end date</p>}
           </div>
           <div className="md:col-span-2">
-            <label className="text-xs text-gray-500 mb-1 block">Notes</label>
+            <label className="text-xs text-[#183a1d]/60 mb-1 block">Notes</label>
             <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2}
               placeholder="Optional notes about this budget..." className={inputCls + ' resize-none'} />
           </div>
         </div>
       </div>
 
-      {/* ─── Budget Lines ─── */}
-      <div className="rounded-xl border border-gray-200 p-5 space-y-4" style={{ background: '#FFFFFF' }}>
+      {/* Budget Lines */}
+      <div className="rounded-xl border border-[#c8d6c0] p-5 space-y-4" style={{ background: '#e1eedd' }}>
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Budget Lines</h2>
+          <h2 className="text-sm font-semibold text-[#183a1d]/70 uppercase tracking-wide">Budget Lines</h2>
           <div className="flex items-center gap-4 text-xs">
             <span className="text-purple-400">CapEx: ${totalCapex.toLocaleString()}</span>
             <span className="text-cyan-400">OpEx: ${totalOpex.toLocaleString()}</span>
-            <span className="text-gray-900 font-medium">Total: ${totalBudget.toLocaleString()}</span>
+            <span className="text-[#183a1d] font-medium">Total: ${totalBudget.toLocaleString()}</span>
           </div>
         </div>
 
@@ -254,128 +254,128 @@ function NewBudgetInner() {
             const categoryKeys = Object.keys(categories)
             const subCategories = line.category ? categories[line.category] || [] : []
             return (
-              <div key={line.key} className="rounded-lg border border-gray-200 p-4 space-y-3" style={{ background: '#FFFFFF' }}>
+              <div key={line.key} className="rounded-lg border border-[#c8d6c0] p-4 space-y-3" style={{ background: '#e1eedd' }}>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-400 font-medium">Line {i + 1}</span>
+                  <span className="text-xs text-[#183a1d]/40 font-medium">Line {i + 1}</span>
                   <button onClick={() => { if (lines.length > 1) setLines(prev => prev.filter(l => l.key !== line.key)) }}
-                    disabled={lines.length <= 1} className="text-gray-300 hover:text-red-400 disabled:opacity-30 transition-colors">
+                    disabled={lines.length <= 1} className="text-[#183a1d]/30 hover:text-red-400 disabled:opacity-30 transition-colors">
                     <Trash2 size={14} />
                   </button>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <div>
-                    <label className="text-xs text-gray-500 mb-1 block">Type *</label>
-                    <div className="flex rounded-lg overflow-hidden border border-gray-200">
+                    <label className="text-xs text-[#183a1d]/60 mb-1 block">Type *</label>
+                    <div className="flex rounded-lg overflow-hidden border border-[#c8d6c0]">
                       {(['CAPEX', 'OPEX'] as ExpenseType[]).map(t => (
                         <button key={t} type="button" onClick={() => updateLine(line.key, 'expenseType', t)}
                           className={`flex-1 py-2 text-xs font-medium transition-all ${
                             line.expenseType === t
                               ? t === 'CAPEX' ? 'bg-purple-500/20 text-purple-400' : 'bg-cyan-500/20 text-cyan-400'
-                              : 'bg-gray-50 text-gray-400 hover:text-gray-500'
+                              : 'bg-[#e1eedd] text-[#183a1d]/40 hover:text-[#183a1d]/60'
                           }`}>{t}</button>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <label className="text-xs text-gray-500 mb-1 block">Category *</label>
+                    <label className="text-xs text-[#183a1d]/60 mb-1 block">Category *</label>
                     <select value={line.category} onChange={e => updateLine(line.key, 'category', e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#0c7aed]/50 transition-all [&>option]:bg-white">
+                      className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] outline-none focus:border-[#f6c453] transition-all [&>option]:bg-[#e1eedd]">
                       <option value="">Select...</option>
                       {categoryKeys.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs text-gray-500 mb-1 block">Sub-category</label>
+                    <label className="text-xs text-[#183a1d]/60 mb-1 block">Sub-category</label>
                     <select value={line.subCategory} onChange={e => updateLine(line.key, 'subCategory', e.target.value)}
                       disabled={subCategories.length === 0}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#0c7aed]/50 transition-all disabled:opacity-40 [&>option]:bg-white">
+                      className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] outline-none focus:border-[#f6c453] transition-all disabled:opacity-40 [&>option]:bg-[#e1eedd]">
                       <option value="">Select...</option>
                       {subCategories.map((s: string) => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs text-gray-500 mb-1 block">Amount *</label>
+                    <label className="text-xs text-[#183a1d]/60 mb-1 block">Amount *</label>
                     <div className="flex gap-1.5">
                       <select value={line.currency} onChange={e => updateLine(line.key, 'currency', e.target.value)}
-                        className="bg-gray-50 border border-gray-200 rounded-lg px-2 py-2 text-xs text-gray-600 outline-none [&>option]:bg-white w-20 shrink-0">
+                        className="bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-2 py-2 text-xs text-[#183a1d]/70 outline-none [&>option]:bg-[#e1eedd] w-20 shrink-0">
                         {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
                       </select>
                       <input type="number" min="0" step="0.01" value={line.approvedAmount}
                         onChange={e => updateLine(line.key, 'approvedAmount', e.target.value)} placeholder="0.00"
-                        className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all" />
+                        className="flex-1 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all" />
                     </div>
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs text-gray-500 mb-1 block">Description</label>
+                  <label className="text-xs text-[#183a1d]/60 mb-1 block">Description</label>
                   <input value={line.description} onChange={e => updateLine(line.key, 'description', e.target.value)}
-                    placeholder="Optional line item description..." className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all" />
+                    placeholder="Optional line item description..." className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all" />
                 </div>
               </div>
             )
           })}
         </div>
         <button onClick={() => setLines(prev => [...prev, emptyLine()])}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-500 hover:text-gray-900 border border-dashed border-gray-200 hover:border-gray-300 transition-all w-full justify-center">
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] border border-dashed border-[#c8d6c0] hover:border-[#c8d6c0] transition-all w-full justify-center">
           <Plus size={14} /> Add Line Item
         </button>
       </div>
 
-      {/* ─── Funding Sources ─── */}
-      <div className="rounded-xl border border-gray-200 p-5 space-y-4" style={{ background: '#FFFFFF' }}>
+      {/* Funding Sources */}
+      <div className="rounded-xl border border-[#c8d6c0] p-5 space-y-4" style={{ background: '#e1eedd' }}>
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Funding Sources</h2>
-          <span className="text-xs text-gray-500">{fundingSources.length} source{fundingSources.length !== 1 ? 's' : ''}</span>
+          <h2 className="text-sm font-semibold text-[#183a1d]/70 uppercase tracking-wide">Funding Sources</h2>
+          <span className="text-xs text-[#183a1d]/60">{fundingSources.length} source{fundingSources.length !== 1 ? 's' : ''}</span>
         </div>
 
         <div className="space-y-3">
           {fundingSources.map((fs, i) => {
             const subTypes = fs.sourceType ? (FUNDING_SOURCE_TYPES[fs.sourceType] || []) : []
             return (
-              <div key={fs.key} className="rounded-lg border border-gray-200 p-4 space-y-3" style={{ background: '#FFFFFF' }}>
+              <div key={fs.key} className="rounded-lg border border-[#c8d6c0] p-4 space-y-3" style={{ background: '#e1eedd' }}>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-400 font-medium">Source {i + 1}</span>
+                  <span className="text-xs text-[#183a1d]/40 font-medium">Source {i + 1}</span>
                   <button onClick={() => { if (fundingSources.length > 1) setFundingSources(prev => prev.filter(f => f.key !== fs.key)) }}
-                    disabled={fundingSources.length <= 1} className="text-gray-300 hover:text-red-400 disabled:opacity-30 transition-colors">
+                    disabled={fundingSources.length <= 1} className="text-[#183a1d]/30 hover:text-red-400 disabled:opacity-30 transition-colors">
                     <Trash2 size={14} />
                   </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div>
-                    <label className="text-xs text-gray-500 mb-1 block">Source Type *</label>
+                    <label className="text-xs text-[#183a1d]/60 mb-1 block">Source Type *</label>
                     <select value={fs.sourceType} onChange={e => updateFunding(fs.key, 'sourceType', e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#0c7aed]/50 transition-all [&>option]:bg-white">
+                      className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] outline-none focus:border-[#f6c453] transition-all [&>option]:bg-[#e1eedd]">
                       <option value="">Select...</option>
                       {FUNDING_SOURCE_TYPE_KEYS.map(t => <option key={t} value={t}>{t}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs text-gray-500 mb-1 block">Sub-Type</label>
+                    <label className="text-xs text-[#183a1d]/60 mb-1 block">Sub-Type</label>
                     <select value={fs.sourceSubType} onChange={e => updateFunding(fs.key, 'sourceSubType', e.target.value)}
                       disabled={subTypes.length === 0}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#0c7aed]/50 transition-all disabled:opacity-40 [&>option]:bg-white">
+                      className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] outline-none focus:border-[#f6c453] transition-all disabled:opacity-40 [&>option]:bg-[#e1eedd]">
                       <option value="">Select...</option>
                       {subTypes.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs text-gray-500 mb-1 block">Donor Name *</label>
+                    <label className="text-xs text-[#183a1d]/60 mb-1 block">Donor Name *</label>
                     <input value={fs.donorName} onChange={e => updateFunding(fs.key, 'donorName', e.target.value)}
                       placeholder="e.g. USAID, Gates Foundation"
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all" />
+                      className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all" />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div>
-                    <label className="text-xs text-gray-500 mb-1 block">Amount *</label>
+                    <label className="text-xs text-[#183a1d]/60 mb-1 block">Amount *</label>
                     <div className="flex gap-1.5">
                       <select value={fs.currency} onChange={e => updateFunding(fs.key, 'currency', e.target.value)}
-                        className="bg-gray-50 border border-gray-200 rounded-lg px-2 py-2 text-xs text-gray-600 outline-none [&>option]:bg-white w-20 shrink-0">
+                        className="bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-2 py-2 text-xs text-[#183a1d]/70 outline-none [&>option]:bg-[#e1eedd] w-20 shrink-0">
                         {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
                       </select>
                       <input type="number" min="0" step="0.01" value={fs.amount}
                         onChange={e => updateFunding(fs.key, 'amount', e.target.value)} placeholder="0.00"
-                        className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all" />
+                        className="flex-1 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all" />
                     </div>
                   </div>
                 </div>
@@ -385,7 +385,7 @@ function NewBudgetInner() {
         </div>
 
         <button onClick={() => setFundingSources(prev => [...prev, emptyFunding()])}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-500 hover:text-gray-900 border border-dashed border-gray-200 hover:border-gray-300 transition-all w-full justify-center">
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] border border-dashed border-[#c8d6c0] hover:border-[#c8d6c0] transition-all w-full justify-center">
           <Plus size={14} /> Add Funding Source
         </button>
 
@@ -402,24 +402,23 @@ function NewBudgetInner() {
                 : <><AlertTriangle size={16} className="text-yellow-400" /><span className="text-yellow-400 font-medium">Gap: ${fundingGap.toLocaleString()}</span></>
               }
             </div>
-            <div className="flex items-center gap-4 text-xs text-gray-500">
-              <span>Required: <span className="text-gray-700 font-medium">${totalBudget.toLocaleString()}</span></span>
-              <span>Funded: <span className="text-gray-700 font-medium">${totalFunded.toLocaleString()}</span></span>
+            <div className="flex items-center gap-4 text-xs text-[#183a1d]/60">
+              <span>Required: <span className="text-[#183a1d] font-medium">${totalBudget.toLocaleString()}</span></span>
+              <span>Funded: <span className="text-[#183a1d] font-medium">${totalFunded.toLocaleString()}</span></span>
             </div>
           </div>
         )}
       </div>
 
-      {/* ─── Submit ─── */}
+      {/* Submit */}
       <div className="flex items-center justify-between">
-        <Link href="/dashboard/budgets" className="text-sm text-gray-500 hover:text-gray-600 transition-colors">Cancel</Link>
+        <Link href="/dashboard/budgets" className="text-sm text-[#183a1d]/60 hover:text-[#183a1d]/70 transition-colors">Cancel</Link>
         <div className="flex items-center gap-3">
           {!isFullyFunded && totalBudget > 0 && (
             <span className="text-xs text-yellow-400/70">Saves as DRAFT (not fully funded)</span>
           )}
           <button onClick={handleSubmit} disabled={saving}
-            className="px-6 py-2.5 rounded-lg text-sm font-medium text-white disabled:opacity-50 transition-all"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+            className="px-6 py-2.5 rounded-lg text-sm font-medium text-[#183a1d] disabled:opacity-50 transition-all bg-[#f6c453] hover:bg-[#f0a04b]">
             {saving ? 'Creating...' : 'Create Budget'}
           </button>
         </div>

@@ -56,22 +56,22 @@ export default function DonorLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] flex flex-col" style={{ fontFamily: 'Inter, sans-serif' }}>
+    <div className="min-h-screen bg-[#fefbe9] flex flex-col" style={{ fontFamily: 'Inter, sans-serif' }}>
 
       {/* Nav */}
-      <nav className="border-b border-gray-200 bg-white/95 backdrop-blur-md">
+      <nav className="border-b border-[#c8d6c0] bg-[#e1eedd]/95 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
-              <Shield className="w-4 h-4 text-gray-900" />
+              style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
+              <Shield className="w-4 h-4 text-[#183a1d]" />
             </div>
-            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: 'white' }}>
-              tulip<span style={{ color: '#0c7aed' }}>ds</span>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: '#183a1d' }}>
+              tulip<span style={{ color: '#f6c453' }}>ds</span>
             </span>
-            <span className="text-gray-300 text-sm ml-1">| Donor Portal</span>
+            <span className="text-[#183a1d]/30 text-sm ml-1">| Donor Portal</span>
           </Link>
-          <Link href="/login" className="text-gray-500 text-sm hover:text-gray-600 transition-colors">
+          <Link href="/login" className="text-[#183a1d]/60 text-sm hover:text-[#183a1d]/70 transition-colors">
             NGO Login
           </Link>
         </div>
@@ -85,12 +85,12 @@ export default function DonorLoginPage() {
           <div className="text-center mb-8">
             <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
               style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
-              <Shield className="w-7 h-7 text-gray-900" />
+              <Shield className="w-7 h-7 text-[#183a1d]" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
               Donor Portal
             </h1>
-            <p className="text-gray-500 text-sm mt-2">
+            <p className="text-[#183a1d]/60 text-sm mt-2">
               Sign in to view your funded projects and verified documents
             </p>
           </div>
@@ -105,34 +105,34 @@ export default function DonorLoginPage() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-1.5 block">Email</label>
+              <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-1.5 block">Email</label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#183a1d]/30" />
                 <input
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="donor@example.com"
                   required
-                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-white/20 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/30 transition-all"
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-[#c8d6c0] bg-[#e1eedd] text-[#183a1d] placeholder-[#183a1d]/40 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/30 transition-all"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-1.5 block">Password</label>
+              <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-1.5 block">Password</label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#183a1d]/30" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   required
-                  className="w-full pl-11 pr-11 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-white/20 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/30 transition-all"
+                  className="w-full pl-11 pr-11 py-3 rounded-xl border border-[#c8d6c0] bg-[#e1eedd] text-[#183a1d] placeholder-[#183a1d]/40 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/30 transition-all"
                 />
                 <button type="button" onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 transition-colors">
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#183a1d]/30 hover:text-[#183a1d]/60 transition-colors">
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
@@ -148,15 +148,15 @@ export default function DonorLoginPage() {
             </button>
           </form>
 
-          <p className="text-center text-gray-300 text-xs mt-6">
+          <p className="text-center text-[#183a1d]/30 text-xs mt-6">
             <Link href="/donor" className="text-emerald-400 hover:underline">Back to Donor Portal</Link>
           </p>
         </div>
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-gray-100 py-4">
-        <p className="text-center text-gray-300 text-xs">
+      <footer className="border-t border-[#c8d6c0] py-4">
+        <p className="text-center text-[#183a1d]/30 text-xs">
           Tulip DS &middot; Bright Bytes Technology &middot; Dubai, UAE
         </p>
       </footer>

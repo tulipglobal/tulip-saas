@@ -52,10 +52,10 @@ function HashBadge({ hash }: { hash: string }) {
   const copy = () => { navigator.clipboard.writeText(hash); setCopied(true); setTimeout(() => setCopied(false), 1500) }
   return (
     <button onClick={copy}
-      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all group"
+      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#e1eedd] border border-[#c8d6c0] hover:border-[#c8d6c0] transition-all group"
       title="Copy hash">
-      <span className="hash-mono text-gray-400" style={{ fontSize: 10 }}>{hash.slice(0,8)}…{hash.slice(-6)}</span>
-      {copied ? <Check size={10} className="text-green-400" /> : <Copy size={10} className="text-gray-300 group-hover:text-gray-500" />}
+      <span className="hash-mono text-[#183a1d]/40" style={{ fontSize: 10 }}>{hash.slice(0,8)}…{hash.slice(-6)}</span>
+      {copied ? <Check size={10} className="text-green-400" /> : <Copy size={10} className="text-[#183a1d]/30 group-hover:text-[#183a1d]/60" />}
     </button>
   )
 }
@@ -90,13 +90,13 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
   }, [slug])
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#FFFFFF' }}>
-      <div className="text-gray-400 text-sm">Loading profile…</div>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#fefbe9' }}>
+      <div className="text-[#183a1d]/40 text-sm">Loading profile…</div>
     </div>
   )
   if (!profile) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#FFFFFF' }}>
-      <div className="text-gray-400 text-sm">NGO not found</div>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#fefbe9' }}>
+      <div className="text-[#183a1d]/40 text-sm">NGO not found</div>
     </div>
   )
 
@@ -109,22 +109,22 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
 
   return (
     <div className="min-h-screen" style={{
-      background: '#FFFFFF',
-      backgroundImage: 'radial-gradient(at 20% 10%, rgba(12,122,237,0.1) 0px, transparent 50%)'
+      background: '#fefbe9',
+      backgroundImage: 'radial-gradient(at 20% 10%, rgba(246,196,83,0.1) 0px, transparent 50%)'
     }}>
       {/* Nav */}
-      <nav className="border-b border-gray-200 px-6 h-16 flex items-center justify-between sticky top-0 z-10"
-        style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(12px)' }}>
-        <Link href="/donors" className="flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors text-sm">
+      <nav className="border-b border-[#c8d6c0] px-6 h-16 flex items-center justify-between sticky top-0 z-10"
+        style={{ background: 'rgba(254,251,233,0.95)', backdropFilter: 'blur(12px)' }}>
+        <Link href="/donors" className="flex items-center gap-2 text-[#183a1d]/60 hover:text-[#183a1d] transition-colors text-sm">
           <ArrowLeft size={16} /> All organisations
         </Link>
         <Link href="/" className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-md flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
-            <span className="text-gray-900 font-bold" style={{ fontFamily: 'Inter, sans-serif', fontSize: 10 }}>T</span>
+            style={{ background: '#f6c453' }}>
+            <span className="text-[#183a1d] font-bold" style={{ fontFamily: 'Inter, sans-serif', fontSize: 10 }}>T</span>
           </div>
-          <span className="font-bold text-gray-900 text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
-            tulip<span style={{ color: '#0c7aed' }}>ds</span>
+          <span className="font-bold text-[#183a1d] text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
+            tulip<span style={{ color: '#f6c453' }}>ds</span>
           </span>
         </Link>
       </nav>
@@ -132,50 +132,50 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
       <div className="max-w-4xl mx-auto px-6 py-10 space-y-8">
 
         {/* Profile header */}
-        <div className="rounded-2xl border border-gray-200 p-8"
-          style={{ background: '#FFFFFF' }}>
+        <div className="rounded-2xl border border-[#c8d6c0] p-8"
+          style={{ background: '#e1eedd' }}>
           <div className="flex items-start justify-between flex-wrap gap-6">
             <div className="flex items-start gap-5">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-white shrink-0"
-                style={{ background: 'linear-gradient(135deg, #0c7aed22, #004ea822)', border: '1px solid rgba(12,122,237,0.3)' }}>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-[#183a1d] shrink-0"
+                style={{ background: 'rgba(246,196,83,0.15)', border: '1px solid rgba(246,196,83,0.3)' }}>
                 {profile.name.charAt(0)}
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                <h1 className="text-2xl font-bold text-[#183a1d] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
                   {profile.name}
                 </h1>
                 <div className="flex items-center gap-3 flex-wrap">
                   {profile.country && (
-                    <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                    <div className="flex items-center gap-1.5 text-sm text-[#183a1d]/60">
                       <Globe size={13} /> {profile.country}
                     </div>
                   )}
                   {profile.verifiedAt && (
-                    <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                    <div className="flex items-center gap-1.5 text-sm text-[#183a1d]/60">
                       <Calendar size={13} />
                       Verified {new Date(profile.verifiedAt).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
                     </div>
                   )}
                   {profile.website && (
                     <Link href={profile.website} target="_blank"
-                      className="flex items-center gap-1 text-sm text-[#0c7aed] hover:underline">
+                      className="flex items-center gap-1 text-sm text-[#183a1d] hover:underline">
                       <ExternalLink size={12} /> Website
                     </Link>
                   )}
                 </div>
                 {profile.description && (
-                  <p className="text-gray-500 text-sm mt-3 max-w-lg">{profile.description}</p>
+                  <p className="text-[#183a1d]/60 text-sm mt-3 max-w-lg">{profile.description}</p>
                 )}
               </div>
             </div>
 
             {/* Integrity score */}
-            <div className="rounded-xl border border-gray-200 p-5 text-center min-w-[120px]"
-              style={{ background: '#FFFFFF' }}>
+            <div className="rounded-xl border border-[#c8d6c0] p-5 text-center min-w-[120px]"
+              style={{ background: '#e1eedd' }}>
               <div className="text-3xl font-bold mb-1" style={{ fontFamily: 'Inter, sans-serif', color: scoreColor }}>
                 {pct}%
               </div>
-              <div className="text-xs text-gray-500">Integrity Score</div>
+              <div className="text-xs text-[#183a1d]/60">Integrity Score</div>
               <div className="flex items-center justify-center gap-1 mt-2">
                 <CheckCircle size={11} className="text-green-400" />
                 <span className="text-xs text-green-400">Verified</span>
@@ -184,17 +184,17 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
           </div>
 
           {/* Stats row */}
-          <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-100">
+          <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-[#c8d6c0]/50">
             {[
               { label: 'Projects', value: profile.projects.length, icon: FolderOpen },
               { label: 'Total Expenses', value: profile.totalExpenses, icon: Receipt },
               { label: 'Blockchain Anchored', value: profile.totalAnchored, icon: Shield },
             ].map(({ label, value, icon: Icon }) => (
               <div key={label} className="flex items-center gap-3">
-                <Icon size={16} className="text-[#0c7aed]" />
+                <Icon size={16} className="text-[#f6c453]" />
                 <div>
-                  <div className="text-lg font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
-                  <div className="text-xs text-gray-400">{label}</div>
+                  <div className="text-lg font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
+                  <div className="text-xs text-[#183a1d]/40">{label}</div>
                 </div>
               </div>
             ))}
@@ -209,12 +209,12 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
             { label: 'RFC 3161', sub: 'Trusted timestamps' },
             { label: 'eIDAS Compliant', sub: 'Legally admissible EU' },
           ].map(({ label, sub }) => (
-            <div key={label} className="rounded-xl border border-gray-200 p-4 flex items-start gap-3"
-              style={{ background: '#FFFFFF' }}>
+            <div key={label} className="rounded-xl border border-[#c8d6c0] p-4 flex items-start gap-3"
+              style={{ background: '#e1eedd' }}>
               <CheckCircle size={14} className="text-green-400 shrink-0 mt-0.5" />
               <div>
-                <div className="text-xs font-semibold text-gray-900">{label}</div>
-                <div className="text-xs text-gray-400 mt-0.5">{sub}</div>
+                <div className="text-xs font-semibold text-[#183a1d]">{label}</div>
+                <div className="text-xs text-[#183a1d]/40 mt-0.5">{sub}</div>
               </div>
             </div>
           ))}
@@ -223,7 +223,7 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
         {/* Projects */}
         {profile.projects.length > 0 && (
           <div>
-            <h2 className="font-semibold text-gray-900 mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <h2 className="font-semibold text-[#183a1d] mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
               Projects
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -232,14 +232,14 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
                   onClick={() => setActiveProject(activeProject === project.id ? null : project.id)}
                   className={`text-left rounded-xl border p-4 transition-all ${
                     activeProject === project.id
-                      ? 'border-[#0c7aed]/50 bg-[#0c7aed]/8'
-                      : 'border-gray-200 hover:border-gray-200'
+                      ? 'border-[#f6c453]/50 bg-[#f6c453]/8'
+                      : 'border-[#c8d6c0] hover:border-[#c8d6c0]'
                   }`}
-                  style={{ background: activeProject === project.id ? undefined : '#FFFFFF' }}>
+                  style={{ background: activeProject === project.id ? undefined : '#e1eedd' }}>
                   <div className="flex items-start justify-between">
                     <div>
-                      <div className="text-sm font-medium text-gray-900">{project.name}</div>
-                      <div className="text-xs text-gray-400 mt-1">
+                      <div className="text-sm font-medium text-[#183a1d]">{project.name}</div>
+                      <div className="text-xs text-[#183a1d]/40 mt-1">
                         {project._count?.expenses ?? 0} expenses
                         {project.budget && ` · Budget: ${project.currency} ${project.budget.toLocaleString()}`}
                       </div>
@@ -247,7 +247,7 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
                     <span className={`text-xs px-2 py-0.5 rounded-full capitalize font-medium ${
                       project.status === 'active' ? 'bg-green-400/10 text-green-400' :
                       project.status === 'completed' ? 'bg-blue-400/10 text-blue-400' :
-                      'bg-gray-50 text-gray-500'
+                      'bg-[#e1eedd] text-[#183a1d]/60'
                     }`}>{project.status}</span>
                   </div>
                 </button>
@@ -259,37 +259,37 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
         {/* Expenses */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <h2 className="font-semibold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
               {activeProject ? 'Project Expenses' : 'Recent Expenses'}
             </h2>
-            <div className="flex items-center gap-1.5 text-xs text-gray-400">
-              <Shield size={11} className="text-[#0c7aed]" />
+            <div className="flex items-center gap-1.5 text-xs text-[#183a1d]/40">
+              <Shield size={11} className="text-[#f6c453]" />
               All verified on-chain
             </div>
           </div>
 
-          <div className="rounded-xl border border-gray-200 overflow-hidden"
-            style={{ background: '#FFFFFF' }}>
+          <div className="rounded-xl border border-[#c8d6c0] overflow-hidden"
+            style={{ background: '#e1eedd' }}>
             {filteredExpenses.length === 0 ? (
-              <div className="p-8 text-center text-gray-400 text-sm">No expenses for this project</div>
+              <div className="p-8 text-center text-[#183a1d]/40 text-sm">No expenses for this project</div>
             ) : (
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-[#c8d6c0]/50">
                 {filteredExpenses.map(expense => (
-                  <div key={expense.id} className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors">
-                    <div className="w-9 h-9 rounded-lg bg-[#0c7aed]/10 flex items-center justify-center shrink-0">
-                      <Receipt size={15} className="text-[#0c7aed]" />
+                  <div key={expense.id} className="flex items-center gap-4 px-5 py-4 hover:bg-[#e1eedd]/50 transition-colors">
+                    <div className="w-9 h-9 rounded-lg bg-[#f6c453]/10 flex items-center justify-center shrink-0">
+                      <Receipt size={15} className="text-[#f6c453]" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-gray-800">{expense.title}</div>
+                      <div className="text-sm font-medium text-[#183a1d]">{expense.title}</div>
                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                        {expense.vendor && <span className="text-xs text-gray-400">{expense.vendor}</span>}
-                        {expense.project && <span className="text-xs text-gray-300">· {expense.project.name}</span>}
-                        <span className="text-xs text-gray-300">
+                        {expense.vendor && <span className="text-xs text-[#183a1d]/40">{expense.vendor}</span>}
+                        {expense.project && <span className="text-xs text-[#183a1d]/30">· {expense.project.name}</span>}
+                        <span className="text-xs text-[#183a1d]/30">
                           · {new Date(expense.expenseDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
                         </span>
                       </div>
                     </div>
-                    <div className="text-sm font-semibold text-gray-900 shrink-0">
+                    <div className="text-sm font-semibold text-[#183a1d] shrink-0">
                       {expense.currency} {expense.amount.toLocaleString()}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
@@ -306,13 +306,13 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
                       )}
                       {expense.dataHash && (
                         <Link href={`/verify?hash=${expense.dataHash}`} target="_blank"
-                          className="text-gray-300 hover:text-[#0c7aed] transition-colors" title="Verify on Tulip DS">
+                          className="text-[#183a1d]/30 hover:text-[#f6c453] transition-colors" title="Verify on Tulip DS">
                           <Shield size={14} />
                         </Link>
                       )}
                       {expense.blockchainTx && (
                         <Link href={`https://polygonscan.com/tx/${expense.blockchainTx}`} target="_blank"
-                          className="text-gray-300 hover:text-[#0c7aed] transition-colors" title="View on Polygonscan">
+                          className="text-[#183a1d]/30 hover:text-[#f6c453] transition-colors" title="View on Polygonscan">
                           <ExternalLink size={14} />
                         </Link>
                       )}
@@ -325,26 +325,26 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
         </div>
 
         {/* CTA */}
-        <div className="rounded-2xl border border-[#0c7aed]/20 p-8 text-center"
-          style={{ background: 'linear-gradient(135deg, rgba(12,122,237,0.05), rgba(0,78,168,0.05))' }}>
-          <Shield size={28} className="text-[#0c7aed] mx-auto mb-3" />
-          <h3 className="font-bold text-gray-900 text-lg mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+        <div className="rounded-2xl border border-[#f6c453]/20 p-8 text-center"
+          style={{ background: 'rgba(246,196,83,0.08)' }}>
+          <Shield size={28} className="text-[#f6c453] mx-auto mb-3" />
+          <h3 className="font-bold text-[#183a1d] text-lg mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
             Every figure is verifiable
           </h3>
-          <p className="text-gray-500 text-sm max-w-sm mx-auto mb-4">
+          <p className="text-[#183a1d]/60 text-sm max-w-sm mx-auto mb-4">
             Click the shield icon on any expense to verify its blockchain proof independently.
           </p>
           <Link href="/verify"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-[#183a1d]"
+            style={{ background: '#f6c453' }}>
             <Shield size={15} /> Open Verifier
           </Link>
         </div>
 
       </div>
 
-      <footer className="border-t border-gray-100 py-8 text-center">
-        <p className="text-gray-300 text-xs">© 2026 Tulip DS · Bright Bytes Technology · Dubai UAE</p>
+      <footer className="border-t border-[#c8d6c0] py-8 text-center">
+        <p className="text-[#183a1d]/30 text-xs">© 2026 Tulip DS · Bright Bytes Technology · Dubai UAE</p>
       </footer>
     </div>
   )

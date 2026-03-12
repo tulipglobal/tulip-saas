@@ -20,8 +20,8 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
   const [error, setError] = useState('')
   const [dragOver, setDragOver] = useState(false)
 
-  const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 transition-all"
-  const labelCls = "block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide"
+  const inputCls = "w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all"
+  const labelCls = "block text-xs font-medium text-[#183a1d]/60 mb-1.5 uppercase tracking-wide"
 
   const handleFile = (f: File) => {
     setFile(f)
@@ -82,11 +82,11 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 p-5 space-y-4"
-      style={{ background: '#FFFFFF' }}>
+    <div className="rounded-xl border border-[#c8d6c0] p-5 space-y-4"
+      style={{ background: '#e1eedd' }}>
       <div className="flex items-center gap-2">
-        <Paperclip size={14} className="text-[#0c7aed]" />
-        <span className="text-sm font-medium text-gray-700">Attach Document <span className="text-gray-400 text-xs">(optional)</span></span>
+        <Paperclip size={14} className="text-[#183a1d]" />
+        <span className="text-sm font-medium text-[#183a1d]">Attach Document <span className="text-[#183a1d]/40 text-xs">(optional)</span></span>
       </div>
 
       {/* Drop zone */}
@@ -96,7 +96,7 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
         onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f) }}
         onClick={() => document.getElementById(`file-input-${entityId}`)?.click()}
         className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all ${
-          dragOver ? 'border-[#0c7aed] bg-[#0c7aed]/5' : file ? 'border-green-500/40 bg-green-500/5' : 'border-gray-200 hover:border-gray-300'
+          dragOver ? 'border-[#f6c453] bg-[#f6c453]/10' : file ? 'border-green-500/40 bg-green-500/5' : 'border-[#c8d6c0] hover:border-[#183a1d]/30'
         }`}
       >
         <input id={`file-input-${entityId}`} type="file" className="hidden"
@@ -107,15 +107,15 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
             <FileCheck size={16} className="text-green-400" />
             <span className="text-sm text-green-400">{file.name}</span>
             <button onClick={e => { e.stopPropagation(); setFile(null); setName('') }}
-              className="text-gray-400 hover:text-gray-600 ml-1">
+              className="text-[#183a1d]/40 hover:text-[#183a1d] ml-1">
               <X size={14} />
             </button>
           </div>
         ) : (
           <div>
-            <Upload size={20} className="text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">Drop file here or <span className="text-[#0c7aed]">browse</span></p>
-            <p className="text-xs text-gray-300 mt-1">PDF, Word, Excel, Image — max 20MB</p>
+            <Upload size={20} className="text-[#183a1d]/30 mx-auto mb-2" />
+            <p className="text-sm text-[#183a1d]/60">Drop file here or <span className="text-[#f6c453] font-medium">browse</span></p>
+            <p className="text-xs text-[#183a1d]/30 mt-1">PDF, Word, Excel, Image — max 20MB</p>
           </div>
         )}
       </div>
@@ -147,8 +147,7 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
 
       {file && (
         <button onClick={upload} disabled={uploading}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white disabled:opacity-50 transition-all"
-          style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] disabled:opacity-50 transition-all bg-[#f6c453] hover:bg-[#f0a04b]">
           <Upload size={14} />
           {uploading ? 'Uploading…' : 'Upload Document'}
         </button>

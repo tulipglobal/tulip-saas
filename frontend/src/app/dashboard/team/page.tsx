@@ -29,8 +29,8 @@ function Toast({ message, type, onClose }: { message: string; type: 'success' | 
 
 const roleBadgeColors: Record<string, string> = {
   admin: 'bg-purple-400/10 text-purple-400 border-purple-400/20',
-  member: 'bg-blue-400/10 text-blue-400 border-blue-400/20',
-  editor: 'bg-blue-400/10 text-blue-400 border-blue-400/20',
+  member: 'bg-[#f6c453]/10 text-[#183a1d] border-[#f6c453]/30',
+  editor: 'bg-[#f6c453]/10 text-[#183a1d] border-[#f6c453]/30',
   viewer: 'bg-gray-400/10 text-gray-400 border-gray-400/20',
 }
 
@@ -138,8 +138,8 @@ export default function TeamPage() {
 
   if (loading) return (
     <div className="p-6 animate-fade-up">
-      <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>Team</h1>
-      <p className="text-gray-400 text-sm mt-4">Loading...</p>
+      <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Team</h1>
+      <p className="text-[#183a1d]/40 text-sm mt-4">Loading...</p>
     </div>
   )
 
@@ -149,26 +149,26 @@ export default function TeamPage() {
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>Team</h1>
-          <p className="text-gray-500 text-sm mt-1">{members.length} member{members.length !== 1 ? 's' : ''}</p>
+          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Team</h1>
+          <p className="text-[#183a1d]/60 text-sm mt-1">{members.length} member{members.length !== 1 ? 's' : ''}</p>
         </div>
         <button onClick={() => setShowInvite(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-[#0c7aed] text-white hover:bg-[#0c7aed]/80 transition-all self-start">
+          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] transition-all self-start">
           <Plus size={16} />
           Invite Member
         </button>
       </div>
 
       {/* Members — Desktop table, mobile card list */}
-      <div className="rounded-xl border border-gray-200 overflow-hidden" style={{ background: '#FFFFFF' }}>
+      <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
         {/* Desktop table */}
         <table className="w-full hidden md:table">
           <thead>
-            <tr className="border-b border-gray-200">
-              <th className="text-left text-xs font-medium text-gray-400 uppercase tracking-wide px-5 py-3">Member</th>
-              <th className="text-left text-xs font-medium text-gray-400 uppercase tracking-wide px-5 py-3">Role</th>
-              <th className="text-left text-xs font-medium text-gray-400 uppercase tracking-wide px-5 py-3">Joined</th>
-              <th className="text-right text-xs font-medium text-gray-400 uppercase tracking-wide px-5 py-3">Actions</th>
+            <tr className="border-b border-[#c8d6c0]">
+              <th className="text-left text-xs font-medium text-[#183a1d]/40 uppercase tracking-wide px-5 py-3">Member</th>
+              <th className="text-left text-xs font-medium text-[#183a1d]/40 uppercase tracking-wide px-5 py-3">Role</th>
+              <th className="text-left text-xs font-medium text-[#183a1d]/40 uppercase tracking-wide px-5 py-3">Joined</th>
+              <th className="text-right text-xs font-medium text-[#183a1d]/40 uppercase tracking-wide px-5 py-3">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -177,16 +177,16 @@ export default function TeamPage() {
               const roleName = rawRole === 'editor' ? 'member' : rawRole
               const isCurrentUser = m.id === currentUserId
               return (
-                <tr key={m.id} className="border-b border-gray-100 last:border-0 hover:bg-white transition-colors">
+                <tr key={m.id} className="border-b border-[#c8d6c0] last:border-0 hover:bg-[#e1eedd] transition-colors">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                        style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 text-[#183a1d]"
+                        style={{ background: '#f6c453' }}>
                         {m.name?.charAt(0)?.toUpperCase() || m.email.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{m.name}{isCurrentUser && <span className="text-gray-400 ml-2 text-xs">(you)</span>}</div>
-                        <div className="text-xs text-gray-500">{m.email}</div>
+                        <div className="text-sm font-medium text-[#183a1d]">{m.name}{isCurrentUser && <span className="text-[#183a1d]/40 ml-2 text-xs">(you)</span>}</div>
+                        <div className="text-xs text-[#183a1d]/60">{m.email}</div>
                       </div>
                     </div>
                   </td>
@@ -199,21 +199,21 @@ export default function TeamPage() {
                       <select
                         value={roleName}
                         onChange={e => handleRoleChange(m.id, e.target.value)}
-                        className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#0c7aed]/50 cursor-pointer"
+                        className="bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-1.5 text-xs text-[#183a1d] outline-none focus:border-[#f6c453] cursor-pointer"
                       >
                         {tableRoles.map(r => (
-                          <option key={r} value={r} className="bg-white text-gray-900">{r}</option>
+                          <option key={r} value={r} className="bg-[#e1eedd] text-[#183a1d]">{r}</option>
                         ))}
                       </select>
                     )}
                   </td>
-                  <td className="px-5 py-4 text-sm text-gray-500">
+                  <td className="px-5 py-4 text-sm text-[#183a1d]/60">
                     {new Date(m.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </td>
                   <td className="px-5 py-4 text-right">
                     {!isCurrentUser && (
                       <button onClick={() => setRemoveTarget(m)}
-                        className="p-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-400/5 transition-all">
+                        className="p-2 rounded-lg text-[#183a1d]/40 hover:text-red-400 hover:bg-red-400/5 transition-all">
                         <Trash2 size={15} />
                       </button>
                     )}
@@ -222,13 +222,13 @@ export default function TeamPage() {
               )
             })}
             {members.length === 0 && (
-              <tr><td colSpan={4} className="px-5 py-8 text-center text-gray-400 text-sm">No team members yet</td></tr>
+              <tr><td colSpan={4} className="px-5 py-8 text-center text-[#183a1d]/40 text-sm">No team members yet</td></tr>
             )}
           </tbody>
         </table>
 
         {/* Mobile card list */}
-        <div className="md:hidden divide-y divide-gray-100">
+        <div className="md:hidden divide-y divide-[#c8d6c0]">
           {members.map(m => {
             const rawRole = m.roles[0]?.name || 'member'
             const roleName = rawRole === 'editor' ? 'member' : rawRole
@@ -236,17 +236,17 @@ export default function TeamPage() {
             return (
               <div key={m.id} className="px-4 py-3.5">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                    style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 text-[#183a1d]"
+                    style={{ background: '#f6c453' }}>
                     {m.name?.charAt(0)?.toUpperCase() || m.email.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-gray-900 truncate">{m.name}{isCurrentUser && <span className="text-gray-400 ml-2 text-xs">(you)</span>}</div>
-                    <div className="text-xs text-gray-500 truncate">{m.email}</div>
+                    <div className="text-sm font-medium text-[#183a1d] truncate">{m.name}{isCurrentUser && <span className="text-[#183a1d]/40 ml-2 text-xs">(you)</span>}</div>
+                    <div className="text-xs text-[#183a1d]/60 truncate">{m.email}</div>
                   </div>
                   {!isCurrentUser && (
                     <button onClick={() => setRemoveTarget(m)}
-                      className="p-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-400/5 transition-all shrink-0">
+                      className="p-2 rounded-lg text-[#183a1d]/40 hover:text-red-400 hover:bg-red-400/5 transition-all shrink-0">
                       <Trash2 size={15} />
                     </button>
                   )}
@@ -260,14 +260,14 @@ export default function TeamPage() {
                     <select
                       value={roleName}
                       onChange={e => handleRoleChange(m.id, e.target.value)}
-                      className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#0c7aed]/50 cursor-pointer"
+                      className="bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-1.5 text-xs text-[#183a1d] outline-none focus:border-[#f6c453] cursor-pointer"
                     >
                       {tableRoles.map(r => (
-                        <option key={r} value={r} className="bg-white text-gray-900">{r}</option>
+                        <option key={r} value={r} className="bg-[#e1eedd] text-[#183a1d]">{r}</option>
                       ))}
                     </select>
                   )}
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-[#183a1d]/40">
                     {new Date(m.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
                   </span>
                 </div>
@@ -275,7 +275,7 @@ export default function TeamPage() {
             )
           })}
           {members.length === 0 && (
-            <div className="px-4 py-8 text-center text-gray-400 text-sm">No team members yet</div>
+            <div className="px-4 py-8 text-center text-[#183a1d]/40 text-sm">No team members yet</div>
           )}
         </div>
       </div>
@@ -283,38 +283,38 @@ export default function TeamPage() {
       {/* Invite Modal */}
       {showInvite && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowInvite(false)}>
-          <div className="bg-white border border-gray-200 rounded-none md:rounded-xl p-6 w-full h-full md:h-auto md:max-w-md space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-none md:rounded-xl p-6 w-full h-full md:h-auto md:max-w-md space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">Invite Team Member</h3>
-              <button onClick={() => setShowInvite(false)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+              <h3 className="text-lg font-semibold text-[#183a1d]">Invite Team Member</h3>
+              <button onClick={() => setShowInvite(false)} className="text-[#183a1d]/40 hover:text-[#183a1d]/70"><X size={18} /></button>
             </div>
             <div>
-              <label className="text-xs text-gray-400 block mb-1">Email Address</label>
+              <label className="text-xs text-[#183a1d]/40 block mb-1">Email Address</label>
               <input
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50"
+                className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453]"
                 type="email" placeholder="colleague@example.com" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleInvite()}
               />
             </div>
             <div>
-              <label className="text-xs text-gray-400 block mb-1">Role</label>
+              <label className="text-xs text-[#183a1d]/40 block mb-1">Role</label>
               <select
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-800 outline-none focus:border-[#0c7aed]/50"
+                className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] outline-none focus:border-[#f6c453]"
                 value={inviteRole} onChange={e => setInviteRole(e.target.value)}
               >
                 {INVITE_ROLES.map(r => (
-                  <option key={r} value={r} className="bg-white text-gray-900">{r}</option>
+                  <option key={r} value={r} className="bg-[#e1eedd] text-[#183a1d]">{r}</option>
                 ))}
               </select>
             </div>
-            <p className="text-xs text-gray-400">An email with temporary credentials will be sent. The user should change their password after logging in.</p>
+            <p className="text-xs text-[#183a1d]/40">An email with temporary credentials will be sent. The user should change their password after logging in.</p>
             <div className="flex justify-end gap-3 pt-2">
               <button onClick={() => setShowInvite(false)}
-                className="px-4 py-2 rounded-lg text-sm text-gray-500 hover:text-gray-800 border border-gray-200 hover:bg-gray-50 transition-all">
+                className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] border border-[#c8d6c0] hover:bg-[#e1eedd]/50 transition-all">
                 Cancel
               </button>
               <button onClick={handleInvite} disabled={inviting || !inviteEmail}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#0c7aed] text-white hover:bg-[#0c7aed]/80 disabled:opacity-50 transition-all">
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50 transition-all">
                 <Plus size={14} />
                 {inviting ? 'Sending...' : 'Send Invite'}
               </button>
@@ -326,14 +326,14 @@ export default function TeamPage() {
       {/* Remove Confirmation Modal */}
       {removeTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setRemoveTarget(null)}>
-          <div className="bg-white border border-gray-200 rounded-none md:rounded-xl p-6 w-full h-full md:h-auto md:max-w-sm space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold text-gray-900">Remove Member</h3>
-            <p className="text-sm text-gray-600">
-              Are you sure you want to remove <strong className="text-gray-900">{removeTarget.name || removeTarget.email}</strong> from your team? They will lose access immediately.
+          <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-none md:rounded-xl p-6 w-full h-full md:h-auto md:max-w-sm space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold text-[#183a1d]">Remove Member</h3>
+            <p className="text-sm text-[#183a1d]/70">
+              Are you sure you want to remove <strong className="text-[#183a1d]">{removeTarget.name || removeTarget.email}</strong> from your team? They will lose access immediately.
             </p>
             <div className="flex justify-end gap-3 pt-2">
               <button onClick={() => setRemoveTarget(null)}
-                className="px-4 py-2 rounded-lg text-sm text-gray-500 hover:text-gray-800 border border-gray-200 hover:bg-gray-50 transition-all">
+                className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] border border-[#c8d6c0] hover:bg-[#e1eedd]/50 transition-all">
                 Cancel
               </button>
               <button onClick={handleRemove} disabled={removing}

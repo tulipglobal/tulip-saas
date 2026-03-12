@@ -22,9 +22,9 @@ interface FundingSource {
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     DRAFT:    'bg-yellow-400/10 text-yellow-400 border-yellow-400/20',
-    APPROVED: 'bg-blue-400/10 text-blue-400 border-blue-400/20',
+    APPROVED: 'bg-[#f6c453]/10 text-[#183a1d] border-[#f6c453]/30',
     ACTIVE:   'bg-green-400/10 text-green-400 border-green-400/20',
-    CLOSED:   'bg-gray-100 text-gray-500 border-gray-300',
+    CLOSED:   'bg-[#e1eedd] text-[#183a1d]/60 border-[#c8d6c0]',
   }
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border font-medium ${map[status] ?? map.DRAFT}`}>
@@ -69,53 +69,53 @@ export default function FundingPage() {
   return (
     <div className="p-4 md:p-6 space-y-6 animate-fade-up">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>Funding Sources</h1>
-        <p className="text-gray-500 text-sm mt-1">Read-only summary of all funding across budgets. To add or edit, go to the budget page.</p>
+        <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Funding Sources</h1>
+        <p className="text-[#183a1d]/60 text-sm mt-1">Read-only summary of all funding across budgets. To add or edit, go to the budget page.</p>
       </div>
 
       {filtered.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="rounded-xl border border-gray-200 px-5 py-4" style={{ background: '#FFFFFF' }}>
-            <div className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>${totalFunding.toLocaleString()}</div>
-            <div className="text-xs text-gray-500 mt-1">Total Funding</div>
+          <div className="rounded-xl border border-[#c8d6c0] px-5 py-4" style={{ background: '#e1eedd' }}>
+            <div className="text-xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>${totalFunding.toLocaleString()}</div>
+            <div className="text-xs text-[#183a1d]/60 mt-1">Total Funding</div>
           </div>
-          <div className="rounded-xl border border-gray-200 px-5 py-4" style={{ background: '#FFFFFF' }}>
-            <div className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>{filtered.length}</div>
-            <div className="text-xs text-gray-500 mt-1">Funding Sources</div>
+          <div className="rounded-xl border border-[#c8d6c0] px-5 py-4" style={{ background: '#e1eedd' }}>
+            <div className="text-xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{filtered.length}</div>
+            <div className="text-xs text-[#183a1d]/60 mt-1">Funding Sources</div>
           </div>
         </div>
       )}
 
-      <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 max-w-sm">
-        <Search size={15} className="text-gray-400" />
+      <div className="flex items-center gap-3 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 max-w-sm">
+        <Search size={15} className="text-[#183a1d]/40" />
         <input value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="Search by donor, type, or budget..." className="bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none w-full" />
+          placeholder="Search by donor, type, or budget..." className="bg-transparent text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none w-full" />
       </div>
 
-      <div className="rounded-xl border border-gray-200 overflow-hidden" style={{ background: '#FFFFFF' }}>
-        <div className="hidden lg:grid grid-cols-[1.5fr_1.5fr_1fr_1fr_80px_1fr] gap-4 px-5 py-3 border-b border-gray-200 text-xs text-gray-400 uppercase tracking-wide font-medium">
+      <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
+        <div className="hidden lg:grid grid-cols-[1.5fr_1.5fr_1fr_1fr_80px_1fr] gap-4 px-5 py-3 border-b border-[#c8d6c0] text-xs text-[#183a1d]/40 uppercase tracking-wide font-medium">
           <span>Donor</span><span>Budget</span><span>Type</span><span>Amount</span><span>Seal</span><span>Status</span>
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-gray-400 text-sm">Loading...</div>
+          <div className="p-8 text-center text-[#183a1d]/40 text-sm">Loading...</div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center py-16 gap-3">
-            <Banknote size={32} className="text-gray-300" />
-            <p className="text-gray-400 text-sm">No funding sources found</p>
-            <p className="text-gray-300 text-xs">Create funding sources from within a budget</p>
+            <Banknote size={32} className="text-[#183a1d]/30" />
+            <p className="text-[#183a1d]/40 text-sm">No funding sources found</p>
+            <p className="text-[#183a1d]/30 text-xs">Create funding sources from within a budget</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-[#c8d6c0]">
             {filtered.map(s => (
               <div key={s.id} className="px-5 py-3.5 lg:grid lg:grid-cols-[1.5fr_1.5fr_1fr_1fr_80px_1fr] lg:gap-4 lg:items-center">
                 <div>
-                  <div className="text-sm text-gray-800">{s.donorName}</div>
+                  <div className="text-sm text-[#183a1d]">{s.donorName}</div>
                   {/* Mobile meta */}
-                  <div className="flex flex-wrap items-center gap-2 mt-1 lg:hidden text-xs text-gray-500">
+                  <div className="flex flex-wrap items-center gap-2 mt-1 lg:hidden text-xs text-[#183a1d]/60">
                     {s.budget && <Link href={`/dashboard/budgets/${s.budget.id}`} className="text-cyan-400/60 hover:text-cyan-400">{s.budget.name}</Link>}
                     <span>{s.sourceType}{s.sourceSubType ? ` / ${s.sourceSubType}` : ''}</span>
-                    <span className="text-gray-900 font-medium">{s.currency} {s.amount.toLocaleString()}</span>
+                    <span className="text-[#183a1d] font-medium">{s.currency} {s.amount.toLocaleString()}</span>
                     {s.budget && <StatusBadge status={s.budget.status} />}
                     {s.agreementHash && sealMap[s.agreementHash] && (
                       <BlockchainStatusPill
@@ -130,13 +130,13 @@ export default function FundingPage() {
                   {s.budget ? (
                     <Link href={`/dashboard/budgets/${s.budget.id}`} className="text-sm text-cyan-400/60 hover:text-cyan-400 transition-colors">{s.budget.name}</Link>
                   ) : (
-                    <span className="text-sm text-gray-400">—</span>
+                    <span className="text-sm text-[#183a1d]/40">—</span>
                   )}
                 </div>
-                <div className="hidden lg:block text-xs text-gray-500">
+                <div className="hidden lg:block text-xs text-[#183a1d]/60">
                   {s.sourceType}{s.sourceSubType ? <><br />{s.sourceSubType}</> : ''}
                 </div>
-                <div className="hidden lg:block text-sm font-medium text-gray-900">{s.currency} {s.amount.toLocaleString()}</div>
+                <div className="hidden lg:block text-sm font-medium text-[#183a1d]">{s.currency} {s.amount.toLocaleString()}</div>
                 <div className="hidden lg:block">
                   {s.agreementHash && sealMap[s.agreementHash] ? (
                     <BlockchainStatusPill
@@ -149,7 +149,7 @@ export default function FundingPage() {
                   )}
                 </div>
                 <div className="hidden lg:block">
-                  {s.budget ? <StatusBadge status={s.budget.status} /> : <span className="text-xs text-gray-400">—</span>}
+                  {s.budget ? <StatusBadge status={s.budget.status} /> : <span className="text-xs text-[#183a1d]/40">—</span>}
                 </div>
               </div>
             ))}

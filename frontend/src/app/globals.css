@@ -7,48 +7,57 @@
 }
 
 :root {
-  --background: 0 0% 100%;
-  --foreground: 222 47% 11%;
-  --border: 214 32% 91%;
-  --input: 214 32% 91%;
-  --ring: 211 93% 49%;
+  --background: 54 91% 95%;
+  --foreground: 143 38% 16%;
+  --border: 120 20% 78%;
+  --input: 120 20% 78%;
+  --ring: 42 90% 64%;
   --radius: 0.5rem;
+
+  /* Tulip palette tokens */
+  --tulip-gold: #f6c453;
+  --tulip-cream: #fefbe9;
+  --tulip-orange: #f0a04b;
+  --tulip-forest: #183a1d;
+  --tulip-sage: #e1eedd;
+  --tulip-sage-dark: #c8d6c0;
 }
 
 * { border-color: hsl(var(--border)); }
 
 body {
-  background: hsl(var(--background));
-  color: hsl(var(--foreground));
+  background: var(--tulip-cream);
+  color: var(--tulip-forest);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: var(--tulip-forest);
 }
 
 .tulip-gradient {
-  background: linear-gradient(135deg, #0c7aed 0%, #004ea8 100%);
+  background: linear-gradient(135deg, #f6c453 0%, #f0a04b 100%);
 }
 
 .tulip-mesh {
-  background-color: #F9FAFB;
+  background-color: var(--tulip-cream);
   background-image:
-    radial-gradient(at 20% 20%, rgba(12,122,237,0.06) 0px, transparent 60%),
-    radial-gradient(at 80% 80%, rgba(12,122,237,0.04) 0px, transparent 60%);
+    radial-gradient(at 20% 20%, rgba(246,196,83,0.08) 0px, transparent 60%),
+    radial-gradient(at 80% 80%, rgba(225,238,221,0.15) 0px, transparent 60%);
 }
 
 .hash-mono {
   font-family: 'Courier New', monospace;
   font-size: 12px;
-  color: #64748b;
+  color: #183a1d;
   letter-spacing: 0.02em;
 }
 
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: var(--tulip-sage-dark); border-radius: 3px; }
 
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(12px); }

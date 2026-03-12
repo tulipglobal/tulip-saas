@@ -171,28 +171,28 @@ export default function SetupWizardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#070B0F]" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="min-h-screen bg-[#fefbe9]" style={{ fontFamily: "'Inter', sans-serif" }}>
 
       {/* Top bar */}
-      <div className="border-b border-white/6 bg-[#0C1117]/80 backdrop-blur-md">
+      <div className="border-b border-[#c8d6c0] bg-[#e1eedd]/80 backdrop-blur-md">
         <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
-              <Building2 className="w-3.5 h-3.5 text-gray-900" />
+              style={{ background: '#f6c453' }}>
+              <Building2 className="w-3.5 h-3.5 text-[#183a1d]" />
             </div>
-            <span className="text-gray-900 font-bold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
-              tulip<span style={{ color: '#0c7aed' }}>ds</span>
+            <span className="text-[#183a1d] font-bold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
+              tulip<span style={{ color: '#f6c453' }}>ds</span>
             </span>
             {tenantName && (
               <>
-                <span className="text-gray-300 text-sm ml-1">|</span>
-                <span className="text-gray-500 text-sm">{tenantName}</span>
+                <span className="text-[#183a1d]/30 text-sm ml-1">|</span>
+                <span className="text-[#183a1d]/60 text-sm">{tenantName}</span>
               </>
             )}
           </div>
           <button onClick={() => router.push('/dashboard')}
-            className="text-gray-400 text-xs hover:text-gray-500 transition-colors">
+            className="text-[#183a1d]/40 text-xs hover:text-[#183a1d]/60 transition-colors">
             Skip setup →
           </button>
         </div>
@@ -211,21 +211,21 @@ export default function SetupWizardPage() {
                 <div className="flex items-center gap-2.5">
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
                     isDone ? 'bg-emerald-500/15 border border-emerald-500/30' :
-                    isActive ? 'bg-blue-500/15 border border-blue-500/40' :
-                    'bg-gray-50 border border-gray-200'
+                    isActive ? 'bg-[#f6c453]/15 border border-[#f6c453]/40' :
+                    'bg-[#e1eedd] border border-[#c8d6c0]'
                   }`}>
                     {isDone ? (
                       <Check className="w-4 h-4 text-emerald-400" />
                     ) : (
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-blue-400' : 'text-gray-300'}`} />
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-[#f6c453]' : 'text-[#183a1d]/30'}`} />
                     )}
                   </div>
                   <span className={`text-xs font-medium hidden sm:block ${
-                    isDone ? 'text-emerald-400' : isActive ? 'text-gray-900' : 'text-gray-400'
+                    isDone ? 'text-emerald-400' : isActive ? 'text-[#183a1d]' : 'text-[#183a1d]/40'
                   }`}>{s.label}</span>
                 </div>
                 {i < STEPS.length - 1 && (
-                  <div className={`flex-1 h-px mx-4 ${isDone ? 'bg-emerald-500/25' : 'bg-white/8'}`} />
+                  <div className={`flex-1 h-px mx-4 ${isDone ? 'bg-emerald-500/25' : 'bg-[#c8d6c0]'}`} />
                 )}
               </div>
             )
@@ -242,32 +242,32 @@ export default function SetupWizardPage() {
         {/* Step 1: Organisation Details */}
         {step === 1 && (
           <div className="animate-in">
-            <h1 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <h1 className="text-2xl font-bold text-[#183a1d] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
               Organisation Details
             </h1>
-            <p className="text-gray-500 text-sm mb-8">Tell us a bit about your organisation. You can update this later in settings.</p>
+            <p className="text-[#183a1d]/60 text-sm mb-8">Tell us a bit about your organisation. You can update this later in settings.</p>
 
             <div className="space-y-5">
               {/* Logo upload */}
               <div>
-                <label className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-2 block">Logo</label>
+                <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">Logo</label>
                 <div className="flex items-center gap-4">
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-20 h-20 rounded-2xl border-2 border-dashed border-gray-200 hover:border-blue-500/30 flex items-center justify-center cursor-pointer transition-all overflow-hidden bg-gray-50"
+                    className="w-20 h-20 rounded-2xl border-2 border-dashed border-[#c8d6c0] hover:border-[#f6c453]/30 flex items-center justify-center cursor-pointer transition-all overflow-hidden bg-[#e1eedd]"
                   >
                     {logoPreview ? (
                       <img src={logoPreview} alt="Logo" className="w-full h-full object-cover" />
                     ) : (
-                      <Upload className="w-5 h-5 text-gray-300" />
+                      <Upload className="w-5 h-5 text-[#183a1d]/30" />
                     )}
                   </div>
                   <div>
                     <button onClick={() => fileInputRef.current?.click()}
-                      className="text-blue-400 text-sm hover:underline">
+                      className="text-[#183a1d] text-sm hover:underline">
                       {logoPreview ? 'Change logo' : 'Upload logo'}
                     </button>
-                    <p className="text-gray-300 text-xs mt-1">PNG, JPG, max 5MB</p>
+                    <p className="text-[#183a1d]/30 text-xs mt-1">PNG, JPG, max 5MB</p>
                   </div>
                   <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoSelect} className="hidden" />
                 </div>
@@ -275,19 +275,19 @@ export default function SetupWizardPage() {
 
               {/* Description */}
               <div>
-                <label className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-2 block">Description</label>
+                <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">Description</label>
                 <textarea
                   value={orgForm.description}
                   onChange={e => setOrgForm(f => ({ ...f, description: e.target.value }))}
                   placeholder="What does your organisation do?"
                   rows={3}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-white/20 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/30 transition-all resize-none"
+                  className="w-full px-4 py-3 rounded-xl border border-[#c8d6c0] bg-[#e1eedd] text-[#183a1d] placeholder-[#183a1d]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[#f6c453]/30 focus:border-[#f6c453] transition-all resize-none"
                 />
               </div>
 
               {/* Country */}
               <div>
-                <label className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-2 block">Country</label>
+                <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">Country</label>
                 <CountrySelect
                   value={orgForm.country}
                   onChange={v => setOrgForm(f => ({ ...f, country: v }))}
@@ -297,42 +297,42 @@ export default function SetupWizardPage() {
               {/* Website + Reg number */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-2 block">Website</label>
+                  <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">Website</label>
                   <div className="relative">
-                    <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+                    <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#183a1d]/30" />
                     <input
                       type="url"
                       value={orgForm.website}
                       onChange={e => setOrgForm(f => ({ ...f, website: e.target.value }))}
                       placeholder="https://your-org.com"
-                      className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-white/20 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/30 transition-all"
+                      className="w-full pl-11 pr-4 py-3 rounded-xl border border-[#c8d6c0] bg-[#e1eedd] text-[#183a1d] placeholder-[#183a1d]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[#f6c453]/30 focus:border-[#f6c453] transition-all"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-2 block">Registration Number</label>
+                  <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">Registration Number</label>
                   <div className="relative">
-                    <FileText className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+                    <FileText className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#183a1d]/30" />
                     <input
                       type="text"
                       value={orgForm.registrationNumber}
                       onChange={e => setOrgForm(f => ({ ...f, registrationNumber: e.target.value }))}
                       placeholder="NGO-12345"
-                      className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-white/20 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/30 transition-all"
+                      className="w-full pl-11 pr-4 py-3 rounded-xl border border-[#c8d6c0] bg-[#e1eedd] text-[#183a1d] placeholder-[#183a1d]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[#f6c453]/30 focus:border-[#f6c453] transition-all"
                     />
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-between mt-8 pt-6 border-t border-white/6">
+            <div className="flex items-center justify-between mt-8 pt-6 border-t border-[#c8d6c0]">
               <button onClick={() => { setError(''); setStep(2) }}
-                className="text-gray-400 text-sm hover:text-gray-500 flex items-center gap-1 transition-colors">
+                className="text-[#183a1d]/40 text-sm hover:text-[#183a1d]/60 flex items-center gap-1 transition-colors">
                 <SkipForward className="w-3.5 h-3.5" /> Skip this step
               </button>
               <button onClick={handleOrgSubmit} disabled={loading}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-white text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
-                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-[#183a1d] text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
+                style={{ background: '#f6c453' }}>
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Save & Continue</span><ChevronRight className="w-4 h-4" /></>}
               </button>
             </div>
@@ -342,54 +342,54 @@ export default function SetupWizardPage() {
         {/* Step 2: First Project */}
         {step === 2 && (
           <div className="animate-in">
-            <h1 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <h1 className="text-2xl font-bold text-[#183a1d] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
               Create Your First Project
             </h1>
-            <p className="text-gray-500 text-sm mb-8">Projects help you organise expenses, documents, and funding sources.</p>
+            <p className="text-[#183a1d]/60 text-sm mb-8">Projects help you organise expenses, documents, and funding sources.</p>
 
             <div className="space-y-5">
               <div>
-                <label className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-2 block">Project Name *</label>
+                <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">Project Name *</label>
                 <input
                   type="text"
                   value={projectForm.name}
                   onChange={e => setProjectForm(f => ({ ...f, name: e.target.value }))}
                   placeholder="e.g. Clean Water Initiative 2026"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-white/20 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/30 transition-all"
+                  className="w-full px-4 py-3 rounded-xl border border-[#c8d6c0] bg-[#e1eedd] text-[#183a1d] placeholder-[#183a1d]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[#f6c453]/30 focus:border-[#f6c453] transition-all"
                 />
               </div>
 
               <div>
-                <label className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-2 block">Description</label>
+                <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">Description</label>
                 <textarea
                   value={projectForm.description}
                   onChange={e => setProjectForm(f => ({ ...f, description: e.target.value }))}
                   placeholder="Brief description of the project"
                   rows={3}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-white/20 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/30 transition-all resize-none"
+                  className="w-full px-4 py-3 rounded-xl border border-[#c8d6c0] bg-[#e1eedd] text-[#183a1d] placeholder-[#183a1d]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[#f6c453]/30 focus:border-[#f6c453] transition-all resize-none"
                 />
               </div>
 
               <div className="sm:w-1/2">
-                <label className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-2 block">Budget (USD)</label>
+                <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">Budget (USD)</label>
                 <input
                   type="number"
                   value={projectForm.budget}
                   onChange={e => setProjectForm(f => ({ ...f, budget: e.target.value }))}
                   placeholder="50000"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-white/20 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/30 transition-all"
+                  className="w-full px-4 py-3 rounded-xl border border-[#c8d6c0] bg-[#e1eedd] text-[#183a1d] placeholder-[#183a1d]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[#f6c453]/30 focus:border-[#f6c453] transition-all"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-between mt-8 pt-6 border-t border-white/6">
+            <div className="flex items-center justify-between mt-8 pt-6 border-t border-[#c8d6c0]">
               <button onClick={() => { setError(''); setStep(3) }}
-                className="text-gray-400 text-sm hover:text-gray-500 flex items-center gap-1 transition-colors">
+                className="text-[#183a1d]/40 text-sm hover:text-[#183a1d]/60 flex items-center gap-1 transition-colors">
                 <SkipForward className="w-3.5 h-3.5" /> Skip this step
               </button>
               <button onClick={handleProjectSubmit} disabled={loading}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-white text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
-                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-[#183a1d] text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
+                style={{ background: '#f6c453' }}>
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Create Project</span><ChevronRight className="w-4 h-4" /></>}
               </button>
             </div>
@@ -399,16 +399,16 @@ export default function SetupWizardPage() {
         {/* Step 3: Invite Team */}
         {step === 3 && (
           <div className="animate-in">
-            <h1 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <h1 className="text-2xl font-bold text-[#183a1d] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
               Invite Your Team
             </h1>
-            <p className="text-gray-500 text-sm mb-8">Add up to 3 colleagues. They&apos;ll receive an email invitation to join your workspace.</p>
+            <p className="text-[#183a1d]/60 text-sm mb-8">Add up to 3 colleagues. They&apos;ll receive an email invitation to join your workspace.</p>
 
             <div className="space-y-3">
               {emails.map((email, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <div className="flex-1 relative">
-                    <Users className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+                    <Users className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#183a1d]/30" />
                     <input
                       type="email"
                       value={email}
@@ -418,7 +418,7 @@ export default function SetupWizardPage() {
                         setEmails(newEmails)
                       }}
                       placeholder={`colleague${i + 1}@org.com`}
-                      className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-white/20 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/30 transition-all"
+                      className="w-full pl-11 pr-4 py-3 rounded-xl border border-[#c8d6c0] bg-[#e1eedd] text-[#183a1d] placeholder-[#183a1d]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[#f6c453]/30 focus:border-[#f6c453] transition-all"
                     />
                   </div>
                   {email && (
@@ -426,7 +426,7 @@ export default function SetupWizardPage() {
                       const newEmails = [...emails]
                       newEmails[i] = ''
                       setEmails(newEmails)
-                    }} className="text-gray-300 hover:text-gray-500 transition-colors">
+                    }} className="text-[#183a1d]/30 hover:text-[#183a1d]/60 transition-colors">
                       <X className="w-4 h-4" />
                     </button>
                   )}
@@ -434,14 +434,14 @@ export default function SetupWizardPage() {
               ))}
             </div>
 
-            <div className="flex items-center justify-between mt-8 pt-6 border-t border-white/6">
+            <div className="flex items-center justify-between mt-8 pt-6 border-t border-[#c8d6c0]">
               <button onClick={() => { setError(''); setStep(4) }}
-                className="text-gray-400 text-sm hover:text-gray-500 flex items-center gap-1 transition-colors">
+                className="text-[#183a1d]/40 text-sm hover:text-[#183a1d]/60 flex items-center gap-1 transition-colors">
                 <SkipForward className="w-3.5 h-3.5" /> Skip this step
               </button>
               <button onClick={handleInviteSubmit} disabled={loading}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-white text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
-                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-[#183a1d] text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
+                style={{ background: '#f6c453' }}>
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Send Invitations</span><ChevronRight className="w-4 h-4" /></>}
               </button>
             </div>
@@ -455,21 +455,21 @@ export default function SetupWizardPage() {
               style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.15), rgba(5,150,105,0.15))', border: '1px solid rgba(16,185,129,0.25)' }}>
               <Rocket className="w-9 h-9 text-emerald-400" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <h1 className="text-3xl font-bold text-[#183a1d] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
               Your workspace is ready!
             </h1>
-            <p className="text-gray-500 text-sm mb-8 max-w-md mx-auto">
+            <p className="text-[#183a1d]/60 text-sm mb-8 max-w-md mx-auto">
               {tenantName ? `${tenantName} is all set up.` : 'Your organisation is all set up.'} Every record you create will be cryptographically verified and anchored to the blockchain.
             </p>
 
             {/* Invite results */}
             {inviteResults.length > 0 && (
               <div className="mb-8 max-w-sm mx-auto">
-                <h3 className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-3">Invitation Status</h3>
+                <h3 className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-3">Invitation Status</h3>
                 <div className="space-y-2">
                   {inviteResults.map((r, i) => (
-                    <div key={i} className="flex items-center justify-between px-4 py-2.5 rounded-lg bg-gray-50 border border-white/6">
-                      <span className="text-gray-600 text-sm truncate">{r.email}</span>
+                    <div key={i} className="flex items-center justify-between px-4 py-2.5 rounded-lg bg-[#e1eedd] border border-[#c8d6c0]">
+                      <span className="text-[#183a1d]/70 text-sm truncate">{r.email}</span>
                       <span className={`text-xs font-medium ${
                         r.status === 'sent' ? 'text-emerald-400' :
                         r.status === 'already_registered' ? 'text-yellow-400' :
@@ -494,7 +494,7 @@ export default function SetupWizardPage() {
                 return (
                   <button key={link.href}
                     onClick={() => { handleComplete(); router.push(link.href) }}
-                    className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-600 text-sm hover:bg-gray-50 hover:text-gray-900 transition-all">
+                    className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-[#c8d6c0] bg-[#e1eedd] text-[#183a1d]/70 text-sm hover:bg-[#e1eedd] hover:text-[#183a1d] transition-all">
                     <Icon className="w-4 h-4" />
                     {link.label}
                   </button>

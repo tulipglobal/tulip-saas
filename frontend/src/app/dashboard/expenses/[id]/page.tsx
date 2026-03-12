@@ -39,7 +39,7 @@ const anchorBadge = (status: string) => {
     case 'confirmed': return <span className="flex items-center gap-1 text-emerald-400 text-xs"><CheckCircle size={12} /> Confirmed</span>
     case 'pending':   return <span className="flex items-center gap-1 text-yellow-400 text-xs"><Clock size={12} /> Pending</span>
     case 'failed':    return <span className="flex items-center gap-1 text-red-400 text-xs"><XCircle size={12} /> Failed</span>
-    default:          return <span className="flex items-center gap-1 text-gray-400 text-xs"><Clock size={12} /> —</span>
+    default:          return <span className="flex items-center gap-1 text-[#183a1d]/40 text-xs"><Clock size={12} /> —</span>
   }
 }
 
@@ -48,9 +48,9 @@ function HashCell({ hash }: { hash: string }) {
   const copy = () => { navigator.clipboard.writeText(hash); setCopied(true); setTimeout(() => setCopied(false), 1500) }
   return (
     <div className="flex items-center gap-1.5 group">
-      <span className="text-xs font-mono text-gray-400">{hash.slice(0, 12)}…{hash.slice(-6)}</span>
+      <span className="text-xs font-mono text-[#183a1d]/40">{hash.slice(0, 12)}…{hash.slice(-6)}</span>
       <button onClick={copy} className="opacity-0 group-hover:opacity-100 transition-opacity">
-        {copied ? <Check size={11} className="text-green-400" /> : <Copy size={11} className="text-gray-400" />}
+        {copied ? <Check size={11} className="text-green-400" /> : <Copy size={11} className="text-[#183a1d]/40" />}
       </button>
     </div>
   )
@@ -132,45 +132,45 @@ export default function ExpenseDetailPage() {
   }
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-screen bg-[#0a0a0f]">
-      <div className="w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+    <div className="flex items-center justify-center min-h-screen bg-[#fefbe9]">
+      <div className="w-8 h-8 border-2 border-[#f6c453] border-t-transparent rounded-full animate-spin" />
     </div>
   )
 
   if (error || !expense) return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#0a0a0f] text-gray-600 gap-4">
-      <DollarSign size={48} className="text-gray-300" />
+    <div className="flex flex-col items-center justify-center min-h-screen bg-[#fefbe9] text-[#183a1d]/70 gap-4">
+      <DollarSign size={48} className="text-[#183a1d]/30" />
       <p>{error || 'Expense not found'}</p>
-      <Link href="/dashboard/expenses" className="text-cyan-400 hover:text-cyan-300 text-sm">← Back to Expenses</Link>
+      <Link href="/dashboard/expenses" className="text-[#183a1d] hover:text-[#f6c453] text-sm">← Back to Expenses</Link>
     </div>
   )
 
   const docs = expense.documents ?? []
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-gray-900 p-6 max-w-5xl mx-auto">
+    <div className="min-h-screen bg-[#fefbe9] text-[#183a1d] p-6 max-w-5xl mx-auto">
 
       {/* Back */}
-      <Link href="/dashboard/expenses" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 text-sm mb-6 transition-colors">
+      <Link href="/dashboard/expenses" className="inline-flex items-center gap-2 text-[#183a1d]/60 hover:text-[#183a1d] text-sm mb-6 transition-colors">
         <ArrowLeft size={14} /> Back to Expenses
       </Link>
 
       {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
-            <DollarSign size={22} className="text-cyan-400" />
+          <div className="w-12 h-12 rounded-xl bg-[#f6c453]/10 border border-[#f6c453]/20 flex items-center justify-center">
+            <DollarSign size={22} className="text-[#183a1d]" />
           </div>
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900">{expense.description}</h1>
+            <h1 className="text-2xl font-semibold text-[#183a1d]">{expense.description}</h1>
             <div className="flex items-center gap-3 mt-2 flex-wrap">
               {anchorBadge(expense.anchorStatus ?? '')}
-              <span className="text-gray-400 text-xs flex items-center gap-1">
+              <span className="text-[#183a1d]/40 text-xs flex items-center gap-1">
                 <Calendar size={11} /> {new Date(expense.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
               </span>
               {expense.blockchainTx && (
                 <a href={`https://polygonscan.com/tx/${expense.blockchainTx}`} target="_blank" rel="noopener noreferrer"
-                  className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1">
+                  className="text-xs text-[#183a1d] hover:text-[#f6c453] flex items-center gap-1">
                   Polygonscan <ExternalLink size={10} />
                 </a>
               )}
@@ -181,40 +181,40 @@ export default function ExpenseDetailPage() {
 
       {/* Details grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-          <p className="text-gray-500 text-xs mb-1">Amount</p>
-          <p className="text-gray-900 font-semibold text-lg">{expense.currency} {expense.amount.toLocaleString()}</p>
+        <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl p-4">
+          <p className="text-[#183a1d]/60 text-xs mb-1">Amount</p>
+          <p className="text-[#183a1d] font-semibold text-lg">{expense.currency} {expense.amount.toLocaleString()}</p>
         </div>
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-          <p className="text-gray-500 text-xs mb-1">Project</p>
+        <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl p-4">
+          <p className="text-[#183a1d]/60 text-xs mb-1">Project</p>
           {expense.project ? (
-            <Link href={`/dashboard/projects/${expense.project.id}`} className="text-cyan-400 hover:text-cyan-300 font-medium text-sm flex items-center gap-1">
+            <Link href={`/dashboard/projects/${expense.project.id}`} className="text-[#183a1d] hover:text-[#f6c453] font-medium text-sm flex items-center gap-1">
               <FolderOpen size={13} /> {expense.project.name}
             </Link>
           ) : (
-            <p className="text-gray-400 text-sm">—</p>
+            <p className="text-[#183a1d]/40 text-sm">—</p>
           )}
         </div>
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-          <p className="text-gray-500 text-xs mb-1">Funding Source</p>
-          <p className="text-gray-700 text-sm">{expense.fundingSource?.name ?? '—'}</p>
+        <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl p-4">
+          <p className="text-[#183a1d]/60 text-xs mb-1">Funding Source</p>
+          <p className="text-[#183a1d] text-sm">{expense.fundingSource?.name ?? '—'}</p>
         </div>
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-          <p className="text-gray-500 text-xs mb-1">Documents</p>
-          <p className="text-gray-900 font-semibold text-lg">{docs.length}</p>
+        <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl p-4">
+          <p className="text-[#183a1d]/60 text-xs mb-1">Documents</p>
+          <p className="text-[#183a1d] font-semibold text-lg">{docs.length}</p>
         </div>
       </div>
 
       {/* Data hash */}
       {expense.dataHash && (
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-8">
+        <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl p-4 mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-500 text-xs mb-1 flex items-center gap-1"><Hash size={11} /> Data Hash (SHA-256)</p>
+              <p className="text-[#183a1d]/60 text-xs mb-1 flex items-center gap-1"><Hash size={11} /> Data Hash (SHA-256)</p>
               <HashCell hash={expense.dataHash} />
             </div>
             <Link href={`/verify?hash=${expense.dataHash}`} target="_blank"
-              className="text-xs text-cyan-400 hover:text-cyan-300 border border-cyan-500/20 px-3 py-1.5 rounded-lg transition-colors">
+              className="text-xs text-[#183a1d] hover:text-[#f6c453] border border-[#f6c453]/20 px-3 py-1.5 rounded-lg transition-colors">
               Verify
             </Link>
           </div>
@@ -223,10 +223,10 @@ export default function ExpenseDetailPage() {
 
       {/* Documents section */}
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900">Documents</h2>
+        <h2 className="text-lg font-semibold text-[#183a1d]">Documents</h2>
         <label className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors ${
-          uploading ? 'bg-gray-100 text-gray-500' : 'text-white'
-        }`} style={uploading ? {} : { background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+          uploading ? 'bg-[#e1eedd] text-[#183a1d]/60' : 'text-[#183a1d]'
+        }`} style={uploading ? {} : { background: '#f6c453' }}>
           <Upload size={14} />
           {uploading ? 'Uploading…' : 'Upload Document'}
           <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} />
@@ -239,41 +239,41 @@ export default function ExpenseDetailPage() {
         </div>
       )}
 
-      <div className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden">
+      <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl overflow-hidden">
         {docs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-gray-400 gap-3">
-            <FileText size={36} className="text-gray-300" />
+          <div className="flex flex-col items-center justify-center py-16 text-[#183a1d]/40 gap-3">
+            <FileText size={36} className="text-[#183a1d]/30" />
             <p className="text-sm">No documents attached to this expense</p>
-            <p className="text-xs text-gray-300">Upload receipts, invoices, or supporting documents</p>
+            <p className="text-xs text-[#183a1d]/30">Upload receipts, invoices, or supporting documents</p>
           </div>
         ) : (
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left text-xs text-gray-400 font-normal px-4 py-3">NAME</th>
-                <th className="text-left text-xs text-gray-400 font-normal px-4 py-3">TYPE</th>
-                <th className="text-left text-xs text-gray-400 font-normal px-4 py-3">SIZE</th>
-                <th className="text-left text-xs text-gray-400 font-normal px-4 py-3">SHA-256 HASH</th>
-                <th className="text-left text-xs text-gray-400 font-normal px-4 py-3">DATE</th>
-                <th className="text-left text-xs text-gray-400 font-normal px-4 py-3"></th>
+              <tr className="border-b border-[#c8d6c0]">
+                <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3">NAME</th>
+                <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3">TYPE</th>
+                <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3">SIZE</th>
+                <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3">SHA-256 HASH</th>
+                <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3">DATE</th>
+                <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3"></th>
               </tr>
             </thead>
             <tbody>
               {docs.map((doc, i) => (
-                <tr key={doc.id} className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${i % 2 === 0 ? '' : 'bg-white'}`}>
-                  <td className="px-4 py-3 text-sm text-gray-800">{doc.name}</td>
+                <tr key={doc.id} className={`border-b border-[#c8d6c0] hover:bg-[#e1eedd]/50 transition-colors ${i % 2 === 0 ? '' : 'bg-[#e1eedd]'}`}>
+                  <td className="px-4 py-3 text-sm text-[#183a1d]">{doc.name}</td>
                   <td className="px-4 py-3">
-                    <span className="text-xs font-mono text-gray-500 uppercase">{doc.fileType ?? '—'}</span>
+                    <span className="text-xs font-mono text-[#183a1d]/60 uppercase">{doc.fileType ?? '—'}</span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-gray-500">{formatBytes(doc.fileSize)}</td>
+                  <td className="px-4 py-3 text-xs text-[#183a1d]/60">{formatBytes(doc.fileSize)}</td>
                   <td className="px-4 py-3">
-                    {doc.sha256Hash ? <HashCell hash={doc.sha256Hash} /> : <span className="text-xs text-gray-300">—</span>}
+                    {doc.sha256Hash ? <HashCell hash={doc.sha256Hash} /> : <span className="text-xs text-[#183a1d]/30">—</span>}
                   </td>
-                  <td className="px-4 py-3 text-xs text-gray-400">
+                  <td className="px-4 py-3 text-xs text-[#183a1d]/40">
                     {new Date(doc.uploadedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
                   </td>
                   <td className="px-4 py-3">
-                    <button onClick={() => openDoc(doc.id)} className="text-cyan-400 hover:text-cyan-300 text-xs flex items-center gap-1">
+                    <button onClick={() => openDoc(doc.id)} className="text-[#183a1d] hover:text-[#f6c453] text-xs flex items-center gap-1">
                       View <ExternalLink size={10} />
                     </button>
                   </td>

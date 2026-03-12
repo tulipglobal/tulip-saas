@@ -44,7 +44,7 @@ const STATUS_TABS = [
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     pending: 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20',
-    in_review: 'bg-blue-400/10 text-blue-400 border-blue-400/20',
+    in_review: 'bg-[#f6c453]/10 text-[#183a1d] border-[#f6c453]/30',
     approved: 'bg-green-400/10 text-green-400 border-green-400/20',
     rejected: 'bg-red-400/10 text-red-400 border-red-400/20',
   }
@@ -67,7 +67,7 @@ function TypeBadge({ type }: { type: string }) {
     document_approval: 'Document', expense_approval: 'Expense',
   }
   return (
-    <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${map[type] ?? 'bg-gray-50 text-gray-500'}`}>
+    <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${map[type] ?? 'bg-[#e1eedd] text-[#183a1d]/60'}`}>
       {labels[type] ?? type}
     </span>
   )
@@ -102,8 +102,8 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
   const canAct = task.status === 'pending' || task.status === 'in_review'
 
   return (
-    <div className="rounded-xl border border-gray-200 overflow-hidden" style={{ background: '#FFFFFF' }}>
-      <div className="px-4 py-3.5 flex items-start gap-3 cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => setExpanded(e => !e)}>
+    <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
+      <div className="px-4 py-3.5 flex items-start gap-3 cursor-pointer hover:bg-[#e1eedd]/50 transition-colors" onClick={() => setExpanded(e => !e)}>
         <div className="mt-0.5 shrink-0">
           {task.status === 'approved' ? <CheckCircle2 size={18} className="text-green-400" /> :
            task.status === 'rejected' ? <XCircle size={18} className="text-red-400" /> :
@@ -111,11 +111,11 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-medium text-gray-800">{task.title}</span>
+            <span className="text-sm font-medium text-[#183a1d]">{task.title}</span>
             <TypeBadge type={task.type} />
             <StatusBadge status={task.status} />
           </div>
-          <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+          <div className="flex items-center gap-3 mt-1 text-xs text-[#183a1d]/60">
             {task.submitter && <span>by {task.submitter.name}</span>}
             <span>{new Date(task.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}</span>
             {task.comments.length > 0 && (
@@ -123,23 +123,23 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
             )}
           </div>
         </div>
-        <span className="text-gray-300 shrink-0 mt-1">
+        <span className="text-[#183a1d]/30 shrink-0 mt-1">
           {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </span>
       </div>
 
       {expanded && (
-        <div className="px-4 pb-4 border-t border-gray-100 pt-3 space-y-3">
+        <div className="px-4 pb-4 border-t border-[#c8d6c0] pt-3 space-y-3">
           {task.description && (
-            <p className="text-sm text-gray-500">{task.description}</p>
+            <p className="text-sm text-[#183a1d]/60">{task.description}</p>
           )}
 
           {task.assignee && (
-            <div className="text-xs text-gray-500">Assigned to: <span className="text-gray-600">{task.assignee.name}</span></div>
+            <div className="text-xs text-[#183a1d]/60">Assigned to: <span className="text-[#183a1d]/70">{task.assignee.name}</span></div>
           )}
 
           {task.resolvedAt && (
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-[#183a1d]/60">
               Resolved: {new Date(task.resolvedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
             </div>
           )}
@@ -147,14 +147,14 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
           {/* Comments */}
           {task.comments.length > 0 && (
             <div className="space-y-2">
-              <div className="text-xs text-gray-400 uppercase tracking-wide font-medium">Comments</div>
+              <div className="text-xs text-[#183a1d]/40 uppercase tracking-wide font-medium">Comments</div>
               {task.comments.map(c => (
-                <div key={c.id} className="rounded-lg bg-gray-50 px-3 py-2">
+                <div key={c.id} className="rounded-lg bg-[#e1eedd] px-3 py-2">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-medium text-gray-600">{c.user?.name ?? 'Unknown'}</span>
-                    <span className="text-xs text-gray-400">{new Date(c.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                    <span className="text-xs font-medium text-[#183a1d]/70">{c.user?.name ?? 'Unknown'}</span>
+                    <span className="text-xs text-[#183a1d]/40">{new Date(c.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
-                  <p className="text-sm text-gray-500">{c.comment}</p>
+                  <p className="text-sm text-[#183a1d]/60">{c.comment}</p>
                 </div>
               ))}
             </div>
@@ -166,12 +166,12 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
               value={comment}
               onChange={e => setComment(e.target.value)}
               placeholder="Add a comment..."
-              className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-gray-300"
+              className="flex-1 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#c8d6c0]"
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && canAct) handleComment() }}
             />
             <button onClick={handleComment} disabled={!comment.trim() || submitting}
-              className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition-all disabled:opacity-30">
-              <Send size={14} className="text-gray-600" />
+              className="w-8 h-8 rounded-lg bg-[#e1eedd] border border-[#c8d6c0] flex items-center justify-center hover:bg-[#e1eedd] transition-all disabled:opacity-30">
+              <Send size={14} className="text-[#183a1d]/70" />
             </button>
           </div>
 
@@ -187,7 +187,7 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
               </button>
               {task.status === 'pending' && (
                 <button onClick={() => handleStatus('in_review')} disabled={submitting}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-400/10 text-blue-400 border border-blue-400/20 hover:bg-blue-400/20 transition-all disabled:opacity-50">
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#f6c453]/10 text-[#183a1d] border border-[#f6c453]/30 hover:bg-[#f6c453]/20 transition-all disabled:opacity-50">
                   <Clock size={13} /> Mark In Review
                 </button>
               )}
@@ -224,21 +224,21 @@ export default function WorkflowPage() {
   return (
     <div className="p-4 md:p-6 space-y-6 animate-fade-up">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>Workflow</h1>
-        <p className="text-gray-500 text-sm mt-1">Approval tasks for documents & expenses</p>
+        <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Workflow</h1>
+        <p className="text-[#183a1d]/60 text-sm mt-1">Approval tasks for documents & expenses</p>
       </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { label: 'Pending', value: summary.pending, color: 'text-yellow-400' },
-          { label: 'In Review', value: summary.inReview, color: 'text-blue-400' },
+          { label: 'In Review', value: summary.inReview, color: 'text-[#183a1d]' },
           { label: 'Approved', value: summary.approved, color: 'text-green-400' },
           { label: 'Rejected', value: summary.rejected, color: 'text-red-400' },
         ].map(({ label, value, color }) => (
-          <div key={label} className="rounded-xl border border-gray-200 px-4 py-3" style={{ background: '#FFFFFF' }}>
+          <div key={label} className="rounded-xl border border-[#c8d6c0] px-4 py-3" style={{ background: '#e1eedd' }}>
             <div className={`text-xl font-bold ${color}`} style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
-            <div className="text-xs text-gray-500 mt-0.5">{label}</div>
+            <div className="text-xs text-[#183a1d]/60 mt-0.5">{label}</div>
           </div>
         ))}
       </div>
@@ -249,8 +249,8 @@ export default function WorkflowPage() {
           <button key={key} onClick={() => setTab(key)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
               tab === key
-                ? 'bg-blue-50 text-[#0c7aed]'
-                : 'text-gray-500 hover:text-gray-600 hover:bg-gray-50'
+                ? 'bg-[#f6c453]/10 text-[#183a1d]'
+                : 'text-[#183a1d]/60 hover:text-[#183a1d]/70 hover:bg-[#e1eedd]/50'
             }`}>
             {label}
             {key === '' && totalActive > 0 && (
@@ -264,13 +264,13 @@ export default function WorkflowPage() {
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
-            <div key={i} className="rounded-xl border border-gray-200 h-20 animate-pulse" style={{ background: '#FFFFFF' }} />
+            <div key={i} className="rounded-xl border border-[#c8d6c0] h-20 animate-pulse" style={{ background: '#e1eedd' }} />
           ))}
         </div>
       ) : tasks.length === 0 ? (
         <div className="flex flex-col items-center py-16 gap-3">
-          <ListFilter size={32} className="text-gray-300" />
-          <p className="text-gray-400 text-sm">No workflow tasks{tab ? ` with status "${tab.replace('_', ' ')}"` : ''}</p>
+          <ListFilter size={32} className="text-[#183a1d]/30" />
+          <p className="text-[#183a1d]/40 text-sm">No workflow tasks{tab ? ` with status "${tab.replace('_', ' ')}"` : ''}</p>
         </div>
       ) : (
         <div className="space-y-3">

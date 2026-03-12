@@ -9,17 +9,17 @@ const BADGE_SCRIPT_URL = 'https://tulipds.com/embed/badge.js'
 function CodeBlock({ code, label }: { code: string; label: string }) {
   const [copied, setCopied] = useState(false)
   return (
-    <div className="rounded-lg border border-gray-200 overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 bg-gray-50">
-        <span className="text-xs text-gray-500 font-medium">{label}</span>
+    <div className="rounded-lg border border-[#c8d6c0] overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-[#c8d6c0] bg-[#e1eedd]">
+        <span className="text-xs text-[#183a1d]/60 font-medium">{label}</span>
         <button
           onClick={() => { navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
-          className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 transition-colors"
+          className="flex items-center gap-1.5 text-xs text-[#183a1d]/60 hover:text-[#183a1d] transition-colors"
         >
           {copied ? <><Check size={12} className="text-green-400" /> Copied</> : <><Copy size={12} /> Copy</>}
         </button>
       </div>
-      <pre className="p-4 text-sm text-gray-700 overflow-x-auto bg-black/30">
+      <pre className="p-4 text-sm text-[#183a1d] overflow-x-auto bg-black/30">
         <code>{code}</code>
       </pre>
     </div>
@@ -65,11 +65,11 @@ export default function EmbedPage() {
       .tulip-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 8px; cursor: pointer; text-decoration: none; transition: box-shadow 0.2s, transform 0.15s; border: 1px solid; line-height: 1; }
       .tulip-badge:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
       .tulip-badge.light.verified { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
-      .tulip-badge.light.unverified { background: #f9fafb; border-color: #e5e7eb; color: #6b7280; }
-      .tulip-badge.light.loading { background: #f9fafb; border-color: #e5e7eb; color: #9ca3af; }
+      .tulip-badge.light.unverified { background: #fefbe9; border-color: #c8d6c0; color: #6b7280; }
+      .tulip-badge.light.loading { background: #fefbe9; border-color: #c8d6c0; color: #9ca3af; }
       .tulip-badge.dark.verified { background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.25); color: #4ade80; }
-      .tulip-badge.dark.unverified { background: #F9FAFB; border-color: #E5E7EB; color: #9CA3AF; }
-      .tulip-badge.dark.loading { background: #FFFFFF; border-color: #E5E7EB; color: #9CA3AF; }
+      .tulip-badge.dark.unverified { background: #fefbe9; border-color: #c8d6c0; color: #9CA3AF; }
+      .tulip-badge.dark.loading { background: #e1eedd; border-color: #c8d6c0; color: #9CA3AF; }
       .tulip-badge.compact { padding: 5px 10px; gap: 6px; border-radius: 6px; }
       .tulip-badge.compact .tulip-icon { width: 14px; height: 14px; }
       .tulip-badge.compact .tulip-text { font-size: 11px; }
@@ -126,46 +126,46 @@ export default function EmbedPage() {
     <div className="p-6 space-y-6 animate-fade-up max-w-4xl">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>Embed Badge</h1>
-        <p className="text-gray-500 text-sm mt-1">Add a verification badge to any website to prove your documents are blockchain-verified.</p>
+        <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Embed Badge</h1>
+        <p className="text-[#183a1d]/60 text-sm mt-1">Add a verification badge to any website to prove your documents are blockchain-verified.</p>
       </div>
 
       {/* Quick start */}
-      <div className="rounded-xl border border-gray-200 p-5 space-y-4" style={{ background: '#FFFFFF' }}>
+      <div className="rounded-xl border border-[#c8d6c0] p-5 space-y-4 bg-[#e1eedd]">
         <div className="flex items-center gap-2">
-          <Code2 size={18} className="text-[#0c7aed]" />
-          <h2 className="text-gray-900 font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>Quick Start</h2>
+          <Code2 size={18} className="text-[#183a1d]" />
+          <h2 className="text-[#183a1d] font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>Quick Start</h2>
         </div>
-        <p className="text-gray-500 text-sm">Paste this snippet into any HTML page. Replace <code className="text-gray-600 bg-gray-50 px-1.5 py-0.5 rounded text-xs">YOUR_DOCUMENT_HASH</code> with a SHA-256 hash from your verified documents.</p>
+        <p className="text-[#183a1d]/60 text-sm">Paste this snippet into any HTML page. Replace <code className="text-[#183a1d]/70 bg-[#e1eedd] px-1.5 py-0.5 rounded text-xs">YOUR_DOCUMENT_HASH</code> with a SHA-256 hash from your verified documents.</p>
         <CodeBlock code={genericSnippet} label="HTML" />
       </div>
 
       {/* Options */}
-      <div className="rounded-xl border border-gray-200 p-5 space-y-4" style={{ background: '#FFFFFF' }}>
-        <h2 className="text-gray-900 font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>Options</h2>
+      <div className="rounded-xl border border-[#c8d6c0] p-5 space-y-4 bg-[#e1eedd]">
+        <h2 className="text-[#183a1d] font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>Options</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-200 text-left">
-                <th className="py-2 pr-4 text-gray-500 font-medium text-xs uppercase">Attribute</th>
-                <th className="py-2 pr-4 text-gray-500 font-medium text-xs uppercase">Values</th>
-                <th className="py-2 text-gray-500 font-medium text-xs uppercase">Description</th>
+              <tr className="border-b border-[#c8d6c0] text-left">
+                <th className="py-2 pr-4 text-[#183a1d]/60 font-medium text-xs uppercase">Attribute</th>
+                <th className="py-2 pr-4 text-[#183a1d]/60 font-medium text-xs uppercase">Values</th>
+                <th className="py-2 text-[#183a1d]/60 font-medium text-xs uppercase">Description</th>
               </tr>
             </thead>
-            <tbody className="text-gray-600">
-              <tr className="border-b border-gray-100">
-                <td className="py-2.5 pr-4"><code className="text-xs bg-gray-50 px-1.5 py-0.5 rounded">data-tulip-badge</code></td>
+            <tbody className="text-[#183a1d]/70">
+              <tr className="border-b border-[#c8d6c0]">
+                <td className="py-2.5 pr-4"><code className="text-xs bg-[#e1eedd] px-1.5 py-0.5 rounded">data-tulip-badge</code></td>
                 <td className="py-2.5 pr-4 text-xs">SHA-256 hash</td>
                 <td className="py-2.5 text-xs">The document or audit log hash to verify</td>
               </tr>
-              <tr className="border-b border-gray-100">
-                <td className="py-2.5 pr-4"><code className="text-xs bg-gray-50 px-1.5 py-0.5 rounded">data-tulip-theme</code></td>
-                <td className="py-2.5 text-xs"><code className="bg-gray-50 px-1 rounded">light</code> | <code className="bg-gray-50 px-1 rounded">dark</code></td>
+              <tr className="border-b border-[#c8d6c0]">
+                <td className="py-2.5 pr-4"><code className="text-xs bg-[#e1eedd] px-1.5 py-0.5 rounded">data-tulip-theme</code></td>
+                <td className="py-2.5 text-xs"><code className="bg-[#e1eedd] px-1 rounded">light</code> | <code className="bg-[#e1eedd] px-1 rounded">dark</code></td>
                 <td className="py-2.5 text-xs">Badge colour scheme (default: light)</td>
               </tr>
               <tr>
-                <td className="py-2.5 pr-4"><code className="text-xs bg-gray-50 px-1.5 py-0.5 rounded">data-tulip-size</code></td>
-                <td className="py-2.5 text-xs"><code className="bg-gray-50 px-1 rounded">default</code> | <code className="bg-gray-50 px-1 rounded">compact</code></td>
+                <td className="py-2.5 pr-4"><code className="text-xs bg-[#e1eedd] px-1.5 py-0.5 rounded">data-tulip-size</code></td>
+                <td className="py-2.5 text-xs"><code className="bg-[#e1eedd] px-1 rounded">default</code> | <code className="bg-[#e1eedd] px-1 rounded">compact</code></td>
                 <td className="py-2.5 text-xs">Badge size variant</td>
               </tr>
             </tbody>
@@ -174,20 +174,20 @@ export default function EmbedPage() {
       </div>
 
       {/* Live preview */}
-      <div className="rounded-xl border border-gray-200 p-5 space-y-4" style={{ background: '#FFFFFF' }}>
+      <div className="rounded-xl border border-[#c8d6c0] p-5 space-y-4 bg-[#e1eedd]">
         <div className="flex items-center gap-2">
-          <Eye size={18} className="text-[#0c7aed]" />
-          <h2 className="text-gray-900 font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>Live Preview</h2>
+          <Eye size={18} className="text-[#183a1d]" />
+          <h2 className="text-[#183a1d] font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>Live Preview</h2>
         </div>
 
         {/* Controls */}
         <div className="flex flex-wrap gap-4">
           <div className="space-y-1.5">
-            <label className="text-xs text-gray-500 font-medium">Document</label>
+            <label className="text-xs text-[#183a1d]/60 font-medium">Document</label>
             <select
               value={selectedHash}
               onChange={e => setSelectedHash(e.target.value)}
-              className="block bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 outline-none min-w-[200px]"
+              className="block bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] outline-none min-w-[200px]"
             >
               {documents.length === 0 && <option value="">No verified documents</option>}
               {documents.map(doc => (
@@ -201,22 +201,22 @@ export default function EmbedPage() {
             </select>
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs text-gray-500 font-medium">Theme</label>
+            <label className="text-xs text-[#183a1d]/60 font-medium">Theme</label>
             <div className="flex gap-1">
               {(['light', 'dark'] as const).map(t => (
                 <button key={t} onClick={() => setTheme(t)}
-                  className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${theme === t ? 'bg-[#0c7aed]/20 border-[#0c7aed]/40 text-[#0c7aed]' : 'bg-gray-50 border-gray-200 text-gray-500 hover:text-gray-600'}`}>
+                  className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${theme === t ? 'bg-[#f6c453]/20 border-[#f6c453]/40 text-[#183a1d]' : 'bg-[#e1eedd] border-[#c8d6c0] text-[#183a1d]/60 hover:text-[#183a1d]/70'}`}>
                   {t.charAt(0).toUpperCase() + t.slice(1)}
                 </button>
               ))}
             </div>
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs text-gray-500 font-medium">Size</label>
+            <label className="text-xs text-[#183a1d]/60 font-medium">Size</label>
             <div className="flex gap-1">
               {(['default', 'compact'] as const).map(s => (
                 <button key={s} onClick={() => setSize(s)}
-                  className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${size === s ? 'bg-[#0c7aed]/20 border-[#0c7aed]/40 text-[#0c7aed]' : 'bg-gray-50 border-gray-200 text-gray-500 hover:text-gray-600'}`}>
+                  className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${size === s ? 'bg-[#f6c453]/20 border-[#f6c453]/40 text-[#183a1d]' : 'bg-[#e1eedd] border-[#c8d6c0] text-[#183a1d]/60 hover:text-[#183a1d]/70'}`}>
                   {s.charAt(0).toUpperCase() + s.slice(1)}
                 </button>
               ))}
@@ -225,7 +225,7 @@ export default function EmbedPage() {
         </div>
 
         {/* Preview area */}
-        <div className={`rounded-lg border p-8 flex items-center justify-center ${theme === 'dark' ? 'bg-[#0a0a0a] border-gray-200' : 'bg-white border-gray-200'}`}>
+        <div className={`rounded-lg border p-8 flex items-center justify-center ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#c8d6c0]' : 'bg-[#e1eedd] border-[#c8d6c0]'}`}>
           <div ref={previewRef} />
         </div>
 

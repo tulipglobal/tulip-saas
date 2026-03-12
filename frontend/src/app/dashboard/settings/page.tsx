@@ -158,115 +158,114 @@ export default function SettingsPage() {
 
   if (loading) return (
     <div className="p-6 animate-fade-up">
-      <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>Settings</h1>
-      <p className="text-gray-400 text-sm mt-4">Loading...</p>
+      <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Settings</h1>
+      <p className="text-[#183a1d]/40 text-sm mt-4">Loading...</p>
     </div>
   )
 
-  const inputClass = 'w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 focus:ring-1 focus:ring-[#0c7aed]/30 transition-all'
+  const inputClass = 'w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] focus:ring-1 focus:ring-[#f6c453] transition-all'
 
   return (
     <div className="p-6 space-y-6 animate-fade-up max-w-3xl">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       <div>
-        <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>Settings</h1>
-        <p className="text-gray-500 text-sm mt-1">Account and organisation settings</p>
+        <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Settings</h1>
+        <p className="text-[#183a1d]/60 text-sm mt-1">Account and organisation settings</p>
       </div>
 
       {/* Profile Section */}
-      <div className="rounded-xl border border-gray-200 px-5 py-5 space-y-4" style={{ background: '#FFFFFF' }}>
+      <div className="rounded-xl border border-[#c8d6c0] px-5 py-5 space-y-4 bg-[#e1eedd]">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+          <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-[#183a1d] bg-[#f6c453]">
             {profile?.name?.charAt(0)?.toUpperCase() ?? 'U'}
           </div>
           <div>
-            <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Profile</h2>
+            <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide">Profile</h2>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="text-xs text-gray-400 block mb-1">Full Name</label>
+            <label className="text-xs text-[#183a1d]/40 block mb-1">Full Name</label>
             <input className={inputClass} value={profileName} onChange={e => setProfileName(e.target.value)} />
           </div>
           <div>
-            <label className="text-xs text-gray-400 block mb-1">Email</label>
+            <label className="text-xs text-[#183a1d]/40 block mb-1">Email</label>
             <input className={inputClass} type="email" value={profileEmail} onChange={e => setProfileEmail(e.target.value)} />
           </div>
         </div>
         <div className="flex items-center gap-3 pt-1">
           <button onClick={saveProfile} disabled={savingProfile}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#0c7aed] text-white hover:bg-[#0c7aed]/80 disabled:opacity-50 transition-all">
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50 transition-all">
             <Save size={14} />
             {savingProfile ? 'Saving...' : 'Save Profile'}
           </button>
-          <span className="text-xs text-gray-300">Member since {profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}</span>
+          <span className="text-xs text-[#183a1d]/30">Member since {profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}</span>
         </div>
       </div>
 
       {/* Security / Password Section */}
-      <div className="rounded-xl border border-gray-200 px-5 py-5 space-y-4" style={{ background: '#FFFFFF' }}>
+      <div className="rounded-xl border border-[#c8d6c0] px-5 py-5 space-y-4 bg-[#e1eedd]">
         <div className="flex items-center gap-3">
-          <Shield size={18} className="text-gray-500" />
-          <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Change Password</h2>
+          <Shield size={18} className="text-[#183a1d]/60" />
+          <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide">Change Password</h2>
         </div>
         <div className="grid grid-cols-1 gap-4 max-w-md">
           <div>
-            <label className="text-xs text-gray-400 block mb-1">Current Password</label>
+            <label className="text-xs text-[#183a1d]/40 block mb-1">Current Password</label>
             <input className={inputClass} type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} placeholder="Enter current password" />
           </div>
           <div>
-            <label className="text-xs text-gray-400 block mb-1">New Password</label>
+            <label className="text-xs text-[#183a1d]/40 block mb-1">New Password</label>
             <input className={inputClass} type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="At least 8 characters" />
           </div>
           <div>
-            <label className="text-xs text-gray-400 block mb-1">Confirm New Password</label>
+            <label className="text-xs text-[#183a1d]/40 block mb-1">Confirm New Password</label>
             <input className={inputClass} type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirm new password" />
           </div>
         </div>
         <button onClick={savePassword} disabled={savingPassword || !currentPassword || !newPassword}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#0c7aed] text-white hover:bg-[#0c7aed]/80 disabled:opacity-50 transition-all">
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50 transition-all">
           <Save size={14} />
           {savingPassword ? 'Saving...' : 'Change Password'}
         </button>
       </div>
 
       {/* Organisation Section */}
-      <div className="rounded-xl border border-gray-200 px-5 py-5 space-y-4" style={{ background: '#FFFFFF' }}>
+      <div className="rounded-xl border border-[#c8d6c0] px-5 py-5 space-y-4 bg-[#e1eedd]">
         <div className="flex items-center gap-3">
-          <Building2 size={18} className="text-gray-500" />
-          <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Organisation</h2>
+          <Building2 size={18} className="text-[#183a1d]/60" />
+          <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide">Organisation</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="text-xs text-gray-400 block mb-1">Organisation Name</label>
+            <label className="text-xs text-[#183a1d]/40 block mb-1">Organisation Name</label>
             <input className={inputClass} value={orgName} onChange={e => setOrgName(e.target.value)} />
           </div>
           <div>
-            <label className="text-xs text-gray-400 block mb-1">Country</label>
+            <label className="text-xs text-[#183a1d]/40 block mb-1">Country</label>
             <CountrySelect value={orgCountry} onChange={setOrgCountry} />
           </div>
           <div>
-            <label className="text-xs text-gray-400 block mb-1">Website</label>
+            <label className="text-xs text-[#183a1d]/40 block mb-1">Website</label>
             <input className={inputClass} value={orgWebsite} onChange={e => setOrgWebsite(e.target.value)} placeholder="https://..." />
           </div>
           <div>
-            <label className="text-xs text-gray-400 block mb-1">Registration Number</label>
+            <label className="text-xs text-[#183a1d]/40 block mb-1">Registration Number</label>
             <input className={inputClass} value={orgRegNumber} onChange={e => setOrgRegNumber(e.target.value)} placeholder="e.g. REG-12345" />
           </div>
           <div className="md:col-span-2">
-            <label className="text-xs text-gray-400 block mb-1">Description</label>
+            <label className="text-xs text-[#183a1d]/40 block mb-1">Description</label>
             <textarea className={inputClass + ' min-h-[80px] resize-y'} value={orgDescription} onChange={e => setOrgDescription(e.target.value)} placeholder="Brief description of your organisation" />
           </div>
         </div>
         <div className="flex items-center gap-3 pt-1">
           <button onClick={saveOrg} disabled={savingOrg}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#0c7aed] text-white hover:bg-[#0c7aed]/80 disabled:opacity-50 transition-all">
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50 transition-all">
             <Save size={14} />
             {savingOrg ? 'Saving...' : 'Save Organisation'}
           </button>
-          {org?.id && <span className="text-xs text-gray-300 font-mono">Tenant: {org.id.slice(0, 8)}...</span>}
+          {org?.id && <span className="text-xs text-[#183a1d]/30 font-mono">Tenant: {org.id.slice(0, 8)}...</span>}
         </div>
       </div>
     </div>

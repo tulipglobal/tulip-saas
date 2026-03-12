@@ -25,7 +25,7 @@ function TrustScore({ score }: { score: number }) {
     <div className="flex items-center gap-2">
       <div className="relative w-8 h-8">
         <svg className="w-8 h-8 -rotate-90" viewBox="0 0 32 32">
-          <circle cx="16" cy="16" r="12" fill="none" stroke="#E5E7EB" strokeWidth="3" />
+          <circle cx="16" cy="16" r="12" fill="none" stroke="#c8d6c0" strokeWidth="3" />
           <circle cx="16" cy="16" r="12" fill="none" stroke={color} strokeWidth="3"
             strokeDasharray={`${(score / 100) * 75.4} 75.4`} strokeLinecap="round" />
         </svg>
@@ -35,7 +35,7 @@ function TrustScore({ score }: { score: number }) {
       </div>
       <div>
         <div className="text-xs font-semibold" style={{ color }}>{label}</div>
-        <div className="text-xs text-gray-400">Integrity</div>
+        <div className="text-xs text-[#183a1d]/40">Integrity</div>
       </div>
     </div>
   )
@@ -44,41 +44,41 @@ function TrustScore({ score }: { score: number }) {
 function NGOCard({ ngo }: { ngo: NGOProfile }) {
   return (
     <Link href={`/donors/${ngo.slug || ngo.id}`}
-      className="group block rounded-2xl border border-gray-200 hover:border-[#0c7aed]/40 p-6 transition-all hover:bg-[#0c7aed]/3"
-      style={{ background: '#FFFFFF' }}>
+      className="group block rounded-2xl border border-[#c8d6c0] hover:border-[#f6c453]/40 p-6 transition-all hover:bg-[#f6c453]/5"
+      style={{ background: '#e1eedd' }}>
       <div className="flex items-start justify-between mb-4">
-        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold text-white shrink-0"
-          style={{ background: 'linear-gradient(135deg, #0c7aed22, #004ea822)', border: '1px solid rgba(12,122,237,0.2)' }}>
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold text-[#183a1d] shrink-0"
+          style={{ background: 'rgba(246,196,83,0.15)', border: '1px solid rgba(246,196,83,0.2)' }}>
           {ngo.name.charAt(0)}
         </div>
         <div className="flex items-center gap-2">
           <TrustScore score={ngo.integrityScore} />
-          <ArrowUpRight size={16} className="text-gray-300 group-hover:text-[#0c7aed] transition-colors ml-1" />
+          <ArrowUpRight size={16} className="text-[#183a1d]/30 group-hover:text-[#f6c453] transition-colors ml-1" />
         </div>
       </div>
 
-      <h3 className="font-semibold text-gray-900 text-base mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+      <h3 className="font-semibold text-[#183a1d] text-base mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
         {ngo.name}
       </h3>
       {ngo.description && (
-        <p className="text-gray-500 text-sm line-clamp-2 mb-4">{ngo.description}</p>
+        <p className="text-[#183a1d]/60 text-sm line-clamp-2 mb-4">{ngo.description}</p>
       )}
 
-      <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
+      <div className="flex items-center gap-4 pt-4 border-t border-[#c8d6c0]/50">
         <div className="text-center">
-          <div className="text-sm font-bold text-gray-900">{ngo.totalProjects}</div>
-          <div className="text-xs text-gray-400">Projects</div>
+          <div className="text-sm font-bold text-[#183a1d]">{ngo.totalProjects}</div>
+          <div className="text-xs text-[#183a1d]/40">Projects</div>
         </div>
         <div className="text-center">
-          <div className="text-sm font-bold text-gray-900">{ngo.totalExpenses}</div>
-          <div className="text-xs text-gray-400">Expenses</div>
+          <div className="text-sm font-bold text-[#183a1d]">{ngo.totalExpenses}</div>
+          <div className="text-xs text-[#183a1d]/40">Expenses</div>
         </div>
         <div className="text-center">
-          <div className="text-sm font-bold text-gray-900">{ngo.totalAnchored}</div>
-          <div className="text-xs text-gray-400">Anchored</div>
+          <div className="text-sm font-bold text-[#183a1d]">{ngo.totalAnchored}</div>
+          <div className="text-xs text-[#183a1d]/40">Anchored</div>
         </div>
         {ngo.country && (
-          <div className="ml-auto flex items-center gap-1 text-xs text-gray-400">
+          <div className="ml-auto flex items-center gap-1 text-xs text-[#183a1d]/40">
             <Globe size={11} />
             {ngo.country}
           </div>
@@ -86,9 +86,9 @@ function NGOCard({ ngo }: { ngo: NGOProfile }) {
       </div>
 
       {ngo.verifiedAt && (
-        <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-gray-100">
+        <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-[#c8d6c0]/50">
           <CheckCircle size={12} className="text-green-400" />
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-[#183a1d]/40">
             Verified since {new Date(ngo.verifiedAt).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
           </span>
         </div>
@@ -143,24 +143,24 @@ export default function DonorPortalPage() {
 
   return (
     <div className="min-h-screen" style={{
-      background: '#FFFFFF',
-      backgroundImage: 'radial-gradient(at 20% 10%, rgba(12,122,237,0.12) 0px, transparent 50%), radial-gradient(at 80% 80%, rgba(0,78,168,0.08) 0px, transparent 50%)'
+      background: '#fefbe9',
+      backgroundImage: 'radial-gradient(at 20% 10%, rgba(246,196,83,0.12) 0px, transparent 50%), radial-gradient(at 80% 80%, rgba(24,58,29,0.08) 0px, transparent 50%)'
     }}>
       {/* Nav */}
-      <nav className="border-b border-gray-200 px-6 h-16 flex items-center justify-between"
-        style={{ background: '#FFFFFF', backdropFilter: 'blur(12px)' }}>
+      <nav className="border-b border-[#c8d6c0] px-6 h-16 flex items-center justify-between"
+        style={{ background: '#fefbe9', backdropFilter: 'blur(12px)' }}>
         <Link href="/" className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
-            <span className="text-gray-900 font-bold text-xs" style={{ fontFamily: 'Inter, sans-serif' }}>T</span>
+            style={{ background: '#f6c453' }}>
+            <span className="text-[#183a1d] font-bold text-xs" style={{ fontFamily: 'Inter, sans-serif' }}>T</span>
           </div>
-          <span className="font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
-            tulip<span style={{ color: '#0c7aed' }}>ds</span>
+          <span className="font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
+            tulip<span style={{ color: '#f6c453' }}>ds</span>
           </span>
         </Link>
         <div className="flex items-center gap-4">
-          <Link href="/verify" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Verify a hash</Link>
-          <Link href="/login" className="px-4 py-1.5 rounded-lg text-sm font-medium text-gray-900 border border-gray-200 hover:border-white/30 transition-all">
+          <Link href="/verify" className="text-sm text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">Verify a hash</Link>
+          <Link href="/login" className="px-4 py-1.5 rounded-lg text-sm font-medium text-[#183a1d] border border-[#c8d6c0] hover:border-[#f6c453]/30 transition-all">
             NGO Sign in
           </Link>
         </div>
@@ -168,24 +168,24 @@ export default function DonorPortalPage() {
 
       {/* Hero */}
       <div className="max-w-4xl mx-auto px-6 pt-16 pb-12 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#0c7aed]/30 bg-[#0c7aed]/10 text-xs text-[#0c7aed] mb-6">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#f6c453]/30 bg-[#f6c453]/10 text-xs text-[#183a1d] mb-6">
           <Shield size={12} />
           Every expense verified on Polygon blockchain
         </div>
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
+        <h1 className="text-4xl md:text-5xl font-bold text-[#183a1d] mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
           Donate with<br />
-          <span style={{ background: 'linear-gradient(135deg, #0c7aed, #0c7aed)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          <span style={{ background: 'linear-gradient(135deg, #f6c453, #f6c453)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             cryptographic proof
           </span>
         </h1>
-        <p className="text-gray-500 text-lg max-w-xl mx-auto mb-8">
+        <p className="text-[#183a1d]/60 text-lg max-w-xl mx-auto mb-8">
           Every NGO on Tulip DS publishes verified, blockchain-anchored financial records. See exactly where your money goes — provably.
         </p>
 
         {/* Trust pills */}
         <div className="flex items-center justify-center gap-3 flex-wrap mb-10">
           {['SHA-256 Hashed', 'Polygon Anchored', 'RFC 3161 Timestamped', 'eIDAS Compliant'].map(t => (
-            <div key={t} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-200 text-xs text-gray-500">
+            <div key={t} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#e1eedd] border border-[#c8d6c0] text-xs text-[#183a1d]/60">
               <CheckCircle size={11} className="text-green-400" />
               {t}
             </div>
@@ -193,20 +193,20 @@ export default function DonorPortalPage() {
         </div>
 
         {/* Search */}
-        <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 hover:border-gray-300 rounded-xl px-5 py-3.5 max-w-lg mx-auto transition-all">
-          <Search size={18} className="text-gray-400 shrink-0" />
+        <div className="flex items-center gap-3 bg-[#e1eedd] border border-[#c8d6c0] hover:border-[#c8d6c0] rounded-xl px-5 py-3.5 max-w-lg mx-auto transition-all">
+          <Search size={18} className="text-[#183a1d]/40 shrink-0" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search NGOs by name or country..."
-            className="bg-transparent text-gray-900 placeholder-gray-400 outline-none w-full text-sm"
+            className="bg-transparent text-[#183a1d] placeholder-[#183a1d]/40 outline-none w-full text-sm"
           />
         </div>
       </div>
 
       {/* Stats bar */}
-      <div className="border-y border-gray-100 py-6 mb-12"
-        style={{ background: '#FFFFFF' }}>
+      <div className="border-y border-[#c8d6c0] py-6 mb-12"
+        style={{ background: '#e1eedd' }}>
         <div className="max-w-4xl mx-auto px-6 grid grid-cols-3 gap-6 text-center">
           {[
             { label: 'Verified NGOs', value: ngos.length },
@@ -214,8 +214,8 @@ export default function DonorPortalPage() {
             { label: 'Avg Integrity Score', value: ngos.length ? `${Math.round(ngos.reduce((s, n) => s + n.integrityScore, 0) / ngos.length)}%` : '—' },
           ].map(({ label, value }) => (
             <div key={label}>
-              <div className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
-              <div className="text-sm text-gray-500 mt-1">{label}</div>
+              <div className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
+              <div className="text-sm text-[#183a1d]/60 mt-1">{label}</div>
             </div>
           ))}
         </div>
@@ -224,10 +224,10 @@ export default function DonorPortalPage() {
       {/* NGO Grid */}
       <div className="max-w-4xl mx-auto px-6 pb-20">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="font-semibold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
+          <h2 className="font-semibold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
             {filtered.length} Verified Organisation{filtered.length !== 1 ? 's' : ''}
           </h2>
-          <div className="flex items-center gap-1.5 text-xs text-gray-400">
+          <div className="flex items-center gap-1.5 text-xs text-[#183a1d]/40">
             <Star size={12} className="text-yellow-400" />
             Sorted by integrity score
           </div>
@@ -236,12 +236,12 @@ export default function DonorPortalPage() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1,2,3].map(i => (
-              <div key={i} className="rounded-2xl border border-gray-200 p-6 space-y-3 animate-pulse"
-                style={{ background: '#FFFFFF' }}>
-                <div className="h-12 w-12 rounded-xl bg-gray-50" />
-                <div className="h-4 bg-gray-50 rounded w-3/4" />
-                <div className="h-3 bg-gray-50 rounded w-full" />
-                <div className="h-3 bg-gray-50 rounded w-2/3" />
+              <div key={i} className="rounded-2xl border border-[#c8d6c0] p-6 space-y-3 animate-pulse"
+                style={{ background: '#e1eedd' }}>
+                <div className="h-12 w-12 rounded-xl bg-[#c8d6c0]" />
+                <div className="h-4 bg-[#c8d6c0] rounded w-3/4" />
+                <div className="h-3 bg-[#c8d6c0] rounded w-full" />
+                <div className="h-3 bg-[#c8d6c0] rounded w-2/3" />
               </div>
             ))}
           </div>
@@ -253,8 +253,8 @@ export default function DonorPortalPage() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-gray-100 py-8 text-center">
-        <p className="text-gray-300 text-xs">© 2026 Tulip DS · Bright Bytes Technology · Dubai UAE</p>
+      <footer className="border-t border-[#c8d6c0] py-8 text-center">
+        <p className="text-[#183a1d]/30 text-xs">© 2026 Tulip DS · Bright Bytes Technology · Dubai UAE</p>
       </footer>
     </div>
   )

@@ -16,7 +16,7 @@ export default async function OGImage() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(135deg, #040f1f 0%, #07224a 50%, #0c7aed 100%)',
+          background: 'linear-gradient(135deg, #183a1d 0%, #2d5a27 50%, #f6c453 100%)',
           fontFamily: 'sans-serif',
         }}
       >
@@ -33,11 +33,11 @@ export default async function OGImage() {
               width: '64px',
               height: '64px',
               borderRadius: '16px',
-              background: 'linear-gradient(135deg, #0c7aed, #004ea8)',
+              background: '#f6c453',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: 'white',
+              color: '#183a1d',
               fontSize: '28px',
               fontWeight: 800,
             }}
@@ -46,7 +46,7 @@ export default async function OGImage() {
           </div>
           <span style={{ color: 'white', fontSize: '48px', fontWeight: 800 }}>
             tulip
-            <span style={{ color: '#0c7aed' }}>ds</span>
+            <span style={{ color: '#f6c453' }}>ds</span>
           </span>
         </div>
         <div
@@ -63,7 +63,7 @@ export default async function OGImage() {
         </div>
         <div
           style={{
-            color: '#6B7280',
+            color: '#e1eedd',
             fontSize: '20px',
             marginTop: '20px',
             textAlign: 'center',

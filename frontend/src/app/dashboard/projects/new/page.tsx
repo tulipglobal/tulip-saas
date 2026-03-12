@@ -41,25 +41,25 @@ export default function NewProjectPage() {
     setSaving(false)
   }
 
-  const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0c7aed]/50 focus:bg-white transition-all"
-  const labelCls = "block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide"
+  const inputCls = "w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] focus:bg-[#e1eedd] transition-all"
+  const labelCls = "block text-xs font-medium text-[#183a1d]/60 mb-1.5 uppercase tracking-wide"
 
   return (
     <div className="p-6 max-w-2xl animate-fade-up">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/dashboard/projects" className="text-gray-500 hover:text-gray-900 transition-colors">
+        <Link href="/dashboard/projects" className="text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">
           <ArrowLeft size={18} />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>New Project</h1>
-          <p className="text-gray-500 text-sm">All project data will be blockchain anchored automatically</p>
+          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>New Project</h1>
+          <p className="text-[#183a1d]/60 text-sm">All project data will be blockchain anchored automatically</p>
         </div>
       </div>
 
       <div className="space-y-4">
         {!savedProjectId ? (
-          <div className="rounded-xl border border-gray-200 p-6 space-y-5"
-            style={{ background: '#FFFFFF' }}>
+          <div className="rounded-xl border border-[#c8d6c0] p-6 space-y-5"
+            style={{ background: '#e1eedd' }}>
 
             <div>
               <label className={labelCls}>Project Name *</label>
@@ -101,12 +101,11 @@ export default function NewProjectPage() {
 
             <div className="flex items-center gap-3 pt-2">
               <button onClick={submit} disabled={saving}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white disabled:opacity-50 transition-all"
-                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-[#183a1d] disabled:opacity-50 transition-all bg-[#f6c453] hover:bg-[#f0a04b]">
                 <Save size={15} />
                 {saving ? 'Creating…' : 'Create Project'}
               </button>
-              <Link href="/dashboard/projects" className="px-5 py-2.5 rounded-lg text-sm text-gray-500 hover:text-gray-900 transition-colors">
+              <Link href="/dashboard/projects" className="px-5 py-2.5 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">
                 Cancel
               </Link>
             </div>
@@ -123,12 +122,11 @@ export default function NewProjectPage() {
             <DocumentUploadSection entityType="project" entityId={savedProjectId} />
             <div className="flex items-center gap-3">
               <button onClick={() => router.push(`/dashboard/projects/${savedProjectId}`)}
-                className="px-5 py-2.5 rounded-lg text-sm font-medium text-white"
-                style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
+                className="px-5 py-2.5 rounded-lg text-sm font-medium text-[#183a1d] bg-[#f6c453] hover:bg-[#f0a04b]">
                 View Project
               </button>
               <button onClick={() => router.push('/dashboard/projects/new')}
-                className="px-5 py-2.5 rounded-lg text-sm text-gray-500 hover:text-gray-900 transition-colors">
+                className="px-5 py-2.5 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">
                 Create Another
               </button>
             </div>

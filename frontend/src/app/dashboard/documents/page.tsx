@@ -36,6 +36,9 @@ interface Document {
   crossTenantVisualDuplicate?: boolean
   duplicateConfidence?: string | null
   duplicateMethod?: string | null
+  fraudRiskScore?: number | null
+  fraudRiskLevel?: string | null
+  fraudSignals?: string[] | null
   project?: { id: string; name: string }
   expense?: { id: string; description: string; amount: number; currency: string } | null
 }
@@ -109,6 +112,25 @@ function DuplicateBadge({ doc }: { doc: Document }) {
     )
   }
   return null
+}
+
+function RiskBadge({ score, level }: { score?: number | null; level?: string | null }) {
+  if (!score || !level || level === 'LOW') return null
+  const styles: Record<string, string> = {
+    CRITICAL: 'bg-red-800 text-white',
+    HIGH: 'bg-orange-500 text-white',
+    MEDIUM: 'bg-yellow-500 text-white',
+  }
+  const labels: Record<string, string> = {
+    CRITICAL: 'CRITICAL RISK',
+    HIGH: 'HIGH RISK',
+    MEDIUM: 'MEDIUM RISK',
+  }
+  return (
+    <span className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${styles[level] || ''}`} title={`Fraud risk score: ${score}/100`}>
+      {labels[level]} &bull; {score}
+    </span>
+  )
 }
 
 function HashCell({ hash }: { hash: string }) {
@@ -272,6 +294,7 @@ export default function DocumentsPage() {
                       <span className="text-sm font-medium text-[#183a1d] truncate hover:text-[#183a1d] transition-colors">{doc.name}</span>
                       <span className="hidden lg:inline-flex"><ApprovalBadge status={doc.approvalStatus} /></span>
                       <span className="hidden lg:inline-flex"><DuplicateBadge doc={doc} /></span>
+                      <span className="hidden lg:inline-flex"><RiskBadge score={doc.fraudRiskScore} level={doc.fraudRiskLevel} /></span>
                     </div>
                     {doc.description && <div className="text-xs text-[#183a1d]/40 truncate">{doc.description}</div>}
                     {/* Mobile-only meta row */}
@@ -279,6 +302,7 @@ export default function DocumentsPage() {
                       <FileTypeBadge type={doc.fileType} />
                       <ApprovalBadge status={doc.approvalStatus} />
                       <DuplicateBadge doc={doc} />
+                      <RiskBadge score={doc.fraudRiskScore} level={doc.fraudRiskLevel} />
                       <CategoryBadge category={doc.category} />
                       <ExpiryCell doc={doc} />
                       {doc.project?.name && <span className="text-xs text-[#183a1d]/60">{doc.project.name}</span>}

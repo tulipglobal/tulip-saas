@@ -32,13 +32,20 @@ interface MismatchInfo {
   vendor?: string | null
 }
 
+interface FraudRiskInfo {
+  fraudRiskScore?: number | null
+  fraudRiskLevel?: string | null
+  fraudSignals?: string[] | null
+}
+
 interface TrustSealCardProps {
   sealId: string
   onClose: () => void
   mismatch?: MismatchInfo
+  fraudRisk?: FraudRiskInfo
 }
 
-export default function TrustSealCard({ sealId, onClose, mismatch }: TrustSealCardProps) {
+export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: TrustSealCardProps) {
   const [seal, setSeal] = useState<SealData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -295,6 +302,43 @@ export default function TrustSealCard({ sealId, onClose, mismatch }: TrustSealCa
                       <p>Date altered: OCR read <strong>{mismatch.ocrDate}</strong>, expense date differs by 30+ days</p>
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* Fraud Risk */}
+              {fraudRisk && fraudRisk.fraudRiskScore != null && fraudRisk.fraudRiskScore > 0 && (
+                <div className={`rounded-xl border p-4 space-y-2 ${
+                  fraudRisk.fraudRiskLevel === 'CRITICAL' ? 'border-red-400 bg-red-50' :
+                  fraudRisk.fraudRiskLevel === 'HIGH' ? 'border-orange-400 bg-orange-50' :
+                  fraudRisk.fraudRiskLevel === 'MEDIUM' ? 'border-yellow-400 bg-yellow-50' :
+                  'border-gray-200 bg-gray-50'
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <span className={`flex items-center gap-1.5 text-sm font-bold ${
+                      fraudRisk.fraudRiskLevel === 'CRITICAL' ? 'text-red-700' :
+                      fraudRisk.fraudRiskLevel === 'HIGH' ? 'text-orange-700' :
+                      fraudRisk.fraudRiskLevel === 'MEDIUM' ? 'text-yellow-700' :
+                      'text-gray-700'
+                    }`}>
+                      <AlertTriangle size={15} /> Fraud Risk: {fraudRisk.fraudRiskLevel}
+                    </span>
+                    <span className={`text-lg font-bold ${
+                      fraudRisk.fraudRiskLevel === 'CRITICAL' ? 'text-red-700' :
+                      fraudRisk.fraudRiskLevel === 'HIGH' ? 'text-orange-700' :
+                      fraudRisk.fraudRiskLevel === 'MEDIUM' ? 'text-yellow-700' :
+                      'text-gray-700'
+                    }`}>{fraudRisk.fraudRiskScore}/100</span>
+                  </div>
+                  {fraudRisk.fraudSignals && fraudRisk.fraudSignals.length > 0 && (
+                    <ul className="space-y-0.5 text-xs text-gray-600">
+                      {fraudRisk.fraudSignals.map((signal, i) => (
+                        <li key={i} className="flex items-start gap-1">
+                          <span className="mt-0.5 shrink-0">•</span>
+                          <span>{signal}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               )}
 

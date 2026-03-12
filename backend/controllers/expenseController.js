@@ -4,6 +4,7 @@ const { dispatch: webhookDispatch } = require('../services/webhookService')
 const { checkMismatches } = require('../lib/mismatchChecker')
 const { generateOcrFingerprint } = require('../lib/ocrFingerprint')
 const { detectDuplicates } = require('../lib/hybridDuplicateDetector')
+const { scoreFraudRisk } = require('../lib/fraudRiskScorer')
 const prisma = require('../lib/client')
 // ─────────────────────────────────────────────────────────────
 //  controllers/expenseController.js — v2
@@ -397,6 +398,27 @@ exports.uploadReceipt = async (req, res) => {
               userId: req.user.id,
               tenantId: req.user.tenantId,
                   }).catch(() => {})
+          }
+
+          // Fraud risk scoring on expense
+          const freshExpense = await db.expense.findFirst({ where: { id: req.body.expenseId } })
+          if (freshExpense) {
+            const risk = scoreFraudRisk({ ...freshExpense, sealId: seal.id })
+            await db.expense.update({
+              where: { id: req.body.expenseId },
+              data: { fraudRiskScore: risk.score, fraudRiskLevel: risk.level, fraudSignals: risk.breakdown.signals },
+            })
+            if (risk.score > 0) {
+              createAuditLog({
+                action: 'FRAUD_RISK_SCORED',
+                entityType: 'Expense',
+                entityId: req.body.expenseId,
+                userId: req.user.userId,
+                tenantId: req.user.tenantId,
+                dataHash: JSON.stringify({ score: risk.score, level: risk.level, signals: risk.breakdown.signals }),
+              }).catch(() => {})
+              console.log(`[fraud-risk] expense=${req.body.expenseId} score=${risk.score} level=${risk.level}`)
+            }
           }
         }
       }

@@ -7,6 +7,7 @@ const { dispatch: webhookDispatch } = require('../services/webhookService')
 const { KEY_DOCUMENT_CATEGORIES, isKeyCategory } = require('../lib/documentCategories')
 const { autoIssueSeal } = require('../services/universalSealService')
 const { detectDuplicates } = require('../lib/hybridDuplicateDetector')
+const { scoreFraudRisk } = require('../lib/fraudRiskScorer')
 const multer = require('multer')
 
 // Multer — memory storage (buffer for SHA-256 + S3)
@@ -217,6 +218,27 @@ exports.createDocument = async (req, res) => {
               where: { id: document.id },
               data: dupResult.updateData,
             })
+          }
+
+          // Fraud risk scoring
+          const updatedDoc = await db.document.findFirst({ where: { id: document.id } })
+          if (updatedDoc) {
+            const risk = scoreFraudRisk(updatedDoc)
+            await db.document.update({
+              where: { id: document.id },
+              data: { fraudRiskScore: risk.score, fraudRiskLevel: risk.level, fraudSignals: risk.breakdown.signals },
+            })
+            if (risk.score > 0) {
+              createAuditLog({
+                action: 'FRAUD_RISK_SCORED',
+                entityType: 'Document',
+                entityId: document.id,
+                userId: req.user.userId,
+                tenantId: req.user.tenantId,
+                dataHash: JSON.stringify({ score: risk.score, level: risk.level, signals: risk.breakdown.signals }),
+              }).catch(() => {})
+              console.log(`[fraud-risk] doc=${document.id} score=${risk.score} level=${risk.level}`)
+            }
           }
         } catch (err) {
           console.error('[hybrid-dup] document detection failed:', err.message)

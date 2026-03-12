@@ -22,6 +22,8 @@ interface Document {
   crossTenantVisualDuplicate?: boolean
   duplicateConfidence?: string | null
   duplicateMethod?: string | null
+  fraudRiskScore?: number | null
+  fraudRiskLevel?: string | null
 }
 
 interface Expense {
@@ -49,6 +51,9 @@ interface Expense {
   vendorMismatch: boolean
   dateMismatch: boolean
   mismatchNote: string | null
+  fraudRiskScore?: number | null
+  fraudRiskLevel?: string | null
+  fraudSignals?: string[] | null
   project?: { id: string; name: string }
   fundingAgreement?: { id: string; title: string; donor: { name: string } | null } | null
   documents?: Document[]
@@ -133,6 +138,25 @@ function DuplicateDocBadge({ doc }: { doc: Document }) {
     return <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-500 text-white" title={`Visual duplicate of "${doc.visualDuplicateOfName}"`}><AlertTriangle size={9} /> Visual Duplicate</span>
   }
   return null
+}
+
+function RiskBadge({ score, level }: { score?: number | null; level?: string | null }) {
+  if (!score || !level || level === 'LOW') return null
+  const styles: Record<string, string> = {
+    CRITICAL: 'bg-red-800 text-white',
+    HIGH: 'bg-orange-500 text-white',
+    MEDIUM: 'bg-yellow-500 text-white',
+  }
+  const labels: Record<string, string> = {
+    CRITICAL: 'CRITICAL RISK',
+    HIGH: 'HIGH RISK',
+    MEDIUM: 'MEDIUM RISK',
+  }
+  return (
+    <span className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${styles[level] || ''}`} title={`Fraud risk score: ${score}/100`}>
+      {labels[level]} &bull; {score}
+    </span>
+  )
 }
 
 interface OcrFields {
@@ -318,6 +342,7 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
                 <AlertTriangle size={9} /> Visual Duplicate
               </span>
             )}
+            <RiskBadge score={expense.fraudRiskScore} level={expense.fraudRiskLevel} />
             {(expense.documents?.length ?? 0) > 0 && (
               <span className="flex items-center gap-1 text-xs text-[#183a1d]/40">
                 <FileCheck size={10} /> {expense.documents!.length} doc{expense.documents!.length !== 1 ? 's' : ''}
@@ -603,6 +628,11 @@ export default function ExpensesPage() {
             ocrDate: activeMismatch.ocrDate,
             amount: activeMismatch.amount,
             vendor: activeMismatch.vendor,
+          } : undefined}
+          fraudRisk={activeMismatch ? {
+            fraudRiskScore: activeMismatch.fraudRiskScore,
+            fraudRiskLevel: activeMismatch.fraudRiskLevel,
+            fraudSignals: activeMismatch.fraudSignals,
           } : undefined}
         />
       )}

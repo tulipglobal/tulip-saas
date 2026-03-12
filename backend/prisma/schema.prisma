@@ -298,6 +298,9 @@ model Expense {
   vendorMismatch     Boolean           @default(false)
   dateMismatch       Boolean           @default(false)
   mismatchNote       String?
+  fraudRiskScore     Int?
+  fraudRiskLevel     String?
+  fraudSignals       Json?
   createdAt          DateTime          @default(now())
   documents          Document[]
   fundingSource      FundingSource?    @relation(fields: [fundingSourceId], references: [id])
@@ -344,6 +347,9 @@ model Document {
   crossTenantVisualDuplicate Boolean   @default(false)
   duplicateConfidence        String?
   duplicateMethod            String?
+  fraudRiskScore             Int?
+  fraudRiskLevel             String?
+  fraudSignals               Json?
   expenseId                  String?
   projectId             String?
   tenantId              String

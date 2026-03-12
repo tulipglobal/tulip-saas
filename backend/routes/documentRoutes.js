@@ -32,4 +32,20 @@ router.patch('/:id',     can('documents:write'),  updateDocument)
 router.get('/:id/view',  can('documents:read'),   getDocumentUrl)
 router.delete('/:id',    can('documents:delete'), deleteDocument)
 
+// Fraud risk score endpoint
+router.get('/:id/risk', can('documents:read'), async (req, res) => {
+  try {
+    const tenantClient = require('../lib/tenantClient')
+    const { scoreFraudRisk } = require('../lib/fraudRiskScorer')
+    const db = tenantClient(req.user.tenantId)
+    const doc = await db.document.findFirst({ where: { id: req.params.id } })
+    if (!doc) return res.status(404).json({ error: 'Document not found' })
+    const risk = scoreFraudRisk(doc)
+    res.json(risk)
+  } catch (err) {
+    console.error('[risk] document risk error:', err.message)
+    res.status(500).json({ error: 'Failed to compute risk score' })
+  }
+})
+
 module.exports = router

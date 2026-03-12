@@ -17,4 +17,20 @@ router.post('/upload-receipt', can('expenses:write'), receiptUploadMiddleware, u
 router.put('/:id',     can('expenses:write'),  updateExpense)
 router.delete('/:id',  can('expenses:delete'), deleteExpense)
 
+// Fraud risk score endpoint
+router.get('/:id/risk', can('expenses:read'), async (req, res) => {
+  try {
+    const tenantClient = require('../lib/tenantClient')
+    const { scoreFraudRisk } = require('../lib/fraudRiskScorer')
+    const db = tenantClient(req.user.tenantId)
+    const expense = await db.expense.findFirst({ where: { id: req.params.id } })
+    if (!expense) return res.status(404).json({ error: 'Expense not found' })
+    const risk = scoreFraudRisk(expense)
+    res.json(risk)
+  } catch (err) {
+    console.error('[risk] expense risk error:', err.message)
+    res.status(500).json({ error: 'Failed to compute risk score' })
+  }
+})
+
 module.exports = router

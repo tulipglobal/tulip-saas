@@ -14,6 +14,9 @@ interface Document {
   sha256Hash: string | null
   fileType: string | null
   uploadedAt: string
+  isDuplicate?: boolean
+  duplicateOfName?: string | null
+  crossTenantDuplicate?: boolean
 }
 
 interface Expense {
@@ -101,12 +104,33 @@ function AnchorBadge({ status }: { status: string }) {
   )
 }
 
+function DuplicateDocBadge({ doc }: { doc: Document }) {
+  if (doc.crossTenantDuplicate) {
+    return (
+      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-red-400/10 text-red-500 border border-red-400/20" title="Same content found in another organisation — high fraud risk">
+        <AlertTriangle size={9} /> Cross-Org
+      </span>
+    )
+  }
+  if (doc.isDuplicate) {
+    return (
+      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-orange-400/10 text-orange-500 border border-orange-400/20" title={`Duplicate of "${doc.duplicateOfName}"`}>
+        <AlertTriangle size={9} /> Duplicate
+      </span>
+    )
+  }
+  return null
+}
+
 interface OcrFields {
   amount: number | null
   currency: string | null
   vendor: string | null
   date: string | null
   extras: Record<string, string>
+  ocrFingerprint?: string | null
+  duplicateOf?: { id: string; name: string; uploadedAt: string } | null
+  crossTenantDuplicate?: boolean
 }
 
 function ReceiptUploader({ expenseId, expenseTitle, onUploaded }: { expenseId: string; expenseTitle: string; onUploaded: () => void }) {
@@ -177,6 +201,26 @@ function ReceiptUploader({ expenseId, expenseTitle, onUploaded }: { expenseId: s
           <p className="text-[10px] text-emerald-500">Fields are editable — OCR is a suggestion, not a lock</p>
         </div>
       )}
+      {ocrResult?.duplicateOf && (
+        <div className="rounded-lg border border-orange-200 bg-orange-50 p-3 space-y-1">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-orange-600">
+            <AlertTriangle size={12} /> Duplicate Document Detected
+          </div>
+          <p className="text-[11px] text-orange-700">
+            This document appears to be a duplicate of <strong>&quot;{ocrResult.duplicateOf.name}&quot;</strong> uploaded on {new Date(ocrResult.duplicateOf.uploadedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+          </p>
+        </div>
+      )}
+      {ocrResult?.crossTenantDuplicate && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3 space-y-1">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-red-600">
+            <AlertTriangle size={12} /> Cross-Organisation Duplicate (High Fraud Risk)
+          </div>
+          <p className="text-[11px] text-red-700">
+            This document&apos;s content matches a document uploaded by another organisation. This may indicate document fraud.
+          </p>
+        </div>
+      )}
       {!ocrResult && <p className="text-[10px] text-[#183a1d]/30">File will be SHA-256 hashed, OCR scanned, and a Trust Seal created automatically</p>}
     </div>
   )
@@ -222,6 +266,16 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
             {(expense.amountMismatch || expense.vendorMismatch || expense.dateMismatch) && (
               <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-orange-50 text-orange-600 border border-orange-200" title={expense.mismatchNote || 'Mismatch detected'}>
                 <AlertTriangle size={9} /> Mismatch
+              </span>
+            )}
+            {expense.documents?.some(d => d.crossTenantDuplicate) && (
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-red-400/10 text-red-500 border border-red-400/20">
+                <AlertTriangle size={9} /> Cross-Org Duplicate
+              </span>
+            )}
+            {expense.documents?.some(d => d.isDuplicate && !d.crossTenantDuplicate) && (
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-orange-400/10 text-orange-500 border border-orange-400/20">
+                <AlertTriangle size={9} /> Duplicate Doc
               </span>
             )}
             {(expense.documents?.length ?? 0) > 0 && (
@@ -357,6 +411,7 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
                     <div className="flex items-center gap-2">
                       <FileCheck size={12} className="text-[#183a1d]" />
                       <span className="text-sm text-[#183a1d]">{doc.name}</span>
+                      <DuplicateDocBadge doc={doc} />
                     </div>
                     <span className="text-xs text-[#183a1d]/60 uppercase">{doc.fileType ?? '—'}</span>
                     <div>

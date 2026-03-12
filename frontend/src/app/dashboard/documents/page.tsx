@@ -28,6 +28,9 @@ interface Document {
   fileUrl: string
   uploadedAt: string
   approvalStatus?: string
+  isDuplicate?: boolean
+  duplicateOfName?: string | null
+  crossTenantDuplicate?: boolean
   project?: { id: string; name: string }
   expense?: { id: string; description: string; amount: number; currency: string } | null
 }
@@ -46,6 +49,24 @@ function ApprovalBadge({ status }: { status?: string }) {
       {labels[status] ?? status}
     </span>
   )
+}
+
+function DuplicateBadge({ doc }: { doc: Document }) {
+  if (doc.crossTenantDuplicate) {
+    return (
+      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-red-400/10 text-red-500 border border-red-400/20" title="Same content found in another organisation — high fraud risk">
+        <AlertTriangle size={9} /> Cross-Org Duplicate
+      </span>
+    )
+  }
+  if (doc.isDuplicate) {
+    return (
+      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-orange-400/10 text-orange-500 border border-orange-400/20" title={`Duplicate of "${doc.duplicateOfName}"`}>
+        <AlertTriangle size={9} /> Duplicate
+      </span>
+    )
+  }
+  return null
 }
 
 function HashCell({ hash }: { hash: string }) {
@@ -208,12 +229,14 @@ export default function DocumentsPage() {
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-[#183a1d] truncate hover:text-[#183a1d] transition-colors">{doc.name}</span>
                       <span className="hidden lg:inline-flex"><ApprovalBadge status={doc.approvalStatus} /></span>
+                      <span className="hidden lg:inline-flex"><DuplicateBadge doc={doc} /></span>
                     </div>
                     {doc.description && <div className="text-xs text-[#183a1d]/40 truncate">{doc.description}</div>}
                     {/* Mobile-only meta row */}
                     <div className="flex flex-wrap items-center gap-2 mt-1 lg:hidden">
                       <FileTypeBadge type={doc.fileType} />
                       <ApprovalBadge status={doc.approvalStatus} />
+                      <DuplicateBadge doc={doc} />
                       <CategoryBadge category={doc.category} />
                       <ExpiryCell doc={doc} />
                       {doc.project?.name && <span className="text-xs text-[#183a1d]/60">{doc.project.name}</span>}

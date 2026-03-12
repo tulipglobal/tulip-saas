@@ -142,7 +142,7 @@ exports.updateExpense = async (req, res) => {
     const existing = await db.expense.findFirst({ where: { id: req.params.id } })
     if (!existing) return res.status(404).json({ error: 'Expense not found' })
 
-    const { description, amount, currency, fundingSourceId, fundingAgreementId, expenseType, category, subCategory, budgetId, budgetLineId, receiptFileKey, receiptHash, receiptSealId } = req.body
+    const { description, amount, currency, fundingSourceId, fundingAgreementId, expenseType, category, subCategory, budgetId, budgetLineId, vendor, receiptFileKey, receiptHash, receiptSealId } = req.body
     if (amount !== undefined && parseFloat(amount) <= 0) {
       return res.status(400).json({ error: 'Amount must be a positive number greater than zero' })
     }
@@ -159,6 +159,7 @@ exports.updateExpense = async (req, res) => {
         ...(expenseType        !== undefined && { expenseType }),
         ...(category           !== undefined && { category }),
         ...(subCategory        !== undefined && { subCategory }),
+        ...(vendor             !== undefined && { vendor: vendor || null }),
         ...(receiptFileKey     !== undefined && { receiptFileKey }),
         ...(receiptHash        !== undefined && { receiptHash }),
         ...(receiptSealId      !== undefined && { receiptSealId }),
@@ -228,12 +229,71 @@ exports.uploadReceipt = async (req, res) => {
       }).catch(err => console.error('linkReceipt error:', err.message))
     }
 
+    // Run OCR and auto-fill expense fields (non-blocking for the seal response)
+    let ocrFields = null
+    try {
+      const ocrExtractable = ['pdf', 'jpg', 'jpeg', 'png', 'tiff', 'tif'].includes(ext)
+      if (req.body.expenseId && ocrExtractable) {
+        const { extractText } = require('../services/ocrService')
+        const { extractExpenseFields } = require('../lib/ocrFieldExtractor')
+
+        const ocrResult = await extractText(s3Key)
+        const fields = extractExpenseFields(ocrResult)
+        ocrFields = fields
+
+        // Build update data — only update fields that OCR found AND that are empty/default on the expense
+        const existing = await db.expense.findFirst({ where: { id: req.body.expenseId } })
+        if (existing) {
+          const updateData = {}
+
+          // Only auto-fill amount if current amount is 0 or not set
+          if (fields.amount && (!existing.amount || existing.amount === 0)) {
+            updateData.amount = fields.amount
+          }
+
+          // Only auto-fill currency if still default 'USD' and OCR found something different
+          if (fields.currency && existing.currency === 'USD' && fields.currency !== 'USD') {
+            updateData.currency = fields.currency
+          }
+
+          // Only auto-fill vendor if empty
+          if (fields.vendor && !existing.vendor) {
+            updateData.vendor = fields.vendor
+          }
+
+          // Append extra OCR fields to description
+          const extraEntries = Object.entries(fields.extras)
+          if (extraEntries.length > 0) {
+            const extraText = extraEntries.map(([k, v]) => `${k}: ${v}`).join(' | ')
+            const separator = existing.description ? '\n\n' : ''
+            const ocrTag = `[OCR] ${extraText}`
+            // Only append if not already there
+            if (!existing.description?.includes('[OCR]')) {
+              updateData.description = (existing.description || '') + separator + ocrTag
+            }
+          }
+
+          if (Object.keys(updateData).length > 0) {
+            await db.expense.update({
+              where: { id: req.body.expenseId },
+              data: updateData,
+            })
+            console.log(`[OCR auto-fill] expense=${req.body.expenseId} fields=${Object.keys(updateData).join(',')}`)
+          }
+        }
+      }
+    } catch (ocrErr) {
+      // OCR failure should not block the receipt upload
+      console.error('[OCR auto-fill] failed:', ocrErr.message)
+    }
+
     res.json({
       fileKey: s3Key,
       fileUrl,
       hash: sha256Hash,
       sealId: seal.id,
       sealStatus: seal.status,
+      ocrFields,
     })
   } catch (err) {
     console.error('uploadReceipt error:', err)

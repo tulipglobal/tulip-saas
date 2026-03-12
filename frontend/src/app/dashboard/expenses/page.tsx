@@ -94,14 +94,23 @@ function AnchorBadge({ status }: { status: string }) {
   )
 }
 
+interface OcrFields {
+  amount: number | null
+  currency: string | null
+  vendor: string | null
+  date: string | null
+  extras: Record<string, string>
+}
+
 function ReceiptUploader({ expenseId, expenseTitle, onUploaded }: { expenseId: string; expenseTitle: string; onUploaded: () => void }) {
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
+  const [ocrResult, setOcrResult] = useState<OcrFields | null>(null)
 
   const upload = async () => {
     if (!file) return
-    setUploading(true); setError('')
+    setUploading(true); setError(''); setOcrResult(null)
     try {
       const token = localStorage.getItem('tulip_token')
       const fd = new FormData()
@@ -114,7 +123,9 @@ function ReceiptUploader({ expenseId, expenseTitle, onUploaded }: { expenseId: s
         body: fd,
       })
       if (res.ok) {
+        const data = await res.json()
         setFile(null)
+        if (data.ocrFields) setOcrResult(data.ocrFields)
         onUploaded()
       } else {
         const d = await res.json().catch(() => ({}))
@@ -138,12 +149,29 @@ function ReceiptUploader({ expenseId, expenseTitle, onUploaded }: { expenseId: s
           <button onClick={upload} disabled={uploading}
             className="px-3 py-2 rounded-lg text-xs font-medium text-white disabled:opacity-50 shrink-0"
             style={{ background: 'linear-gradient(135deg, #0c7aed, #004ea8)' }}>
-            {uploading ? 'Uploading...' : 'Upload & Seal'}
+            {uploading ? 'Scanning & Sealing...' : 'Upload & Seal'}
           </button>
         )}
       </div>
       {error && <p className="text-xs text-red-400">{error}</p>}
-      <p className="text-[10px] text-gray-300">File will be SHA-256 hashed and a Trust Seal created automatically</p>
+      {ocrResult && (ocrResult.amount || ocrResult.vendor || ocrResult.currency || Object.keys(ocrResult.extras).length > 0) && (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 space-y-1">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-600">
+            <FileCheck size={12} /> Fields auto-filled from OCR
+          </div>
+          <div className="flex flex-wrap gap-2 text-[11px] text-emerald-700">
+            {ocrResult.amount && <span className="px-1.5 py-0.5 bg-emerald-100 rounded">Amount: {ocrResult.amount}</span>}
+            {ocrResult.currency && <span className="px-1.5 py-0.5 bg-emerald-100 rounded">Currency: {ocrResult.currency}</span>}
+            {ocrResult.vendor && <span className="px-1.5 py-0.5 bg-emerald-100 rounded">Vendor: {ocrResult.vendor}</span>}
+            {ocrResult.date && <span className="px-1.5 py-0.5 bg-emerald-100 rounded">Date: {ocrResult.date}</span>}
+            {Object.entries(ocrResult.extras).map(([k, v]) => (
+              <span key={k} className="px-1.5 py-0.5 bg-emerald-100 rounded">{k}: {v}</span>
+            ))}
+          </div>
+          <p className="text-[10px] text-emerald-500">Fields are editable — OCR is a suggestion, not a lock</p>
+        </div>
+      )}
+      {!ocrResult && <p className="text-[10px] text-gray-300">File will be SHA-256 hashed, OCR scanned, and a Trust Seal created automatically</p>}
     </div>
   )
 }
@@ -180,6 +208,11 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
               <span className="text-xs text-emerald-400/60">{expense.fundingAgreement.title}</span>
             )}
             {expense.vendor && <span className="text-xs text-gray-400">{expense.vendor}</span>}
+            {expense.description?.includes('[OCR]') && (
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-600 border border-emerald-200">
+                <FileCheck size={9} /> OCR
+              </span>
+            )}
             {(expense.documents?.length ?? 0) > 0 && (
               <span className="flex items-center gap-1 text-xs text-gray-400">
                 <FileCheck size={10} /> {expense.documents!.length} doc{expense.documents!.length !== 1 ? 's' : ''}

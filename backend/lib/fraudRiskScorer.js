@@ -33,8 +33,27 @@ function scoreFraudRisk(record) {
 
   // ── Mismatch signals ──
   if (record.amountMismatch) {
-    mismatchScore += 20
-    signals.push('Amount mismatch — OCR vs logged amount (+20)')
+    let amountPenalty = 20
+    if (record.ocrAmount != null && record.amount != null && record.ocrAmount > 0) {
+      const alteration = Math.abs(record.amount - record.ocrAmount) / record.ocrAmount
+      const pct = Math.round(alteration * 100)
+      if (alteration > 0.8) {
+        amountPenalty = 50
+        signals.push(`Amount altered by ${pct}% — OCR read ${record.ocrAmount.toLocaleString()}, saved as ${record.amount.toLocaleString()} (+50)`)
+      } else if (alteration > 0.5) {
+        amountPenalty = 35
+        signals.push(`Amount altered by ${pct}% — OCR read ${record.ocrAmount.toLocaleString()}, saved as ${record.amount.toLocaleString()} (+35)`)
+      } else if (alteration >= 0.2) {
+        amountPenalty = 20
+        signals.push(`Amount altered by ${pct}% — OCR read ${record.ocrAmount.toLocaleString()}, saved as ${record.amount.toLocaleString()} (+20)`)
+      } else {
+        amountPenalty = 10
+        signals.push(`Amount altered by ${pct}% — minor discrepancy (+10)`)
+      }
+    } else {
+      signals.push('Amount mismatch — OCR vs logged amount (+20)')
+    }
+    mismatchScore += amountPenalty
   }
   if (record.vendorMismatch) {
     mismatchScore += 15

@@ -251,8 +251,27 @@ router.patch('/tasks/:id/status', async (req, res) => {
         } else if (task.entityType === 'expense') {
           await prisma.expense.update({
             where: { id: task.entityId },
-            data: { approvalStatus: status },
+            data: {
+              approvalStatus: status,
+              approvedBy: userId,
+              approvedAt: new Date(),
+              approvalNote: comment || null,
+            },
           })
+
+          // Release held seal on approval so anchor cron can pick it up
+          if (status === 'approved') {
+            const expense = await prisma.expense.findUnique({
+              where: { id: task.entityId },
+              select: { receiptSealId: true },
+            })
+            if (expense?.receiptSealId) {
+              await prisma.trustSeal.update({
+                where: { id: expense.receiptSealId },
+                data: { status: 'pending' },
+              }).catch(err => console.error('[workflow] seal release failed:', err.message))
+            }
+          }
         }
       } catch (entityErr) {
         console.error('[workflow] Failed to update entity status:', entityErr.message)

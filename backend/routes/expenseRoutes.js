@@ -5,16 +5,20 @@ const express = require('express')
 const router  = express.Router()
 const { can } = require('../middleware/permission')
 const {
-  getExpenses, getExpense,
+  getExpenses, getExpense, getPendingReview,
   createExpense, updateExpense, deleteExpense, voidExpense,
+  approveExpense, rejectExpense,
   receiptUploadMiddleware, uploadReceipt
 } = require('../controllers/expenseController')
 
+router.get('/pending-review', can('expenses:read'), getPendingReview)
 router.get('/',        can('expenses:read'),   getExpenses)
 router.get('/:id',     can('expenses:read'),   getExpense)
 router.post('/',       can('expenses:write'),  createExpense)
 router.post('/upload-receipt', can('expenses:write'), receiptUploadMiddleware, uploadReceipt)
 router.put('/:id',     can('expenses:write'),  updateExpense)
+router.patch('/:id/approve', can('expenses:write'), approveExpense)
+router.patch('/:id/reject',  can('expenses:write'), rejectExpense)
 router.patch('/:id/void', can('expenses:delete'), voidExpense)
 router.delete('/:id',  can('expenses:delete'), deleteExpense)
 

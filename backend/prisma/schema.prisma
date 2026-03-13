@@ -302,6 +302,9 @@ model Expense {
   fraudRiskScore     Int?
   fraudRiskLevel     String?
   fraudSignals       Json?
+  approvalNote       String?
+  approvedBy         String?
+  approvedAt         DateTime?
   voided         Boolean           @default(false)
   voidedAt       DateTime?
   voidedReason   String?

@@ -166,6 +166,23 @@ exports.createExpense = async (req, res) => {
       }
     }
 
+    // Determine if expense needs approval
+    const hasMismatch = mismatch.amountMismatch || mismatch.vendorMismatch || mismatch.dateMismatch
+    let needsApproval = hasMismatch
+    let sealFraudRisk = null
+
+    // Check MEDIUM fraud risk from seal if available
+    if (receiptSealId) {
+      const seal = await prisma.trustSeal.findUnique({ where: { id: receiptSealId }, select: { fraudRiskScore: true, fraudRiskLevel: true, duplicateConfidence: true } }).catch(() => null)
+      if (seal) {
+        if (seal.fraudRiskLevel === 'MEDIUM') needsApproval = true
+        if (seal.duplicateConfidence === 'MEDIUM') needsApproval = true
+        sealFraudRisk = seal
+      }
+    }
+
+    const approvalStatus = needsApproval ? 'pending_review' : 'approved'
+
     const expense = await db.expense.create({
       data: {
         description:        expenseTitle,
@@ -183,7 +200,7 @@ exports.createExpense = async (req, res) => {
         receiptFileKey:     receiptFileKey || null,
         receiptHash:        receiptHash || null,
         receiptSealId:      receiptSealId || null,
-        approvalStatus:     'pending_review',
+        approvalStatus,
         ocrAmount:          ocrAmount != null ? parseFloat(ocrAmount) : null,
         ocrVendor:          ocrVendor || null,
         ocrDate:            ocrDate || null,
@@ -196,7 +213,7 @@ exports.createExpense = async (req, res) => {
     await createAuditLog({ action: 'EXPENSE_CREATED', entityType: 'Expense', entityId: expense.id, userId: req.user.userId, tenantId: req.user.tenantId }).catch(() => {})
 
     // Log mismatch in audit log if any flag is set
-    if (mismatch.amountMismatch || mismatch.vendorMismatch || mismatch.dateMismatch) {
+    if (hasMismatch) {
       createAuditLog({
         action: 'EXPENSE_MISMATCH_FLAGGED',
         entityType: 'Expense',
@@ -207,18 +224,24 @@ exports.createExpense = async (req, res) => {
       notifyMismatchAlert({ tenantId: req.user.tenantId, description: expenseTitle, amount: parseFloat(amount), currency: currency || 'USD', vendor: vendor || null, ocrAmount: ocrAmount != null ? parseFloat(ocrAmount) : null, ocrVendor: ocrVendor || null, ocrDate: ocrDate || null, amountMismatch: mismatch.amountMismatch, vendorMismatch: mismatch.vendorMismatch, dateMismatch: mismatch.dateMismatch }).catch(() => {})
     }
 
-    // Auto-create workflow task for expense approval
-    prisma.workflowTask.create({
-      data: {
-        tenantId: req.user.tenantId,
-        type: 'expense_approval',
-        title: `Expense approval: ${expenseTitle}`,
-        description: `New expense of ${currency || 'USD'} ${parseFloat(amount).toLocaleString()} requires review.`,
-        entityId: expense.id,
-        entityType: 'expense',
-        submittedBy: req.user.userId,
-      },
-    }).catch(err => console.error('[workflow] auto-create expense task failed:', err.message))
+    // Only create workflow task for flagged expenses that need approval
+    if (needsApproval) {
+      // Hold the seal until approved
+      if (receiptSealId) {
+        prisma.trustSeal.update({ where: { id: receiptSealId }, data: { status: 'held' } }).catch(() => {})
+      }
+      prisma.workflowTask.create({
+        data: {
+          tenantId: req.user.tenantId,
+          type: 'expense_approval',
+          title: `Expense approval: ${expenseTitle}`,
+          description: `${currency || 'USD'} ${parseFloat(amount).toLocaleString()} requires review.${hasMismatch ? ' OCR mismatch detected.' : ''}${sealFraudRisk?.fraudRiskLevel === 'MEDIUM' ? ` Fraud risk: MEDIUM (${sealFraudRisk.fraudRiskScore}).` : ''}${sealFraudRisk?.duplicateConfidence === 'MEDIUM' ? ' Duplicate: MEDIUM confidence.' : ''}`,
+          entityId: expense.id,
+          entityType: 'expense',
+          submittedBy: req.user.userId,
+        },
+      }).catch(err => console.error('[workflow] auto-create expense task failed:', err.message))
+    }
 
     // Notify admin (non-blocking)
     notifyExpenseAdded({
@@ -234,7 +257,7 @@ exports.createExpense = async (req, res) => {
       id: expense.id, description: expenseTitle, amount: parseFloat(amount), currency: currency || 'USD',
     }).catch(() => {})
 
-    res.status(201).json(expense)
+    res.status(201).json({ ...expense, requiresApproval: needsApproval })
   } catch (err) {
     console.error('createExpense error:', err)
     res.status(500).json({ error: 'Failed to create expense' })
@@ -452,6 +475,20 @@ exports.uploadReceipt = async (req, res) => {
           })
         }
 
+        // MEDIUM duplicate confidence → hold for approval
+        if (dupResult.confidence === 'MEDIUM' && req.body.expenseId) {
+          await db.expense.update({ where: { id: req.body.expenseId }, data: { approvalStatus: 'pending_review' } }).catch(() => {})
+          await prisma.trustSeal.update({ where: { id: seal.id }, data: { status: 'held' } }).catch(() => {})
+          prisma.workflowTask.create({
+            data: {
+              tenantId: req.user.tenantId, type: 'expense_approval',
+              title: `Expense approval: ${docTitle}`,
+              description: `Duplicate: MEDIUM confidence (${dupResult.method || 'unknown method'}). Review receipt before sealing.`,
+              entityId: req.body.expenseId, entityType: 'expense', submittedBy: req.user.userId,
+            },
+          }).catch(err => console.error('[workflow] auto-create failed:', err.message))
+        }
+
         // Build update data — only update fields that OCR found AND that are empty/default on the expense
         const existing = req.body.expenseId ? await db.expense.findFirst({ where: { id: req.body.expenseId } }) : null
         if (existing) {
@@ -518,6 +555,18 @@ exports.uploadReceipt = async (req, res) => {
               tenantId: req.user.tenantId,
                   }).catch(() => {})
             notifyMismatchAlert({ tenantId: req.user.tenantId, description: existing.description, amount: existing.amount, currency: existing.currency, vendor: existing.vendor || updateData.vendor || null, ocrAmount: fields.amount, ocrVendor: fields.vendor, ocrDate: fields.date, amountMismatch: mismatch.amountMismatch, vendorMismatch: mismatch.vendorMismatch, dateMismatch: mismatch.dateMismatch }).catch(() => {})
+
+            // Mismatch detected → hold for approval
+            await db.expense.update({ where: { id: req.body.expenseId }, data: { approvalStatus: 'pending_review' } }).catch(() => {})
+            await prisma.trustSeal.update({ where: { id: seal.id }, data: { status: 'held' } }).catch(() => {})
+            prisma.workflowTask.create({
+              data: {
+                tenantId: req.user.tenantId, type: 'expense_approval',
+                title: `Expense approval: ${existing.description}`,
+                description: `${existing.currency} ${existing.amount.toLocaleString()} — OCR mismatch detected. ${mismatch.mismatchNote || ''}`,
+                entityId: req.body.expenseId, entityType: 'expense', submittedBy: req.user.userId,
+              },
+            }).catch(err => console.error('[workflow] auto-create failed:', err.message))
           }
 
           // Fraud risk scoring on expense
@@ -555,6 +604,26 @@ exports.uploadReceipt = async (req, res) => {
                 dataHash: JSON.stringify({ score: risk.score, level: risk.level, signals: risk.breakdown.signals }),
               }).catch(() => {})
               console.log(`[fraud-risk] expense=${req.body.expenseId} score=${risk.score} level=${risk.level}`)
+
+              // MEDIUM risk — hold for approval, don't block
+              if (risk.level === 'MEDIUM') {
+                await db.expense.update({
+                  where: { id: req.body.expenseId },
+                  data: { approvalStatus: 'pending_review' },
+                })
+                await prisma.trustSeal.update({ where: { id: seal.id }, data: { status: 'held' } }).catch(() => {})
+                prisma.workflowTask.create({
+                  data: {
+                    tenantId: req.user.tenantId,
+                    type: 'expense_approval',
+                    title: `Expense approval: ${freshExpense.description}`,
+                    description: `${freshExpense.currency} ${freshExpense.amount.toLocaleString()} — MEDIUM fraud risk (score ${risk.score}). ${risk.breakdown.signals.join(', ')}`,
+                    entityId: req.body.expenseId,
+                    entityType: 'expense',
+                    submittedBy: req.user.userId,
+                  },
+                }).catch(err => console.error('[workflow] auto-create failed:', err.message))
+              }
 
               // Block HIGH/CRITICAL — void the expense and return 422
               if (risk.level === 'HIGH' || risk.level === 'CRITICAL') {
@@ -647,6 +716,119 @@ exports.voidExpense = async (req, res) => {
   } catch (err) {
     console.error('[void] expense void error:', err.message)
     res.status(500).json({ error: 'Failed to void expense' })
+  }
+}
+
+// GET /api/expenses/pending-review — list expenses needing approval
+exports.getPendingReview = async (req, res) => {
+  try {
+    const db = tenantClient(req.user.tenantId)
+    const expenses = await db.expense.findMany({
+      where: { approvalStatus: 'pending_review', voided: false },
+      include: {
+        project: { select: { id: true, name: true } },
+        fundingAgreement: { select: { id: true, title: true, donor: { select: { name: true } } } },
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    // Generate presigned URLs for receipts
+    const withUrls = await Promise.all(expenses.map(async (e) => {
+      if (!e.receiptFileKey) return e
+      const receiptUrl = await getPresignedUrlFromKey(e.receiptFileKey, 3600)
+      return { ...e, receiptUrl }
+    }))
+
+    res.json({ data: withUrls, total: withUrls.length })
+  } catch (err) {
+    console.error('[expenses/pending-review]', err)
+    res.status(500).json({ error: 'Failed to fetch pending review expenses' })
+  }
+}
+
+// PATCH /api/expenses/:id/approve — approve flagged expense, release seal
+exports.approveExpense = async (req, res) => {
+  try {
+    const db = tenantClient(req.user.tenantId)
+    const { note } = req.body
+
+    const existing = await db.expense.findFirst({ where: { id: req.params.id } })
+    if (!existing) return res.status(404).json({ error: 'Expense not found' })
+    if (existing.approvalStatus === 'approved') return res.status(400).json({ error: 'Expense already approved' })
+
+    const updated = await db.expense.update({
+      where: { id: req.params.id },
+      data: {
+        approvalStatus: 'approved',
+        approvalNote: note || null,
+        approvedBy: req.user.userId,
+        approvedAt: new Date(),
+      },
+    })
+
+    // Release held seal for anchoring
+    if (existing.receiptSealId) {
+      await prisma.trustSeal.update({
+        where: { id: existing.receiptSealId },
+        data: { status: 'pending' },
+      }).catch(err => console.error('[approve] seal release failed:', err.message))
+    }
+
+    // Resolve any pending workflow task
+    await prisma.workflowTask.updateMany({
+      where: { entityId: req.params.id, entityType: 'expense', tenantId: req.user.tenantId, status: { in: ['pending', 'in_review'] } },
+      data: { status: 'approved', resolvedAt: new Date() },
+    }).catch(() => {})
+
+    await createAuditLog({
+      action: 'EXPENSE_APPROVED', entityType: 'Expense', entityId: req.params.id,
+      userId: req.user.userId, tenantId: req.user.tenantId,
+    }).catch(() => {})
+
+    res.json(updated)
+  } catch (err) {
+    console.error('[expenses/approve]', err)
+    res.status(500).json({ error: 'Failed to approve expense' })
+  }
+}
+
+// PATCH /api/expenses/:id/reject — reject flagged expense
+exports.rejectExpense = async (req, res) => {
+  try {
+    const db = tenantClient(req.user.tenantId)
+    const { reason } = req.body
+    if (!reason || !reason.trim()) return res.status(400).json({ error: 'Rejection reason is required' })
+
+    const existing = await db.expense.findFirst({ where: { id: req.params.id } })
+    if (!existing) return res.status(404).json({ error: 'Expense not found' })
+    if (existing.approvalStatus === 'rejected') return res.status(400).json({ error: 'Expense already rejected' })
+
+    const updated = await db.expense.update({
+      where: { id: req.params.id },
+      data: {
+        approvalStatus: 'rejected',
+        approvalNote: reason.trim(),
+        approvedBy: req.user.userId,
+        approvedAt: new Date(),
+      },
+    })
+
+    // Resolve any pending workflow task
+    await prisma.workflowTask.updateMany({
+      where: { entityId: req.params.id, entityType: 'expense', tenantId: req.user.tenantId, status: { in: ['pending', 'in_review'] } },
+      data: { status: 'rejected', resolvedAt: new Date() },
+    }).catch(() => {})
+
+    await createAuditLog({
+      action: 'EXPENSE_REJECTED', entityType: 'Expense', entityId: req.params.id,
+      userId: req.user.userId, tenantId: req.user.tenantId,
+      dataHash: JSON.stringify({ reason: reason.trim() }),
+    }).catch(() => {})
+
+    res.json(updated)
+  } catch (err) {
+    console.error('[expenses/reject]', err)
+    res.status(500).json({ error: 'Failed to reject expense' })
   }
 }
 

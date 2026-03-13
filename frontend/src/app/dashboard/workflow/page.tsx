@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { apiGet, apiPost, apiPatch } from '@/lib/api'
-import { CheckCircle2, XCircle, Clock, MessageSquare, Send, ChevronDown, ChevronUp, ListFilter, X } from 'lucide-react'
+import { CheckCircle2, XCircle, Clock, MessageSquare, Send, ChevronDown, ChevronUp, ListFilter, X, AlertTriangle, DollarSign, Shield } from 'lucide-react'
 
 interface WorkflowComment {
   id: string
@@ -73,14 +73,70 @@ function TypeBadge({ type }: { type: string }) {
   )
 }
 
+interface ExpenseDetail {
+  id: string
+  description: string
+  amount: number
+  currency: string
+  vendor: string | null
+  createdAt: string
+  fraudRiskScore: number | null
+  fraudRiskLevel: string | null
+  fraudSignals: string[] | null
+  amountMismatch: boolean
+  vendorMismatch: boolean
+  dateMismatch: boolean
+  mismatchNote: string | null
+  ocrAmount: number | null
+  ocrVendor: string | null
+  ocrDate: string | null
+  receiptUrl: string | null
+  project?: { id: string; name: string } | null
+}
+
+function RiskBadge({ score, level }: { score?: number | null; level?: string | null }) {
+  if (!score || !level || level === 'LOW') return null
+  const styles: Record<string, string> = {
+    CRITICAL: 'bg-red-800 text-white', HIGH: 'bg-orange-500 text-white', MEDIUM: 'bg-yellow-500 text-white',
+  }
+  return (
+    <span className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${styles[level] || ''}`}>
+      {level} RISK &bull; {score}
+    </span>
+  )
+}
+
 function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void }) {
   const [expanded, setExpanded] = useState(false)
   const [comment, setComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [expense, setExpense] = useState<ExpenseDetail | null>(null)
+  const [loadingExpense, setLoadingExpense] = useState(false)
+
+  const loadExpense = () => {
+    if (task.entityType !== 'expense' || expense || loadingExpense) return
+    setLoadingExpense(true)
+    apiGet(`/api/expenses/${task.entityId}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setExpense(d); setLoadingExpense(false) })
+      .catch(() => setLoadingExpense(false))
+  }
 
   const handleStatus = async (status: string) => {
+    if (status === 'rejected' && !comment.trim()) {
+      alert('Please add a reason for rejection in the comment field')
+      return
+    }
     setSubmitting(true)
     try {
+      // Also call direct expense approve/reject for seal release
+      if (task.entityType === 'expense') {
+        if (status === 'approved') {
+          await apiPatch(`/api/expenses/${task.entityId}/approve`, { note: comment.trim() || undefined })
+        } else if (status === 'rejected') {
+          await apiPatch(`/api/expenses/${task.entityId}/reject`, { reason: comment.trim() })
+        }
+      }
       await apiPatch(`/api/workflow/tasks/${task.id}/status`, { status, comment: comment.trim() || undefined })
       setComment('')
       onAction()
@@ -103,7 +159,7 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
 
   return (
     <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
-      <div className="px-4 py-3.5 flex items-start gap-3 cursor-pointer hover:bg-[#e1eedd]/50 transition-colors" onClick={() => setExpanded(e => !e)}>
+      <div className="px-4 py-3.5 flex items-start gap-3 cursor-pointer hover:bg-[#e1eedd]/50 transition-colors" onClick={() => { setExpanded(e => !e); loadExpense() }}>
         <div className="mt-0.5 shrink-0">
           {task.status === 'approved' ? <CheckCircle2 size={18} className="text-green-400" /> :
            task.status === 'rejected' ? <XCircle size={18} className="text-red-400" /> :
@@ -132,6 +188,81 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
         <div className="px-4 pb-4 border-t border-[#c8d6c0] pt-3 space-y-3">
           {task.description && (
             <p className="text-sm text-[#183a1d]/60">{task.description}</p>
+          )}
+
+          {/* Expense details panel */}
+          {task.entityType === 'expense' && expense && (
+            <div className="rounded-lg border border-[#c8d6c0] p-4 space-y-3 bg-[#fefbe9]/50">
+              <div className="flex items-center gap-2 text-xs text-[#183a1d]/40 uppercase tracking-wide font-medium">
+                <DollarSign size={12} /> Expense Details
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div>
+                  <div className="text-[10px] text-[#183a1d]/40 uppercase">Amount</div>
+                  <div className="text-sm font-bold text-[#183a1d]">{expense.currency} {expense.amount.toLocaleString()}</div>
+                </div>
+                {expense.vendor && (
+                  <div>
+                    <div className="text-[10px] text-[#183a1d]/40 uppercase">Vendor</div>
+                    <div className="text-sm text-[#183a1d]">{expense.vendor}</div>
+                  </div>
+                )}
+                <div>
+                  <div className="text-[10px] text-[#183a1d]/40 uppercase">Date</div>
+                  <div className="text-sm text-[#183a1d]">{new Date(expense.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                </div>
+                {expense.project && (
+                  <div>
+                    <div className="text-[10px] text-[#183a1d]/40 uppercase">Project</div>
+                    <div className="text-sm text-[#183a1d]">{expense.project.name}</div>
+                  </div>
+                )}
+              </div>
+
+              {/* Fraud risk */}
+              {expense.fraudRiskScore != null && expense.fraudRiskLevel && expense.fraudRiskLevel !== 'LOW' && (
+                <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-3 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle size={14} className="text-yellow-600" />
+                    <span className="text-sm font-bold text-yellow-700">Fraud Risk: {expense.fraudRiskLevel} ({expense.fraudRiskScore}/100)</span>
+                  </div>
+                  {expense.fraudSignals && expense.fraudSignals.length > 0 && (
+                    <ul className="text-xs text-yellow-600 list-disc list-inside space-y-0.5">
+                      {expense.fraudSignals.map((s, i) => <li key={i}>{s}</li>)}
+                    </ul>
+                  )}
+                </div>
+              )}
+
+              {/* Mismatch warnings */}
+              {(expense.amountMismatch || expense.vendorMismatch || expense.dateMismatch) && (
+                <div className="rounded-lg bg-red-50 border border-red-200 p-3 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle size={14} className="text-red-600" />
+                    <span className="text-sm font-bold text-red-700">OCR Mismatch</span>
+                  </div>
+                  <div className="text-xs text-red-600 space-y-0.5">
+                    {expense.amountMismatch && <div>Amount: OCR read <strong>{expense.ocrAmount?.toLocaleString()}</strong>, logged as <strong>{expense.amount.toLocaleString()}</strong></div>}
+                    {expense.vendorMismatch && <div>Vendor: OCR read &quot;{expense.ocrVendor}&quot;, logged as &quot;{expense.vendor}&quot;</div>}
+                    {expense.dateMismatch && <div>Date: OCR read {expense.ocrDate}, differs by 30+ days</div>}
+                  </div>
+                </div>
+              )}
+
+              {/* Receipt image */}
+              {expense.receiptUrl && (
+                <div>
+                  <div className="text-[10px] text-[#183a1d]/40 uppercase mb-1">Receipt</div>
+                  <a href={expense.receiptUrl} target="_blank" rel="noopener noreferrer"
+                    className="text-xs text-[#0d9488] hover:underline flex items-center gap-1">
+                    <Shield size={11} /> View Receipt
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
+          {task.entityType === 'expense' && loadingExpense && (
+            <div className="text-xs text-[#183a1d]/40 animate-pulse">Loading expense details...</div>
           )}
 
           {task.assignee && (
@@ -165,9 +296,9 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
             <input
               value={comment}
               onChange={e => setComment(e.target.value)}
-              placeholder="Add a comment..."
+              placeholder={canAct ? 'Add a comment (required for rejection)...' : 'Add a comment...'}
               className="flex-1 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#c8d6c0]"
-              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && canAct) handleComment() }}
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !canAct) handleComment() }}
             />
             <button onClick={handleComment} disabled={!comment.trim() || submitting}
               className="w-8 h-8 rounded-lg bg-[#e1eedd] border border-[#c8d6c0] flex items-center justify-center hover:bg-[#e1eedd] transition-all disabled:opacity-30">
@@ -179,7 +310,7 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
             <div className="flex items-center gap-2 pt-1">
               <button onClick={() => handleStatus('approved')} disabled={submitting}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-green-400/10 text-green-400 border border-green-400/20 hover:bg-green-400/20 transition-all disabled:opacity-50">
-                <CheckCircle2 size={13} /> Approve
+                <CheckCircle2 size={13} /> Approve{task.entityType === 'expense' ? ' & Seal' : ''}
               </button>
               <button onClick={() => handleStatus('rejected')} disabled={submitting}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-400/10 text-red-400 border border-red-400/20 hover:bg-red-400/20 transition-all disabled:opacity-50">

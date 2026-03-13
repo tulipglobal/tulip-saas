@@ -4,6 +4,10 @@ const withPWA = require('@ducanh2912/next-pwa').default({
   skipWaiting: true,
   disable: process.env.NODE_ENV === 'development',
   customWorkerSrc: 'worker',
+  fallbacks: {
+    document: '/offline',
+  },
+  extendDefaultRuntimeCaching: true,
   runtimeCaching: [
     {
       urlPattern: /^https:\/\/api\.tulipds\.com\/api\/(projects|budgets|expenses|categories).*/,

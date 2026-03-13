@@ -12,7 +12,7 @@ const { uploadToS3 } = require('../lib/s3Upload')
 exports.updateOrganisation = async (req, res) => {
   try {
     const { tenantId } = req.user
-    const { name, description, website, registrationNumber, country } = req.body
+    const { name, description, website, registrationNumber, country, baseCurrency } = req.body
 
     const data = {}
     if (name !== undefined) data.name = name.trim()
@@ -20,11 +20,12 @@ exports.updateOrganisation = async (req, res) => {
     if (website !== undefined) data.website = website
     if (registrationNumber !== undefined) data.registrationNumber = registrationNumber
     if (country !== undefined) data.country = country
+    if (baseCurrency !== undefined) data.baseCurrency = baseCurrency
 
     const tenant = await prisma.tenant.update({
       where: { id: tenantId },
       data,
-      select: { id: true, name: true, description: true, website: true, registrationNumber: true, country: true, logoUrl: true, completedSetup: true }
+      select: { id: true, name: true, description: true, website: true, registrationNumber: true, country: true, baseCurrency: true, logoUrl: true, completedSetup: true }
     })
 
     await createAuditLog({
@@ -239,7 +240,7 @@ exports.getSetupStatus = async (req, res) => {
       where: { id: tenantId },
       select: {
         id: true, name: true, description: true, website: true,
-        registrationNumber: true, country: true, logoUrl: true, completedSetup: true
+        registrationNumber: true, country: true, baseCurrency: true, logoUrl: true, completedSetup: true
       }
     })
 

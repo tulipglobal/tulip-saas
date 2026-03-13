@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Building2, Shield, Save, Check, AlertCircle, Bell } from 'lucide-react'
+import { Building2, Shield, Save, Check, AlertCircle, Bell, Coins } from 'lucide-react'
 import { apiGet, apiPatch } from '@/lib/api'
 import CountrySelect from '@/components/CountrySelect'
+import CurrencySelect from '@/components/CurrencySelect'
 
 interface Profile {
   id: string
@@ -62,6 +63,7 @@ export default function SettingsPage() {
   const [orgWebsite, setOrgWebsite] = useState('')
   const [orgRegNumber, setOrgRegNumber] = useState('')
   const [orgCountry, setOrgCountry] = useState('')
+  const [orgCurrency, setOrgCurrency] = useState('USD')
   const [savingOrg, setSavingOrg] = useState(false)
 
   useEffect(() => {
@@ -84,6 +86,7 @@ export default function SettingsPage() {
         setOrgWebsite(setup.website || '')
         setOrgRegNumber(setup.registrationNumber || setup.registration_number || '')
         setOrgCountry(setup.country || '')
+        setOrgCurrency(setup.baseCurrency || 'USD')
       }
       if (notif) setNotifPrefs(notif)
       setLoading(false)
@@ -167,7 +170,7 @@ export default function SettingsPage() {
     try {
       const res = await apiPatch('/api/setup/organisation', {
         name: orgName, description: orgDescription, website: orgWebsite,
-        registrationNumber: orgRegNumber, country: orgCountry,
+        registrationNumber: orgRegNumber, country: orgCountry, baseCurrency: orgCurrency,
       })
       if (res.ok) {
         const updated = await res.json()
@@ -308,6 +311,10 @@ export default function SettingsPage() {
           <div>
             <label className="text-xs text-[#183a1d]/40 block mb-1">Country</label>
             <CountrySelect value={orgCountry} onChange={setOrgCountry} />
+          </div>
+          <div>
+            <label className="text-xs text-[#183a1d]/40 block mb-1">Base Currency</label>
+            <CurrencySelect value={orgCurrency} onChange={setOrgCurrency} />
           </div>
           <div>
             <label className="text-xs text-[#183a1d]/40 block mb-1">Website</label>

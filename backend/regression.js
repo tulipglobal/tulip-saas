@@ -43,7 +43,7 @@ function log(n, label, result, detail) {
   console.log(`[${String(n).padStart(2)}] ${tag.padEnd(6)} ${label}${d}`);
 }
 
-const TOTAL = 73;
+const TOTAL = 81;
 
 (async () => {
   console.log(`=== REGRESSION CHECKLIST (${TOTAL} items) ===\n`);
@@ -407,6 +407,72 @@ const TOTAL = 73;
 
   const expiryJob = fs.readFileSync("/home/ubuntu/tulip-saas/backend/jobs/expiryAlerts.js", "utf8");
   log(73, "DOCUMENT_EXPIRY_ALERT audit log in job", expiryJob.includes("DOCUMENT_EXPIRY_ALERT") ? "PASS" : "FAIL");
+
+  // ═══════════════════════════════════════════════════════════
+  //  SECTION 18: #28 MULTI-CURRENCY (74-81)
+  // ═══════════════════════════════════════════════════════════
+  console.log("\n\u2500\u2500\u2500 #28 MULTI-CURRENCY \u2500\u2500\u2500");
+
+  // 74 — baseCurrency column on Tenant
+  const baseCurrCol = await prisma.$queryRawUnsafe(
+    "SELECT column_name FROM information_schema.columns WHERE table_name = $1 AND column_name = $2",
+    "Tenant", "baseCurrency"
+  );
+  log(74, "Tenant baseCurrency column exists", baseCurrCol.length === 1 ? "PASS" : "FAIL");
+
+  // 75 — CurrencySelect component exists
+  log(75, "CurrencySelect component exists",
+    fs.existsSync("/home/ubuntu/tulip-saas/frontend/src/components/CurrencySelect.tsx") ? "PASS" : "FAIL");
+
+  // 76 — currencies.ts utility with 150+ currencies
+  const currFile = "/home/ubuntu/tulip-saas/frontend/src/lib/currencies.ts";
+  if (fs.existsSync(currFile)) {
+    const currContent = fs.readFileSync(currFile, "utf8");
+    const currCount = (currContent.match(/code:/g) || []).length;
+    log(76, "currencies.ts has 150+ currencies", currCount >= 150 ? "PASS" : "FAIL", "count=" + currCount);
+  } else {
+    log(76, "currencies.ts exists", "FAIL", "file not found");
+  }
+
+  // 77 — formatCurrencyShort + searchCurrencies exported
+  if (fs.existsSync(currFile)) {
+    const currContent = fs.readFileSync(currFile, "utf8");
+    log(77, "formatCurrencyShort + searchCurrencies in currencies.ts",
+      currContent.includes("formatCurrencyShort") && currContent.includes("searchCurrencies") ? "PASS" : "FAIL");
+  } else {
+    log(77, "currencies.ts utilities", "FAIL", "file not found");
+  }
+
+  // 78 — Expense new page uses CurrencySelect (not hardcoded dropdown)
+  const expNewPage = fs.readFileSync("/home/ubuntu/tulip-saas/frontend/src/app/dashboard/expenses/new/page.tsx", "utf8");
+  log(78, "Expense form uses CurrencySelect", expNewPage.includes("CurrencySelect") ? "PASS" : "FAIL");
+
+  // 79 — Budget new page uses CurrencySelect
+  const budgetNewFile = "/home/ubuntu/tulip-saas/frontend/src/app/dashboard/budgets/new/page.tsx";
+  if (fs.existsSync(budgetNewFile)) {
+    const budgetNew = fs.readFileSync(budgetNewFile, "utf8");
+    log(79, "Budget form uses CurrencySelect", budgetNew.includes("CurrencySelect") ? "PASS" : "FAIL");
+  } else {
+    log(79, "Budget new page exists", "FAIL", "file not found");
+  }
+
+  // 80 — Funding new page uses CurrencySelect
+  const fundingNewFile = "/home/ubuntu/tulip-saas/frontend/src/app/dashboard/funding/new/page.tsx";
+  if (fs.existsSync(fundingNewFile)) {
+    const fundingNew = fs.readFileSync(fundingNewFile, "utf8");
+    log(80, "Funding form uses CurrencySelect", fundingNew.includes("CurrencySelect") ? "PASS" : "FAIL");
+  } else {
+    log(80, "Funding new page exists", "FAIL", "file not found");
+  }
+
+  // 81 — Settings page has baseCurrency
+  const settingsFile = "/home/ubuntu/tulip-saas/frontend/src/app/dashboard/settings/page.tsx";
+  if (fs.existsSync(settingsFile)) {
+    const settings = fs.readFileSync(settingsFile, "utf8");
+    log(81, "Settings page has baseCurrency", settings.includes("baseCurrency") ? "PASS" : "FAIL");
+  } else {
+    log(81, "Settings page exists", "FAIL", "file not found");
+  }
 
   // ═══════════════════════════════════════════════════════════
   //  SUMMARY

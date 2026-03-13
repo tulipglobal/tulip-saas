@@ -68,6 +68,12 @@ const tooltipStyle = {
   labelStyle: { color: '#183a1d' },
 }
 
+function formatYAxis(value: number) {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(value % 1_000_000 === 0 ? 0 : 1)}M`
+  if (value >= 1_000) return `${(value / 1_000).toFixed(value % 1_000 === 0 ? 0 : 1)}K`
+  return String(value)
+}
+
 function formatShortDate(value: string | number) {
   const d = new Date(String(value))
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
@@ -773,7 +779,7 @@ export default function AnalyticsPage() {
                 <LineChart data={data.documentsOverTime}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#c8d6c0" />
                   <XAxis dataKey="date" tickFormatter={formatShortDate} tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} allowDecimals={false} domain={[0, 'auto']} tickFormatter={formatYAxis} />
                   <Tooltip {...tooltipStyle} labelFormatter={tooltipLabelFormatter} />
                   <Line type="monotone" dataKey="count" stroke="#6366f1" strokeWidth={2} dot={false} name="Documents" />
                 </LineChart>
@@ -790,7 +796,7 @@ export default function AnalyticsPage() {
                 <LineChart data={data.blockchainVerifications}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#c8d6c0" />
                   <XAxis dataKey="date" tickFormatter={formatShortDate} tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} allowDecimals={false} domain={[0, 'auto']} tickFormatter={formatYAxis} />
                   <Tooltip {...tooltipStyle} labelFormatter={tooltipLabelFormatter} />
                   <Line type="monotone" dataKey="count" stroke="#10b981" strokeWidth={2} dot={false} name="Verified" />
                 </LineChart>
@@ -807,7 +813,7 @@ export default function AnalyticsPage() {
                 <BarChart data={data.fundingVsSpent}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#c8d6c0" />
                   <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} allowDecimals={false} domain={[0, 'auto']} tickFormatter={formatYAxis} />
                   <Tooltip {...tooltipStyle} />
                   <Legend wrapperStyle={{ fontSize: 12, color: '#6B7280' }} />
                   <Bar dataKey="received" fill="#3b82f6" name="Received" radius={[4, 4, 0, 0]} />
@@ -871,7 +877,7 @@ export default function AnalyticsPage() {
                 <LineChart data={data.donorEngagement}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#c8d6c0" />
                   <XAxis dataKey="date" tickFormatter={formatShortDate} tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} allowDecimals={false} domain={[0, 'auto']} tickFormatter={formatYAxis} />
                   <Tooltip {...tooltipStyle} labelFormatter={tooltipLabelFormatter} />
                   <Legend wrapperStyle={{ fontSize: 12, color: '#6B7280' }} />
                   <Line type="monotone" dataKey="logins" stroke="#8b5cf6" strokeWidth={2} dot={false} name="Logins" />

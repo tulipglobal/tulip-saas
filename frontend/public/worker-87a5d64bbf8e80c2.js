@@ -1,1 +1,0 @@
-self.addEventListener("sync",e=>{"expense-sync"===e.tag&&e.waitUntil(self.clients.matchAll().then(e=>{e.forEach(e=>e.postMessage({type:"BACKGROUND_SYNC"}))}))});

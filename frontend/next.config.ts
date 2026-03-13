@@ -9,33 +9,25 @@ const withPWA = require('@ducanh2912/next-pwa').default({
     document: '/offline',
   },
   extendDefaultRuntimeCaching: true,
-  workboxOptions: {
-    additionalManifestEntries: [
-      { url: '/dashboard', revision: Date.now().toString() },
-      { url: '/dashboard/expenses/new', revision: Date.now().toString() },
-      { url: '/dashboard/expenses', revision: Date.now().toString() },
-      { url: '/login', revision: Date.now().toString() },
-    ],
-    runtimeCaching: [
-      {
-        urlPattern: /^https:\/\/api\.tulipds\.com\/api\/(projects|budgets|expenses|categories).*/,
-        handler: 'NetworkFirst',
-        options: {
-          cacheName: 'api-cache',
-          expiration: { maxEntries: 200, maxAgeSeconds: 86400 },
-          networkTimeoutSeconds: 10,
-        },
+  runtimeCaching: [
+    {
+      urlPattern: /^https:\/\/api\.tulipds\.com\/api\/(projects|budgets|expenses|categories).*/,
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'api-cache',
+        expiration: { maxEntries: 200, maxAgeSeconds: 86400 },
+        networkTimeoutSeconds: 10,
       },
-      {
-        urlPattern: /\.(png|jpg|jpeg|svg|gif|webp|ico)$/,
-        handler: 'CacheFirst',
-        options: {
-          cacheName: 'image-cache',
-          expiration: { maxEntries: 100, maxAgeSeconds: 604800 },
-        },
+    },
+    {
+      urlPattern: /\.(png|jpg|jpeg|svg|gif|webp|ico)$/,
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'image-cache',
+        expiration: { maxEntries: 100, maxAgeSeconds: 604800 },
       },
-    ],
-  },
+    },
+  ],
 })
 
 /** @type {import('next').NextConfig} */

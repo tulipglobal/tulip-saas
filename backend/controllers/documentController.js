@@ -22,6 +22,7 @@ const upload = multer({
 })
 
 exports.uploadMiddleware = upload.single('file')
+exports.uploadBulkMiddleware = upload.array('files', 10)
 
 // GET /api/documents
 exports.getDocuments = async (req, res) => {
@@ -395,6 +396,182 @@ exports.deleteDocument = async (req, res) => {
     res.json({ message: 'Document deleted' })
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete document' })
+  }
+}
+
+// ── Shared helper: process a single document upload ──────────────
+async function processSingleUpload({ file, user, body }) {
+  const db = tenantClient(user.tenantId)
+  const docName = body.name || file.originalname.replace(/\.[^.]+$/, '')
+
+  // SHA-256
+  const sha256Hash = computeSHA256(file.buffer)
+
+  // Duplicate check
+  const existingDoc = await db.document.findFirst({
+    where: { sha256Hash },
+    select: { id: true, name: true, uploadedAt: true },
+  })
+  if (existingDoc && !body.allowDuplicate) {
+    return { success: false, filename: file.originalname, error: `Duplicate of "${existingDoc.name}"`, duplicateOf: existingDoc.id }
+  }
+
+  // S3
+  const { fileUrl, key: s3FileKey } = await uploadToS3(
+    file.buffer, file.originalname, user.tenantId,
+    `documents/${body.documentLevel || 'project'}`
+  )
+
+  // Admin check
+  const adminRole = await prisma.userRole.findFirst({
+    where: { userId: user.userId, tenantId: user.tenantId, role: { name: 'admin' } },
+  })
+  const isUserAdmin = !!adminRole
+
+  const document = await db.document.create({
+    data: {
+      name: docName,
+      description: body.description || null,
+      documentType: body.documentType || null,
+      documentLevel: body.documentLevel || 'project',
+      fileUrl,
+      fileType: file.originalname.split('.').pop().toLowerCase(),
+      fileSize: file.size,
+      sha256Hash,
+      projectId: body.projectId || null,
+      expenseId: body.expenseId || null,
+      uploadedById: user.userId,
+      category: body.category || null,
+      expiryDate: (body.category && isKeyCategory(body.category) && body.expiryDate) ? new Date(body.expiryDate) : null,
+      approvalStatus: isUserAdmin ? 'approved' : 'pending_review',
+    },
+  })
+
+  // Workflow task for non-admins
+  if (!isUserAdmin) {
+    prisma.workflowTask.create({
+      data: {
+        tenantId: user.tenantId, type: 'document_approval',
+        title: `Document approval: ${docName}`,
+        description: `New document "${docName}" uploaded and requires review.`,
+        entityId: document.id, entityType: 'document', submittedBy: user.userId,
+      },
+    }).catch(err => console.error('[workflow] auto-create task failed:', err.message))
+  }
+
+  // Audit log
+  await createAuditLog({
+    action: 'DOCUMENT_UPLOADED', entityType: 'Document', entityId: document.id,
+    userId: user.userId, tenantId: user.tenantId,
+    metadata: { name: docName, sha256Hash, fileType: document.fileType, fileSize: document.fileSize, documentLevel: document.documentLevel, projectId: document.projectId },
+  })
+
+  // TrustSeal
+  const tenant = await prisma.tenant.findUnique({ where: { id: user.tenantId }, select: { name: true } })
+  const orgName = tenant?.name || 'Organization'
+  const docSeal = await autoIssueSeal({
+    documentTitle: docName, documentType: 'ngo-document', rawHash: sha256Hash,
+    issuedBy: orgName, issuedTo: orgName, tenantId: user.tenantId,
+    fileKey: s3FileKey, fileType: document.fileType,
+    metadata: { source: 'document-upload', documentId: document.id, documentLevel: document.documentLevel },
+  }).catch(err => { console.error('[seal] auto-issue failed:', err.message); return null })
+
+  if (docSeal) {
+    prisma.trustSeal.update({
+      where: { id: docSeal.id },
+      data: { documentId: document.id, ocrEngine: 'TEXTRACT', sourceType: 'DASHBOARD' },
+    }).catch(err => console.error('[seal] documentId update failed:', err.message))
+  }
+
+  // Background: duplicate detection + fraud scoring (non-blocking)
+  const ocrExtTypes = ['pdf', 'jpg', 'jpeg', 'png', 'tiff', 'tif']
+  const pHashTypes = ['jpg', 'jpeg', 'png', 'tiff', 'tif', 'bmp', 'gif']
+  const ft = (document.fileType || '').toLowerCase()
+  if (ocrExtTypes.includes(ft) || pHashTypes.includes(ft)) {
+    ;(async () => {
+      try {
+        let ocrRawText = null
+        if (ocrExtTypes.includes(ft)) {
+          const { extractText } = require('../services/ocrService')
+          const ocrResult = await extractText(s3FileKey)
+          ocrRawText = ocrResult.rawText
+        }
+        const dupResult = await detectDuplicates({
+          fileBuffer: file.buffer, fileType: document.fileType, ocrRawText,
+          documentId: document.id, tenantId: user.tenantId, userId: user.userId, entityTable: 'document',
+        })
+        if (Object.keys(dupResult.updateData).length > 0) {
+          await db.document.update({ where: { id: document.id }, data: dupResult.updateData })
+        }
+        if (docSeal) {
+          const sealDupData = {}
+          if (dupResult.ocrFingerprint) sealDupData.ocrFingerprint = dupResult.ocrFingerprint
+          if (dupResult.pHash) sealDupData.pHash = dupResult.pHash
+          if (dupResult.updateData) {
+            if (dupResult.updateData.isDuplicate) sealDupData.isDuplicate = true
+            if (dupResult.updateData.duplicateOfId) sealDupData.duplicateOfId = dupResult.updateData.duplicateOfId
+            if (dupResult.updateData.duplicateOfName) sealDupData.duplicateOfName = dupResult.updateData.duplicateOfName
+            if (dupResult.updateData.crossTenantDuplicate) sealDupData.crossTenantDuplicate = true
+            if (dupResult.updateData.isVisualDuplicate) sealDupData.isVisualDuplicate = true
+          }
+          if (dupResult.confidence) sealDupData.duplicateConfidence = dupResult.confidence
+          if (dupResult.method) sealDupData.duplicateMethod = dupResult.method
+          if (Object.keys(sealDupData).length > 0) {
+            prisma.trustSeal.update({ where: { id: docSeal.id }, data: sealDupData }).catch(err => console.error('[seal-dup] update failed:', err.message))
+          }
+        }
+        const updatedDoc = await db.document.findFirst({ where: { id: document.id } })
+        if (updatedDoc) {
+          const risk = scoreFraudRisk(updatedDoc)
+          await db.document.update({ where: { id: document.id }, data: { fraudRiskScore: risk.score, fraudRiskLevel: risk.level, fraudSignals: risk.breakdown.signals } })
+          if (docSeal) {
+            prisma.trustSeal.update({ where: { id: docSeal.id }, data: { fraudRiskScore: risk.score, fraudRiskLevel: risk.level, fraudSignals: risk.breakdown.signals } }).catch(() => {})
+          }
+        }
+      } catch (err) { console.error('[hybrid-dup] document detection failed:', err.message) }
+    })()
+  }
+
+  // Notifications (non-blocking)
+  notifyDocumentUploaded({ tenantId: user.tenantId, documentName: docName, uploaderName: user.name || null, projectName: null }).catch(() => {})
+  webhookDispatch(user.tenantId, 'document.created', { id: document.id, name: docName, sha256Hash, projectId: document.projectId, fileType: document.fileType }).catch(() => {})
+  notifyDonorsNewDocument({ tenantId: user.tenantId, documentName: docName, projectName: null, category: document.category || null }).catch(() => {})
+
+  return { success: true, filename: file.originalname, documentId: document.id, sealId: docSeal?.id || null }
+}
+
+// POST /api/documents/bulk
+exports.bulkUpload = async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'No files provided' })
+    }
+    if (req.files.length > 10) {
+      return res.status(400).json({ error: 'Maximum 10 files per batch' })
+    }
+
+    const results = []
+    for (const file of req.files) {
+      try {
+        const result = await processSingleUpload({ file, user: req.user, body: req.body })
+        results.push(result)
+      } catch (err) {
+        results.push({ success: false, filename: file.originalname, error: err.message || 'Upload failed' })
+      }
+    }
+
+    // Single audit log for bulk operation
+    const successCount = results.filter(r => r.success).length
+    await createAuditLog({
+      action: 'BULK_DOCUMENT_UPLOAD', entityType: 'Document', entityId: 'bulk',
+      userId: req.user.userId, tenantId: req.user.tenantId,
+      metadata: { totalFiles: req.files.length, successCount, failedCount: req.files.length - successCount },
+    }).catch(() => {})
+
+    res.status(201).json({ results, summary: { total: req.files.length, success: successCount, failed: req.files.length - successCount } })
+  } catch (err) {
+    console.error('[documents/bulk]', err)
+    res.status(500).json({ error: 'Bulk upload failed' })
   }
 }
 

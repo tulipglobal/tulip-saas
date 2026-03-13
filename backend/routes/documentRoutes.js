@@ -4,7 +4,8 @@ const { can } = require('../middleware/permission')
 const {
   getDocuments, getDocument,
   createDocument, updateDocument, deleteDocument,
-  uploadMiddleware, getDocumentUrl, getExpiring
+  uploadMiddleware, uploadBulkMiddleware, bulkUpload,
+  getDocumentUrl, getExpiring
 } = require('../controllers/documentController')
 
 // PUBLIC - no auth - must be first
@@ -28,6 +29,7 @@ router.get('/expiring',  can('documents:read'),   getExpiring)
 router.get('/',          can('documents:read'),   getDocuments)
 router.get('/:id',       can('documents:read'),   getDocument)
 router.post('/',         can('documents:write'),  uploadMiddleware, createDocument)
+router.post('/bulk',     can('documents:write'),  uploadBulkMiddleware, bulkUpload)
 router.patch('/:id',     can('documents:write'),  updateDocument)
 router.get('/:id/view',  can('documents:read'),   getDocumentUrl)
 router.delete('/:id',    can('documents:delete'), deleteDocument)

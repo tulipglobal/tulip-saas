@@ -9,6 +9,7 @@ const { sendEmail } = require('../services/emailService')
 const { KEY_DOCUMENT_CATEGORIES } = require('../lib/documentCategories')
 const logger = require('../lib/logger')
 const { dispatch: webhookDispatch } = require('../services/webhookService')
+const { createAuditLog } = require('../services/auditService')
 
 const APP_URL = process.env.APP_URL || 'https://app.tulipds.com'
 
@@ -120,6 +121,7 @@ async function checkDocumentExpiry() {
     if (daysLeft <= 30 && !doc.expiryAlertSent30) {
       await sendExpiryEmail({ doc, daysLeft: Math.max(daysLeft, 0), adminEmails, projectName: doc.project?.name })
       await prisma.document.update({ where: { id: doc.id }, data: { expiryAlertSent30: true } })
+      createAuditLog({ action: 'DOCUMENT_EXPIRY_ALERT', entityType: 'Document', entityId: doc.id, tenantId: doc.tenantId, dataHash: JSON.stringify({ daysLeft: Math.max(daysLeft, 0), alertLevel: '30day' }) }).catch(() => {})
       webhookDispatch(doc.tenantId, 'document.expiring', {
         id: doc.id, name: doc.name, expiryDate: doc.expiryDate, daysLeft: Math.max(daysLeft, 0),
       }).catch(() => {})
@@ -130,6 +132,7 @@ async function checkDocumentExpiry() {
     if (daysLeft <= 7 && !doc.expiryAlertSent7) {
       await sendExpiryEmail({ doc, daysLeft: Math.max(daysLeft, 0), adminEmails, projectName: doc.project?.name })
       await prisma.document.update({ where: { id: doc.id }, data: { expiryAlertSent7: true } })
+      createAuditLog({ action: 'DOCUMENT_EXPIRY_ALERT', entityType: 'Document', entityId: doc.id, tenantId: doc.tenantId, dataHash: JSON.stringify({ daysLeft: Math.max(daysLeft, 0), alertLevel: '7day' }) }).catch(() => {})
       alertsSent++
     }
 
@@ -137,6 +140,7 @@ async function checkDocumentExpiry() {
     if (daysLeft <= 1 && !doc.expiryAlertSent1) {
       await sendExpiryEmail({ doc, daysLeft: Math.max(daysLeft, 0), adminEmails, projectName: doc.project?.name })
       await prisma.document.update({ where: { id: doc.id }, data: { expiryAlertSent1: true } })
+      createAuditLog({ action: 'DOCUMENT_EXPIRY_ALERT', entityType: 'Document', entityId: doc.id, tenantId: doc.tenantId, dataHash: JSON.stringify({ daysLeft: Math.max(daysLeft, 0), alertLevel: '1day' }) }).catch(() => {})
       alertsSent++
     }
   }

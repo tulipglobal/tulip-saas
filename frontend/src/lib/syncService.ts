@@ -134,7 +134,8 @@ export async function drainQueue(token: string): Promise<number> {
         syncedExpenseId: expenseId,
       });
       synced++;
-    } catch {
+    } catch (err) {
+      console.error('[sync] Failed to sync expense', expense.id, ':', err instanceof Error ? err.message : err);
       // Increment retries
       const retries = (expense.retries ?? 0) + 1;
       await offlineDb.pending_expenses.update(expense.id!, {

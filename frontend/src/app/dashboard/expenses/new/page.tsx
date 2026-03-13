@@ -284,7 +284,11 @@ export default function NewExpensePage() {
         const d = await res.json().catch(() => ({}))
         setError(d.error ?? d.message ?? 'Failed to log expense')
       }
-    } catch { setError('Network error') }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error'
+      console.error('[expense] Submit failed:', msg)
+      setError(`Network error: ${msg}`)
+    }
     setSaving(false)
   }
 

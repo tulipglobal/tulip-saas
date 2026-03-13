@@ -1,4 +1,34 @@
 /**
+ * Detect if an amount mismatch is likely caused by international number format
+ * misinterpretation rather than actual fraud.
+ *
+ * Checks for common separator-confusion ratios:
+ *  - 1000x → comma vs dot thousands (25.000 read as 25 vs 25000)
+ *  - 100x  → two-digit grouping confusion
+ *  - 10x   → single-digit shift
+ *
+ * @param {number} ocrAmount
+ * @param {number} submittedAmount
+ * @returns {boolean}
+ */
+function isLikelyFormatMismatch(ocrAmount, submittedAmount) {
+  if (!ocrAmount || !submittedAmount || ocrAmount <= 0 || submittedAmount <= 0) return false
+
+  const ratio = submittedAmount / ocrAmount
+  const inverseRatio = ocrAmount / submittedAmount
+
+  // Check both directions for common separator-confusion ratios
+  const suspectRatios = [10, 100, 1000]
+  for (const r of suspectRatios) {
+    // Allow 1% tolerance around the ratio
+    if (Math.abs(ratio - r) / r < 0.01) return true
+    if (Math.abs(inverseRatio - r) / r < 0.01) return true
+  }
+
+  return false
+}
+
+/**
  * Fraud Risk Scorer — computes a 0-100 risk score for documents and expenses.
  *
  * @param {Object} record - document or expense record with duplicate/mismatch fields
@@ -35,20 +65,26 @@ function scoreFraudRisk(record) {
   if (record.amountMismatch) {
     let amountPenalty = 20
     if (record.ocrAmount != null && record.amount != null && record.ocrAmount > 0) {
-      const alteration = Math.abs(record.amount - record.ocrAmount) / record.ocrAmount
-      const pct = Math.round(alteration * 100)
-      if (alteration > 0.8) {
-        amountPenalty = 50
-        signals.push(`Amount altered by ${pct}% — OCR read ${record.ocrAmount.toLocaleString()}, saved as ${record.amount.toLocaleString()} (+50)`)
-      } else if (alteration > 0.5) {
-        amountPenalty = 35
-        signals.push(`Amount altered by ${pct}% — OCR read ${record.ocrAmount.toLocaleString()}, saved as ${record.amount.toLocaleString()} (+35)`)
-      } else if (alteration >= 0.2) {
-        amountPenalty = 20
-        signals.push(`Amount altered by ${pct}% — OCR read ${record.ocrAmount.toLocaleString()}, saved as ${record.amount.toLocaleString()} (+20)`)
+      // Check if this is a format mismatch (e.g. European 25.000,00 parsed as 25)
+      if (isLikelyFormatMismatch(record.ocrAmount, record.amount)) {
+        amountPenalty = 15
+        signals.push(`Possible format mismatch — OCR read ${record.ocrAmount.toLocaleString()}, saved as ${record.amount.toLocaleString()} — likely separator confusion (+15)`)
       } else {
-        amountPenalty = 10
-        signals.push(`Amount altered by ${pct}% — minor discrepancy (+10)`)
+        const alteration = Math.abs(record.amount - record.ocrAmount) / record.ocrAmount
+        const pct = Math.round(alteration * 100)
+        if (alteration > 0.8) {
+          amountPenalty = 50
+          signals.push(`Amount altered by ${pct}% — OCR read ${record.ocrAmount.toLocaleString()}, saved as ${record.amount.toLocaleString()} (+50)`)
+        } else if (alteration > 0.5) {
+          amountPenalty = 35
+          signals.push(`Amount altered by ${pct}% — OCR read ${record.ocrAmount.toLocaleString()}, saved as ${record.amount.toLocaleString()} (+35)`)
+        } else if (alteration >= 0.2) {
+          amountPenalty = 20
+          signals.push(`Amount altered by ${pct}% — OCR read ${record.ocrAmount.toLocaleString()}, saved as ${record.amount.toLocaleString()} (+20)`)
+        } else {
+          amountPenalty = 10
+          signals.push(`Amount altered by ${pct}% — minor discrepancy (+10)`)
+        }
       }
     } else {
       signals.push('Amount mismatch — OCR vs logged amount (+20)')
@@ -106,4 +142,4 @@ function scoreFraudRisk(record) {
   }
 }
 
-module.exports = { scoreFraudRisk }
+module.exports = { scoreFraudRisk, isLikelyFormatMismatch }

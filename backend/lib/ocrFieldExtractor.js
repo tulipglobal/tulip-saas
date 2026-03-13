@@ -174,9 +174,49 @@ function findKV(kvLower, key) {
 }
 
 function parseAmount(str) {
+  return normaliseAmount(str)
+}
+
+/**
+ * Normalise an OCR-extracted amount string to a number.
+ * Handles:
+ *  - European: 25.000,00 → 25000.00
+ *  - Swiss:    25'000.00 → 25000.00
+ *  - Indian:   2,50,000.00 → 250000.00
+ *  - Arabic-Indic numerals: ٢٥٠٠٠ → 25000
+ *  - Non-breaking spaces: 25 000,00 → 25000.00
+ */
+function normaliseAmount(str) {
   if (!str) return null
-  // Remove currency symbols, letters, whitespace, then parse
-  const cleaned = str.replace(/[A-Za-z$€£₹¥]/g, '').replace(/\s/g, '').replace(/,/g, '')
+
+  // Replace Arabic-Indic numerals (٠-٩) with Western digits
+  let cleaned = str.replace(/[\u0660-\u0669]/g, d => String(d.charCodeAt(0) - 0x0660))
+  // Replace Extended Arabic-Indic numerals (۰-۹)
+  cleaned = cleaned.replace(/[\u06F0-\u06F9]/g, d => String(d.charCodeAt(0) - 0x06F0))
+
+  // Strip currency symbols, letters, and non-breaking/regular spaces
+  cleaned = cleaned.replace(/[A-Za-z$€£₹¥₦₫₱₩₪₵]/g, '').replace(/[\s\u00A0]/g, '')
+
+  // Strip apostrophes used as thousands separators (Swiss: 25'000.00)
+  cleaned = cleaned.replace(/'/g, '')
+
+  if (!cleaned) return null
+
+  // Determine decimal separator: check the last separator character
+  const lastComma = cleaned.lastIndexOf(',')
+  const lastDot = cleaned.lastIndexOf('.')
+
+  if (lastComma > lastDot) {
+    // Comma is the decimal separator (European: 25.000,00)
+    cleaned = cleaned.replace(/\./g, '').replace(',', '.')
+  } else if (lastDot > lastComma) {
+    // Dot is the decimal separator (US/UK: 25,000.00 or Indian: 2,50,000.00)
+    cleaned = cleaned.replace(/,/g, '')
+  } else {
+    // No mixed separators — just strip commas
+    cleaned = cleaned.replace(/,/g, '')
+  }
+
   const num = parseFloat(cleaned)
   return isNaN(num) ? null : Math.round(num * 100) / 100
 }
@@ -214,4 +254,4 @@ function parseDate(str) {
   return null
 }
 
-module.exports = { extractExpenseFields }
+module.exports = { extractExpenseFields, normaliseAmount }

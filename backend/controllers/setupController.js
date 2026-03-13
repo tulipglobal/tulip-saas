@@ -182,6 +182,55 @@ exports.completeSetup = async (req, res) => {
   }
 }
 
+// GET /api/setup/notifications — get notification preferences
+exports.getNotificationPrefs = async (req, res) => {
+  try {
+    const { tenantId } = req.user
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { notificationPrefs: true }
+    })
+
+    const defaults = { fraud: true, duplicate: true, mismatch: true, void: true, seal: false }
+    res.json({ ...(defaults), ...(tenant?.notificationPrefs || {}) })
+  } catch (err) {
+    console.error('[setup/notifications GET]', err)
+    res.status(500).json({ error: 'Failed to get notification preferences' })
+  }
+}
+
+// PATCH /api/setup/notifications — update notification preferences
+exports.updateNotificationPrefs = async (req, res) => {
+  try {
+    const { tenantId } = req.user
+    const { fraud, duplicate, mismatch, void: voidPref, seal } = req.body
+
+    const current = await prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { notificationPrefs: true }
+    })
+
+    const defaults = { fraud: true, duplicate: true, mismatch: true, void: true, seal: false }
+    const merged = { ...defaults, ...(current?.notificationPrefs || {}) }
+
+    if (fraud !== undefined) merged.fraud = !!fraud
+    if (duplicate !== undefined) merged.duplicate = !!duplicate
+    if (mismatch !== undefined) merged.mismatch = !!mismatch
+    if (voidPref !== undefined) merged.void = !!voidPref
+    if (seal !== undefined) merged.seal = !!seal
+
+    await prisma.tenant.update({
+      where: { id: tenantId },
+      data: { notificationPrefs: merged }
+    })
+
+    res.json(merged)
+  } catch (err) {
+    console.error('[setup/notifications PATCH]', err)
+    res.status(500).json({ error: 'Failed to update notification preferences' })
+  }
+}
+
 // GET /api/setup/status — check if setup is completed
 exports.getSetupStatus = async (req, res) => {
   try {

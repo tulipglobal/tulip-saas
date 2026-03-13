@@ -2,7 +2,7 @@ const tenantClient = require('../lib/tenantClient')
 const prisma = require('../lib/client')
 const { uploadToS3, computeSHA256 } = require('../lib/s3Upload')
 const { createAuditLog } = require('../services/auditService')
-const { notifyDocumentUploaded, notifyDonorsNewDocument } = require('../services/emailNotificationService')
+const { notifyDocumentUploaded, notifyDonorsNewDocument, notifySealIssued } = require('../services/emailNotificationService')
 const { dispatch: webhookDispatch } = require('../services/webhookService')
 const { KEY_DOCUMENT_CATEGORIES, isKeyCategory } = require('../lib/documentCategories')
 const { autoIssueSeal } = require('../services/universalSealService')
@@ -194,6 +194,7 @@ exports.createDocument = async (req, res) => {
         where: { id: docSeal.id },
         data: { documentId: document.id, ocrEngine: 'TEXTRACT', sourceType: 'DASHBOARD' },
       }).catch(err => console.error('[seal] documentId update failed:', err.message))
+      notifySealIssued({ tenantId: req.user.tenantId, documentName: name, documentType: documentType || 'Document', sealId: docSeal.id }).catch(() => {})
     }
 
     // Hybrid duplicate detection — OCR fingerprint + pHash combined (non-blocking)

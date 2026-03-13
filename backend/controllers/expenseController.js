@@ -1,5 +1,5 @@
 const { createAuditLog } = require('../services/auditService')
-const { notifyExpenseAdded } = require('../services/emailNotificationService')
+const { notifyExpenseAdded, notifyFraudAlert, notifyDuplicateAlert, notifyMismatchAlert, notifyVoidAlert } = require('../services/emailNotificationService')
 const { dispatch: webhookDispatch } = require('../services/webhookService')
 const { checkMismatches } = require('../lib/mismatchChecker')
 const { generateOcrFingerprint } = require('../lib/ocrFingerprint')
@@ -118,6 +118,7 @@ exports.createExpense = async (req, res) => {
             tenantId: req.user.tenantId,
             dataHash: JSON.stringify({ reason: 'DUPLICATE_HIGH_CONFIDENCE', duplicateConfidence: seal.duplicateConfidence, crossTenant: !!seal.crossTenantDuplicate }),
           }).catch(() => {})
+          notifyDuplicateAlert({ tenantId: req.user.tenantId, description: expenseTitle, amount: parseFloat(amount), currency: currency || 'USD', vendor: vendor || null, duplicateExpenseId: seal.duplicateOfId || null }).catch(() => {})
           return res.status(422).json({
             error: 'DUPLICATE_HIGH_CONFIDENCE',
             message: 'Upload blocked: This receipt appears to be a duplicate.',
@@ -153,6 +154,7 @@ exports.createExpense = async (req, res) => {
             dataHash: JSON.stringify({ score: risk.score, level: risk.level, signals: risk.breakdown.signals }),
           }).catch(() => {})
           console.log(`[fraud-block] Expense blocked: score=${risk.score} level=${risk.level}`)
+          notifyFraudAlert({ tenantId: req.user.tenantId, description: expenseTitle, amount: parseFloat(amount), currency: currency || 'USD', vendor: vendor || null, fraudScore: risk.score, fraudLevel: risk.level, reasons: risk.breakdown.signals }).catch(() => {})
           return res.status(422).json({
             error: 'FRAUD_RISK_HIGH',
             message: 'Upload blocked: HIGH fraud risk detected. OCR found significant discrepancies.',
@@ -202,6 +204,7 @@ exports.createExpense = async (req, res) => {
         userId: req.user.userId,
         tenantId: req.user.tenantId,
       }).catch(() => {})
+      notifyMismatchAlert({ tenantId: req.user.tenantId, description: expenseTitle, amount: parseFloat(amount), currency: currency || 'USD', vendor: vendor || null, ocrAmount: ocrAmount != null ? parseFloat(ocrAmount) : null, ocrVendor: ocrVendor || null, ocrDate: ocrDate || null, amountMismatch: mismatch.amountMismatch, vendorMismatch: mismatch.vendorMismatch, dateMismatch: mismatch.dateMismatch }).catch(() => {})
     }
 
     // Auto-create workflow task for expense approval
@@ -441,6 +444,7 @@ exports.uploadReceipt = async (req, res) => {
             tenantId: req.user.tenantId,
             dataHash: JSON.stringify({ reason: 'DUPLICATE_HIGH_CONFIDENCE', confidence: dupResult.confidence, crossTenant: !!dupResult.crossTenant }),
           }).catch(() => {})
+          notifyDuplicateAlert({ tenantId: req.user.tenantId, description: docTitle, amount: null, currency: null, vendor: null, duplicateExpenseId: dupResult.matchedDocumentId || null }).catch(() => {})
           return res.status(422).json({
             error: 'DUPLICATE_HIGH_CONFIDENCE',
             message: 'Upload blocked: This receipt appears to be a duplicate.',
@@ -513,6 +517,7 @@ exports.uploadReceipt = async (req, res) => {
               userId: req.user.userId,
               tenantId: req.user.tenantId,
                   }).catch(() => {})
+            notifyMismatchAlert({ tenantId: req.user.tenantId, description: existing.description, amount: existing.amount, currency: existing.currency, vendor: existing.vendor || updateData.vendor || null, ocrAmount: fields.amount, ocrVendor: fields.vendor, ocrDate: fields.date, amountMismatch: mismatch.amountMismatch, vendorMismatch: mismatch.vendorMismatch, dateMismatch: mismatch.dateMismatch }).catch(() => {})
           }
 
           // Fraud risk scoring on expense
@@ -566,6 +571,7 @@ exports.uploadReceipt = async (req, res) => {
                   dataHash: JSON.stringify({ score: risk.score, level: risk.level, signals: risk.breakdown.signals }),
                 }).catch(() => {})
                 console.log(`[fraud-block] Expense ${req.body.expenseId} voided: score=${risk.score} level=${risk.level}`)
+                notifyFraudAlert({ tenantId: req.user.tenantId, description: freshExpense.description, amount: freshExpense.amount, currency: freshExpense.currency, vendor: freshExpense.vendor, fraudScore: risk.score, fraudLevel: risk.level, reasons: risk.breakdown.signals }).catch(() => {})
                 return res.status(422).json({
                   error: 'FRAUD_RISK_HIGH',
                   message: 'Upload blocked: HIGH fraud risk detected. OCR found significant discrepancies.',
@@ -632,6 +638,10 @@ exports.voidExpense = async (req, res) => {
         reason: reason.trim(),
       },
     })
+
+    // Email alert — async, don't block response
+    const voidUser = await prisma.user.findUnique({ where: { id: req.user.userId }, select: { name: true } }).catch(() => null)
+    notifyVoidAlert({ tenantId: req.user.tenantId, description: existing.description, amount: existing.amount, currency: existing.currency, vendor: existing.vendor, reason: reason.trim(), voidedByName: voidUser?.name || null }).catch(() => {})
 
     res.json(updated)
   } catch (err) {

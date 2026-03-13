@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Building2, Shield, Save, Check, AlertCircle } from 'lucide-react'
+import { Building2, Shield, Save, Check, AlertCircle, Bell } from 'lucide-react'
 import { apiGet, apiPatch } from '@/lib/api'
 import CountrySelect from '@/components/CountrySelect'
 
@@ -52,6 +52,10 @@ export default function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [savingPassword, setSavingPassword] = useState(false)
 
+  // Notification prefs
+  const [notifPrefs, setNotifPrefs] = useState({ fraud: true, duplicate: true, mismatch: true, void: true, seal: false })
+  const [savingNotif, setSavingNotif] = useState(false)
+
   // Org form
   const [orgName, setOrgName] = useState('')
   const [orgDescription, setOrgDescription] = useState('')
@@ -64,7 +68,8 @@ export default function SettingsPage() {
     Promise.all([
       apiGet('/api/auth/me').then(r => r.ok ? r.json() : null),
       apiGet('/api/setup/status').then(r => r.ok ? r.json() : null),
-    ]).then(([me, setup]) => {
+      apiGet('/api/setup/notifications').then(r => r.ok ? r.json() : null),
+    ]).then(([me, setup, notif]) => {
       const p = me?.user ?? me
       if (p) {
         setProfile(p)
@@ -80,6 +85,7 @@ export default function SettingsPage() {
         setOrgRegNumber(setup.registrationNumber || setup.registration_number || '')
         setOrgCountry(setup.country || '')
       }
+      if (notif) setNotifPrefs(notif)
       setLoading(false)
     }).catch(() => setLoading(false))
   }, [])
@@ -133,6 +139,27 @@ export default function SettingsPage() {
       setToast({ message: 'Failed to change password', type: 'error' })
     }
     setSavingPassword(false)
+  }
+
+  const toggleNotif = (key: string) => {
+    setNotifPrefs(prev => ({ ...prev, [key]: !prev[key as keyof typeof prev] }))
+  }
+
+  const saveNotif = async () => {
+    setSavingNotif(true)
+    try {
+      const res = await apiPatch('/api/setup/notifications', notifPrefs)
+      if (res.ok) {
+        const updated = await res.json()
+        setNotifPrefs(updated)
+        setToast({ message: 'Notification preferences saved', type: 'success' })
+      } else {
+        setToast({ message: 'Failed to update notifications', type: 'error' })
+      }
+    } catch {
+      setToast({ message: 'Failed to update notifications', type: 'error' })
+    }
+    setSavingNotif(false)
   }
 
   const saveOrg = async () => {
@@ -228,6 +255,42 @@ export default function SettingsPage() {
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50 transition-all">
           <Save size={14} />
           {savingPassword ? 'Saving...' : 'Change Password'}
+        </button>
+      </div>
+
+      {/* Email Notifications Section */}
+      <div className="rounded-xl border border-[#c8d6c0] px-5 py-5 space-y-4 bg-[#e1eedd]">
+        <div className="flex items-center gap-3">
+          <Bell size={18} className="text-[#183a1d]/60" />
+          <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide">Email Notifications</h2>
+        </div>
+        <p className="text-xs text-[#183a1d]/50">Choose which email alerts your organisation receives.</p>
+        <div className="space-y-3">
+          {[
+            { key: 'fraud', label: 'Fraud alerts', desc: 'When a receipt is blocked for high fraud risk' },
+            { key: 'duplicate', label: 'Duplicate alerts', desc: 'When a duplicate receipt is detected and blocked' },
+            { key: 'mismatch', label: 'Mismatch alerts', desc: 'When OCR values differ from logged expense data' },
+            { key: 'void', label: 'Void notifications', desc: 'When an expense is voided by a team member' },
+            { key: 'seal', label: 'Seal confirmations', desc: 'When a Trust Seal is issued for a document' },
+          ].map(({ key, label, desc }) => (
+            <div key={key} className="flex items-center justify-between py-2 border-b border-[#c8d6c0]/50 last:border-0">
+              <div>
+                <p className="text-sm font-medium text-[#183a1d]">{label}</p>
+                <p className="text-xs text-[#183a1d]/40">{desc}</p>
+              </div>
+              <button
+                onClick={() => toggleNotif(key)}
+                className={`relative w-10 h-5 rounded-full transition-colors ${notifPrefs[key as keyof typeof notifPrefs] ? 'bg-[#0d9488]' : 'bg-[#c8d6c0]'}`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${notifPrefs[key as keyof typeof notifPrefs] ? 'translate-x-5' : ''}`} />
+              </button>
+            </div>
+          ))}
+        </div>
+        <button onClick={saveNotif} disabled={savingNotif}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50 transition-all">
+          <Save size={14} />
+          {savingNotif ? 'Saving...' : 'Save Notifications'}
         </button>
       </div>
 

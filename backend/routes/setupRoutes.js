@@ -12,7 +12,9 @@ const {
   createFirstProject,
   inviteTeam,
   completeSetup,
-  getSetupStatus
+  getSetupStatus,
+  getNotificationPrefs,
+  updateNotificationPrefs
 } = require('../controllers/setupController')
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } })
@@ -25,5 +27,7 @@ router.post('/logo',         upload.single('logo'), uploadLogo)
 router.post('/project',      createFirstProject)
 router.post('/invite-team',  inviteTeam)
 router.post('/complete',     completeSetup)
+router.get('/notifications',  getNotificationPrefs)
+router.patch('/notifications', updateNotificationPrefs)
 
 module.exports = router

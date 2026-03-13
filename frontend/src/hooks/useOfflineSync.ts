@@ -56,10 +56,7 @@ async function checkOnline(): Promise<boolean> {
 }
 
 export function useOfflineSync() {
-  // Start with navigator.onLine so Android airplane-mode is detected instantly
-  const [online, setOnline] = useState(
-    typeof navigator !== 'undefined' ? navigator.onLine : true
-  );
+  const [online, setOnline] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [justSynced, setJustSynced] = useState(false);
   const drainRef = useRef(false);

@@ -18,6 +18,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
     "@aws-sdk/client-s3": "^3.1004.0",
+    "@aws-sdk/client-ses": "^3.1008.0",
     "@aws-sdk/client-textract": "^3.1005.0",
     "@aws-sdk/s3-request-presigner": "^3.1004.0",
     "@prisma/adapter-pg": "^7.4.2",

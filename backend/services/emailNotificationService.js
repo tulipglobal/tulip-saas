@@ -6,22 +6,22 @@
 const { sendEmail } = require('./emailService')
 const prisma = require('../lib/client')
 
-const APP_URL = process.env.APP_URL || 'https://app.tulipds.com'
+const APP_URL = process.env.APP_URL || 'https://app.sealayer.io'
 
-// ── Branded HTML wrapper ─────────────────────────────────────
+// ── Branded HTML wrapper — Sealayer.io ────────────────────────
 function wrap(body) {
   return `
     <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 520px; margin: 0 auto; background: #ffffff;">
-      <div style="text-align: center; padding: 28px 0 20px;">
-        <h1 style="color: #0c7aed; font-size: 22px; margin: 0; font-weight: 700;">Tulip DS</h1>
-        <p style="color: #94a3b8; font-size: 12px; margin-top: 2px;">Verification Infrastructure</p>
+      <div style="background: #0d9488; text-align: center; padding: 28px 0 20px; border-radius: 8px 8px 0 0;">
+        <h1 style="color: #ffffff; font-size: 22px; margin: 0; font-weight: 700;">Sealayer</h1>
+        <p style="color: #ccfbf1; font-size: 12px; margin-top: 2px;">Verification Infrastructure</p>
       </div>
       <div style="padding: 0 24px 24px;">
         ${body}
       </div>
       <div style="border-top: 1px solid #e2e8f0; padding: 16px 24px; text-align: center;">
-        <p style="color: #94a3b8; font-size: 11px; margin: 0;">Tulip DS</p>
-        <p style="color: #cbd5e1; font-size: 10px; margin: 4px 0 0;">You received this because you have an account on <a href="${APP_URL}" style="color: #0c7aed; text-decoration: none;">Tulip DS</a></p>
+        <p style="color: #94a3b8; font-size: 11px; margin: 0;">Powered by <strong>Sealayer.io</strong></p>
+        <p style="color: #cbd5e1; font-size: 10px; margin: 4px 0 0;">You received this because you have an account on <a href="${APP_URL}" style="color: #0d9488; text-decoration: none;">Sealayer</a></p>
       </div>
     </div>
   `
@@ -30,9 +30,22 @@ function wrap(body) {
 function button(text, href) {
   return `
     <div style="text-align: center; margin: 24px 0;">
-      <a href="${href}" style="display: inline-block; background: #0c7aed; color: #ffffff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">${text}</a>
+      <a href="${href}" style="display: inline-block; background: #0d9488; color: #ffffff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">${text}</a>
     </div>
   `
+}
+
+// ── Helper: check if notification type is enabled for tenant ─
+async function isNotifEnabled(tenantId, type) {
+  try {
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { notificationPrefs: true },
+    })
+    const defaults = { fraud: true, duplicate: true, mismatch: true, void: true, seal: false }
+    const prefs = { ...defaults, ...(tenant?.notificationPrefs || {}) }
+    return prefs[type] !== false
+  } catch { return true }
 }
 
 // ── Helper: get admin emails for a tenant ────────────────────
@@ -352,6 +365,176 @@ async function checkTrialExpirations() {
   return { expiringSoon: expiringSoon.length, justExpired: justExpired.length }
 }
 
+// ── 9. Fraud alert — HIGH risk expense blocked ───────────────
+async function notifyFraudAlert({ tenantId, description, amount, currency, vendor, fraudScore, fraudLevel, reasons }) {
+  try {
+    if (!await isNotifEnabled(tenantId, 'fraud')) return
+    const admins = await getAdminEmails(tenantId)
+    const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: currency || 'USD' }).format(amount || 0)
+    for (const admin of admins) {
+      await sendEmail({
+        to: admin.email,
+        subject: `⚠ Fraud Alert: ${fraudLevel} risk expense detected — ${vendor || description || 'Unknown'}`,
+        html: wrap(`
+          <h2 style="color: #dc2626; font-size: 18px; margin: 0 0 12px;">⚠ Expense Blocked — ${fraudLevel} Fraud Risk</h2>
+          <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+            An expense was <strong>automatically blocked</strong> due to high fraud risk detected by OCR analysis.
+          </p>
+          <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin: 16px 0;">
+            <p style="color: #991b1b; font-size: 16px; font-weight: 700; margin: 0 0 8px;">Fraud Score: ${fraudScore}/100 (${fraudLevel})</p>
+            <p style="color: #1e293b; font-size: 14px; margin: 0 0 4px;"><strong>${description || 'Untitled expense'}</strong></p>
+            <p style="color: #475569; font-size: 14px; margin: 0 0 4px;">Amount: ${formatted}</p>
+            ${vendor ? `<p style="color: #475569; font-size: 14px; margin: 0;">Vendor: ${vendor}</p>` : ''}
+          </div>
+          ${reasons && reasons.length > 0 ? `
+          <div style="margin: 16px 0;">
+            <p style="color: #1e293b; font-size: 13px; font-weight: 600; margin: 0 0 8px;">Fraud Signals:</p>
+            <ul style="color: #dc2626; font-size: 13px; margin: 0; padding-left: 20px;">
+              ${reasons.map(r => `<li style="margin-bottom: 4px;">${r}</li>`).join('')}
+            </ul>
+          </div>` : ''}
+          <p style="color: #64748b; font-size: 13px;">The expense was not saved. Please investigate the receipt and contact the submitter.</p>
+          ${button('View Audit Log', `${APP_URL}/dashboard/audit`)}
+        `),
+      })
+    }
+  } catch (err) {
+    console.error('[email-notify] fraudAlert failed:', err.message)
+  }
+}
+
+// ── 10. Duplicate alert — HIGH confidence duplicate blocked ──
+async function notifyDuplicateAlert({ tenantId, description, amount, currency, vendor, duplicateExpenseId }) {
+  try {
+    if (!await isNotifEnabled(tenantId, 'duplicate')) return
+    const admins = await getAdminEmails(tenantId)
+    const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: currency || 'USD' }).format(amount || 0)
+    for (const admin of admins) {
+      await sendEmail({
+        to: admin.email,
+        subject: `⚠ Duplicate Receipt: ${vendor || description || 'Unknown'} may be duplicate`,
+        html: wrap(`
+          <h2 style="color: #ea580c; font-size: 18px; margin: 0 0 12px;">⚠ Duplicate Receipt Detected</h2>
+          <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+            An expense was <strong>automatically blocked</strong> because the receipt appears to be a duplicate.
+          </p>
+          <div style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 16px; margin: 16px 0;">
+            <p style="color: #1e293b; font-size: 14px; margin: 0 0 4px;"><strong>${description || 'Untitled expense'}</strong></p>
+            <p style="color: #475569; font-size: 14px; margin: 0 0 4px;">Amount: ${formatted}</p>
+            ${vendor ? `<p style="color: #475569; font-size: 14px; margin: 0;">Vendor: ${vendor}</p>` : ''}
+          </div>
+          <p style="color: #64748b; font-size: 13px;">This receipt has already been submitted. The expense was not saved to prevent duplicate claims.</p>
+          ${button('View Expenses', `${APP_URL}/dashboard/expenses`)}
+        `),
+      })
+    }
+  } catch (err) {
+    console.error('[email-notify] duplicateAlert failed:', err.message)
+  }
+}
+
+// ── 11. Mismatch alert — OCR mismatch detected ──────────────
+async function notifyMismatchAlert({ tenantId, description, amount, currency, vendor, ocrAmount, ocrVendor, ocrDate, amountMismatch, vendorMismatch, dateMismatch }) {
+  try {
+    if (!await isNotifEnabled(tenantId, 'mismatch')) return
+    const admins = await getAdminEmails(tenantId)
+    const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: currency || 'USD' }).format(amount || 0)
+    const mismatches = []
+    if (amountMismatch) mismatches.push(`Amount: receipt shows ${ocrAmount ?? '?'}, logged as ${amount}`)
+    if (vendorMismatch) mismatches.push(`Vendor: receipt shows "${ocrVendor || '?'}", logged as "${vendor || '?'}"`)
+    if (dateMismatch) mismatches.push(`Date: receipt shows ${ocrDate || '?'}, differs by 30+ days`)
+    for (const admin of admins) {
+      await sendEmail({
+        to: admin.email,
+        subject: `⚠ OCR Mismatch: ${vendor || description || 'Unknown'} receipt altered`,
+        html: wrap(`
+          <h2 style="color: #d97706; font-size: 18px; margin: 0 0 12px;">⚠ OCR Mismatch Detected</h2>
+          <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+            An expense receipt has discrepancies between the OCR-extracted values and the logged values.
+          </p>
+          <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 16px; margin: 16px 0;">
+            <p style="color: #1e293b; font-size: 14px; margin: 0 0 4px;"><strong>${description || 'Untitled expense'}</strong></p>
+            <p style="color: #475569; font-size: 14px; margin: 0 0 4px;">Amount: ${formatted}</p>
+            ${vendor ? `<p style="color: #475569; font-size: 14px; margin: 0;">Vendor: ${vendor}</p>` : ''}
+          </div>
+          ${mismatches.length > 0 ? `
+          <div style="margin: 16px 0;">
+            <p style="color: #1e293b; font-size: 13px; font-weight: 600; margin: 0 0 8px;">Discrepancies Found:</p>
+            <ul style="color: #d97706; font-size: 13px; margin: 0; padding-left: 20px;">
+              ${mismatches.map(m => `<li style="margin-bottom: 4px;">${m}</li>`).join('')}
+            </ul>
+          </div>` : ''}
+          <p style="color: #64748b; font-size: 13px;">The expense was saved but flagged. Please review the receipt for accuracy.</p>
+          ${button('View Expenses', `${APP_URL}/dashboard/expenses`)}
+        `),
+      })
+    }
+  } catch (err) {
+    console.error('[email-notify] mismatchAlert failed:', err.message)
+  }
+}
+
+// ── 12. Void alert — expense voided ─────────────────────────
+async function notifyVoidAlert({ tenantId, description, amount, currency, vendor, reason, voidedByName }) {
+  try {
+    if (!await isNotifEnabled(tenantId, 'void')) return
+    const admins = await getAdminEmails(tenantId)
+    const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: currency || 'USD' }).format(amount || 0)
+    for (const admin of admins) {
+      await sendEmail({
+        to: admin.email,
+        subject: `✓ Expense Voided: ${vendor || description || 'Unknown'} — ${reason || 'No reason given'}`,
+        html: wrap(`
+          <h2 style="color: #1e293b; font-size: 18px; margin: 0 0 12px;">Expense Voided</h2>
+          <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+            An expense has been voided by <strong>${voidedByName || 'a team member'}</strong>.
+          </p>
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 16px 0;">
+            <p style="color: #1e293b; font-size: 14px; margin: 0 0 4px; text-decoration: line-through;"><strong>${description || 'Untitled expense'}</strong></p>
+            <p style="color: #475569; font-size: 14px; margin: 0 0 4px;">Amount: ${formatted}</p>
+            ${vendor ? `<p style="color: #475569; font-size: 14px; margin: 0 0 8px;">Vendor: ${vendor}</p>` : ''}
+            <p style="color: #991b1b; font-size: 13px; margin: 0;"><strong>Reason:</strong> ${reason || 'No reason provided'}</p>
+          </div>
+          <p style="color: #64748b; font-size: 13px;">The expense remains in the audit trail but is marked as voided. It cannot be un-voided.</p>
+          ${button('View Expenses', `${APP_URL}/dashboard/expenses`)}
+        `),
+      })
+    }
+  } catch (err) {
+    console.error('[email-notify] voidAlert failed:', err.message)
+  }
+}
+
+// ── 13. Seal issued alert — document sealed ─────────────────
+async function notifySealIssued({ tenantId, documentName, documentType, sealId }) {
+  try {
+    if (!await isNotifEnabled(tenantId, 'seal')) return
+    const admins = await getAdminEmails(tenantId)
+    for (const admin of admins) {
+      await sendEmail({
+        to: admin.email,
+        subject: `✓ Document Sealed: ${documentName}`,
+        html: wrap(`
+          <h2 style="color: #1e293b; font-size: 18px; margin: 0 0 12px;">Trust Seal Issued</h2>
+          <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+            A new Trust Seal has been issued for a document in your workspace.
+          </p>
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 16px 0;">
+            <p style="color: #166534; font-size: 13px; margin: 0 0 4px;"><strong>Status: Sealed</strong></p>
+            <p style="color: #1e293b; font-size: 14px; margin: 0 0 4px;"><strong>${documentName}</strong></p>
+            <p style="color: #475569; font-size: 13px; margin: 0;">Type: ${documentType || 'Document'}</p>
+            ${sealId ? `<p style="color: #64748b; font-size: 12px; margin: 4px 0 0; font-family: monospace;">Seal ID: ${sealId}</p>` : ''}
+          </div>
+          <p style="color: #64748b; font-size: 13px;">This document has been SHA-256 hashed and will be anchored to the Polygon blockchain in the next batch.</p>
+          ${button('View Documents', `${APP_URL}/dashboard/documents`)}
+        `),
+      })
+    }
+  } catch (err) {
+    console.error('[email-notify] sealIssued failed:', err.message)
+  }
+}
+
 module.exports = {
   notifyDocumentUploaded,
   notifyDocumentAnchored,
@@ -362,4 +545,9 @@ module.exports = {
   notifyPaymentFailed,
   notifyDonorsNewDocument,
   checkTrialExpirations,
+  notifyFraudAlert,
+  notifyDuplicateAlert,
+  notifyMismatchAlert,
+  notifyVoidAlert,
+  notifySealIssued,
 }

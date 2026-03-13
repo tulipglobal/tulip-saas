@@ -12,10 +12,45 @@ const TARGETS = [
   { code: 'it', deepl: 'IT' },
 ];
 
-async function translate(text, targetLang) {
+const SEPARATOR = '\n§§§\n';
+
+function flattenObject(obj, prefix = '') {
+  const result = [];
+  for (const [key, value] of Object.entries(obj)) {
+    const path = prefix ? `${prefix}.${key}` : key;
+    if (typeof value === 'object' && value !== null) {
+      result.push(...flattenObject(value, path));
+    } else {
+      result.push({ path, value: String(value) });
+    }
+  }
+  return result;
+}
+
+function unflattenObject(entries) {
+  const result = {};
+  for (const { path, value } of entries) {
+    const keys = path.split('.');
+    let obj = result;
+    for (let i = 0; i < keys.length - 1; i++) {
+      if (!obj[keys[i]]) obj[keys[i]] = {};
+      obj = obj[keys[i]];
+    }
+    obj[keys[keys.length - 1]] = value;
+  }
+  return result;
+}
+
+async function translateBatch(texts, targetLang) {
+  // Protect {variables} from translation
+  const protected = texts.map(t => t.replace(/\{(\w+)\}/g, '<var>$1</var>'));
+
+  // Join all texts with a unique separator so DeepL translates as one request
+  const combined = protected.join(SEPARATOR);
+
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      text: [text],
+      text: [combined],
       target_lang: targetLang,
       source_lang: 'EN',
       tag_handling: 'xml',
@@ -34,18 +69,24 @@ async function translate(text, targetLang) {
     };
 
     const req = https.request(options, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
+      const chunks = [];
+      res.on('data', chunk => chunks.push(chunk));
       res.on('end', () => {
+        const data = Buffer.concat(chunks).toString();
         try {
           const parsed = JSON.parse(data);
           if (parsed.translations && parsed.translations[0]) {
-            resolve(parsed.translations[0].text);
+            const translated = parsed.translations[0].text;
+            // Split back and restore {variables}
+            const results = translated.split(SEPARATOR).map(t =>
+              t.trim().replace(/<var>(\w+)<\/var>/g, '{$1}')
+            );
+            resolve(results);
           } else {
-            reject(new Error(`Unexpected response: ${data}`));
+            reject(new Error(`Unexpected response: ${data.slice(0, 500)}`));
           }
         } catch (e) {
-          reject(e);
+          reject(new Error(`JSON parse failed: ${e.message} — response: ${data.slice(0, 500)}`));
         }
       });
     });
@@ -55,23 +96,6 @@ async function translate(text, targetLang) {
   });
 }
 
-async function translateObject(obj, targetLang) {
-  const result = {};
-  for (const [key, value] of Object.entries(obj)) {
-    if (typeof value === 'object') {
-      result[key] = await translateObject(value, targetLang);
-    } else {
-      // Protect {variables} from translation
-      const protected_text = value.replace(/\{(\w+)\}/g, '<var>$1</var>');
-      const translated = await translate(protected_text, targetLang);
-      // Restore variables
-      result[key] = translated.replace(/<var>(\w+)<\/var>/g, '{$1}');
-      console.log(`  ${key}: ${result[key]}`);
-    }
-  }
-  return result;
-}
-
 async function main() {
   if (!DEEPL_API_KEY) {
     console.error('DEEPL_API_KEY not set');
@@ -79,6 +103,10 @@ async function main() {
   }
 
   const en = JSON.parse(fs.readFileSync(path.join(MESSAGES_DIR, 'en.json'), 'utf8'));
+  const flat = flattenObject(en);
+  const texts = flat.map(e => e.value);
+
+  console.log(`Found ${texts.length} strings to translate\n`);
 
   for (const { code, deepl } of TARGETS) {
     const outPath = path.join(MESSAGES_DIR, `${code}.json`);
@@ -87,18 +115,36 @@ async function main() {
     if (fs.existsSync(outPath)) {
       const existing = JSON.parse(fs.readFileSync(outPath, 'utf8'));
       if (JSON.stringify(existing) !== JSON.stringify(en)) {
-        console.log(`\n✓ ${code}.json already translated — skipping`);
+        console.log(`✓ ${code}.json already translated — skipping`);
         continue;
       }
     }
 
-    console.log(`\nTranslating → ${deepl}...`);
-    const translated = await translateObject(en, deepl);
-    fs.writeFileSync(outPath, JSON.stringify(translated, null, 2));
-    console.log(`✓ Saved ${code}.json`);
+    console.log(`Translating → ${deepl}...`);
+    try {
+      const translated = await translateBatch(texts, deepl);
+
+      if (translated.length !== flat.length) {
+        console.error(`  ⚠ Expected ${flat.length} strings, got ${translated.length} — saving partial`);
+      }
+
+      const entries = flat.map((e, i) => ({
+        path: e.path,
+        value: i < translated.length ? translated[i] : e.value
+      }));
+
+      const result = unflattenObject(entries);
+      fs.writeFileSync(outPath, JSON.stringify(result, null, 2));
+      console.log(`✓ Saved ${code}.json (${translated.length} strings)`);
+
+      // Small delay between languages to avoid rate limits
+      await new Promise(r => setTimeout(r, 1000));
+    } catch (err) {
+      console.error(`✗ Failed ${code}: ${err.message}`);
+    }
   }
 
-  console.log('\n✅ All translations complete');
+  console.log('\n✅ Done');
 }
 
 main().catch(console.error);

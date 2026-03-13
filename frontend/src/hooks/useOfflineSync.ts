@@ -8,18 +8,17 @@ import { drainQueue, cacheProjects } from '@/lib/syncService';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5050';
 
 // Probe real connectivity — navigator.onLine is unreliable in Safari PWA
-async function checkConnectivity(): Promise<boolean> {
-  if (typeof navigator === 'undefined') return true;
-  // Fast check first
-  if (!navigator.onLine) return false;
-  // Verify with a real network request (HEAD is lightweight)
+async function checkOnline(): Promise<boolean> {
   try {
-    const res = await fetch(`${API_URL}/api/docs`, {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000);
+    await fetch(`${API_URL}/`, {
       method: 'HEAD',
+      signal: controller.signal,
       cache: 'no-store',
-      signal: AbortSignal.timeout(3000),
     });
-    return res.ok;
+    clearTimeout(timeout);
+    return true;
   } catch {
     return false;
   }
@@ -30,7 +29,6 @@ export function useOfflineSync() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [justSynced, setJustSynced] = useState(false);
   const drainRef = useRef(false);
-  const probeRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const pendingCount = useLiveQuery(
     () => offlineDb.pending_expenses.where('status').equals('pending').count(),
@@ -60,6 +58,11 @@ export function useOfflineSync() {
     drainRef.current = false;
   }, []);
 
+  const goOnline = useCallback(() => {
+    setOnline(true);
+    drain();
+  }, [drain]);
+
   // Pre-cache projects silently when online
   useEffect(() => {
     if (typeof window === 'undefined' || !online) return;
@@ -67,73 +70,71 @@ export function useOfflineSync() {
     if (token) cacheProjects(token).catch(() => {});
   }, [online]);
 
-  // Probe connectivity on mount + periodically when offline (Safari fix)
+  // Initial connectivity check on mount
   useEffect(() => {
     if (typeof window === 'undefined') return;
-
-    const probe = async () => {
-      const isUp = await checkConnectivity();
-      setOnline(prev => {
-        if (!prev && isUp) {
-          // Transitioning to online — trigger drain
-          drain();
-        }
-        return isUp;
-      });
-    };
-
-    // Initial probe
-    probe();
-
-    // Re-probe every 5s when we think we're offline (catches Safari stuck state)
-    probeRef.current = setInterval(() => {
-      if (!navigator.onLine) return; // truly offline, skip probe
-      probe(); // navigator says online but state says offline — verify
-    }, 5000);
-
-    return () => {
-      if (probeRef.current) clearInterval(probeRef.current);
-    };
+    checkOnline().then(up => {
+      setOnline(up);
+      if (up) drain();
+    });
   }, [drain]);
 
+  // Poll every 3s when offline — catches Safari stuck state
+  useEffect(() => {
+    if (typeof window === 'undefined' || online) return;
+    const interval = setInterval(async () => {
+      const up = await checkOnline();
+      if (up) goOnline();
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [online, goOnline]);
+
+  // Re-probe when app comes to foreground (Safari PWA resume)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onVisible = async () => {
+      if (document.visibilityState !== 'visible') return;
+      const up = await checkOnline();
+      if (up && !online) goOnline();
+      if (!up && online) setOnline(false);
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [online, goOnline]);
+
+  // Browser online/offline events as backup
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const goOnline = async () => {
-      const isUp = await checkConnectivity();
-      if (isUp) {
-        setOnline(true);
-        drain();
-      }
+    const handleOnline = async () => {
+      const up = await checkOnline();
+      if (up) goOnline();
     };
-    const goOffline = () => {
+    const handleOffline = () => {
       setOnline(false);
       setJustSynced(false);
     };
 
-    window.addEventListener('online', goOnline);
-    window.addEventListener('offline', goOffline);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
     // Listen for background sync messages from SW
+    let handleMessage: ((event: MessageEvent) => void) | null = null;
     if ('serviceWorker' in navigator) {
-      const handleMessage = (event: MessageEvent) => {
-        if (event.data?.type === 'BACKGROUND_SYNC') {
-          drain();
-        }
+      handleMessage = (event: MessageEvent) => {
+        if (event.data?.type === 'BACKGROUND_SYNC') drain();
       };
       navigator.serviceWorker.addEventListener('message', handleMessage);
-      return () => {
-        window.removeEventListener('online', goOnline);
-        window.removeEventListener('offline', goOffline);
-        navigator.serviceWorker.removeEventListener('message', handleMessage);
-      };
     }
 
     return () => {
-      window.removeEventListener('online', goOnline);
-      window.removeEventListener('offline', goOffline);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      if (handleMessage && 'serviceWorker' in navigator) {
+        navigator.serviceWorker.removeEventListener('message', handleMessage);
+      }
     };
-  }, [drain]);
+  }, [drain, goOnline]);
 
   return { isOnline: online, pendingCount, isSyncing, justSynced, drain };
 }

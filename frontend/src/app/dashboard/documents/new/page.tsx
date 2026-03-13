@@ -1,13 +1,22 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Upload, FileText, CheckCircle, AlertCircle, Building2, FolderOpen, Receipt } from 'lucide-react'
+import { ArrowLeft, Upload, FileText, CheckCircle, AlertCircle, Building2, FolderOpen, Receipt, X, Loader2 } from 'lucide-react'
 import { apiGet } from '@/lib/api'
 
 interface Project { id: string; name: string }
 interface Expense { id: string; description: string; amount: number; currency: string }
+
+interface FileEntry {
+  file: File
+  name: string
+  status: 'queued' | 'uploading' | 'sealed' | 'failed'
+  error?: string
+  documentId?: string
+  sealId?: string
+}
 
 const DOCUMENT_TYPES = {
   ngo: ['Registration Certificate','Tax Exemption Certificate','Audited Financial Statement','Annual Report','Board Resolution','MOU / Agreement','Photo','Other'],
@@ -28,6 +37,14 @@ const CATEGORY_OPTIONS = [
   { value: 'mou', label: 'MOU' },
 ]
 
+const MAX_FILES = 10
+const MAX_SIZE = 20 * 1024 * 1024
+
+function formatSize(bytes: number) {
+  if (bytes >= 1_000_000) return `${(bytes / 1_000_000).toFixed(1)} MB`
+  return `${(bytes / 1024).toFixed(1)} KB`
+}
+
 export default function AddDocumentPage() {
   const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
@@ -36,16 +53,15 @@ export default function AddDocumentPage() {
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [selectedProject, setSelectedProject] = useState('')
   const [selectedExpense, setSelectedExpense] = useState('')
-  const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [documentType, setDocumentType] = useState('')
   const [category, setCategory] = useState('')
   const [expiryDate, setExpiryDate] = useState('')
-  const [file, setFile] = useState<File|null>(null)
+  const [entries, setEntries] = useState<FileEntry[]>([])
   const [dragging, setDragging] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
+  const [done, setDone] = useState(false)
 
   useEffect(() => {
     apiGet('/api/projects').then(r => r.ok ? r.json() : null).then(d => setProjects(d?.data ?? d?.items ?? []))
@@ -56,51 +72,96 @@ export default function AddDocumentPage() {
     setSelectedExpense('')
     if (level === 'expense' && selectedProject) {
       apiGet(`/api/expenses?projectId=${selectedProject}`).then(r => r.ok ? r.json() : null).then(d => {
-        const items = d?.data ?? d?.items ?? []
-        setExpenses(items)
+        setExpenses(d?.data ?? d?.items ?? [])
       })
     }
   }, [level, selectedProject])
 
-  const handleFile = (f: File) => { setFile(f); if (!name) setName(f.name.replace(/\.[^.]+$/, '')) }
-  const handleDrop = (e: React.DragEvent) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f) }
+  const addFiles = useCallback((fileList: FileList | File[]) => {
+    const files = Array.from(fileList)
+    setError('')
+    setEntries(prev => {
+      const existing = prev.length
+      const space = MAX_FILES - existing
+      if (space <= 0) { setError(`Maximum ${MAX_FILES} files per batch`); return prev }
+      const toAdd = files.slice(0, space)
+      if (files.length > space) setError(`Only ${space} more file(s) can be added (max ${MAX_FILES})`)
+      const newEntries: FileEntry[] = []
+      for (const f of toAdd) {
+        if (f.size > MAX_SIZE) { setError(`${f.name} exceeds 20MB limit`); continue }
+        if (prev.some(e => e.file.name === f.name && e.file.size === f.size)) continue
+        newEntries.push({ file: f, name: f.name.replace(/\.[^.]+$/, ''), status: 'queued' })
+      }
+      return [...prev, ...newEntries]
+    })
+  }, [])
+
+  const removeFile = (index: number) => {
+    setEntries(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const updateName = (index: number, name: string) => {
+    setEntries(prev => prev.map((e, i) => i === index ? { ...e, name } : e))
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault(); setDragging(false)
+    if (e.dataTransfer.files.length > 0) addFiles(e.dataTransfer.files)
+  }
 
   const handleSubmit = async () => {
-    if (!name) return setError('Document name is required')
-    if (!file) return setError('Please select a file to upload')
+    if (entries.length === 0) return setError('Please select files to upload')
     if (level === 'project' && !selectedProject) return setError('Please select a project')
     if (level === 'expense' && !selectedExpense) return setError('Please select an expense')
-    setLoading(true); setError('')
-    try {
-      const token = localStorage.getItem('tulip_token')
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('name', name)
-      formData.append('description', description)
-      formData.append('documentType', documentType)
-      formData.append('documentLevel', level)
-      if (category) formData.append('category', category)
-      if (category && KEY_DOCUMENT_CATEGORIES.includes(category) && expiryDate) formData.append('expiryDate', expiryDate)
-      if (level === 'project' || level === 'expense') formData.append('projectId', selectedProject)
-      if (level === 'expense') formData.append('expenseId', selectedExpense)
-      let res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/documents`, {
-        method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData,
-      })
-      // Handle duplicate hash
-      if (res.status === 409) {
-        const dup = await res.json()
-        const proceed = window.confirm(`${dup.message}\n\nDo you want to upload it anyway?`)
-        if (!proceed) { setLoading(false); return }
-        res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/documents?allowDuplicate=1`, {
-          method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData,
+    const hasEmptyName = entries.some(e => !e.name.trim())
+    if (hasEmptyName) return setError('All files need a document name')
+
+    setUploading(true); setError('')
+    const token = localStorage.getItem('tulip_token')
+
+    // Upload files one at a time so we can show per-file progress
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i]
+      if (entry.status !== 'queued') continue
+      setEntries(prev => prev.map((e, idx) => idx === i ? { ...e, status: 'uploading' } : e))
+
+      try {
+        const fd = new FormData()
+        fd.append('file', entry.file)
+        fd.append('name', entry.name.trim())
+        fd.append('description', description)
+        fd.append('documentType', documentType)
+        fd.append('documentLevel', level)
+        if (category) fd.append('category', category)
+        if (category && KEY_DOCUMENT_CATEGORIES.includes(category) && expiryDate) fd.append('expiryDate', expiryDate)
+        if (level === 'project' || level === 'expense') fd.append('projectId', selectedProject)
+        if (level === 'expense') fd.append('expenseId', selectedExpense)
+
+        let res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/documents`, {
+          method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: fd,
         })
+
+        // Auto-allow duplicates in bulk mode
+        if (res.status === 409) {
+          res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/documents?allowDuplicate=1`, {
+            method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: fd,
+          })
+        }
+
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Upload failed')
+        setEntries(prev => prev.map((e, idx) => idx === i ? { ...e, status: 'sealed', documentId: data.id } : e))
+      } catch (err: any) {
+        setEntries(prev => prev.map((e, idx) => idx === i ? { ...e, status: 'failed', error: err.message } : e))
       }
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Upload failed')
-      setSuccess(true)
-      setTimeout(() => router.push('/dashboard/documents'), 1500)
-    } catch (err: any) { setError(err.message) } finally { setLoading(false) }
+    }
+
+    setUploading(false)
+    setDone(true)
   }
+
+  const sealedCount = entries.filter(e => e.status === 'sealed').length
+  const failedCount = entries.filter(e => e.status === 'failed').length
 
   const levelConfig = {
     ngo: { icon: Building2, label: 'NGO Document', desc: 'Organisation-level documents', color: '#6366f1' },
@@ -108,12 +169,16 @@ export default function AddDocumentPage() {
     expense: { icon: Receipt, label: 'Expense Document', desc: 'Receipts, invoices, payment proof', color: '#f59e0b' },
   }
 
-  if (success) return (
+  if (done && failedCount === 0) return (
     <div style={{ minHeight:'100vh', background:'#F9FAFB', display:'flex', alignItems:'center', justifyContent:'center' }}>
       <div style={{ textAlign:'center' }}>
         <CheckCircle size={64} style={{ color:'#34d399', margin:'0 auto 16px' }} />
-        <p style={{ color:'#111827', fontSize:20, fontWeight:600 }}>Document uploaded successfully</p>
-        <p style={{ color:'#64748b', fontSize:14, marginTop:8 }}>SHA-256 hash generated and queued for blockchain anchoring</p>
+        <p style={{ color:'#111827', fontSize:20, fontWeight:600 }}>{sealedCount} of {entries.length} document{entries.length > 1 ? 's' : ''} sealed</p>
+        <p style={{ color:'#64748b', fontSize:14, marginTop:8 }}>SHA-256 hashes generated and queued for blockchain anchoring</p>
+        <button onClick={() => router.push('/dashboard/documents')}
+          style={{ marginTop:24, padding:'10px 24px', borderRadius:8, background:'#0d9488', color:'#fff', border:'none', cursor:'pointer', fontSize:14, fontWeight:500 }}>
+          View Documents
+        </button>
       </div>
     </div>
   )
@@ -125,8 +190,8 @@ export default function AddDocumentPage() {
           <Link href="/dashboard/documents" style={{ display:'inline-flex', alignItems:'center', gap:6, color:'#64748b', fontSize:14, textDecoration:'none', marginBottom:16 }}>
             <ArrowLeft size={16} /> Back to Documents
           </Link>
-          <h1 style={{ color:'#111827', fontSize:28, fontWeight:700, margin:0 }}>Add Document</h1>
-          <p style={{ color:'#64748b', fontSize:14, marginTop:4 }}>SHA-256 hash will be generated and anchored to blockchain</p>
+          <h1 style={{ color:'#111827', fontSize:28, fontWeight:700, margin:0 }}>Add Documents</h1>
+          <p style={{ color:'#64748b', fontSize:14, marginTop:4 }}>Upload up to {MAX_FILES} files — each gets SHA-256 hashed and anchored to blockchain</p>
         </div>
 
         <div style={{ marginBottom:24 }}>
@@ -194,46 +259,74 @@ export default function AddDocumentPage() {
         )}
 
         <div style={{ marginBottom:16 }}>
-          <label style={{ color:'#6B7280', fontSize:12, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', display:'block', marginBottom:8 }}>Document Name *</label>
-          <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Q1 2026 Financial Report"
-            style={{ width:'100%', padding:'10px 14px', borderRadius:8, border:'1px solid #E5E7EB', background:'#F9FAFB', color:'#111827', fontSize:14, boxSizing:'border-box' }} />
-        </div>
-
-        <div style={{ marginBottom:24 }}>
           <label style={{ color:'#6B7280', fontSize:12, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', display:'block', marginBottom:8 }}>Description</label>
-          <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="Brief description..."
+          <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} placeholder="Brief description (applies to all files)..."
             style={{ width:'100%', padding:'10px 14px', borderRadius:8, border:'1px solid #E5E7EB', background:'#F9FAFB', color:'#111827', fontSize:14, resize:'vertical', boxSizing:'border-box' }} />
         </div>
 
+        {/* File drop zone */}
         <div style={{ marginBottom:24 }}>
-          <label style={{ color:'#6B7280', fontSize:12, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', display:'block', marginBottom:8 }}>File *</label>
+          <label style={{ color:'#6B7280', fontSize:12, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', display:'block', marginBottom:8 }}>Files * <span style={{ fontWeight:400, textTransform:'none' }}>({entries.length}/{MAX_FILES})</span></label>
           <div onDragOver={e => { e.preventDefault(); setDragging(true) }} onDragLeave={() => setDragging(false)} onDrop={handleDrop} onClick={() => fileRef.current?.click()}
-            style={{ border:`2px dashed ${dragging ? '#0d9488' : file ? '#34d399' : '#E5E7EB'}`, borderRadius:12, padding:'40px 24px', textAlign:'center', cursor:'pointer',
-              background: dragging ? 'rgba(13,148,136,0.05)' : file ? 'rgba(52,211,153,0.05)' : '#FFFFFF' }}>
-            {file ? (
-              <div>
-                <CheckCircle size={32} style={{ color:'#34d399', margin:'0 auto 8px' }} />
-                <p style={{ color:'#111827', fontWeight:600, margin:0 }}>{file.name}</p>
-                <p style={{ color:'#64748b', fontSize:12, marginTop:4 }}>{(file.size/1024).toFixed(1)} KB • SHA-256 will be computed on upload</p>
-                <button onClick={e => { e.stopPropagation(); setFile(null) }} style={{ marginTop:8, background:'none', border:'none', color:'#ef4444', cursor:'pointer', fontSize:12 }}>Remove</button>
-              </div>
-            ) : (
-              <div>
-                <Upload size={32} style={{ color:'#475569', margin:'0 auto 12px' }} />
-                <p style={{ color:'#6B7280', fontWeight:500, margin:0 }}>Drop file here or click to browse</p>
-                <p style={{ color:'#475569', fontSize:12, marginTop:4 }}>PDF, DOC, DOCX, XLSX, JPG, PNG — max 20MB</p>
-              </div>
-            )}
+            style={{ border:`2px dashed ${dragging ? '#0d9488' : '#E5E7EB'}`, borderRadius:12, padding:'32px 24px', textAlign:'center', cursor:'pointer',
+              background: dragging ? 'rgba(13,148,136,0.05)' : '#FFFFFF' }}>
+            <Upload size={32} style={{ color:'#475569', margin:'0 auto 12px' }} />
+            <p style={{ color:'#6B7280', fontWeight:500, margin:0 }}>Drop files here or click to browse</p>
+            <p style={{ color:'#475569', fontSize:12, marginTop:4 }}>PDF, DOC, DOCX, XLSX, JPG, PNG — max 20MB each, up to {MAX_FILES} files</p>
           </div>
-          <input ref={fileRef} type="file" style={{ display:'none' }} accept=".pdf,.doc,.docx,.xlsx,.xls,.jpg,.jpeg,.png,.csv"
-            onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }} />
+          <input ref={fileRef} type="file" multiple style={{ display:'none' }} accept=".pdf,.doc,.docx,.xlsx,.xls,.jpg,.jpeg,.png,.csv"
+            onChange={e => { if (e.target.files && e.target.files.length > 0) { addFiles(e.target.files); e.target.value = '' } }} />
         </div>
+
+        {/* File list */}
+        {entries.length > 0 && (
+          <div style={{ marginBottom:24 }}>
+            <div style={{ border:'1px solid #E5E7EB', borderRadius:12, overflow:'hidden' }}>
+              {entries.map((entry, i) => (
+                <div key={i} style={{ padding:'12px 16px', borderBottom: i < entries.length - 1 ? '1px solid #E5E7EB' : 'none', display:'flex', alignItems:'center', gap:12,
+                  background: entry.status === 'sealed' ? 'rgba(52,211,153,0.05)' : entry.status === 'failed' ? 'rgba(239,68,68,0.05)' : '#FFFFFF' }}>
+                  {entry.status === 'queued' && <FileText size={16} style={{ color:'#475569', flexShrink:0 }} />}
+                  {entry.status === 'uploading' && <Loader2 size={16} style={{ color:'#0d9488', flexShrink:0, animation:'spin 1s linear infinite' }} />}
+                  {entry.status === 'sealed' && <CheckCircle size={16} style={{ color:'#34d399', flexShrink:0 }} />}
+                  {entry.status === 'failed' && <AlertCircle size={16} style={{ color:'#ef4444', flexShrink:0 }} />}
+                  <div style={{ flex:1, minWidth:0 }}>
+                    {entry.status === 'queued' && !uploading ? (
+                      <input value={entry.name} onChange={e => updateName(i, e.target.value)}
+                        style={{ width:'100%', padding:'4px 8px', borderRadius:6, border:'1px solid #E5E7EB', background:'#F9FAFB', color:'#111827', fontSize:13, boxSizing:'border-box' }} />
+                    ) : (
+                      <p style={{ color:'#111827', fontSize:13, fontWeight:500, margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{entry.name}</p>
+                    )}
+                    <p style={{ color: entry.status === 'failed' ? '#ef4444' : '#64748b', fontSize:11, margin:'2px 0 0' }}>
+                      {entry.file.name} — {formatSize(entry.file.size)}
+                      {entry.status === 'uploading' && ' — uploading...'}
+                      {entry.status === 'sealed' && ' — sealed'}
+                      {entry.status === 'failed' && ` — ${entry.error || 'failed'}`}
+                    </p>
+                  </div>
+                  {entry.status === 'queued' && !uploading && (
+                    <button onClick={() => removeFile(i)} style={{ background:'none', border:'none', cursor:'pointer', color:'#94a3b8', padding:4 }}>
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Summary when done with some failures */}
+        {done && failedCount > 0 && (
+          <div style={{ padding:'12px 16px', borderRadius:8, background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.3)', marginBottom:16, display:'flex', gap:8, alignItems:'center' }}>
+            <AlertCircle size={16} style={{ color:'#f59e0b' }} />
+            <p style={{ color:'#92400e', fontSize:13, margin:0 }}>{sealedCount} of {entries.length} documents sealed. {failedCount} failed.</p>
+          </div>
+        )}
 
         <div style={{ padding:'12px 16px', borderRadius:8, background:'rgba(13,148,136,0.08)', border:'1px solid rgba(13,148,136,0.2)', marginBottom:24, display:'flex', gap:10 }}>
           <FileText size={16} style={{ color:'#0d9488', marginTop:2, flexShrink:0 }} />
           <div>
             <p style={{ color:'#0d9488', fontSize:13, fontWeight:600, margin:0 }}>Blockchain Proof</p>
-            <p style={{ color:'#64748b', fontSize:12, margin:'2px 0 0' }}>SHA-256 fingerprint anchored to Polygon. Donors can verify this document has not been altered.</p>
+            <p style={{ color:'#64748b', fontSize:12, margin:'2px 0 0' }}>SHA-256 fingerprint anchored to Polygon. Donors can verify documents have not been altered.</p>
           </div>
         </div>
 
@@ -246,12 +339,21 @@ export default function AddDocumentPage() {
 
         <div style={{ display:'flex', gap:12 }}>
           <Link href="/dashboard/documents" style={{ flex:1, padding:'12px', borderRadius:8, border:'1px solid #E5E7EB', color:'#6B7280', fontSize:14, fontWeight:500, textAlign:'center', textDecoration:'none', display:'block' }}>Cancel</Link>
-          <button onClick={handleSubmit} disabled={loading}
-            style={{ flex:2, padding:'12px', borderRadius:8, background: loading ? '#1e293b' : '#0d9488', color:'#111827', fontSize:14, fontWeight:600, border:'none', cursor: loading ? 'not-allowed' : 'pointer' }}>
-            {loading ? 'Uploading & hashing...' : 'Upload Document'}
-          </button>
+          {done && failedCount > 0 ? (
+            <button onClick={() => router.push('/dashboard/documents')}
+              style={{ flex:2, padding:'12px', borderRadius:8, background:'#0d9488', color:'#fff', fontSize:14, fontWeight:600, border:'none', cursor:'pointer' }}>
+              Done
+            </button>
+          ) : (
+            <button onClick={handleSubmit} disabled={uploading || entries.length === 0}
+              style={{ flex:2, padding:'12px', borderRadius:8, background: uploading ? '#1e293b' : '#0d9488', color:'#111827', fontSize:14, fontWeight:600, border:'none', cursor: uploading ? 'not-allowed' : 'pointer' }}>
+              {uploading ? `Uploading ${entries.filter(e => e.status === 'sealed').length + 1} of ${entries.length}...` : entries.length > 1 ? `Upload All (${entries.length} files)` : 'Upload Document'}
+            </button>
+          )}
         </div>
       </div>
+
+      <style>{`@keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }`}</style>
     </div>
   )
 }

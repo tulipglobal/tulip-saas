@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Upload, FileCheck, X, Paperclip, WifiOff, Clock } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { Upload, FileCheck, X, Paperclip, WifiOff, Clock, Loader2, AlertCircle, CheckCircle } from 'lucide-react'
 import { queueDocument } from '@/lib/syncService'
 
 interface Props {
@@ -10,7 +10,21 @@ interface Props {
   onUploaded?: () => void
 }
 
+interface FileEntry {
+  file: File
+  name: string
+  status: 'queued' | 'uploading' | 'sealed' | 'failed' | 'offline_queued'
+  error?: string
+}
+
 const DOC_TYPES = ['Invoice', 'Receipt', 'Contract', 'Report', 'Proposal', 'Registration', 'Tax Certificate', 'Donor Agreement', 'Payment Proof', 'Photo', 'Other']
+const MAX_FILES = 10
+const MAX_SIZE = 20 * 1024 * 1024
+
+function formatSize(bytes: number) {
+  if (bytes >= 1_000_000) return `${(bytes / 1_000_000).toFixed(1)} MB`
+  return `${(bytes / 1024).toFixed(1)} KB`
+}
 
 export default function DocumentUploadSection({ entityType, entityId, onUploaded }: Props) {
   const [isOnline, setIsOnline] = useState(
@@ -24,120 +38,121 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
     return () => { window.removeEventListener('online', goOnline); window.removeEventListener('offline', goOffline) }
   }, [])
 
-  const [file, setFile] = useState<File | null>(null)
-  const [name, setName] = useState('')
+  const [entries, setEntries] = useState<FileEntry[]>([])
   const [docType, setDocType] = useState('')
   const [uploading, setUploading] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [queued, setQueued] = useState(false)
   const [error, setError] = useState('')
   const [dragOver, setDragOver] = useState(false)
 
   const inputCls = "w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all"
   const labelCls = "block text-xs font-medium text-[#183a1d]/60 mb-1.5 uppercase tracking-wide"
 
-  const handleFile = (f: File) => {
-    setFile(f)
-    if (!name) setName(f.name.replace(/\.[^.]+$/, ''))
-    // Auto-default document type based on file type
-    if (!docType) {
-      if (f.type.startsWith('image/')) setDocType('Photo')
-      else if (f.type === 'application/pdf') setDocType('Other')
-    }
-    setSuccess(false)
+  const addFiles = useCallback((fileList: FileList | File[]) => {
+    const files = Array.from(fileList)
     setError('')
+    setEntries(prev => {
+      const space = MAX_FILES - prev.length
+      if (space <= 0) { setError(`Maximum ${MAX_FILES} files`); return prev }
+      const toAdd = files.slice(0, space)
+      const newEntries: FileEntry[] = []
+      for (const f of toAdd) {
+        if (f.size > MAX_SIZE) { setError(`${f.name} exceeds 20MB`); continue }
+        if (prev.some(e => e.file.name === f.name && e.file.size === f.size)) continue
+        const autoName = f.name.replace(/\.[^.]+$/, '')
+        newEntries.push({ file: f, name: autoName, status: 'queued' })
+      }
+      return [...prev, ...newEntries]
+    })
+  }, [])
+
+  const removeFile = (index: number) => {
+    setEntries(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const updateName = (index: number, name: string) => {
+    setEntries(prev => prev.map((e, i) => i === index ? { ...e, name } : e))
   }
 
   const upload = async () => {
-    if (!file) { setError('Please select a file'); return }
-    if (!name.trim()) { setError('Document name is required'); return }
+    const queuedEntries = entries.filter(e => e.status === 'queued')
+    if (queuedEntries.length === 0) { setError('Please select files'); return }
+    if (queuedEntries.some(e => !e.name.trim())) { setError('All files need a name'); return }
     setUploading(true)
     setError('')
-    setQueued(false)
 
-    // Offline → queue in IndexedDB
-    if (!isOnline) {
+    for (let i = 0; i < entries.length; i++) {
+      if (entries[i].status !== 'queued') continue
+
+      // Offline → queue each file in IndexedDB
+      if (!isOnline) {
+        try {
+          const blob = new Blob([await entries[i].file.arrayBuffer()], { type: entries[i].file.type })
+          await queueDocument({
+            entityType, entityId,
+            documentName: entries[i].name.trim(),
+            documentType: docType || 'Other',
+            fileBlob: blob, fileType: entries[i].file.type, fileName: entries[i].file.name,
+            status: 'pending', createdAt: Date.now(), retries: 0,
+          })
+          setEntries(prev => prev.map((e, idx) => idx === i ? { ...e, status: 'offline_queued' } : e))
+        } catch {
+          setEntries(prev => prev.map((e, idx) => idx === i ? { ...e, status: 'failed', error: 'Failed to save offline' } : e))
+        }
+        continue
+      }
+
+      // Online → upload
+      setEntries(prev => prev.map((e, idx) => idx === i ? { ...e, status: 'uploading' } : e))
       try {
-        const blob = new Blob([await file.arrayBuffer()], { type: file.type })
-        await queueDocument({
-          entityType,
-          entityId,
-          documentName: name.trim(),
-          documentType: docType || 'Other',
-          fileBlob: blob,
-          fileType: file.type,
-          fileName: file.name,
-          status: 'pending',
-          createdAt: Date.now(),
-          retries: 0,
+        const token = localStorage.getItem('tulip_token')
+        const fd = new FormData()
+        fd.append('file', entries[i].file)
+        fd.append('name', entries[i].name.trim())
+        fd.append('documentType', docType || 'Other')
+        fd.append('documentLevel', entityType)
+        if (entityType === 'project') fd.append('projectId', entityId)
+        if (entityType === 'expense') fd.append('expenseId', entityId)
+
+        let url = `${process.env.NEXT_PUBLIC_API_URL}/api/documents`
+        let res = await fetch(url, {
+          method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: fd,
         })
-        setQueued(true)
-        setFile(null)
-        setName('')
-        setDocType('')
-      } catch { setError('Failed to save offline') }
-      setUploading(false)
-      return
+        if (res.status === 409) {
+          res = await fetch(`${url}?allowDuplicate=1`, {
+            method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: fd,
+          })
+        }
+
+        if (res.ok) {
+          setEntries(prev => prev.map((e, idx) => idx === i ? { ...e, status: 'sealed' } : e))
+        } else {
+          const d = await res.json()
+          setEntries(prev => prev.map((e, idx) => idx === i ? { ...e, status: 'failed', error: d.error || 'Upload failed' } : e))
+        }
+      } catch {
+        setEntries(prev => prev.map((e, idx) => idx === i ? { ...e, status: 'failed', error: 'Network error' } : e))
+      }
     }
 
-    // Online → upload directly
-    try {
-      const token = localStorage.getItem('tulip_token')
-      const fd = new FormData()
-      fd.append('file', file)
-      fd.append('name', name.trim())
-      fd.append('documentType', docType || 'Other')
-      fd.append('documentLevel', entityType)
-      if (entityType === 'project') fd.append('projectId', entityId)
-      if (entityType === 'expense') fd.append('expenseId', entityId)
-
-      let url = `${process.env.NEXT_PUBLIC_API_URL}/api/documents`
-      let res = await fetch(url, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: fd,
-      })
-
-      // Handle duplicate hash — ask user to confirm
-      if (res.status === 409) {
-        const dup = await res.json()
-        const proceed = window.confirm(
-          `${dup.message}\n\nDo you want to upload it anyway?`
-        )
-        if (!proceed) { setUploading(false); return }
-        // Re-upload with allowDuplicate flag
-        res = await fetch(`${url}?allowDuplicate=1`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-          body: fd,
-        })
-      }
-
-      if (res.ok) {
-        setSuccess(true)
-        setFile(null)
-        setName('')
-        setDocType('')
-        onUploaded?.()
-      } else {
-        const d = await res.json()
-        setError(d.error || 'Upload failed')
-      }
-    } catch { setError('Network error') }
     setUploading(false)
+    onUploaded?.()
   }
+
+  const sealedCount = entries.filter(e => e.status === 'sealed').length
+  const queuedOfflineCount = entries.filter(e => e.status === 'offline_queued').length
+  const allDone = entries.length > 0 && entries.every(e => e.status !== 'queued' && e.status !== 'uploading')
 
   return (
     <div className="rounded-xl border border-[#c8d6c0] p-5 space-y-4"
       style={{ background: '#e1eedd' }}>
       <div className="flex items-center gap-2">
         <Paperclip size={14} className="text-[#183a1d]" />
-        <span className="text-sm font-medium text-[#183a1d]">Attach Document <span className="text-[#183a1d]/40 text-xs">(optional)</span></span>
+        <span className="text-sm font-medium text-[#183a1d]">Attach Documents <span className="text-[#183a1d]/40 text-xs">(up to {MAX_FILES} files)</span></span>
       </div>
 
       {!isOnline && (
         <div className="rounded-lg bg-amber-100 border border-amber-300 px-4 py-3 text-sm text-amber-800 flex items-center gap-2">
-          <WifiOff size={14} /> You&apos;re offline — uploads will be available when reconnected
+          <WifiOff size={14} /> You&apos;re offline — files will be queued for upload when reconnected
         </div>
       )}
 
@@ -145,71 +160,92 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
       <div
         onDragOver={e => { e.preventDefault(); setDragOver(true) }}
         onDragLeave={() => setDragOver(false)}
-        onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f) }}
+        onDrop={e => { e.preventDefault(); setDragOver(false); if (e.dataTransfer.files.length > 0) addFiles(e.dataTransfer.files) }}
         onClick={() => document.getElementById(`file-input-${entityId}`)?.click()}
         className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all ${
-          dragOver ? 'border-[#f6c453] bg-[#f6c453]/10' : file ? 'border-green-500/40 bg-green-500/5' : 'border-[#c8d6c0] hover:border-[#183a1d]/30'
+          dragOver ? 'border-[#f6c453] bg-[#f6c453]/10' : 'border-[#c8d6c0] hover:border-[#183a1d]/30'
         }`}
       >
-        <input id={`file-input-${entityId}`} type="file" className="hidden"
+        <input id={`file-input-${entityId}`} type="file" multiple className="hidden"
           accept="image/*,video/*,.pdf,.doc,.docx,.xlsx,.xls,.csv"
-          onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }} />
-        {file ? (
-          <div className="flex items-center justify-center gap-2">
-            <FileCheck size={16} className="text-green-400" />
-            <span className="text-sm text-green-400">{file.name}</span>
-            <button onClick={e => { e.stopPropagation(); setFile(null); setName('') }}
-              className="text-[#183a1d]/40 hover:text-[#183a1d] ml-1">
-              <X size={14} />
-            </button>
-          </div>
-        ) : (
-          <div>
-            <Upload size={20} className="text-[#183a1d]/30 mx-auto mb-2" />
-            <p className="text-sm text-[#183a1d]/60">Drop file here or <span className="text-[#f6c453] font-medium">browse</span></p>
-            <p className="text-xs text-[#183a1d]/30 mt-1">PDF, Word, Excel, Image — max 20MB</p>
-          </div>
-        )}
+          onChange={e => { if (e.target.files && e.target.files.length > 0) { addFiles(e.target.files); e.target.value = '' } }} />
+        <Upload size={20} className="text-[#183a1d]/30 mx-auto mb-2" />
+        <p className="text-sm text-[#183a1d]/60">Drop files here or <span className="text-[#f6c453] font-medium">browse</span></p>
+        <p className="text-xs text-[#183a1d]/30 mt-1">PDF, Word, Excel, Image — max 20MB each</p>
       </div>
 
-      {file && (
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className={labelCls}>Document Name *</label>
-            <input value={name} onChange={e => setName(e.target.value)}
-              placeholder="e.g. Invoice #1234" className={inputCls} />
-          </div>
-          <div>
-            <label className={labelCls}>Document Type</label>
-            <select value={docType} onChange={e => setDocType(e.target.value)} className={inputCls}>
-              <option value="">Select type</option>
-              {DOC_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </div>
+      {/* File list */}
+      {entries.length > 0 && (
+        <div className="space-y-2">
+          {entries.map((entry, i) => (
+            <div key={i} className="flex items-center gap-3 rounded-lg px-3 py-2" style={{
+              background: entry.status === 'sealed' ? 'rgba(52,211,153,0.1)' : entry.status === 'failed' ? 'rgba(239,68,68,0.1)' : entry.status === 'offline_queued' ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.5)',
+              border: '1px solid rgba(0,0,0,0.06)' }}>
+              {entry.status === 'queued' && <FileCheck size={14} className="text-[#183a1d]/40 shrink-0" />}
+              {entry.status === 'uploading' && <Loader2 size={14} className="text-[#0d9488] shrink-0 animate-spin" />}
+              {entry.status === 'sealed' && <CheckCircle size={14} className="text-green-500 shrink-0" />}
+              {entry.status === 'failed' && <AlertCircle size={14} className="text-red-500 shrink-0" />}
+              {entry.status === 'offline_queued' && <Clock size={14} className="text-amber-600 shrink-0" />}
+              <div className="flex-1 min-w-0">
+                {entry.status === 'queued' && !uploading ? (
+                  <input value={entry.name} onChange={e => updateName(i, e.target.value)}
+                    className={inputCls} style={{ padding:'4px 8px', fontSize:12 }} />
+                ) : (
+                  <p className="text-xs text-[#183a1d] font-medium truncate m-0">{entry.name}</p>
+                )}
+                <p className="text-[10px] m-0 mt-0.5" style={{ color: entry.status === 'failed' ? '#ef4444' : '#183a1d80' }}>
+                  {formatSize(entry.file.size)}
+                  {entry.status === 'sealed' && ' — sealed'}
+                  {entry.status === 'failed' && ` — ${entry.error}`}
+                  {entry.status === 'offline_queued' && ' — queued offline'}
+                </p>
+              </div>
+              {entry.status === 'queued' && !uploading && (
+                <button onClick={() => removeFile(i)} className="text-[#183a1d]/30 hover:text-[#183a1d] shrink-0">
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Doc type selector — shared across all files */}
+      {entries.length > 0 && entries.some(e => e.status === 'queued') && (
+        <div>
+          <label className={labelCls}>Document Type (all files)</label>
+          <select value={docType} onChange={e => setDocType(e.target.value)} className={inputCls}>
+            <option value="">Select type</option>
+            {DOC_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
         </div>
       )}
 
       {error && <p className="text-xs text-red-400">{error}</p>}
 
-      {success && (
+      {allDone && sealedCount > 0 && (
         <div className="flex items-center gap-2 text-green-400 text-sm">
-          <FileCheck size={14} /> Document uploaded and SHA-256 fingerprinted ✓
+          <FileCheck size={14} /> {sealedCount} document{sealedCount > 1 ? 's' : ''} uploaded and SHA-256 fingerprinted
         </div>
       )}
 
-      {queued && (
+      {allDone && queuedOfflineCount > 0 && (
         <div className="flex items-center gap-2 text-amber-600 text-sm">
-          <Clock size={14} /> Document saved offline — will auto-upload when reconnected
+          <Clock size={14} /> {queuedOfflineCount} document{queuedOfflineCount > 1 ? 's' : ''} saved offline — will auto-upload when reconnected
         </div>
       )}
 
-      {file && (
+      {entries.some(e => e.status === 'queued') && (
         <button onClick={upload} disabled={uploading}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] disabled:opacity-50 transition-all ${
             isOnline ? 'bg-[#f6c453] hover:bg-[#f0a04b]' : 'bg-amber-400 hover:bg-amber-500'
           }`}>
           {isOnline ? <Upload size={14} /> : <WifiOff size={14} />}
-          {uploading ? 'Saving…' : isOnline ? 'Upload Document' : 'Save Offline'}
+          {uploading ? 'Uploading...' : isOnline
+            ? entries.filter(e => e.status === 'queued').length > 1
+              ? `Upload All (${entries.filter(e => e.status === 'queued').length} files)`
+              : 'Upload Document'
+            : `Save ${entries.filter(e => e.status === 'queued').length} Offline`}
         </button>
       )}
     </div>

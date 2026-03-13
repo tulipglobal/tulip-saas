@@ -25,9 +25,11 @@ export interface PendingExpense {
   receiptBlob?: Blob;
   receiptName?: string;
   createdOffline: Date;
-  status: 'pending' | 'syncing' | 'synced' | 'failed';
+  status: 'pending' | 'syncing' | 'synced' | 'failed' | 'blocked';
   retries: number;
   syncedExpenseId?: string;
+  blockReason?: string;
+  blockReasons?: string[];
 }
 
 export interface CachedProject {

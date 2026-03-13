@@ -93,6 +93,66 @@ exports.createExpense = async (req, res) => {
         )
       : { amountMismatch: false, vendorMismatch: false, dateMismatch: false, mismatchNote: null }
 
+    // ── Block HIGH/CRITICAL fraud risk before saving ──
+    if (receiptSealId) {
+      const seal = await prisma.trustSeal.findUnique({ where: { id: receiptSealId } })
+      if (seal) {
+        // Check duplicate HIGH confidence first
+        if (seal.duplicateConfidence === 'HIGH' || seal.crossTenantDuplicate) {
+          createAuditLog({
+            action: 'EXPENSE_BLOCKED_FRAUD',
+            entityType: 'Expense',
+            entityId: receiptSealId,
+            userId: req.user.userId,
+            tenantId: req.user.tenantId,
+            dataHash: JSON.stringify({ reason: 'DUPLICATE_HIGH_CONFIDENCE', duplicateConfidence: seal.duplicateConfidence, crossTenant: !!seal.crossTenantDuplicate }),
+          }).catch(() => {})
+          return res.status(422).json({
+            error: 'DUPLICATE_HIGH_CONFIDENCE',
+            message: 'Upload blocked: This receipt appears to be a duplicate.',
+            duplicateExpenseId: seal.duplicateOfId || null,
+          })
+        }
+
+        // Score fraud risk using expense data + seal duplicate/mismatch data
+        const fraudRecord = {
+          amount: parseFloat(amount),
+          vendor: vendor || null,
+          ocrAmount: ocrAmount != null ? parseFloat(ocrAmount) : (seal.ocrAmount || null),
+          ocrVendor: ocrVendor || seal.ocrVendor || null,
+          ocrDate: ocrDate || seal.ocrDate || null,
+          amountMismatch: mismatch.amountMismatch,
+          vendorMismatch: mismatch.vendorMismatch,
+          dateMismatch: mismatch.dateMismatch,
+          isDuplicate: seal.isDuplicate || false,
+          crossTenantDuplicate: seal.crossTenantDuplicate || false,
+          duplicateConfidence: seal.duplicateConfidence,
+          isVisualDuplicate: seal.isVisualDuplicate || false,
+          sealId: seal.id,
+          anchorTxHash: seal.anchorTxHash,
+        }
+        const risk = scoreFraudRisk(fraudRecord)
+        if (risk.level === 'HIGH' || risk.level === 'CRITICAL') {
+          createAuditLog({
+            action: 'EXPENSE_BLOCKED_FRAUD',
+            entityType: 'Expense',
+            entityId: receiptSealId,
+            userId: req.user.userId,
+            tenantId: req.user.tenantId,
+            dataHash: JSON.stringify({ score: risk.score, level: risk.level, signals: risk.breakdown.signals }),
+          }).catch(() => {})
+          console.log(`[fraud-block] Expense blocked: score=${risk.score} level=${risk.level}`)
+          return res.status(422).json({
+            error: 'FRAUD_RISK_HIGH',
+            message: 'Upload blocked: HIGH fraud risk detected. OCR found significant discrepancies.',
+            fraudScore: risk.score,
+            fraudLevel: risk.level,
+            reasons: risk.breakdown.signals,
+          })
+        }
+      }
+    }
+
     const expense = await db.expense.create({
       data: {
         description:        expenseTitle,
@@ -354,6 +414,29 @@ exports.uploadReceipt = async (req, res) => {
         ocrFields.duplicateConfidence = dupResult.confidence
         ocrFields.duplicateMethod = dupResult.method
 
+        // Block duplicate HIGH confidence or cross-tenant
+        if (dupResult.confidence === 'HIGH' || dupResult.crossTenant) {
+          if (req.body.expenseId) {
+            await db.expense.update({
+              where: { id: req.body.expenseId },
+              data: { voided: true, voidedAt: new Date(), voidedReason: `Blocked: duplicate receipt (${dupResult.crossTenant ? 'cross-org' : 'HIGH confidence'})`, voidedBy: req.user.userId },
+            }).catch(err => console.error('[dup-block] void failed:', err.message))
+          }
+          createAuditLog({
+            action: 'EXPENSE_BLOCKED_FRAUD',
+            entityType: 'Expense',
+            entityId: req.body.expenseId || seal.id,
+            userId: req.user.userId,
+            tenantId: req.user.tenantId,
+            dataHash: JSON.stringify({ reason: 'DUPLICATE_HIGH_CONFIDENCE', confidence: dupResult.confidence, crossTenant: !!dupResult.crossTenant }),
+          }).catch(() => {})
+          return res.status(422).json({
+            error: 'DUPLICATE_HIGH_CONFIDENCE',
+            message: 'Upload blocked: This receipt appears to be a duplicate.',
+            duplicateExpenseId: dupResult.matchedDocumentId || null,
+          })
+        }
+
         // Build update data — only update fields that OCR found AND that are empty/default on the expense
         const existing = req.body.expenseId ? await db.expense.findFirst({ where: { id: req.body.expenseId } }) : null
         if (existing) {
@@ -456,6 +539,30 @@ exports.uploadReceipt = async (req, res) => {
                 dataHash: JSON.stringify({ score: risk.score, level: risk.level, signals: risk.breakdown.signals }),
               }).catch(() => {})
               console.log(`[fraud-risk] expense=${req.body.expenseId} score=${risk.score} level=${risk.level}`)
+
+              // Block HIGH/CRITICAL — void the expense and return 422
+              if (risk.level === 'HIGH' || risk.level === 'CRITICAL') {
+                await db.expense.update({
+                  where: { id: req.body.expenseId },
+                  data: { voided: true, voidedAt: new Date(), voidedReason: `Blocked: ${risk.level} fraud risk (score ${risk.score})`, voidedBy: req.user.userId },
+                })
+                createAuditLog({
+                  action: 'EXPENSE_BLOCKED_FRAUD',
+                  entityType: 'Expense',
+                  entityId: req.body.expenseId,
+                  userId: req.user.userId,
+                  tenantId: req.user.tenantId,
+                  dataHash: JSON.stringify({ score: risk.score, level: risk.level, signals: risk.breakdown.signals }),
+                }).catch(() => {})
+                console.log(`[fraud-block] Expense ${req.body.expenseId} voided: score=${risk.score} level=${risk.level}`)
+                return res.status(422).json({
+                  error: 'FRAUD_RISK_HIGH',
+                  message: 'Upload blocked: HIGH fraud risk detected. OCR found significant discrepancies.',
+                  fraudScore: risk.score,
+                  fraudLevel: risk.level,
+                  reasons: risk.breakdown.signals,
+                })
+              }
             }
           }
         }

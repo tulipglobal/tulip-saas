@@ -242,6 +242,18 @@ export async function drainQueue(token: string): Promise<number> {
         continue;
       }
 
+      // Handle 422 fraud block — mark as blocked, do NOT retry
+      if (res.status === 422) {
+        const errBody = await res.json().catch(() => ({}));
+        console.warn('[sync] Expense blocked by fraud check:', errBody);
+        await offlineDb.pending_expenses.update(expense.id!, {
+          status: 'blocked',
+          blockReason: errBody.message || errBody.error || 'Blocked by fraud detection',
+          blockReasons: errBody.reasons || [],
+        });
+        continue;
+      }
+
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({}));
         console.error('[tulip-sync] API rejected expense:', res.status, errBody);

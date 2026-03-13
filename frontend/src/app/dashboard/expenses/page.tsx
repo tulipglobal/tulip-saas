@@ -546,6 +546,14 @@ function PendingSyncPill() {
   )
 }
 
+function BlockedPill({ reason }: { reason?: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white" title={reason || 'Blocked by fraud detection'}>
+      <AlertTriangle size={9} /> Blocked
+    </span>
+  )
+}
+
 function VoidModal({ expenseId, expenseTitle, onClose, onVoided }: {
   expenseId: string; expenseTitle: string; onClose: () => void; onVoided: () => void
 }) {
@@ -612,7 +620,7 @@ export default function ExpensesPage() {
 
   // Load offline pending expenses from IndexedDB
   const pendingExpenses = useLiveQuery(
-    () => offlineDb.pending_expenses.where('status').anyOf(['pending', 'syncing']).toArray(),
+    () => offlineDb.pending_expenses.where('status').anyOf(['pending', 'syncing', 'blocked']).toArray(),
     [],
     []
   )
@@ -645,7 +653,9 @@ export default function ExpensesPage() {
     mismatchNote: null,
     _isOffline: true,
     _offlineStatus: pe.status,
-  } as Expense & { _isOffline?: boolean; _offlineStatus?: string }))
+    _blockReason: pe.blockReason,
+    _blockReasons: pe.blockReasons,
+  } as Expense & { _isOffline?: boolean; _offlineStatus?: string; _blockReason?: string; _blockReasons?: string[] }))
 
   const resolveSeals = useCallback((items: Expense[]) => {
     const hashes = items.map(e => e.receiptHash).filter(Boolean) as string[]
@@ -756,28 +766,39 @@ export default function ExpensesPage() {
           </div>
         ) : (
           <div className="divide-y divide-[#c8d6c0]">
-            {offlineExpenseRows.map(expense => (
-              <div key={expense.id} className="px-4 py-3.5 lg:grid lg:grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_50px] lg:gap-4 lg:items-center lg:px-5 bg-amber-50/50">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-[#183a1d]">{expense.title}</span>
-                    <PendingSyncPill />
+            {offlineExpenseRows.map(expense => {
+              const isBlocked = (expense as any)._offlineStatus === 'blocked'
+              return (
+                <div key={expense.id} className={`px-4 py-3.5 lg:grid lg:grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_50px] lg:gap-4 lg:items-center lg:px-5 ${isBlocked ? 'bg-red-50/50' : 'bg-amber-50/50'}`}>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-sm font-medium ${isBlocked ? 'text-red-700 line-through' : 'text-[#183a1d]'}`}>{expense.title}</span>
+                      {isBlocked ? <BlockedPill reason={(expense as any)._blockReason} /> : <PendingSyncPill />}
+                    </div>
+                    {isBlocked && (expense as any)._blockReason && (
+                      <p className="text-xs text-red-500 mt-0.5">{(expense as any)._blockReason}</p>
+                    )}
+                    {isBlocked && (expense as any)._blockReasons?.length > 0 && (
+                      <ul className="text-[10px] text-red-400 mt-1 space-y-0.5 list-disc list-inside">
+                        {(expense as any)._blockReasons.map((r: string, i: number) => <li key={i}>{r}</li>)}
+                      </ul>
+                    )}
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {expense.vendor && <span className="text-xs text-[#183a1d]/40">{expense.vendor}</span>}
+                      {expense.category && <span className="text-xs text-[#183a1d]/60">{expense.category}</span>}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    {expense.vendor && <span className="text-xs text-[#183a1d]/40">{expense.vendor}</span>}
-                    {expense.category && <span className="text-xs text-[#183a1d]/60">{expense.category}</span>}
+                  <div className={`text-sm font-medium ${isBlocked ? 'text-red-700 line-through' : 'text-[#183a1d]'}`}>{expense.currency} {expense.amount.toLocaleString()}</div>
+                  <div className="text-xs text-[#183a1d]/60">—</div>
+                  <div className="text-xs text-[#183a1d]/50">
+                    {new Date(expense.expenseDate).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                   </div>
+                  <div>{isBlocked ? <BlockedPill /> : <PendingSyncPill />}</div>
+                  <div><span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border font-medium ${isBlocked ? 'bg-red-100 text-red-600 border-red-300' : 'bg-amber-100 text-amber-700 border-amber-300'}`}>{isBlocked ? 'Blocked' : 'Offline'}</span></div>
+                  <div />
                 </div>
-                <div className="text-sm font-medium text-[#183a1d]">{expense.currency} {expense.amount.toLocaleString()}</div>
-                <div className="text-xs text-[#183a1d]/60">—</div>
-                <div className="text-xs text-[#183a1d]/50">
-                  {new Date(expense.expenseDate).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                </div>
-                <div><PendingSyncPill /></div>
-                <div><span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs border font-medium bg-amber-100 text-amber-700 border-amber-300">Offline</span></div>
-                <div />
-              </div>
-            ))}
+              )
+            })}
             {filtered.map(expense => (
               <ExpenseRow key={expense.id} expense={expense} onRefresh={load} onOpenSeal={(sealId, exp) => { setActiveSealId(sealId); setActiveMismatch(exp) }} sealMap={sealMap} onVoid={() => setVoidTarget({ id: expense.id, title: expense.title ?? expense.description })} />
             ))}

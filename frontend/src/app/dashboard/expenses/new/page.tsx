@@ -45,6 +45,7 @@ export default function NewExpensePage() {
   const [duplicateInfo, setDuplicateInfo] = useState<{ name: string; uploadedAt: string } | null>(null)
   const [crossTenantDuplicate, setCrossTenantDuplicate] = useState(false)
   const [duplicateConfidence, setDuplicateConfidence] = useState<string | null>(null)
+  const [fraudBlock, setFraudBlock] = useState<{ error: string; message: string; reasons?: string[]; fraudScore?: number; fraudLevel?: string; duplicateExpenseId?: string } | null>(null)
 
   const [form, setForm] = useState({
     title: '', amount: '', currency: 'USD', expenseType: '' as '' | ExpenseType,
@@ -181,8 +182,17 @@ export default function NewExpensePage() {
         headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: fd,
       })
+      // Handle 422 fraud block on receipt upload
+      if (res.status === 422) {
+        const blockData = await res.json().catch(() => ({}))
+        setFraudBlock(blockData)
+        setUploading(false)
+        return
+      }
+
       if (res.ok) {
         const data = await res.json()
+        setFraudBlock(null)
         setReceiptData({ fileKey: data.fileKey, hash: data.hash, sealId: data.sealId })
         // Check for duplicate detection
         if (data.ocrFields?.duplicateOf) {
@@ -290,7 +300,10 @@ export default function NewExpensePage() {
         }),
       })
       if (res.ok) { router.push('/dashboard/expenses') }
-      else {
+      else if (res.status === 422) {
+        const blockData = await res.json().catch(() => ({}))
+        setFraudBlock(blockData)
+      } else {
         const d = await res.json().catch(() => ({}))
         setError(d.error ?? d.message ?? 'Failed to log expense')
       }
@@ -589,6 +602,35 @@ export default function NewExpensePage() {
         {!effectiveOnline && (
           <div className="rounded-lg bg-amber-100 border border-amber-300 px-4 py-3 text-sm text-amber-800 flex items-center gap-2">
             <WifiOff size={14} /> You&apos;re offline — expense will be saved locally and synced when you reconnect
+          </div>
+        )}
+
+        {fraudBlock && (
+          <div className="rounded-xl bg-red-600 p-5 space-y-3">
+            <div className="flex items-center gap-3 text-white font-bold text-lg">
+              <AlertTriangle size={24} className="shrink-0" />
+              {fraudBlock.error === 'DUPLICATE_HIGH_CONFIDENCE'
+                ? 'Upload Blocked — Duplicate Receipt Detected'
+                : 'Upload Blocked — HIGH Fraud Risk'}
+            </div>
+            <p className="text-white/90 text-sm">
+              {fraudBlock.error === 'DUPLICATE_HIGH_CONFIDENCE'
+                ? 'This receipt has already been submitted. You cannot submit a duplicate receipt.'
+                : 'OCR detected significant discrepancies in this receipt.'}
+            </p>
+            {fraudBlock.reasons && fraudBlock.reasons.length > 0 && (
+              <ul className="text-white/80 text-sm space-y-1 list-disc list-inside">
+                {fraudBlock.reasons.map((r, i) => <li key={i}>{r}</li>)}
+              </ul>
+            )}
+            {fraudBlock.fraudScore != null && (
+              <p className="text-white/60 text-xs">Fraud score: {fraudBlock.fraudScore}/100 ({fraudBlock.fraudLevel})</p>
+            )}
+            <p className="text-white/70 text-sm">Please verify the receipt and contact your administrator.</p>
+            <button onClick={() => { setFraudBlock(null); setReceiptData(null); setReceiptFile(null) }}
+              className="text-white/80 hover:text-white text-sm font-medium underline">
+              Try a different receipt
+            </button>
           </div>
         )}
 

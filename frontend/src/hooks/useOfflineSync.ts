@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { offlineDb } from '@/lib/offlineDb';
-import { drainQueue } from '@/lib/syncService';
+import { drainQueue, cacheProjects } from '@/lib/syncService';
 
 export function useOfflineSync() {
   const [online, setOnline] = useState(true);
@@ -36,6 +36,13 @@ export function useOfflineSync() {
     setIsSyncing(false);
     drainRef.current = false;
   }, []);
+
+  // Pre-cache projects silently when online
+  useEffect(() => {
+    if (typeof window === 'undefined' || !online) return;
+    const token = localStorage.getItem('tulip_token');
+    if (token) cacheProjects(token).catch(() => {});
+  }, [online]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;

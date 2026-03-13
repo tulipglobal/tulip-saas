@@ -7,7 +7,7 @@ import { ArrowLeft, Save, Upload, CheckCircle, FileText, AlertTriangle, WifiOff 
 import { apiGet, apiPost } from '@/lib/api'
 import { getCategoriesForType, type ExpenseType } from '@/lib/ngo-categories'
 import { useOfflineSync } from '@/hooks/useOfflineSync'
-import { queueExpense } from '@/lib/syncService'
+import { queueExpense, cacheProjects, cacheBudgets } from '@/lib/syncService'
 import { offlineDb } from '@/lib/offlineDb'
 
 interface Project { id: string; name: string }
@@ -44,15 +44,28 @@ export default function NewExpensePage() {
     projectId: '', budgetId: '', budgetLineId: '', notes: ''
   })
 
-  // Fetch projects
+  // Fetch projects — online: API + cache; offline: IndexedDB
   useEffect(() => {
-    apiGet('/api/projects?limit=100')
-      .then(r => r.ok ? r.json() : { items: [] })
-      .then(d => setProjects(d.data ?? d.items ?? []))
-      .catch(() => {})
-  }, [])
+    const token = typeof window !== 'undefined' ? localStorage.getItem('tulip_token') : null
+    if (isOnline) {
+      apiGet('/api/projects?limit=100')
+        .then(r => r.ok ? r.json() : { items: [] })
+        .then(d => {
+          const items = d.data ?? d.items ?? []
+          setProjects(items)
+          // Cache for offline use
+          if (token) cacheProjects(token).catch(() => {})
+        })
+        .catch(() => {})
+    } else {
+      // Load from IndexedDB cache
+      offlineDb.cached_projects.toArray()
+        .then(cached => setProjects(cached.map(c => ({ id: c.id, name: c.name }))))
+        .catch(() => {})
+    }
+  }, [isOnline])
 
-  // Fetch budgets when project changes
+  // Fetch budgets when project changes — online: API + cache; offline: IndexedDB
   const handleProjectChange = async (projectId: string) => {
     setForm(f => ({ ...f, projectId, budgetId: '', budgetLineId: '', expenseType: '', category: '', subCategory: '' }))
     setSelectedBudget(null)
@@ -60,28 +73,47 @@ export default function NewExpensePage() {
     if (!projectId) return
 
     setLoadingBudgets(true)
-    try {
-      const res = await apiGet(`/api/budgets?projectId=${projectId}&limit=50`)
-      if (res.ok) {
-        const d = await res.json()
-        setBudgets((d.data ?? []).filter((b: BudgetOption) => ['ACTIVE', 'APPROVED', 'DRAFT'].includes(b.status)))
-      }
-    } catch {}
+    const token = typeof window !== 'undefined' ? localStorage.getItem('tulip_token') : null
+    if (isOnline) {
+      try {
+        const res = await apiGet(`/api/budgets?projectId=${projectId}&limit=50`)
+        if (res.ok) {
+          const d = await res.json()
+          const filtered = (d.data ?? []).filter((b: BudgetOption) => ['ACTIVE', 'APPROVED', 'DRAFT'].includes(b.status))
+          setBudgets(filtered)
+          // Cache for offline use
+          if (token) cacheBudgets(projectId, token).catch(() => {})
+        }
+      } catch {}
+    } else {
+      // Load from IndexedDB cache
+      try {
+        const cached = await offlineDb.cached_budgets.where('projectId').equals(projectId).toArray()
+        const restored = cached.map(c => c.data as BudgetOption).filter(b => ['ACTIVE', 'APPROVED', 'DRAFT'].includes(b.status))
+        setBudgets(restored)
+      } catch {}
+    }
     setLoadingBudgets(false)
   }
 
-  // Fetch full budget detail when budget changes
+  // Fetch full budget detail when budget changes — online: API; offline: use cached data
   const handleBudgetChange = async (budgetId: string) => {
     setForm(f => ({ ...f, budgetId, budgetLineId: '', expenseType: '', category: '', subCategory: '' }))
     setSelectedBudget(null)
     if (!budgetId) return
-    try {
-      const res = await apiGet(`/api/budgets/${budgetId}`)
-      if (res.ok) {
-        const data = await res.json()
-        setSelectedBudget(data)
-      }
-    } catch {}
+    if (isOnline) {
+      try {
+        const res = await apiGet(`/api/budgets/${budgetId}`)
+        if (res.ok) {
+          const data = await res.json()
+          setSelectedBudget(data)
+        }
+      } catch {}
+    } else {
+      // Use the budget data already loaded from cache (includes lines)
+      const cached = budgets.find(b => b.id === budgetId)
+      if (cached) setSelectedBudget(cached)
+    }
   }
 
   // Auto-fill from budget line
@@ -276,10 +308,16 @@ export default function NewExpensePage() {
         {/* 1. Project */}
         <div>
           <label className={labelCls}>Project *</label>
-          <select value={form.projectId} onChange={e => handleProjectChange(e.target.value)} className={inputCls}>
-            <option value="">Select project...</option>
-            {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
+          {!isOnline && projects.length === 0 ? (
+            <div className="rounded-lg bg-amber-100 border border-amber-300 px-4 py-3 text-sm text-amber-800">
+              Open this page while online first to cache your projects
+            </div>
+          ) : (
+            <select value={form.projectId} onChange={e => handleProjectChange(e.target.value)} className={inputCls}>
+              <option value="">Select project...</option>
+              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          )}
         </div>
 
         {/* 2. Expense Type (CapEx/OpEx) — filters budgets & lines */}

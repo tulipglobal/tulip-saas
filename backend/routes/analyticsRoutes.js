@@ -302,4 +302,90 @@ router.get('/income-expenditure', async (req, res) => {
   }
 })
 
+// ── Fraud & Risk Analytics ───────────────────────────────
+router.get('/fraud', async (req, res) => {
+  const tenantId = req.user.tenantId
+  const now = new Date()
+  const thirtyDaysAgo = new Date(now)
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+  try {
+    // All expenses in last 30 days with fraud data
+    const expenses = await prisma.expense.findMany({
+      where: { tenantId, createdAt: { gte: thirtyDaysAgo } },
+      select: {
+        createdAt: true,
+        fraudRiskScore: true,
+        fraudRiskLevel: true,
+        vendor: true,
+        amountMismatch: true,
+        vendorMismatch: true,
+        dateMismatch: true,
+        voided: true,
+        voidedReason: true,
+        approvalStatus: true,
+      },
+    })
+
+    // fraudByDay
+    const dayMap = {}
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now)
+      d.setDate(d.getDate() - i)
+      dayMap[d.toISOString().slice(0, 10)] = { high: 0, medium: 0, low: 0, blocked: 0 }
+    }
+    for (const e of expenses) {
+      const date = e.createdAt.toISOString().slice(0, 10)
+      if (!dayMap[date]) continue
+      const level = (e.fraudRiskLevel || '').toUpperCase()
+      if (level === 'HIGH' || level === 'CRITICAL') dayMap[date].high++
+      else if (level === 'MEDIUM') dayMap[date].medium++
+      else if (level === 'LOW' && e.fraudRiskScore > 0) dayMap[date].low++
+      if (e.voided && e.voidedReason && e.voidedReason.toLowerCase().includes('blocked')) dayMap[date].blocked++
+    }
+    const fraudByDay = Object.entries(dayMap).map(([date, counts]) => ({ date, ...counts }))
+
+    // topRiskyVendors
+    const vendorScores = {}
+    for (const e of expenses) {
+      if (!e.vendor || !e.fraudRiskScore) continue
+      if (!vendorScores[e.vendor]) vendorScores[e.vendor] = { total: 0, count: 0 }
+      vendorScores[e.vendor].total += e.fraudRiskScore
+      vendorScores[e.vendor].count++
+    }
+    const topRiskyVendors = Object.entries(vendorScores)
+      .map(([vendor, { total, count }]) => ({ vendor, avgScore: Math.round(total / count), count }))
+      .sort((a, b) => b.avgScore - a.avgScore)
+      .slice(0, 8)
+
+    // mismatchRate
+    const totalExpenses = expenses.length
+    const mismatchCount = expenses.filter(e => e.amountMismatch || e.vendorMismatch || e.dateMismatch).length
+    const mismatchRate = totalExpenses > 0 ? Math.round((mismatchCount / totalExpenses) * 100) : 0
+
+    // duplicateRate — check seals for duplicates
+    let duplicateRate = 0
+    try {
+      const [totalSeals, dupSeals] = await Promise.all([
+        prisma.trustSeal.count({ where: { tenantId, createdAt: { gte: thirtyDaysAgo } } }),
+        prisma.trustSeal.count({ where: { tenantId, createdAt: { gte: thirtyDaysAgo }, isDuplicate: true } }),
+      ])
+      duplicateRate = totalSeals > 0 ? Math.round((dupSeals / totalSeals) * 100) : 0
+    } catch { /* ignore */ }
+
+    // blockedCount
+    const blockedCount = expenses.filter(e => e.voided && e.voidedReason && e.voidedReason.toLowerCase().includes('blocked')).length
+
+    // pendingReviewCount
+    const pendingReviewCount = await prisma.expense.count({
+      where: { tenantId, approvalStatus: 'pending_review', voided: false },
+    })
+
+    res.json({ fraudByDay, topRiskyVendors, mismatchRate, duplicateRate, blockedCount, pendingReviewCount })
+  } catch (err) {
+    console.error('[analytics] fraud error:', err)
+    res.status(500).json({ error: 'Failed to fetch fraud analytics' })
+  }
+})
+
 module.exports = router

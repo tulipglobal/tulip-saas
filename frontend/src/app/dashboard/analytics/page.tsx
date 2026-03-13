@@ -9,7 +9,7 @@ import {
 import {
   ResponsiveContainer, LineChart, Line, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  PieChart, Pie, Cell
+  PieChart, Pie, Cell, Area, AreaChart
 } from 'recharts'
 
 /* ------------------------------------------------------------------ */
@@ -642,12 +642,116 @@ function IEStatement() {
   )
 }
 
+/* ------------------------------------------------------------------ */
+/*  Fraud & Risk Section                                               */
+/* ------------------------------------------------------------------ */
+
+interface FraudData {
+  fraudByDay: { date: string; high: number; medium: number; low: number; blocked: number }[]
+  topRiskyVendors: { vendor: string; avgScore: number; count: number }[]
+  mismatchRate: number
+  duplicateRate: number
+  blockedCount: number
+  pendingReviewCount: number
+}
+
+function FraudSection() {
+  const [data, setData] = useState<FraudData | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    apiGet('/api/analytics/fraud')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setData(d); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [])
+
+  if (loading) return (
+    <div className="space-y-4">
+      {[1, 2, 3].map(i => (
+        <div key={i} className="rounded-xl border border-[#c8d6c0] p-5 h-48 animate-pulse" style={{ background: '#e1eedd' }} />
+      ))}
+    </div>
+  )
+
+  if (!data) return <div className="py-16 text-center text-[#183a1d]/40 text-sm">Failed to load fraud data</div>
+
+  return (
+    <div className="space-y-6">
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: 'Blocked This Month', value: data.blockedCount, color: 'text-red-500', bg: 'rgba(239,68,68,0.10)' },
+          { label: 'Pending Review', value: data.pendingReviewCount, color: 'text-amber-500', bg: 'rgba(245,158,11,0.10)' },
+          { label: 'Mismatch Rate', value: `${data.mismatchRate}%`, color: 'text-orange-400', bg: 'rgba(249,115,22,0.10)' },
+          { label: 'Duplicate Rate', value: `${data.duplicateRate}%`, color: 'text-purple-400', bg: 'rgba(139,92,246,0.10)' },
+        ].map(({ label, value, color, bg }) => (
+          <div key={label} className="rounded-xl border border-[#c8d6c0] px-4 py-4" style={{ background: '#e1eedd' }}>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: bg }}>
+                <Shield size={14} className={color} />
+              </div>
+              <span className="text-[#183a1d]/40 text-xs font-medium">{label}</span>
+            </div>
+            <div className="text-lg font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Fraud detections over time */}
+        <ChartCard title="Fraud Detections" subtitle="Last 30 days" fullWidth>
+          {data.fraudByDay.every(d => d.high === 0 && d.medium === 0 && d.low === 0) ? (
+            <div className="h-48 flex items-center justify-center text-[#183a1d]/30 text-sm">No fraud detections in the last 30 days</div>
+          ) : (
+            <ResponsiveContainer width="100%" height={260}>
+              <AreaChart data={data.fraudByDay}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#c8d6c0" />
+                <XAxis dataKey="date" tickFormatter={formatShortDate} tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} allowDecimals={false} domain={[0, 'auto']} tickFormatter={formatYAxis} />
+                <Tooltip {...tooltipStyle} labelFormatter={tooltipLabelFormatter} />
+                <Legend wrapperStyle={{ fontSize: 12, color: '#6B7280' }} />
+                <Area type="monotone" dataKey="high" stroke="#ef4444" fill="#ef4444" fillOpacity={0.15} strokeWidth={2} name="HIGH / CRITICAL" />
+                <Area type="monotone" dataKey="medium" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.10} strokeWidth={2} name="MEDIUM" />
+                <Area type="monotone" dataKey="low" stroke="#10b981" fill="#10b981" fillOpacity={0.08} strokeWidth={1.5} name="LOW" />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+        </ChartCard>
+
+        {/* Top risky vendors */}
+        <ChartCard title="Top Risky Vendors" subtitle="By avg fraud score (last 30 days)">
+          {data.topRiskyVendors.length === 0 ? (
+            <div className="h-48 flex items-center justify-center text-[#183a1d]/30 text-sm">No vendor fraud data yet</div>
+          ) : (
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={data.topRiskyVendors} layout="vertical" margin={{ left: 10 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#c8d6c0" horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} domain={[0, 100]} />
+                <YAxis type="category" dataKey="vendor" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} width={100}
+                  tickFormatter={(v: string) => v.length > 14 ? v.slice(0, 14) + '…' : v} />
+                { /* eslint-disable-next-line @typescript-eslint/no-explicit-any */ }
+                <Tooltip {...tooltipStyle} formatter={(value: any, name: any) => [value, name === 'avgScore' ? 'Avg Score' : name]} />
+                <Bar dataKey="avgScore" name="Avg Score" radius={[0, 4, 4, 0]}>
+                  {data.topRiskyVendors.map((entry, i) => (
+                    <Cell key={i} fill={entry.avgScore >= 51 ? '#ef4444' : entry.avgScore >= 21 ? '#f59e0b' : '#10b981'} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </ChartCard>
+      </div>
+    </div>
+  )
+}
+
 export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [range, setRange] = useState(30)
   const [generating, setGenerating] = useState(false)
-  const [activeTab, setActiveTab] = useState<'charts' | 'ie'>('charts')
+  const [activeTab, setActiveTab] = useState<'charts' | 'fraud' | 'ie'>('charts')
 
   useEffect(() => {
     setLoading(true)
@@ -667,6 +771,7 @@ export default function AnalyticsPage() {
 
   const TABS = [
     { id: 'charts' as const, label: 'Charts' },
+    { id: 'fraud' as const, label: 'Fraud & Risk' },
     { id: 'ie' as const, label: 'I&E Statement' },
   ]
 
@@ -720,6 +825,8 @@ export default function AnalyticsPage() {
 
       {activeTab === 'ie' ? (
         <IEStatement />
+      ) : activeTab === 'fraud' ? (
+        <FraudSection />
       ) : (
         <>
 

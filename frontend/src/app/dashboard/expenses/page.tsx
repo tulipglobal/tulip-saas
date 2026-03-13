@@ -62,7 +62,7 @@ interface Expense {
 }
 
 function ApprovalBadge({ status }: { status?: string }) {
-  if (!status || status === 'approved') return null
+  if (!status || status === 'approved' || status === 'pending') return null
   const map: Record<string, string> = {
     pending_review: 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20',
     rejected: 'bg-red-400/10 text-red-400 border-red-400/20',

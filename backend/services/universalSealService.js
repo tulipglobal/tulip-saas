@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 
 const prisma = require('../lib/client')
+const { dispatch: webhookDispatch } = require('./webhookService')
 
 /**
  * @param {Object} opts
@@ -56,6 +57,12 @@ async function autoIssueSeal({
       status:        'pending',
     },
   })
+
+  // Webhook: seal.issued
+  webhookDispatch(tenantId, 'seal.issued', {
+    id: seal.id, documentTitle: seal.documentTitle, documentType: seal.documentType,
+    rawHash: seal.rawHash, status: seal.status, createdAt: seal.createdAt,
+  }).catch(() => {})
 
   return seal
 }

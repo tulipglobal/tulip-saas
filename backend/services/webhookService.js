@@ -18,6 +18,12 @@
 //    document.verified     — document blockchain anchored
 //    document.expiring     — document expiring within 30 days
 //    expense.created       — new expense added
+//    expense.blocked       — expense blocked due to HIGH fraud
+//    expense.flagged       — expense sent to pending review
+//    expense.approved      — expense approved
+//    expense.voided        — expense voided
+//    seal.issued           — TrustSeal created
+//    seal.anchored         — TrustSeal anchored to Polygon
 //    funding.created       — new funding agreement created
 //    member.invited        — team member invited
 //    member.joined         — team member accepted invite
@@ -161,4 +167,4 @@ async function retryFailed() {
   }
 }
 
-module.exports = { dispatch, retryFailed, sign }
+module.exports = { dispatch, deliver, retryFailed, sign }

@@ -5,7 +5,7 @@ import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api'
 import {
   Webhook, Plus, Trash2, Send, Copy, Check, AlertTriangle,
   X, Eye, EyeOff, CheckCircle, XCircle, Clock, Code,
-  Pencil, ToggleLeft, ToggleRight, ChevronDown, ChevronRight
+  Pencil, ToggleLeft, ToggleRight, ChevronDown, ChevronRight, RotateCcw
 } from 'lucide-react'
 
 /* ------------------------------------------------------------------ */
@@ -39,6 +39,13 @@ interface Delivery {
 
 const EVENT_GROUPS = [
   {
+    label: 'Seals',
+    events: [
+      { id: 'seal.issued', label: 'Seal Issued' },
+      { id: 'seal.anchored', label: 'Seal Anchored (Blockchain)' },
+    ],
+  },
+  {
     label: 'Documents',
     events: [
       { id: 'document.created', label: 'Document Created' },
@@ -55,10 +62,19 @@ const EVENT_GROUPS = [
     ],
   },
   {
-    label: 'Funding & Expenses',
+    label: 'Expenses',
+    events: [
+      { id: 'expense.created', label: 'Expense Created' },
+      { id: 'expense.blocked', label: 'Expense Blocked (Fraud)' },
+      { id: 'expense.flagged', label: 'Expense Flagged (Review)' },
+      { id: 'expense.approved', label: 'Expense Approved' },
+      { id: 'expense.voided', label: 'Expense Voided' },
+    ],
+  },
+  {
+    label: 'Funding',
     events: [
       { id: 'funding.created', label: 'Funding Agreement Created' },
-      { id: 'expense.created', label: 'Expense Created' },
     ],
   },
   {
@@ -87,13 +103,25 @@ function DeliveryLogModal({ webhookId, onClose }: { webhookId: string; onClose: 
   const [deliveries, setDeliveries] = useState<Delivery[]>([])
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState<string | null>(null)
+  const [resending, setResending] = useState<string | null>(null)
 
-  useEffect(() => {
+  const loadDeliveries = () => {
     apiGet(`/api/webhooks/${webhookId}/deliveries?limit=50`)
       .then(r => r.ok ? r.json() : { data: [] })
       .then(d => { setDeliveries(d.data ?? d.items ?? []); setLoading(false) })
       .catch(() => setLoading(false))
-  }, [webhookId])
+  }
+
+  useEffect(() => { loadDeliveries() }, [webhookId])
+
+  const handleResend = async (deliveryId: string) => {
+    setResending(deliveryId)
+    try {
+      await apiPost(`/api/webhooks/${webhookId}/deliveries/${deliveryId}/resend`, {})
+      setTimeout(loadDeliveries, 1500)
+    } catch { /* ignore */ }
+    setResending(null)
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
@@ -156,6 +184,16 @@ function DeliveryLogModal({ webhookId, onClose }: { webhookId: string; onClose: 
                             {d.responseBody}
                           </pre>
                         </div>
+                      )}
+                      {d.status === 'failed' && (
+                        <button
+                          onClick={() => handleResend(d.id)}
+                          disabled={resending === d.id}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[#183a1d] bg-[#f6c453]/20 hover:bg-[#f6c453]/30 border border-[#f6c453]/30 transition-colors disabled:opacity-40"
+                        >
+                          <RotateCcw size={12} className={resending === d.id ? 'animate-spin' : ''} />
+                          {resending === d.id ? 'Resending...' : 'Resend'}
+                        </button>
                       )}
                     </div>
                   )}

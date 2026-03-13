@@ -119,6 +119,9 @@ exports.createExpense = async (req, res) => {
             dataHash: JSON.stringify({ reason: 'DUPLICATE_HIGH_CONFIDENCE', duplicateConfidence: seal.duplicateConfidence, crossTenant: !!seal.crossTenantDuplicate }),
           }).catch(() => {})
           notifyDuplicateAlert({ tenantId: req.user.tenantId, description: expenseTitle, amount: parseFloat(amount), currency: currency || 'USD', vendor: vendor || null, duplicateExpenseId: seal.duplicateOfId || null }).catch(() => {})
+          webhookDispatch(req.user.tenantId, 'expense.blocked', {
+            reason: 'DUPLICATE_HIGH_CONFIDENCE', duplicateConfidence: seal.duplicateConfidence,
+          }).catch(() => {})
           return res.status(422).json({
             error: 'DUPLICATE_HIGH_CONFIDENCE',
             message: 'Upload blocked: This receipt appears to be a duplicate.',
@@ -226,6 +229,9 @@ exports.createExpense = async (req, res) => {
 
     // Only create workflow task for flagged expenses that need approval
     if (needsApproval) {
+      webhookDispatch(req.user.tenantId, 'expense.flagged', {
+        id: expense.id, description: expenseTitle, amount: parseFloat(amount), currency: currency || 'USD', approvalStatus: 'pending_review',
+      }).catch(() => {})
       // Hold the seal until approved
       if (receiptSealId) {
         prisma.trustSeal.update({ where: { id: receiptSealId }, data: { status: 'held' } }).catch(() => {})
@@ -468,6 +474,9 @@ exports.uploadReceipt = async (req, res) => {
             dataHash: JSON.stringify({ reason: 'DUPLICATE_HIGH_CONFIDENCE', confidence: dupResult.confidence, crossTenant: !!dupResult.crossTenant }),
           }).catch(() => {})
           notifyDuplicateAlert({ tenantId: req.user.tenantId, description: docTitle, amount: null, currency: null, vendor: null, duplicateExpenseId: dupResult.matchedDocumentId || null }).catch(() => {})
+          webhookDispatch(req.user.tenantId, 'expense.blocked', {
+            reason: 'DUPLICATE_HIGH_CONFIDENCE', confidence: dupResult.confidence, crossTenant: !!dupResult.crossTenant,
+          }).catch(() => {})
           return res.status(422).json({
             error: 'DUPLICATE_HIGH_CONFIDENCE',
             message: 'Upload blocked: This receipt appears to be a duplicate.',
@@ -557,6 +566,9 @@ exports.uploadReceipt = async (req, res) => {
             notifyMismatchAlert({ tenantId: req.user.tenantId, description: existing.description, amount: existing.amount, currency: existing.currency, vendor: existing.vendor || updateData.vendor || null, ocrAmount: fields.amount, ocrVendor: fields.vendor, ocrDate: fields.date, amountMismatch: mismatch.amountMismatch, vendorMismatch: mismatch.vendorMismatch, dateMismatch: mismatch.dateMismatch }).catch(() => {})
 
             // Mismatch detected → hold for approval
+            webhookDispatch(req.user.tenantId, 'expense.flagged', {
+              id: req.body.expenseId, reason: 'OCR_MISMATCH', mismatchNote: mismatch.mismatchNote,
+            }).catch(() => {})
             await db.expense.update({ where: { id: req.body.expenseId }, data: { approvalStatus: 'pending_review' } }).catch(() => {})
             await prisma.trustSeal.update({ where: { id: seal.id }, data: { status: 'held' } }).catch(() => {})
             prisma.workflowTask.create({
@@ -607,6 +619,9 @@ exports.uploadReceipt = async (req, res) => {
 
               // MEDIUM risk — hold for approval, don't block
               if (risk.level === 'MEDIUM') {
+                webhookDispatch(req.user.tenantId, 'expense.flagged', {
+                  id: req.body.expenseId, reason: 'MEDIUM_FRAUD_RISK', fraudScore: risk.score, signals: risk.breakdown.signals,
+                }).catch(() => {})
                 await db.expense.update({
                   where: { id: req.body.expenseId },
                   data: { approvalStatus: 'pending_review' },
@@ -641,6 +656,9 @@ exports.uploadReceipt = async (req, res) => {
                 }).catch(() => {})
                 console.log(`[fraud-block] Expense ${req.body.expenseId} voided: score=${risk.score} level=${risk.level}`)
                 notifyFraudAlert({ tenantId: req.user.tenantId, description: freshExpense.description, amount: freshExpense.amount, currency: freshExpense.currency, vendor: freshExpense.vendor, fraudScore: risk.score, fraudLevel: risk.level, reasons: risk.breakdown.signals }).catch(() => {})
+                webhookDispatch(req.user.tenantId, 'expense.blocked', {
+                  id: req.body.expenseId, reason: 'FRAUD_RISK_HIGH', fraudScore: risk.score, fraudLevel: risk.level, signals: risk.breakdown.signals,
+                }).catch(() => {})
                 return res.status(422).json({
                   error: 'FRAUD_RISK_HIGH',
                   message: 'Upload blocked: HIGH fraud risk detected. OCR found significant discrepancies.',
@@ -707,6 +725,11 @@ exports.voidExpense = async (req, res) => {
         reason: reason.trim(),
       },
     })
+
+    webhookDispatch(req.user.tenantId, 'expense.voided', {
+      id: req.params.id, description: existing.description, amount: existing.amount,
+      currency: existing.currency, reason: reason.trim(),
+    }).catch(() => {})
 
     // Email alert — async, don't block response
     const voidUser = await prisma.user.findUnique({ where: { id: req.user.userId }, select: { name: true } }).catch(() => null)
@@ -783,6 +806,10 @@ exports.approveExpense = async (req, res) => {
     await createAuditLog({
       action: 'EXPENSE_APPROVED', entityType: 'Expense', entityId: req.params.id,
       userId: req.user.userId, tenantId: req.user.tenantId,
+    }).catch(() => {})
+
+    webhookDispatch(req.user.tenantId, 'expense.approved', {
+      id: req.params.id, description: existing.description, amount: existing.amount, currency: existing.currency,
     }).catch(() => {})
 
     res.json(updated)

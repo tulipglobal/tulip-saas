@@ -247,6 +247,21 @@ async function anchorBatch() {
       data: { anchorTxHash: confirmedTxHash, anchoredAt: ancheredAt, blockNumber: receipt.blockNumber, status: 'anchored' },
     }))
     logger.info(`[anchor] ${pendingSeals.length} trust seal(s) anchored`)
+
+    // Webhook: seal.anchored — dispatch per-tenant for each seal batch
+    const sealsByTenant = pendingSeals.reduce((acc, s) => {
+      if (!acc[s.tenantId]) acc[s.tenantId] = []
+      acc[s.tenantId].push(s)
+      return acc
+    }, {})
+    for (const [tid, seals] of Object.entries(sealsByTenant)) {
+      for (const s of seals) {
+        dispatch(tid, 'seal.anchored', {
+          id: s.id, rawHash: s.rawHash, txHash: confirmedTxHash,
+          blockNumber: receipt.blockNumber, anchoredAt: ancheredAt.toISOString(),
+        }).catch(() => {})
+      }
+    }
   }
 
   if (confirmOps.length > 0) await prisma.$transaction(confirmOps)

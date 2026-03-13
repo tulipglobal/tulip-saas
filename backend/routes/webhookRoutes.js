@@ -131,4 +131,35 @@ router.get('/:id/deliveries', can('webhooks:read'), async (req, res) => {
   }
 })
 
+// POST /api/webhooks/:id/deliveries/:deliveryId/resend
+router.post('/:id/deliveries/:deliveryId/resend', can('webhooks:write'), async (req, res) => {
+  try {
+    const webhook = await prisma.webhook.findFirst({
+      where: { id: req.params.id, tenantId: req.tenantId }
+    })
+    if (!webhook) return res.status(404).json({ error: 'Webhook not found' })
+
+    const delivery = await prisma.webhookDelivery.findFirst({
+      where: { id: req.params.deliveryId, webhookId: req.params.id }
+    })
+    if (!delivery) return res.status(404).json({ error: 'Delivery not found' })
+
+    // Reset delivery for re-attempt
+    const reset = await prisma.webhookDelivery.update({
+      where: { id: delivery.id },
+      data: { status: 'pending', attempts: 0, nextRetryAt: null, statusCode: null, responseBody: null, deliveredAt: null }
+    })
+
+    // Attempt immediate delivery
+    const { deliver } = require('../services/webhookService')
+    deliver(reset, webhook).catch(err =>
+      console.error(`[webhook] Resend ${delivery.id} error:`, err.message)
+    )
+
+    res.json({ resent: true, deliveryId: delivery.id })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
 module.exports = router

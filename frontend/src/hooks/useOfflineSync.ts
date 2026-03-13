@@ -5,6 +5,38 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { offlineDb } from '@/lib/offlineDb';
 import { drainQueue, cacheProjects, cacheDocuments, cacheExpenses } from '@/lib/syncService';
 
+// Warm the SW page cache so Android Chrome can serve pages offline.
+// Next.js Link does client-side routing (RSC payloads) which workbox can't
+// serve as HTML offline. Fetching the pages directly triggers workbox's
+// NetworkFirst handler and caches the full HTML.
+async function warmPageCache() {
+  if (!('serviceWorker' in navigator)) return;
+  const pages = [
+    '/dashboard',
+    '/dashboard/expenses',
+    '/dashboard/expenses/new',
+    '/dashboard/documents',
+    '/dashboard/projects',
+    '/dashboard/budgets',
+    '/dashboard/audit',
+  ];
+  for (const page of pages) {
+    try {
+      await fetch(page, { cache: 'no-cache' });
+    } catch {
+      // best-effort — don't block on failures
+    }
+  }
+  console.log('[tulip-sync] Page cache warmed');
+}
+
+// Android Chrome fires reliable online/offline events — the probe must not
+// override navigator.onLine=false on these devices (the SW may serve a
+// cached 200 for /api/ping even when truly offline).
+const isAndroidChrome = typeof navigator !== 'undefined' &&
+  /Android/.test(navigator.userAgent) &&
+  /Chrome/.test(navigator.userAgent);
+
 // Same-origin probe — avoids CORS issues on Android Chrome PWA
 async function checkOnline(): Promise<boolean> {
   try {
@@ -24,7 +56,10 @@ async function checkOnline(): Promise<boolean> {
 }
 
 export function useOfflineSync() {
-  const [online, setOnline] = useState(true);
+  // Start with navigator.onLine so Android airplane-mode is detected instantly
+  const [online, setOnline] = useState(
+    typeof navigator !== 'undefined' ? navigator.onLine : true
+  );
   const [isSyncing, setIsSyncing] = useState(false);
   const [justSynced, setJustSynced] = useState(false);
   const drainRef = useRef(false);
@@ -64,7 +99,7 @@ export function useOfflineSync() {
     drain();
   }, [drain]);
 
-  // Pre-cache projects + documents + expenses silently when online
+  // Pre-cache projects + documents + expenses + pages silently when online
   useEffect(() => {
     if (typeof window === 'undefined' || !online) return;
     const token = localStorage.getItem('tulip_token');
@@ -73,13 +108,22 @@ export function useOfflineSync() {
       cacheDocuments(token).catch(() => {});
       cacheExpenses(token).catch(() => {});
     }
+    // Warm SW page cache for Android offline support
+    warmPageCache().catch(() => {});
   }, [online]);
 
   // Initial connectivity check on mount
   useEffect(() => {
     if (typeof window === 'undefined') return;
     checkOnline().then(up => {
-      console.log('[tulip-sync] Initial probe:', up ? 'online' : 'offline');
+      console.log('[tulip-sync] Initial probe:', up ? 'online' : 'offline',
+        '| navigator.onLine:', navigator.onLine, '| android:', isAndroidChrome);
+      if (isAndroidChrome && !navigator.onLine) {
+        // Android says offline — trust it, don't let a cached SW response override
+        console.log('[tulip-sync] Android offline — ignoring probe result');
+        setOnline(false);
+        return;
+      }
       setOnline(up);
       if (up) drain();
     });
@@ -89,6 +133,8 @@ export function useOfflineSync() {
   useEffect(() => {
     if (typeof window === 'undefined' || online) return;
     const interval = setInterval(async () => {
+      // On Android, trust navigator.onLine — don't go online from probe if browser says offline
+      if (isAndroidChrome && !navigator.onLine) return;
       const up = await checkOnline();
       if (up) goOnline();
     }, 3000);
@@ -100,6 +146,11 @@ export function useOfflineSync() {
     if (typeof window === 'undefined') return;
     const onVisible = async () => {
       if (document.visibilityState !== 'visible') return;
+      if (isAndroidChrome && !navigator.onLine) {
+        // Android says offline — trust it immediately
+        if (online) setOnline(false);
+        return;
+      }
       const up = await checkOnline();
       if (up && !online) goOnline();
       if (!up && online) setOnline(false);
@@ -108,15 +159,26 @@ export function useOfflineSync() {
     return () => document.removeEventListener('visibilitychange', onVisible);
   }, [online, goOnline]);
 
-  // Browser online/offline events as backup
+  // Browser online/offline events — fires instantly on Android airplane toggle
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const handleOnline = async () => {
-      const up = await checkOnline();
-      if (up) goOnline();
+    const handleOnline = () => {
+      console.log('[tulip-sync] window "online" event — setting online immediately');
+      setOnline(true);
+      // Verify backend is actually reachable, then drain
+      checkOnline().then(up => {
+        if (up) {
+          drain();
+        } else {
+          // Browser says online but backend unreachable — stay online for UX
+          // but don't drain (drain will fail gracefully anyway)
+          console.log('[tulip-sync] Browser online but backend unreachable');
+        }
+      });
     };
     const handleOffline = () => {
+      console.log('[tulip-sync] window "offline" event — setting offline immediately');
       setOnline(false);
       setJustSynced(false);
     };
@@ -140,7 +202,7 @@ export function useOfflineSync() {
         navigator.serviceWorker.removeEventListener('message', handleMessage);
       }
     };
-  }, [drain, goOnline]);
+  }, [drain]);
 
   return { isOnline: online, pendingCount, isSyncing, justSynced, drain };
 }

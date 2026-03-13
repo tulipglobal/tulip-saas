@@ -18,30 +18,14 @@ const CURRENCIES = ['USD', 'EUR', 'GBP', 'KES', 'UGX', 'TZS', 'INR', 'NGN', 'ZAR
 
 export default function NewExpensePage() {
   const router = useRouter()
-  const { isOnline: hookOnline } = useOfflineSync()
+  const { isOnline } = useOfflineSync()
 
-  // Track navigator.onLine directly — fires instantly on Android airplane toggle
-  const [browserOnline, setBrowserOnline] = useState(
-    typeof navigator !== 'undefined' ? navigator.onLine : true
-  )
-  useEffect(() => {
-    const on = () => setBrowserOnline(true)
-    const off = () => setBrowserOnline(false)
-    window.addEventListener('online', on)
-    window.addEventListener('offline', off)
-    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off) }
-  }, [])
-
-  // Offline if either signal says offline
-  const isOnline = hookOnline && browserOnline
-
-  // DEBUG panel state — toggle with ?debug in URL or "Simulate Offline" button
+  // DEBUG panel state — toggle with ?debug in URL
   const [debugSimOffline, setDebugSimOffline] = useState(false)
   const [showDebug, setShowDebug] = useState(false)
   useEffect(() => {
     if (typeof window !== 'undefined' && window.location.search.includes('debug')) setShowDebug(true)
   }, [])
-  // Override isOnline when simulating
   const effectiveOnline = debugSimOffline ? false : isOnline
 
   const [saving, setSaving] = useState(false)
@@ -246,7 +230,8 @@ export default function NewExpensePage() {
     setSaving(true); setError('')
 
     // OFFLINE: queue to IndexedDB instead of API
-    if (!effectiveOnline) {
+    // Safety net: also check navigator.onLine at submit time in case state is stale
+    if (!effectiveOnline || !window.navigator.onLine) {
       try {
         let receiptBlob: Blob | undefined
         let receiptName: string | undefined
@@ -334,10 +319,8 @@ export default function NewExpensePage() {
             <span className={typeof navigator !== 'undefined' && navigator.onLine ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
               {typeof navigator !== 'undefined' ? String(navigator.onLine) : 'N/A'}
             </span>
-            <span className="text-[#183a1d]/60">hookOnline (useOfflineSync):</span>
-            <span className={hookOnline ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>{String(hookOnline)}</span>
-            <span className="text-[#183a1d]/60">browserOnline (local state):</span>
-            <span className={browserOnline ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>{String(browserOnline)}</span>
+            <span className="text-[#183a1d]/60">isOnline (hook):</span>
+            <span className={isOnline ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>{String(isOnline)}</span>
             <span className="text-[#183a1d]/60">debugSimOffline:</span>
             <span className={debugSimOffline ? 'text-red-600 font-bold' : 'text-[#183a1d]/40'}>{String(debugSimOffline)}</span>
             <span className="text-[#183a1d]/60 font-bold border-t border-red-200 pt-1">effectiveOnline (final):</span>

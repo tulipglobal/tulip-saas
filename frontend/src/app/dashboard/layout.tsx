@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { apiGet } from '@/lib/api'
+import { useOfflineSync } from '@/hooks/useOfflineSync'
 import {
   LayoutDashboard, FolderOpen, FileCheck, Receipt, Banknote,
   Key, Webhook, BarChart3, Settings, LogOut, Code2, CreditCard, Users,
@@ -41,6 +42,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isSuperadmin, setIsSuperadmin] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
+  useOfflineSync() // mount globally — drains offline queue + pre-caches projects
 
   // Fetch workflow pending count + superadmin check
   useEffect(() => {

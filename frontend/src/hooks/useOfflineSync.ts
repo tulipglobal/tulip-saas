@@ -21,17 +21,19 @@ export function useOfflineSync() {
     if (drainRef.current) return;
     drainRef.current = true;
     const token = typeof window !== 'undefined' ? localStorage.getItem('tulip_token') : null;
-    if (!token) { drainRef.current = false; return; }
+    if (!token) { console.warn('[tulip-sync] No token, skipping drain'); drainRef.current = false; return; }
 
+    console.log('[tulip-sync] Starting drain...');
     setIsSyncing(true);
     try {
       const synced = await drainQueue(token);
+      console.log('[tulip-sync] Drain complete, synced:', synced);
       if (synced > 0) {
         setJustSynced(true);
         setTimeout(() => setJustSynced(false), 3000);
       }
-    } catch {
-      // silent
+    } catch (err) {
+      console.error('[tulip-sync] Drain failed:', err);
     }
     setIsSyncing(false);
     drainRef.current = false;

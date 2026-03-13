@@ -99,7 +99,11 @@ export async function drainQueue(token: string): Promise<number> {
         }),
       });
 
-      if (!res.ok) throw new Error('API error');
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        console.error('[tulip-sync] API rejected expense:', res.status, errBody);
+        throw new Error('API error');
+      }
       const data = await res.json();
       const expenseId = data.id;
 

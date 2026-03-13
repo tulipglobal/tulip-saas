@@ -6,6 +6,7 @@ const { generateOcrFingerprint } = require('../lib/ocrFingerprint')
 const { detectDuplicates } = require('../lib/hybridDuplicateDetector')
 const { scoreFraudRisk } = require('../lib/fraudRiskScorer')
 const prisma = require('../lib/client')
+const { getPresignedUrlFromKey } = require('../lib/s3Upload')
 // ─────────────────────────────────────────────────────────────
 //  controllers/expenseController.js — v2
 //  ✔ Paginated list with ?page, ?limit, ?projectId filter
@@ -32,7 +33,14 @@ exports.getExpenses = async (req, res) => {
       db.expense.count({ where })
     ])
 
-    res.json(paginatedResponse(expenses, total, page, limit))
+    // Generate presigned URLs for receipts
+    const withUrls = await Promise.all(expenses.map(async (e) => {
+      if (!e.receiptFileKey) return e
+      const receiptUrl = await getPresignedUrlFromKey(e.receiptFileKey, 3600)
+      return { ...e, receiptUrl }
+    }))
+
+    res.json(paginatedResponse(withUrls, total, page, limit))
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch expenses' })
   }
@@ -46,6 +54,9 @@ exports.getExpense = async (req, res) => {
       include: { fundingSource: true, fundingAgreement: { select: { id: true, title: true, donor: { select: { name: true } } } }, project: { select: { id: true, name: true } }, documents: { select: { id: true, name: true, sha256Hash: true, fileType: true, fileSize: true, uploadedAt: true } } }
     })
     if (!expense) return res.status(404).json({ error: 'Expense not found' })
+    if (expense.receiptFileKey) {
+      expense.receiptUrl = await getPresignedUrlFromKey(expense.receiptFileKey, 3600)
+    }
     res.json(expense)
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch expense' })

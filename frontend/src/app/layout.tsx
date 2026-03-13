@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import OfflineBanner from '@/components/OfflineBanner'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://tulipds.com'),
@@ -46,8 +47,15 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#6366f1" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Tulip DS" />
+        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body className="min-h-screen bg-background antialiased">
+        <OfflineBanner />
         {children}
       </body>
     </html>

@@ -3,10 +3,12 @@
 import { useState, useEffect, useCallback } from 'react'
 import { apiGet, apiPost } from '@/lib/api'
 import Link from 'next/link'
-import { Receipt, Plus, Search, ExternalLink, Shield, Copy, Check, CheckCircle, ChevronDown, ChevronUp, FileCheck, Upload, AlertTriangle } from 'lucide-react'
+import { Receipt, Plus, Search, ExternalLink, Shield, Copy, Check, CheckCircle, ChevronDown, ChevronUp, FileCheck, Upload, AlertTriangle, Clock } from 'lucide-react'
 import DocumentUploadSection from '@/components/DocumentUploadSection'
 import BlockchainStatusPill from '@/components/BlockchainStatusPill'
 import TrustSealCard from '@/components/TrustSealCard'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { offlineDb, type PendingExpense } from '@/lib/offlineDb'
 
 interface Document {
   id: string
@@ -519,6 +521,14 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
   )
 }
 
+function PendingSyncPill() {
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-300">
+      <Clock size={9} /> Pending Sync
+    </span>
+  )
+}
+
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [loading, setLoading] = useState(true)
@@ -526,6 +536,42 @@ export default function ExpensesPage() {
   const [activeSealId, setActiveSealId] = useState<string | null>(null)
   const [activeMismatch, setActiveMismatch] = useState<Expense | null>(null)
   const [sealMap, setSealMap] = useState<Record<string, { sealId: string; anchorStatus: string; txHash: string | null }>>({})
+
+  // Load offline pending expenses from IndexedDB
+  const pendingExpenses = useLiveQuery(
+    () => offlineDb.pending_expenses.where('status').anyOf(['pending', 'syncing']).toArray(),
+    [],
+    []
+  )
+
+  // Convert pending expenses to Expense-like objects for display
+  const offlineExpenseRows: Expense[] = (pendingExpenses ?? []).map((pe: PendingExpense) => ({
+    id: `offline-${pe.id}`,
+    title: pe.description,
+    description: pe.description,
+    amount: pe.amount,
+    currency: pe.currency,
+    category: pe.category || null,
+    subCategory: null,
+    expenseType: null,
+    vendor: pe.vendorName || null,
+    expenseDate: pe.date,
+    anchorStatus: 'pending',
+    dataHash: null,
+    blockchainTx: null,
+    receiptHash: null,
+    receiptFileKey: null,
+    receiptSealId: null,
+    ocrAmount: null,
+    ocrVendor: null,
+    ocrDate: null,
+    amountMismatch: false,
+    vendorMismatch: false,
+    dateMismatch: false,
+    mismatchNote: null,
+    _isOffline: true,
+    _offlineStatus: pe.status,
+  } as Expense & { _isOffline?: boolean; _offlineStatus?: string }))
 
   const resolveSeals = useCallback((items: Expense[]) => {
     const hashes = items.map(e => e.receiptHash).filter(Boolean) as string[]
@@ -608,6 +654,25 @@ export default function ExpensesPage() {
           </div>
         ) : (
           <div className="divide-y divide-[#c8d6c0]">
+            {offlineExpenseRows.map(expense => (
+              <div key={expense.id} className="px-4 py-3.5 lg:grid lg:grid-cols-[2fr_1fr_1fr_1fr_1fr_60px] lg:gap-4 lg:items-center lg:px-5 bg-amber-50/50">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-[#183a1d]">{expense.title}</span>
+                    <PendingSyncPill />
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    {expense.vendor && <span className="text-xs text-[#183a1d]/40">{expense.vendor}</span>}
+                    {expense.category && <span className="text-xs text-[#183a1d]/60">{expense.category}</span>}
+                  </div>
+                </div>
+                <div className="text-sm font-medium text-[#183a1d]">{expense.currency} {expense.amount.toLocaleString()}</div>
+                <div className="text-xs text-[#183a1d]/60">—</div>
+                <div><PendingSyncPill /></div>
+                <div><span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs border font-medium bg-amber-100 text-amber-700 border-amber-300">Offline</span></div>
+                <div />
+              </div>
+            ))}
             {filtered.map(expense => (
               <ExpenseRow key={expense.id} expense={expense} onRefresh={load} onOpenSeal={(sealId, exp) => { setActiveSealId(sealId); setActiveMismatch(exp) }} sealMap={sealMap} />
             ))}

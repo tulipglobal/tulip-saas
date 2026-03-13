@@ -3,9 +3,12 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Save, Upload, CheckCircle, FileText, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Save, Upload, CheckCircle, FileText, AlertTriangle, WifiOff } from 'lucide-react'
 import { apiGet, apiPost } from '@/lib/api'
 import { getCategoriesForType, type ExpenseType } from '@/lib/ngo-categories'
+import { useOfflineSync } from '@/hooks/useOfflineSync'
+import { queueExpense } from '@/lib/syncService'
+import { offlineDb } from '@/lib/offlineDb'
 
 interface Project { id: string; name: string }
 interface BudgetLine { id: string; expenseType: string; category: string; subCategory: string | null; approvedAmount: number; currency: string; spent?: number; remaining?: number }
@@ -15,8 +18,10 @@ const CURRENCIES = ['USD', 'EUR', 'GBP', 'KES', 'UGX', 'TZS', 'INR', 'NGN', 'ZAR
 
 export default function NewExpensePage() {
   const router = useRouter()
+  const { isOnline } = useOfflineSync()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [offlineSaved, setOfflineSaved] = useState(false)
 
   const [projects, setProjects] = useState<Project[]>([])
   const [budgets, setBudgets] = useState<BudgetOption[]>([])
@@ -182,6 +187,41 @@ export default function NewExpensePage() {
       return
     }
     setSaving(true); setError('')
+
+    // OFFLINE: queue to IndexedDB instead of API
+    if (!isOnline) {
+      try {
+        let receiptBlob: Blob | undefined
+        let receiptName: string | undefined
+        if (receiptFile) {
+          receiptBlob = receiptFile
+          receiptName = receiptFile.name
+        }
+        await queueExpense({
+          budgetId: form.budgetId || '',
+          projectId: form.projectId,
+          description: form.title.trim(),
+          amount: parseFloat(form.amount),
+          currency: form.currency,
+          date: form.expenseDate,
+          category: form.category || '',
+          vendorName: form.vendor || undefined,
+          receiptBlob,
+          receiptName,
+          createdOffline: new Date(),
+          status: 'pending',
+          retries: 0,
+        })
+        setOfflineSaved(true)
+        setTimeout(() => router.push('/dashboard/expenses'), 1500)
+      } catch {
+        setError('Failed to save offline')
+      }
+      setSaving(false)
+      return
+    }
+
+    // ONLINE: normal API call
     try {
       const res = await apiPost('/api/expenses', {
         title: form.title.trim(),
@@ -442,7 +482,7 @@ export default function NewExpensePage() {
                   <Upload size={14} />
                   <span>{receiptFile ? receiptFile.name : 'Choose file...'}</span>
                   <input type="file" className="hidden"
-                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xlsx,.xls,.csv"
+                    accept="image/*,application/pdf" capture="environment"
                     onChange={e => { if (e.target.files?.[0]) setReceiptFile(e.target.files[0]) }} />
                 </label>
                 {receiptFile && (
@@ -463,6 +503,18 @@ export default function NewExpensePage() {
             placeholder="Additional notes..." rows={2} className={inputCls + ' resize-none'} />
         </div>
 
+        {!isOnline && (
+          <div className="rounded-lg bg-amber-100 border border-amber-300 px-4 py-3 text-sm text-amber-800 flex items-center gap-2">
+            <WifiOff size={14} /> You&apos;re offline — expense will be saved locally and synced when you reconnect
+          </div>
+        )}
+
+        {offlineSaved && (
+          <div className="rounded-lg bg-green-100 border border-green-300 px-4 py-3 text-sm text-green-800 flex items-center gap-2">
+            <CheckCircle size={14} /> Saved offline — will sync when connected
+          </div>
+        )}
+
         {error && (
           <div className="rounded-lg bg-red-400/10 border border-red-400/20 px-4 py-3 text-sm text-red-400">{error}</div>
         )}
@@ -470,7 +522,7 @@ export default function NewExpensePage() {
         <div className="flex items-center gap-3 pt-2">
           <button onClick={submit} disabled={saving}
             className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-[#183a1d] disabled:opacity-50 bg-[#f6c453] hover:bg-[#f0a04b]">
-            <Save size={15} /> {saving ? 'Saving...' : 'Log Expense'}
+            <Save size={15} /> {saving ? 'Saving...' : isOnline ? 'Log Expense' : 'Save Offline'}
           </button>
           <Link href="/dashboard/expenses" className="px-5 py-2.5 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">
             Cancel

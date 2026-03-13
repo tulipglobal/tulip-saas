@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { offlineDb } from '@/lib/offlineDb';
-import { drainQueue, cacheProjects, cacheDocuments } from '@/lib/syncService';
+import { drainQueue, cacheProjects, cacheDocuments, cacheExpenses } from '@/lib/syncService';
 
 // Same-origin probe — avoids CORS issues on Android Chrome PWA
 async function checkOnline(): Promise<boolean> {
@@ -64,13 +64,14 @@ export function useOfflineSync() {
     drain();
   }, [drain]);
 
-  // Pre-cache projects + documents silently when online
+  // Pre-cache projects + documents + expenses silently when online
   useEffect(() => {
     if (typeof window === 'undefined' || !online) return;
     const token = localStorage.getItem('tulip_token');
     if (token) {
       cacheProjects(token).catch(() => {});
       cacheDocuments(token).catch(() => {});
+      cacheExpenses(token).catch(() => {});
     }
   }, [online]);
 

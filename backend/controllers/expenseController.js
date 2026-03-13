@@ -120,7 +120,7 @@ exports.createExpense = async (req, res) => {
         mismatchNote:       mismatch.mismatchNote,
       }
     })
-    await createAuditLog({ action: 'EXPENSE_CREATED', entityType: 'Expense', entityId: expense.id, userId: req.user.id, tenantId: req.user.tenantId }).catch(() => {})
+    await createAuditLog({ action: 'EXPENSE_CREATED', entityType: 'Expense', entityId: expense.id, userId: req.user.userId, tenantId: req.user.tenantId }).catch(() => {})
 
     // Log mismatch in audit log if any flag is set
     if (mismatch.amountMismatch || mismatch.vendorMismatch || mismatch.dateMismatch) {
@@ -128,7 +128,7 @@ exports.createExpense = async (req, res) => {
         action: 'EXPENSE_MISMATCH_FLAGGED',
         entityType: 'Expense',
         entityId: expense.id,
-        userId: req.user.id,
+        userId: req.user.userId,
         tenantId: req.user.tenantId,
       }).catch(() => {})
     }
@@ -213,7 +213,7 @@ exports.updateExpense = async (req, res) => {
           action: 'EXPENSE_MISMATCH_FLAGGED',
           entityType: 'Expense',
           entityId: req.params.id,
-          userId: req.user.id,
+          userId: req.user.userId,
           tenantId: req.user.tenantId,
           }).catch(() => {})
       }
@@ -258,9 +258,13 @@ exports.uploadReceipt = async (req, res) => {
       'receipts'
     )
 
-    // Get tenant/org name for seal
-    const tenant = await prisma.tenant.findUnique({ where: { id: req.user.tenantId }, select: { name: true } })
-    const orgName = tenant?.name || 'Organization'
+    // Validate tenant exists before creating seal (prevents FK constraint violation)
+    const tenant = await prisma.tenant.findUnique({ where: { id: req.user.tenantId }, select: { id: true, name: true } })
+    if (!tenant) {
+      console.error('[uploadReceipt] Tenant not found for tenantId:', req.user.tenantId, 'userId:', req.user.userId)
+      return res.status(400).json({ error: 'Invalid tenant — please log out and log back in' })
+    }
+    const orgName = tenant.name || 'Organization'
     const docTitle = req.body.title || req.file.originalname
 
     // Create trust seal via global prisma (so anchor cron can find it)
@@ -412,7 +416,7 @@ exports.uploadReceipt = async (req, res) => {
               action: 'EXPENSE_MISMATCH_FLAGGED',
               entityType: 'Expense',
               entityId: req.body.expenseId,
-              userId: req.user.id,
+              userId: req.user.userId,
               tenantId: req.user.tenantId,
                   }).catch(() => {})
           }

@@ -96,6 +96,27 @@ export async function cacheDocuments(token: string) {
   }
 }
 
+export async function cacheExpenses(token: string) {
+  try {
+    const res = await fetch(`${API_URL}/api/expenses?limit=50`, {
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    const items = data.data ?? data.items ?? [];
+    await offlineDb.cached_expenses.clear();
+    for (const e of items) {
+      await offlineDb.cached_expenses.put({
+        id: e.id,
+        data: e,
+        cachedAt: new Date(),
+      });
+    }
+  } catch {
+    // silently fail
+  }
+}
+
 export async function cacheBudgets(projectId: string, token: string) {
   try {
     const res = await fetch(`${API_URL}/api/budgets?projectId=${projectId}&limit=50`, {

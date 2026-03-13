@@ -592,9 +592,16 @@ export default function ExpensesPage() {
 
   const load = () => {
     if (!isOnline) {
-      // Offline — just show pending expenses (no API call)
-      setExpenses([])
-      setLoading(false)
+      // Offline — load from IndexedDB cache
+      offlineDb.cached_expenses.toArray()
+        .then(cached => {
+          setExpenses(cached.map(c => c.data as Expense))
+          setLoading(false)
+        })
+        .catch(() => {
+          setExpenses([])
+          setLoading(false)
+        })
       return
     }
     apiGet('/api/expenses?limit=50')

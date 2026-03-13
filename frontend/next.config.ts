@@ -11,7 +11,20 @@ const withPWA = require('@ducanh2912/next-pwa').default({
   extendDefaultRuntimeCaching: true,
   runtimeCaching: [
     {
-      urlPattern: /^https:\/\/api\.tulipds\.com\/api\/(projects|budgets|expenses|categories).*/,
+      urlPattern: /\/api\/ping$/,
+      handler: 'NetworkOnly',
+    },
+    {
+      urlPattern: /\/(dashboard|login|offline)(\/.*)?$/,
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'pages-cache',
+        networkTimeoutSeconds: 3,
+        expiration: { maxEntries: 32, maxAgeSeconds: 86400 },
+      },
+    },
+    {
+      urlPattern: /^https:\/\/api\.tulipds\.com\/api\/(projects|budgets|expenses|documents|categories).*/,
       handler: 'NetworkFirst',
       options: {
         cacheName: 'api-cache',

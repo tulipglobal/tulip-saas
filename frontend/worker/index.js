@@ -1,46 +1,7 @@
 // Custom service worker additions for next-pwa
-
-// Precache critical navigation pages on SW install
-// This ensures Safari standalone PWA can open offline
-const PRECACHE_PAGES = [
-  '/dashboard',
-  '/dashboard/expenses',
-  '/dashboard/expenses/new',
-  '/login',
-];
-
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open('pages').then((cache) =>
-      Promise.all(
-        PRECACHE_PAGES.map((url) =>
-          fetch(url)
-            .then((res) => {
-              if (res.ok) return cache.put(url, res);
-            })
-            .catch(() => {})
-        )
-      )
-    )
-  );
-});
-
-// Also re-cache pages on activate (handles SW updates)
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.open('pages').then((cache) =>
-      Promise.all(
-        PRECACHE_PAGES.map((url) =>
-          fetch(url)
-            .then((res) => {
-              if (res.ok) return cache.put(url, res);
-            })
-            .catch(() => {})
-        )
-      )
-    )
-  );
-});
+// NOTE: Do NOT add install/activate handlers here — they conflict with
+// workbox's lifecycle on Android Chrome. Page caching is handled by
+// the NetworkFirst runtimeCaching rule in next.config.ts.
 
 // Background sync handler for offline expense queue
 self.addEventListener('sync', (event) => {

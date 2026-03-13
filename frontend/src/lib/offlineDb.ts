@@ -51,15 +51,23 @@ export interface CachedDocument {
   cachedAt: Date;
 }
 
+export interface CachedExpense {
+  id: string;
+  data: object;
+  cachedAt: Date;
+}
+
 class TulipOfflineDB extends Dexie {
   sync_queue!: Table<SyncQueueItem>;
   pending_expenses!: Table<PendingExpense>;
   cached_projects!: Table<CachedProject>;
   cached_budgets!: Table<CachedBudget>;
   cached_documents!: Table<CachedDocument>;
+  cached_expenses!: Table<CachedExpense>;
 
   constructor() {
     super('tulip_offline_db');
+    // Keep ALL version declarations so Dexie can upgrade from any previous version
     this.version(1).stores({
       sync_queue: '++id, status, createdAt',
       pending_expenses: '++id, budgetId, projectId, status, createdOffline',
@@ -72,6 +80,14 @@ class TulipOfflineDB extends Dexie {
       cached_projects: 'id, cachedAt',
       cached_budgets: 'id, projectId, cachedAt',
       cached_documents: 'id, cachedAt',
+    });
+    this.version(3).stores({
+      sync_queue: '++id, status, createdAt',
+      pending_expenses: '++id, budgetId, projectId, status, createdOffline',
+      cached_projects: 'id, cachedAt',
+      cached_budgets: 'id, projectId, cachedAt',
+      cached_documents: 'id, cachedAt',
+      cached_expenses: 'id, cachedAt',
     });
   }
 }

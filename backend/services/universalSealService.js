@@ -28,6 +28,13 @@ async function autoIssueSeal({
 }) {
   if (!rawHash || !tenantId) throw new Error('rawHash and tenantId are required')
 
+  // Validate tenant exists (prevents FK constraint violation)
+  const tenantExists = await prisma.tenant.findUnique({ where: { id: tenantId }, select: { id: true } })
+  if (!tenantExists) {
+    console.error('[autoIssueSeal] Tenant not found:', tenantId)
+    throw new Error(`Tenant not found: ${tenantId}`)
+  }
+
   // Deduplicate: check if a seal for this hash already exists in this tenant
   const existing = await prisma.trustSeal.findFirst({
     where: { rawHash, tenantId },

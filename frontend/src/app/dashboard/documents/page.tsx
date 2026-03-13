@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { FileCheck, Plus, Search, ExternalLink, Copy, Check, Shield, AlertTriangle, Users, WifiOff } from 'lucide-react'
 import BlockchainStatusPill from '@/components/BlockchainStatusPill'
 import TrustSealCard from '@/components/TrustSealCard'
+import { useTranslations } from 'next-intl'
 
 const KEY_DOCUMENT_CATEGORIES = ['licence','certificate','contract','permit','insurance','visa','id_document','mou']
 const CATEGORY_LABELS: Record<string, string> = {
@@ -203,6 +204,7 @@ function SealPill({ hash, sealMap, onOpen }: { hash: string | null; sealMap: Rec
 }
 
 export default function DocumentsPage() {
+  const t = useTranslations()
   const [docs, setDocs] = useState<Document[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -261,12 +263,12 @@ export default function DocumentsPage() {
     <div className="p-4 md:p-6 space-y-6 animate-fade-up">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Documents</h1>
+          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('documents.title')}</h1>
           <p className="text-[#183a1d]/60 text-sm mt-1">{docs.length} document{docs.length !== 1 ? 's' : ''} — SHA-256 fingerprinted</p>
         </div>
         <Link href="/dashboard/documents/new"
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] self-start bg-[#f6c453] hover:bg-[#f0a04b]">
-          <Plus size={16} /> Add Document
+          <Plus size={16} /> {t('documents.new')}
         </Link>
       </div>
 

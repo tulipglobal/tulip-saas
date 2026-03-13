@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import OfflineBanner from '@/components/OfflineBanner'
+import { NextIntlClientProvider } from 'next-intl'
+import { getLocale, getMessages } from 'next-intl/server'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://tulipds.com'),
@@ -33,13 +35,16 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const locale = await getLocale()
+  const messages = await getMessages()
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -55,8 +60,10 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body className="min-h-screen bg-background antialiased">
-        <OfflineBanner />
-        {children}
+        <NextIntlClientProvider messages={messages}>
+          <OfflineBanner />
+          {children}
+        </NextIntlClientProvider>
       </body>
     </html>
   )

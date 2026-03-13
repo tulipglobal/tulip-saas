@@ -7,6 +7,7 @@ import { Receipt, Plus, Search, ExternalLink, Shield, Copy, Check, CheckCircle, 
 import DocumentUploadSection from '@/components/DocumentUploadSection'
 import BlockchainStatusPill from '@/components/BlockchainStatusPill'
 import TrustSealCard from '@/components/TrustSealCard'
+import { useTranslations } from 'next-intl'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { offlineDb, type PendingExpense } from '@/lib/offlineDb'
 import { useOfflineSync } from '@/hooks/useOfflineSync'
@@ -609,6 +610,7 @@ function VoidModal({ expenseId, expenseTitle, onClose, onVoided }: {
 }
 
 export default function ExpensesPage() {
+  const t = useTranslations()
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -713,12 +715,12 @@ export default function ExpensesPage() {
     <div className="p-4 md:p-6 space-y-6 animate-fade-up">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Expenses</h1>
+          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('expenses.title')}</h1>
           <p className="text-[#183a1d]/60 text-sm mt-1">{expenses.length} expense{expenses.length !== 1 ? 's' : ''} — every entry blockchain anchored</p>
         </div>
         <Link href="/dashboard/expenses/new"
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] self-start bg-[#f6c453] hover:bg-[#f0a04b]">
-          <Plus size={16} /> Log Expense
+          <Plus size={16} /> {t('expenses.new')}
         </Link>
       </div>
 

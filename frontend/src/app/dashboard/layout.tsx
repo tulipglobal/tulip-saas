@@ -11,28 +11,30 @@ import {
   ChevronLeft, ChevronRight, Shield, Bell, Search, Menu, X, ListChecks, ScanLine, FolderSearch, Briefcase, ShieldCheck, Crown
 } from 'lucide-react'
 import { clsx } from 'clsx'
+import { useTranslations } from 'next-intl'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
-const nav = [
-  { label: 'Overview',  href: '/dashboard',           icon: LayoutDashboard },
-  { label: 'Projects',  href: '/dashboard/projects',  icon: FolderOpen },
-  { label: 'Budgets',   href: '/dashboard/budgets',   icon: BarChart3 },
-  { label: 'Funding',   href: '/dashboard/funding',   icon: Banknote },
-  { label: 'Documents', href: '/dashboard/documents', icon: FileCheck },
-  { label: 'Expenses',  href: '/dashboard/expenses',  icon: Receipt },
-  { label: 'Audit Log', href: '/dashboard/audit',     icon: Shield },
-  { label: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
-  { label: 'Workflow',  href: '/dashboard/workflow',  icon: ListChecks },
-  { label: 'Billing',   href: '/dashboard/billing',   icon: CreditCard },
-  { label: 'Team',      href: '/dashboard/team',      icon: Users },
-  { label: 'API Keys',  href: '/dashboard/api-keys',  icon: Key },
-  { label: 'Webhooks',  href: '/dashboard/webhooks',  icon: Webhook },
-  { label: 'Trust Seal',  href: '/dashboard/trust-seal',     icon: ShieldCheck },
-  { label: 'Cases',      href: '/dashboard/cases',          icon: Briefcase },
-  { label: 'OCR Engine', href: '/dashboard/api-portal/ocr', icon: ScanLine },
-  { label: 'Bundle Verify', href: '/dashboard/api-portal/bundle', icon: FolderSearch },
-  { label: 'Developer API', href: '/dashboard/api-portal/developer', icon: Code2 },
-  { label: 'Embed',     href: '/dashboard/embed',     icon: Code2 },
-  { label: 'Settings',  href: '/dashboard/settings',  icon: Settings },
+const navItems = [
+  { key: 'dashboard',  href: '/dashboard',           icon: LayoutDashboard, fallback: 'Overview' },
+  { key: 'projects',   href: '/dashboard/projects',  icon: FolderOpen },
+  { key: 'budgets',    href: '/dashboard/budgets',   icon: BarChart3 },
+  { key: 'funding',    href: '/dashboard/funding',   icon: Banknote },
+  { key: 'documents',  href: '/dashboard/documents', icon: FileCheck },
+  { key: 'expenses',   href: '/dashboard/expenses',  icon: Receipt },
+  { key: null, label: 'Audit Log', href: '/dashboard/audit',     icon: Shield },
+  { key: 'analytics',  href: '/dashboard/analytics', icon: BarChart3 },
+  { key: 'approvals',  href: '/dashboard/workflow',  icon: ListChecks, fallback: 'Workflow' },
+  { key: null, label: 'Billing',   href: '/dashboard/billing',   icon: CreditCard },
+  { key: null, label: 'Team',      href: '/dashboard/team',      icon: Users },
+  { key: null, label: 'API Keys',  href: '/dashboard/api-keys',  icon: Key },
+  { key: null, label: 'Webhooks',  href: '/dashboard/webhooks',  icon: Webhook },
+  { key: null, label: 'Trust Seal',  href: '/dashboard/trust-seal',     icon: ShieldCheck },
+  { key: null, label: 'Cases',      href: '/dashboard/cases',          icon: Briefcase },
+  { key: null, label: 'OCR Engine', href: '/dashboard/api-portal/ocr', icon: ScanLine },
+  { key: null, label: 'Bundle Verify', href: '/dashboard/api-portal/bundle', icon: FolderSearch },
+  { key: null, label: 'Developer API', href: '/dashboard/api-portal/developer', icon: Code2 },
+  { key: null, label: 'Embed',     href: '/dashboard/embed',     icon: Code2 },
+  { key: 'settings',   href: '/dashboard/settings',  icon: Settings },
 ]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -42,6 +44,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isSuperadmin, setIsSuperadmin] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
+  const t = useTranslations('nav')
   useOfflineSync() // mount globally — drains offline queue + pre-caches projects
 
   // Fetch workflow pending count + superadmin check
@@ -113,7 +116,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Nav */}
       <nav className="flex-1 py-4 overflow-y-auto">
-        {nav.map(({ label, href, icon: Icon }) => {
+        {navItems.map((item) => {
+          const { href, icon: Icon } = item
+          const label = item.key ? (item.fallback ? t(item.key, { defaultValue: item.fallback }) : t(item.key)) : item.label!
+          const isWorkflow = href === '/dashboard/workflow'
           const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
           return (
             <Link key={href} href={href} className={clsx(
@@ -124,16 +130,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )}>
               <Icon size={18} className="shrink-0" />
               {(!collapsed || mobileOpen) && <span className="text-sm font-medium">{label}</span>}
-              {label === 'Workflow' && pendingCount > 0 && (!collapsed || mobileOpen) && (
+              {isWorkflow && pendingCount > 0 && (!collapsed || mobileOpen) && (
                 <span className="ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#f6c453]/20 text-[#f6c453] leading-none">{pendingCount}</span>
               )}
-              {label === 'Workflow' && pendingCount > 0 && collapsed && !mobileOpen && (
+              {isWorkflow && pendingCount > 0 && collapsed && !mobileOpen && (
                 <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#f6c453]" />
               )}
-              {active && (!collapsed || mobileOpen) && label !== 'Workflow' && (
+              {active && (!collapsed || mobileOpen) && !isWorkflow && (
                 <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#f6c453]" />
               )}
-              {active && (!collapsed || mobileOpen) && label === 'Workflow' && pendingCount === 0 && (
+              {active && (!collapsed || mobileOpen) && isWorkflow && pendingCount === 0 && (
                 <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#f6c453]" />
               )}
             </Link>
@@ -234,8 +240,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
 
-          {/* Right: bell + avatar */}
+          {/* Right: language + bell + avatar */}
           <div className="flex items-center gap-3">
+            <LanguageSwitcher />
             <button className="relative w-9 h-9 rounded-lg bg-[#e1eedd] border border-[#c8d6c0] flex items-center justify-center hover:bg-[#c8d6c0] transition-all">
               <Bell size={16} className="text-[#183a1d]" />
               <div className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#f6c453]" />

@@ -170,7 +170,7 @@ exports.login = async (req, res) => {
 
     res.json({
       ...tokens,
-      user: { id: user.id, email: user.email, name: user.name, tenantId: user.tenantId }
+      user: { id: user.id, email: user.email, name: user.name, tenantId: user.tenantId, preferredLanguage: user.preferredLanguage || 'en' }
     })
   } catch (err) {
     console.error('[auth/login]', err)
@@ -273,6 +273,25 @@ exports.updatePassword = async (req, res) => {
   }
 }
 
+// ── PATCH /api/auth/language ──────────────────────────────────
+exports.updateLanguage = async (req, res) => {
+  try {
+    const { language } = req.body
+    const valid = ['en', 'fr', 'es', 'pt', 'it']
+    if (!valid.includes(language)) {
+      return res.status(400).json({ error: 'Invalid language code' })
+    }
+    await prisma.user.update({
+      where: { id: req.user.userId },
+      data: { preferredLanguage: language }
+    })
+    res.json({ success: true, language })
+  } catch (err) {
+    console.error('[auth/language]', err)
+    res.status(500).json({ error: 'Failed to update language' })
+  }
+}
+
 exports.me = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
@@ -285,7 +304,7 @@ exports.me = async (req, res) => {
     const trialDaysLeft = trialActive
       ? Math.ceil((new Date(user.tenant.trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
       : 0
-    res.json({ id: user.id, email: user.email, name: user.name, tenantId: user.tenantId, tenantName: user.tenant?.name || null, completedSetup: user.tenant?.completedSetup ?? true, plan: user.tenant?.plan || 'FREE', planStatus: user.tenant?.planStatus || 'active', trialEndsAt: user.tenant?.trialEndsAt || null, trialActive, trialDaysLeft, createdAt: user.createdAt, roles: user.roles.map(r => r.role.name) })
+    res.json({ id: user.id, email: user.email, name: user.name, tenantId: user.tenantId, tenantName: user.tenant?.name || null, completedSetup: user.tenant?.completedSetup ?? true, plan: user.tenant?.plan || 'FREE', planStatus: user.tenant?.planStatus || 'active', trialEndsAt: user.tenant?.trialEndsAt || null, trialActive, trialDaysLeft, createdAt: user.createdAt, roles: user.roles.map(r => r.role.name), preferredLanguage: user.preferredLanguage || 'en' })
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch user' })
   }

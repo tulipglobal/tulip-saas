@@ -1,3 +1,6 @@
+const createNextIntlPlugin = require('next-intl/plugin');
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
+
 const withPWA = require('@ducanh2912/next-pwa').default({
   dest: 'public',
   register: true,
@@ -48,4 +51,4 @@ const nextConfig = {
   turbopack: {},
 }
 
-module.exports = withPWA(nextConfig)
+module.exports = withNextIntl(withPWA(nextConfig))

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { apiGet } from '@/lib/api'
 import Link from 'next/link'
 import { FolderOpen, Plus, ArrowUpRight, CheckCircle, Clock, AlertTriangle, Search } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface BudgetSummary {
   budgetCapex: number
@@ -59,6 +60,7 @@ function EmptyState() {
 }
 
 export default function ProjectsPage() {
+  const t = useTranslations()
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -80,12 +82,12 @@ export default function ProjectsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Projects</h1>
+          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('projects.title')}</h1>
           <p className="text-[#183a1d]/60 text-sm mt-1">{projects.length} project{projects.length !== 1 ? 's' : ''} total</p>
         </div>
         <Link href="/dashboard/projects/new"
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] bg-[#f6c453] hover:bg-[#f0a04b]">
-          <Plus size={16} /> New Project
+          <Plus size={16} /> {t('projects.new')}
         </Link>
       </div>
 

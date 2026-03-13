@@ -71,6 +71,7 @@ model User {
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
   deletedAt         DateTime?
+  preferredLanguage String         @default("en")
   apiKeys           ApiKey[]       @relation("ApiKeyCreator")
   auditLogs         AuditLog[]
   uploadedDocuments Document[]

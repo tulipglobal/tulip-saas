@@ -177,9 +177,8 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
                 <img
                   src={docUrl}
                   alt={seal.documentTitle}
-                  crossOrigin="anonymous"
                   className="w-full h-full object-contain max-h-[500px] rounded-lg shadow-sm"
-                  onError={() => { console.warn('[TrustSealCard] Image failed to load'); setDocError(true) }}
+                  onError={() => { console.warn('[TrustSealCard] Image failed to load:', docUrl?.substring(0, 80)); setDocError(true) }}
                 />
               ) : docUrl ? (
                 <div className="flex flex-col items-center gap-4 text-[#183a1d]/40">

@@ -271,7 +271,7 @@ export default function AuditPage() {
                 </div>
                 <StatusBadge status={entry.anchorStatus || 'pending'} />
                 <div className="text-xs text-[#183a1d]/40">
-                  {new Date(entry.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
+                  {new Date(entry.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
                 </div>
                 <div className="flex items-center gap-1">
                   <Link href={`/verify?hash=${entry.dataHash}`} target="_blank"

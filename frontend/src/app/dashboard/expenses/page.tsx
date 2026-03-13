@@ -3,12 +3,13 @@
 import { useState, useEffect, useCallback } from 'react'
 import { apiGet, apiPost } from '@/lib/api'
 import Link from 'next/link'
-import { Receipt, Plus, Search, ExternalLink, Shield, Copy, Check, CheckCircle, ChevronDown, ChevronUp, FileCheck, Upload, AlertTriangle, Clock } from 'lucide-react'
+import { Receipt, Plus, Search, ExternalLink, Shield, Copy, Check, CheckCircle, ChevronDown, ChevronUp, FileCheck, Upload, AlertTriangle, Clock, WifiOff } from 'lucide-react'
 import DocumentUploadSection from '@/components/DocumentUploadSection'
 import BlockchainStatusPill from '@/components/BlockchainStatusPill'
 import TrustSealCard from '@/components/TrustSealCard'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { offlineDb, type PendingExpense } from '@/lib/offlineDb'
+import { useOfflineSync } from '@/hooks/useOfflineSync'
 
 interface Document {
   id: string
@@ -39,6 +40,7 @@ interface Expense {
   expenseType: string | null
   vendor: string | null
   expenseDate: string
+  createdAt: string
   anchorStatus: string
   approvalStatus?: string
   dataHash: string | null
@@ -103,15 +105,15 @@ function ExpenseTypeBadge({ type }: { type: string | null }) {
 }
 
 function AnchorBadge({ status }: { status: string }) {
+  if (!status || status === 'pending') return null
   const map: Record<string, string> = {
     confirmed:  'bg-green-400/10 text-green-400 border-green-400/20',
-    pending:    'bg-yellow-400/10 text-yellow-400 border-yellow-400/20',
     processing: 'bg-[#f6c453]/10 text-[#183a1d] border-[#f6c453]/30',
     failed:     'bg-red-400/10 text-red-400 border-red-400/20',
   }
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border font-medium capitalize ${map[status] ?? map.pending}`}>
-      {status || 'pending'}
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border font-medium capitalize ${map[status] ?? ''}`}>
+      {status}
     </span>
   )
 }
@@ -258,7 +260,7 @@ function ReceiptUploader({ expenseId, expenseTitle, onUploaded }: { expenseId: s
         <div className="rounded-lg bg-red-600 p-4">
           <div className="flex items-start gap-2 text-white font-bold text-sm">
             <AlertTriangle size={18} className="shrink-0 mt-0.5" />
-            <span>DUPLICATE DOCUMENT DETECTED — This receipt was already uploaded as &quot;{ocrResult.duplicateOf.name}&quot; on {new Date(ocrResult.duplicateOf.uploadedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+            <span>DUPLICATE DOCUMENT DETECTED — This receipt was already uploaded as &quot;{ocrResult.duplicateOf.name}&quot; on {new Date(ocrResult.duplicateOf.uploadedAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
           </div>
         </div>
       )}
@@ -288,7 +290,7 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
   return (
     <>
       <div
-        className="px-4 py-3.5 hover:bg-[#e1eedd]/50 transition-colors cursor-pointer lg:grid lg:grid-cols-[2fr_1fr_1fr_1fr_1fr_60px] lg:gap-4 lg:items-center lg:px-5"
+        className="px-4 py-3.5 hover:bg-[#e1eedd]/50 transition-colors cursor-pointer lg:grid lg:grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_50px] lg:gap-4 lg:items-center lg:px-5"
         onClick={() => setExpanded(e => !e)}
       >
         <div>
@@ -353,6 +355,7 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
           </div>
           {/* Mobile-only status row */}
           <div className="flex items-center gap-2 mt-1.5 lg:hidden">
+            <span className="text-[10px] text-[#183a1d]/40">{new Date(expense.createdAt || expense.expenseDate).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
             <ApprovalBadge status={expense.approvalStatus} />
             <AnchorBadge status={expense.anchorStatus} />
             {expense.receiptHash && (
@@ -377,6 +380,9 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
         </div>
         <div className="hidden lg:block text-xs text-[#183a1d]/60 truncate">
           {expense.project?.name ?? '—'}
+        </div>
+        <div className="hidden lg:block text-xs text-[#183a1d]/50">
+          {new Date(expense.createdAt || expense.expenseDate).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
         </div>
         <div className="hidden lg:flex lg:items-center lg:gap-1.5" onClick={e => e.stopPropagation()}>
           {expense.receiptSealId ? (
@@ -536,6 +542,7 @@ export default function ExpensesPage() {
   const [activeSealId, setActiveSealId] = useState<string | null>(null)
   const [activeMismatch, setActiveMismatch] = useState<Expense | null>(null)
   const [sealMap, setSealMap] = useState<Record<string, { sealId: string; anchorStatus: string; txHash: string | null }>>({})
+  const { isOnline } = useOfflineSync()
 
   // Load offline pending expenses from IndexedDB
   const pendingExpenses = useLiveQuery(
@@ -556,6 +563,7 @@ export default function ExpensesPage() {
     expenseType: null,
     vendor: pe.vendorName || null,
     expenseDate: pe.date,
+    createdAt: pe.date,
     anchorStatus: 'pending',
     dataHash: null,
     blockchainTx: null,
@@ -583,6 +591,12 @@ export default function ExpensesPage() {
   }, [])
 
   const load = () => {
+    if (!isOnline) {
+      // Offline — just show pending expenses (no API call)
+      setExpenses([])
+      setLoading(false)
+      return
+    }
     apiGet('/api/expenses?limit=50')
       .then(r => r.ok ? r.json() : { items: [] })
       .then(d => {
@@ -594,7 +608,7 @@ export default function ExpensesPage() {
       .catch(() => setLoading(false))
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [isOnline])
 
   // Refresh expense list when offline sync completes
   useEffect(() => {
@@ -625,6 +639,14 @@ export default function ExpensesPage() {
         </Link>
       </div>
 
+      {!isOnline && (
+        <div className="rounded-xl border p-3.5 flex items-center gap-3"
+          style={{ background: 'rgba(251,191,36,0.08)', borderColor: 'rgba(251,191,36,0.2)' }}>
+          <WifiOff size={16} className="text-amber-400 shrink-0" />
+          <p className="text-[#183a1d]/60 text-xs">You are offline — showing pending expenses only. Synced expenses will appear when back online.</p>
+        </div>
+      )}
+
       {filtered.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
@@ -648,7 +670,7 @@ export default function ExpensesPage() {
 
       <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
         <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_60px] gap-4 px-5 py-3 border-b border-[#c8d6c0] text-xs text-[#183a1d]/40 uppercase tracking-wide font-medium">
-          <span>Expense</span><span>Amount</span><span>Project</span><span>Seal</span><span>Status</span><span>Actions</span>
+          <span>Expense</span><span>Amount</span><span>Project</span><span>Date</span><span>Seal</span><span>Status</span><span>Actions</span>
         </div>
 
         {loading ? (
@@ -662,7 +684,7 @@ export default function ExpensesPage() {
         ) : (
           <div className="divide-y divide-[#c8d6c0]">
             {offlineExpenseRows.map(expense => (
-              <div key={expense.id} className="px-4 py-3.5 lg:grid lg:grid-cols-[2fr_1fr_1fr_1fr_1fr_60px] lg:gap-4 lg:items-center lg:px-5 bg-amber-50/50">
+              <div key={expense.id} className="px-4 py-3.5 lg:grid lg:grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_50px] lg:gap-4 lg:items-center lg:px-5 bg-amber-50/50">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-[#183a1d]">{expense.title}</span>
@@ -675,6 +697,9 @@ export default function ExpensesPage() {
                 </div>
                 <div className="text-sm font-medium text-[#183a1d]">{expense.currency} {expense.amount.toLocaleString()}</div>
                 <div className="text-xs text-[#183a1d]/60">—</div>
+                <div className="text-xs text-[#183a1d]/50">
+                  {new Date(expense.expenseDate).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                </div>
                 <div><PendingSyncPill /></div>
                 <div><span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs border font-medium bg-amber-100 text-amber-700 border-amber-300">Offline</span></div>
                 <div />

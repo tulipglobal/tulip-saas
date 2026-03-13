@@ -166,7 +166,7 @@ export default function ExpenseDetailPage() {
             <div className="flex items-center gap-3 mt-2 flex-wrap">
               {anchorBadge(expense.anchorStatus ?? '')}
               <span className="text-[#183a1d]/40 text-xs flex items-center gap-1">
-                <Calendar size={11} /> {new Date(expense.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                <Calendar size={11} /> {new Date(expense.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
               </span>
               {expense.blockchainTx && (
                 <a href={`https://polygonscan.com/tx/${expense.blockchainTx}`} target="_blank" rel="noopener noreferrer"
@@ -270,7 +270,7 @@ export default function ExpenseDetailPage() {
                     {doc.sha256Hash ? <HashCell hash={doc.sha256Hash} /> : <span className="text-xs text-[#183a1d]/30">—</span>}
                   </td>
                   <td className="px-4 py-3 text-xs text-[#183a1d]/40">
-                    {new Date(doc.uploadedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
+                    {new Date(doc.uploadedAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
                   </td>
                   <td className="px-4 py-3">
                     <button onClick={() => openDoc(doc.id)} className="text-[#183a1d] hover:text-[#f6c453] text-xs flex items-center gap-1">

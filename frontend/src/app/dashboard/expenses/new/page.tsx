@@ -485,7 +485,7 @@ export default function NewExpensePage() {
                   <div className="flex items-center gap-3 text-white font-bold text-lg">
                     <AlertTriangle size={24} className="shrink-0" /> LIKELY DUPLICATE
                   </div>
-                  <p className="text-white font-bold text-base">This file has the same text content as &quot;{duplicateInfo.name}&quot; uploaded on {new Date(duplicateInfo.uploadedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}. This may be a duplicate expense claim.</p>
+                  <p className="text-white font-bold text-base">This file has the same text content as &quot;{duplicateInfo.name}&quot; uploaded on {new Date(duplicateInfo.uploadedAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}. This may be a duplicate expense claim.</p>
                   <button onClick={() => { setReceiptData(null); setReceiptFile(null); setDuplicateInfo(null); setCrossTenantDuplicate(false); setDuplicateConfidence(null) }}
                     className="text-white/80 hover:text-white text-sm font-medium underline">Replace file</button>
                 </div>
@@ -506,7 +506,7 @@ export default function NewExpensePage() {
                   <div className="flex items-center gap-3 text-white font-bold text-lg">
                     <AlertTriangle size={24} className="shrink-0" /> DUPLICATE DOCUMENT
                   </div>
-                  <p className="text-white font-bold text-base">This file was uploaded before as &quot;{duplicateInfo.name}&quot; on {new Date(duplicateInfo.uploadedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}. Uploading the same receipt twice may indicate duplicate expense claims.</p>
+                  <p className="text-white font-bold text-base">This file was uploaded before as &quot;{duplicateInfo.name}&quot; on {new Date(duplicateInfo.uploadedAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}. Uploading the same receipt twice may indicate duplicate expense claims.</p>
                   <button onClick={() => { setReceiptData(null); setReceiptFile(null); setDuplicateInfo(null); setCrossTenantDuplicate(false); setDuplicateConfidence(null) }}
                     className="text-white/80 hover:text-white text-sm font-medium underline">Replace file</button>
                 </div>

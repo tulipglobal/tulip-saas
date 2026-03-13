@@ -222,7 +222,7 @@ export default function ProjectDetailPage() {
                       {exp.dataHash ? <span className="text-xs font-mono text-[#183a1d]/40">{exp.dataHash.slice(0, 12)}...</span> : <span className="text-xs text-[#183a1d]/30">-</span>}
                     </td>
                     <td className="px-4 py-3">{anchorBadge(exp.anchorStatus ?? '')}</td>
-                    <td className="px-4 py-3 text-xs text-[#183a1d]/40">{new Date(exp.createdAt).toLocaleDateString()}</td>
+                    <td className="px-4 py-3 text-xs text-[#183a1d]/40">{new Date(exp.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</td>
                   </tr>
                 ))}
               </tbody>
@@ -271,7 +271,7 @@ export default function ProjectDetailPage() {
                           <BlockchainStatusPill onClick={() => {}} />
                         )}
                       </td>
-                      <td className="px-4 py-3 text-xs text-[#183a1d]/40">{new Date(doc.uploadedAt ?? doc.createdAt).toLocaleDateString()}</td>
+                      <td className="px-4 py-3 text-xs text-[#183a1d]/40">{new Date(doc.uploadedAt ?? doc.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</td>
                     </tr>
                     )
                   })}
@@ -358,7 +358,7 @@ export default function ProjectDetailPage() {
                         : <span className="text-xs text-[#183a1d]/30">-</span>}
                     </td>
                     <td className="px-4 py-3">{anchorBadge(entry.anchorStatus)}</td>
-                    <td className="px-4 py-3 text-xs text-[#183a1d]/40">{new Date(entry.createdAt).toLocaleDateString()}</td>
+                    <td className="px-4 py-3 text-xs text-[#183a1d]/40">{new Date(entry.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</td>
                   </tr>
                 ))}
               </tbody>

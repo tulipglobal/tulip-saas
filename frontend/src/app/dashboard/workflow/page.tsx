@@ -117,7 +117,7 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
           </div>
           <div className="flex items-center gap-3 mt-1 text-xs text-[#183a1d]/60">
             {task.submitter && <span>by {task.submitter.name}</span>}
-            <span>{new Date(task.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}</span>
+            <span>{new Date(task.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
             {task.comments.length > 0 && (
               <span className="flex items-center gap-1"><MessageSquare size={10} /> {task.comments.length}</span>
             )}

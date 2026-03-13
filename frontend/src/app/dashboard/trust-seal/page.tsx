@@ -258,7 +258,7 @@ export default function TrustSealPage() {
                 <div className="hidden lg:block"><SourceBadge type={seal.documentType} /></div>
                 <div className="hidden lg:block text-xs text-[#183a1d]/60 truncate">{seal.issuedBy}</div>
                 <div className="hidden lg:block text-xs text-[#183a1d]/40">
-                  {new Date(seal.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
+                  {new Date(seal.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
                 </div>
                 <div className="hidden lg:block">
                   <BlockchainStatusPill

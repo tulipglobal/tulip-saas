@@ -1,9 +1,12 @@
 'use client'
 import { apiGet, apiPost } from '@/lib/api'
+import { offlineDb } from '@/lib/offlineDb'
+import { cacheDocuments } from '@/lib/syncService'
+import { useOfflineSync } from '@/hooks/useOfflineSync'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { FileCheck, Plus, Search, ExternalLink, Copy, Check, Shield, AlertTriangle, Users } from 'lucide-react'
+import { FileCheck, Plus, Search, ExternalLink, Copy, Check, Shield, AlertTriangle, Users, WifiOff } from 'lucide-react'
 import BlockchainStatusPill from '@/components/BlockchainStatusPill'
 import TrustSealCard from '@/components/TrustSealCard'
 
@@ -205,25 +208,40 @@ export default function DocumentsPage() {
   const [search, setSearch] = useState('')
   const [sealMap, setSealMap] = useState<Record<string, { sealId: string; anchorStatus: string; txHash: string | null }>>({})
   const [activeSealId, setActiveSealId] = useState<string | null>(null)
+  const { isOnline } = useOfflineSync()
 
   useEffect(() => {
-    apiGet('/api/documents?limit=100')
-      .then(r => r.ok ? r.json() : { data: [] })
-      .then(d => {
-        const items = d.data ?? d.items ?? []
-        setDocs(items)
-        setLoading(false)
-        // Resolve hashes to seals
-        const hashes = items.map((doc: Document) => doc.sha256Hash).filter(Boolean)
-        if (hashes.length > 0) {
-          apiPost('/api/trust-seal/resolve', { hashes })
-            .then(r => r.ok ? r.json() : {})
-            .then(map => setSealMap(map))
-            .catch(() => {})
-        }
-      })
-      .catch(() => setLoading(false))
-  }, [])
+    const token = typeof window !== 'undefined' ? localStorage.getItem('tulip_token') : null
+
+    if (isOnline) {
+      apiGet('/api/documents?limit=100')
+        .then(r => r.ok ? r.json() : { data: [] })
+        .then(d => {
+          const items = d.data ?? d.items ?? []
+          setDocs(items)
+          setLoading(false)
+          // Cache for offline use
+          if (token) cacheDocuments(token).catch(() => {})
+          // Resolve hashes to seals
+          const hashes = items.map((doc: Document) => doc.sha256Hash).filter(Boolean)
+          if (hashes.length > 0) {
+            apiPost('/api/trust-seal/resolve', { hashes })
+              .then(r => r.ok ? r.json() : {})
+              .then(map => setSealMap(map))
+              .catch(() => {})
+          }
+        })
+        .catch(() => setLoading(false))
+    } else {
+      // Load from offline cache
+      offlineDb.cached_documents.toArray()
+        .then(cached => {
+          setDocs(cached.map(c => c.data as Document))
+          setLoading(false)
+        })
+        .catch(() => setLoading(false))
+    }
+  }, [isOnline])
 
   const openDoc = async (docId: string) => {
     const token = localStorage.getItem('tulip_token')
@@ -251,6 +269,14 @@ export default function DocumentsPage() {
           <Plus size={16} /> Add Document
         </Link>
       </div>
+
+      {!isOnline && (
+        <div className="rounded-xl border p-3.5 flex items-center gap-3"
+          style={{ background: 'rgba(251,191,36,0.08)', borderColor: 'rgba(251,191,36,0.2)' }}>
+          <WifiOff size={16} className="text-amber-400 shrink-0" />
+          <p className="text-[#183a1d]/60 text-xs">You are offline — showing cached documents. Some actions may be unavailable.</p>
+        </div>
+      )}
 
       {/* Donor sharing info banner */}
       <div className="rounded-xl border p-3.5 flex items-center gap-3"
@@ -307,7 +333,7 @@ export default function DocumentsPage() {
                       <ExpiryCell doc={doc} />
                       {doc.project?.name && <span className="text-xs text-[#183a1d]/60">{doc.project.name}</span>}
                       <span className="text-xs text-[#183a1d]/40">
-                        {new Date(doc.uploadedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
+                        {new Date(doc.uploadedAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
                   </div>
@@ -341,7 +367,7 @@ export default function DocumentsPage() {
                 </div>
                 <div className="hidden lg:block text-xs text-[#183a1d]/60 truncate">{doc.project?.name ?? '—'}</div>
                 <div className="hidden lg:block text-xs text-[#183a1d]/40">
-                  {new Date(doc.uploadedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
+                  {new Date(doc.uploadedAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
                 </div>
                 <div className="hidden lg:flex items-center gap-2">
                   <button onClick={() => openDoc(doc.id)}

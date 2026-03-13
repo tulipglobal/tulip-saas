@@ -1,46 +1,112 @@
 // ─────────────────────────────────────────────────────────────
-//  middleware/rateLimit.js — v2
+//  middleware/rateLimit.js — v3
 //
-//  Changes from v1:
-//  ✔ Per-tenant rate limiting on top of per-IP
-//  ✔ Tenant limits: 1000 req/15min (vs IP: 100 req/15min)
-//  ✔ Auth limiter: 10/60min per IP, 50/60min per tenant
+//  Changes from v2:
+//  ✔ Auth limiter tightened: 10 req/15min per IP
+//  ✔ Upload limiter: 30 req/15min per IP+tenant
+//  ✔ OCR limiter: 20 req/15min per IP+tenant
+//  ✔ Skip internal API calls (x-internal-secret header)
+//  ✔ Log when rate limit hit
+//  ✔ Combined IP+tenantId key for authenticated routes
 // ─────────────────────────────────────────────────────────────
 
 const rateLimit = require('express-rate-limit')
+const logger    = require('../lib/logger')
 
 // ── Key generators ────────────────────────────────────────────
-const byIP     = (req) => req.ip
-const byTenant = (req) => req.user?.tenantId || req.ip  // fallback to IP if not authed
+const byIP        = (req) => req.ip
+const byIPTenant  = (req) => req.user?.tenantId ? `${req.ip}:${req.user.tenantId}` : req.ip
+
+// ── Skip internal API calls & health checks ───────────────────
+const INTERNAL_SECRET = process.env.INTERNAL_API_SECRET
+const skipInternal = (req) => {
+  if (req.path === '/api/health' || req.path === '/') return true
+  if (INTERNAL_SECRET && req.headers['x-internal-secret'] === INTERNAL_SECRET) return true
+  return false
+}
+
+// ── Rate limit hit handler — logs warning ─────────────────────
+const onLimitReached = (req) => {
+  logger.warn('Rate limit hit', {
+    ip: req.ip,
+    route: req.originalUrl,
+    method: req.method,
+    tenantId: req.user?.tenantId || null,
+  })
+}
 
 // ── General API limiter — per IP ──────────────────────────────
 const apiLimiter = rateLimit({
-  windowMs:         15 * 60 * 1000,
-  max:              300,
-  keyGenerator:     byIP,
-  standardHeaders:  true,
-  legacyHeaders:    false,
-  message:          { error: 'Too many requests, please try again later', retryAfter: '15 minutes' },
-})
-
-// ── Per-tenant API limiter (applied after authenticate) ───────
-const tenantApiLimiter = rateLimit({
-  windowMs:         15 * 60 * 1000,
-  max:              1000,           // 10x IP limit — allows high-volume integrations
-  keyGenerator:     byTenant,
-  standardHeaders:  true,
-  legacyHeaders:    false,
-  message:          { error: 'Tenant rate limit exceeded', retryAfter: '15 minutes' },
-})
-
-// ── Auth limiter — stricter, per IP ──────────────────────────
-const authLimiter = rateLimit({
   windowMs:         15 * 60 * 1000,
   max:              200,
   keyGenerator:     byIP,
   standardHeaders:  true,
   legacyHeaders:    false,
-  message:          { error: 'Too many auth attempts, please try again in an hour' },
+  skip:             skipInternal,
+  handler:          (req, res, next, options) => {
+    onLimitReached(req)
+    res.status(options.statusCode).json(options.message)
+  },
+  message:          { error: 'Too many requests, please try again later.' },
+})
+
+// ── Per-tenant API limiter (applied after authenticate) ───────
+const tenantApiLimiter = rateLimit({
+  windowMs:         15 * 60 * 1000,
+  max:              1000,
+  keyGenerator:     byIPTenant,
+  standardHeaders:  true,
+  legacyHeaders:    false,
+  skip:             skipInternal,
+  handler:          (req, res, next, options) => {
+    onLimitReached(req)
+    res.status(options.statusCode).json(options.message)
+  },
+  message:          { error: 'Tenant rate limit exceeded', retryAfter: '15 minutes' },
+})
+
+// ── Auth limiter — strict, per IP ─────────────────────────────
+const authLimiter = rateLimit({
+  windowMs:         15 * 60 * 1000,
+  max:              10,
+  keyGenerator:     byIP,
+  standardHeaders:  true,
+  legacyHeaders:    false,
+  handler:          (req, res, next, options) => {
+    onLimitReached(req)
+    res.status(options.statusCode).json(options.message)
+  },
+  message:          { error: 'Too many login attempts, please try again in 15 minutes.' },
+})
+
+// ── Upload limiter — receipts & documents ─────────────────────
+const uploadLimiter = rateLimit({
+  windowMs:         15 * 60 * 1000,
+  max:              30,
+  keyGenerator:     byIPTenant,
+  standardHeaders:  true,
+  legacyHeaders:    false,
+  skip:             skipInternal,
+  handler:          (req, res, next, options) => {
+    onLimitReached(req)
+    res.status(options.statusCode).json(options.message)
+  },
+  message:          { error: 'Too many upload requests, please try again later.' },
+})
+
+// ── OCR limiter — OCR processing routes ───────────────────────
+const ocrLimiter = rateLimit({
+  windowMs:         15 * 60 * 1000,
+  max:              20,
+  keyGenerator:     byIPTenant,
+  standardHeaders:  true,
+  legacyHeaders:    false,
+  skip:             skipInternal,
+  handler:          (req, res, next, options) => {
+    onLimitReached(req)
+    res.status(options.statusCode).json(options.message)
+  },
+  message:          { error: 'Too many OCR requests, please try again later.' },
 })
 
 // ── Strict limiter — GDPR, webhooks, API keys ────────────────
@@ -50,6 +116,11 @@ const strictLimiter = rateLimit({
   keyGenerator:     byIP,
   standardHeaders:  true,
   legacyHeaders:    false,
+  skip:             skipInternal,
+  handler:          (req, res, next, options) => {
+    onLimitReached(req)
+    res.status(options.statusCode).json(options.message)
+  },
   message:          { error: 'Rate limit exceeded for this endpoint' },
 })
 
@@ -60,7 +131,11 @@ const verifyLimiter = rateLimit({
   keyGenerator:     byIP,
   standardHeaders:  true,
   legacyHeaders:    false,
+  handler:          (req, res, next, options) => {
+    onLimitReached(req)
+    res.status(options.statusCode).json(options.message)
+  },
   message:          { error: 'Too many verification requests. Please try again in 1 minute.', retryAfter: '60 seconds' },
 })
 
-module.exports = { apiLimiter, tenantApiLimiter, authLimiter, strictLimiter, verifyLimiter }
+module.exports = { apiLimiter, tenantApiLimiter, authLimiter, uploadLimiter, ocrLimiter, strictLimiter, verifyLimiter }

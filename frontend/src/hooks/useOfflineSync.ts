@@ -3,20 +3,21 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { offlineDb } from '@/lib/offlineDb';
-import { drainQueue, cacheProjects } from '@/lib/syncService';
+import { drainQueue, cacheProjects, cacheDocuments } from '@/lib/syncService';
 
 // Same-origin probe — avoids CORS issues on Android Chrome PWA
 async function checkOnline(): Promise<boolean> {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 3000);
-    await fetch('/api/ping', {
+    const res = await fetch('/api/ping', {
       method: 'GET',
       signal: controller.signal,
       cache: 'no-store',
     });
     clearTimeout(timeout);
-    return true;
+    // Only count as online if ping returns 200 (backend is reachable)
+    return res.ok;
   } catch {
     return false;
   }
@@ -63,11 +64,14 @@ export function useOfflineSync() {
     drain();
   }, [drain]);
 
-  // Pre-cache projects silently when online
+  // Pre-cache projects + documents silently when online
   useEffect(() => {
     if (typeof window === 'undefined' || !online) return;
     const token = localStorage.getItem('tulip_token');
-    if (token) cacheProjects(token).catch(() => {});
+    if (token) {
+      cacheProjects(token).catch(() => {});
+      cacheDocuments(token).catch(() => {});
+    }
   }, [online]);
 
   // Initial connectivity check on mount

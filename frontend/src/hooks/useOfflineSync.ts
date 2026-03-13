@@ -5,11 +5,32 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { offlineDb } from '@/lib/offlineDb';
 import { drainQueue, cacheProjects } from '@/lib/syncService';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5050';
+
+// Probe real connectivity — navigator.onLine is unreliable in Safari PWA
+async function checkConnectivity(): Promise<boolean> {
+  if (typeof navigator === 'undefined') return true;
+  // Fast check first
+  if (!navigator.onLine) return false;
+  // Verify with a real network request (HEAD is lightweight)
+  try {
+    const res = await fetch(`${API_URL}/api/docs`, {
+      method: 'HEAD',
+      cache: 'no-store',
+      signal: AbortSignal.timeout(3000),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 export function useOfflineSync() {
   const [online, setOnline] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [justSynced, setJustSynced] = useState(false);
   const drainRef = useRef(false);
+  const probeRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const pendingCount = useLiveQuery(
     () => offlineDb.pending_expenses.where('status').equals('pending').count(),
@@ -46,22 +67,44 @@ export function useOfflineSync() {
     if (token) cacheProjects(token).catch(() => {});
   }, [online]);
 
-  // Drain pending queue on mount if already online
+  // Probe connectivity on mount + periodically when offline (Safari fix)
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (navigator.onLine) {
-      drain();
-    }
+
+    const probe = async () => {
+      const isUp = await checkConnectivity();
+      setOnline(prev => {
+        if (!prev && isUp) {
+          // Transitioning to online — trigger drain
+          drain();
+        }
+        return isUp;
+      });
+    };
+
+    // Initial probe
+    probe();
+
+    // Re-probe every 5s when we think we're offline (catches Safari stuck state)
+    probeRef.current = setInterval(() => {
+      if (!navigator.onLine) return; // truly offline, skip probe
+      probe(); // navigator says online but state says offline — verify
+    }, 5000);
+
+    return () => {
+      if (probeRef.current) clearInterval(probeRef.current);
+    };
   }, [drain]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    setOnline(navigator.onLine);
-
-    const goOnline = () => {
-      setOnline(true);
-      drain();
+    const goOnline = async () => {
+      const isUp = await checkConnectivity();
+      if (isUp) {
+        setOnline(true);
+        drain();
+      }
     };
     const goOffline = () => {
       setOnline(false);

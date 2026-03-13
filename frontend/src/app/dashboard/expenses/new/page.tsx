@@ -9,12 +9,12 @@ import { getCategoriesForType, type ExpenseType } from '@/lib/ngo-categories'
 import { useOfflineSync } from '@/hooks/useOfflineSync'
 import { queueExpense, cacheProjects, cacheBudgets } from '@/lib/syncService'
 import { offlineDb } from '@/lib/offlineDb'
+import CurrencySelect from '@/components/CurrencySelect'
+import { formatCurrencyShort } from '@/lib/currencies'
 
 interface Project { id: string; name: string }
 interface BudgetLine { id: string; expenseType: string; category: string; subCategory: string | null; approvedAmount: number; currency: string; spent?: number; remaining?: number }
 interface BudgetOption { id: string; name: string; status: string; totalApproved: number; totalSpent: number; remaining: number; lines: BudgetLine[]; project?: { id: string; name: string } | null }
-
-const CURRENCIES = ['USD', 'EUR', 'GBP', 'KES', 'UGX', 'TZS', 'INR', 'NGN', 'ZAR', 'GHS', 'ETB', 'RWF', 'AED', 'OMR']
 
 export default function NewExpensePage() {
   const router = useRouter()
@@ -234,7 +234,7 @@ export default function NewExpensePage() {
     if (!form.amount || isNaN(parseFloat(form.amount))) { setError('Valid amount is required'); return }
     if (parseFloat(form.amount) <= 0) { setError('Amount must be greater than zero'); return }
     if (lineRemaining !== null && parseFloat(form.amount) > lineRemaining) {
-      setError(`Amount exceeds remaining balance of ${selectedLine?.currency} ${lineRemaining.toLocaleString()}`)
+      setError(`Amount exceeds remaining balance of ${formatCurrencyShort(selectedLine?.currency || '')} ${lineRemaining.toLocaleString()}`)
       return
     }
     setSaving(true); setError('')
@@ -467,9 +467,7 @@ export default function NewExpensePage() {
           </div>
           <div>
             <label className={labelCls}>Currency</label>
-            <select value={form.currency} onChange={e => set('currency', e.target.value)} className={inputCls}>
-              {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
+            <CurrencySelect value={form.currency} onChange={v => set('currency', v)} />
           </div>
         </div>
 

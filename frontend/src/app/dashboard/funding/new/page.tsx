@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ArrowLeft, Save, UserPlus } from 'lucide-react'
 import { apiGet, apiPost } from '@/lib/api'
 import { FUNDING_SOURCE_TYPES, FUNDING_SOURCE_TYPE_KEYS } from '@/lib/ngo-categories'
+import CurrencySelect from '@/components/CurrencySelect'
 
 interface Donor { id: string; name: string; type: string }
 interface BudgetOption { id: string; name: string; status: string; totalApproved: number }
@@ -141,13 +142,7 @@ export default function NewFundingPage() {
           </div>
           <div>
             <label className={labelCls}>Currency</label>
-            <select value={form.currency} onChange={e => set('currency', e.target.value)} className={inputCls}>
-              <option value="USD">USD</option>
-              <option value="EUR">EUR</option>
-              <option value="GBP">GBP</option>
-              <option value="AED">AED</option>
-              <option value="OMR">OMR</option>
-            </select>
+            <CurrencySelect value={form.currency} onChange={v => set('currency', v)} />
           </div>
         </div>
 

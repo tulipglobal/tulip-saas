@@ -27,6 +27,7 @@ model Tenant {
   plan                 String           @default("FREE")
   planStatus           String           @default("active")
   trialEndsAt          DateTime?
+  baseCurrency         String           @default("USD")
   notificationPrefs    Json?
   apiKeys            ApiKey[]
   ocrJobs  OcrJob[]

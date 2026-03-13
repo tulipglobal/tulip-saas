@@ -6,6 +6,7 @@ import { apiGet, apiPut, apiPost, apiDelete } from '@/lib/api'
 import Link from 'next/link'
 import { ArrowLeft, Banknote, Receipt, Edit3, Check, X, Plus, Trash2, AlertTriangle, CheckCircle } from 'lucide-react'
 import { FUNDING_SOURCE_TYPES, FUNDING_SOURCE_TYPE_KEYS } from '@/lib/ngo-categories'
+import CurrencySelect from '@/components/CurrencySelect'
 
 interface BudgetLine {
   id: string
@@ -64,7 +65,6 @@ interface BudgetDetail {
 }
 
 const STATUS_OPTIONS = ['DRAFT', 'APPROVED', 'ACTIVE', 'CLOSED']
-const CURRENCIES = ['USD', 'EUR', 'GBP', 'KES', 'UGX', 'TZS', 'INR', 'NGN', 'ZAR', 'GHS', 'ETB', 'RWF']
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
@@ -333,10 +333,7 @@ export default function BudgetDetailPage() {
               <div>
                 <label className="text-xs text-[#183a1d]/60 mb-1 block">Amount *</label>
                 <div className="flex gap-1.5">
-                  <select value={newFunding.currency} onChange={e => setNewFunding(p => ({ ...p, currency: e.target.value }))}
-                    className="bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-2 py-2 text-xs text-[#183a1d]/70 outline-none [&>option]:bg-[#e1eedd] w-20 shrink-0">
-                    {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
+                  <CurrencySelect compact value={newFunding.currency} onChange={v => setNewFunding(p => ({ ...p, currency: v }))} />
                   <input type="number" min="0" step="0.01" value={newFunding.amount}
                     onChange={e => setNewFunding(p => ({ ...p, amount: e.target.value }))} placeholder="0.00"
                     className="flex-1 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all" />

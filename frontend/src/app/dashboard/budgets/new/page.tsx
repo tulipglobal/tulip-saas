@@ -7,6 +7,7 @@ import { ArrowLeft, Plus, Trash2, AlertTriangle, CheckCircle } from 'lucide-reac
 import Link from 'next/link'
 import { getCategoriesForType, FUNDING_SOURCE_TYPES, FUNDING_SOURCE_TYPE_KEYS } from '@/lib/ngo-categories'
 import type { ExpenseType } from '@/lib/ngo-categories'
+import CurrencySelect from '@/components/CurrencySelect'
 
 interface BudgetLineForm {
   key: string
@@ -42,7 +43,6 @@ function emptyFunding(): FundingSourceForm {
   return { key: crypto.randomUUID(), sourceType: '', sourceSubType: '', donorName: '', amount: '', currency: 'USD' }
 }
 
-const CURRENCIES = ['USD', 'EUR', 'GBP', 'KES', 'UGX', 'TZS', 'INR', 'NGN', 'ZAR', 'GHS', 'ETB', 'RWF']
 const inputCls = "w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all [color-scheme:light]"
 
 export default function NewBudgetPage() {
@@ -296,10 +296,7 @@ function NewBudgetInner() {
                   <div>
                     <label className="text-xs text-[#183a1d]/60 mb-1 block">Amount *</label>
                     <div className="flex gap-1.5">
-                      <select value={line.currency} onChange={e => updateLine(line.key, 'currency', e.target.value)}
-                        className="bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-2 py-2 text-xs text-[#183a1d]/70 outline-none [&>option]:bg-[#e1eedd] w-20 shrink-0">
-                        {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
+                      <CurrencySelect compact value={line.currency} onChange={v => updateLine(line.key, 'currency', v)} />
                       <input type="number" min="0" step="0.01" value={line.approvedAmount}
                         onChange={e => updateLine(line.key, 'approvedAmount', e.target.value)} placeholder="0.00"
                         className="flex-1 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all" />
@@ -369,10 +366,7 @@ function NewBudgetInner() {
                   <div>
                     <label className="text-xs text-[#183a1d]/60 mb-1 block">Amount *</label>
                     <div className="flex gap-1.5">
-                      <select value={fs.currency} onChange={e => updateFunding(fs.key, 'currency', e.target.value)}
-                        className="bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-2 py-2 text-xs text-[#183a1d]/70 outline-none [&>option]:bg-[#e1eedd] w-20 shrink-0">
-                        {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
+                      <CurrencySelect compact value={fs.currency} onChange={v => updateFunding(fs.key, 'currency', v)} />
                       <input type="number" min="0" step="0.01" value={fs.amount}
                         onChange={e => updateFunding(fs.key, 'amount', e.target.value)} placeholder="0.00"
                         className="flex-1 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all" />

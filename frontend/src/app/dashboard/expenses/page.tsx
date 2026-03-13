@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { apiGet, apiPost } from '@/lib/api'
 import Link from 'next/link'
-import { Receipt, Plus, Search, ExternalLink, Shield, Copy, Check, CheckCircle, ChevronDown, ChevronUp, FileCheck, Upload, AlertTriangle, Clock, WifiOff } from 'lucide-react'
+import { Receipt, Plus, Search, ExternalLink, Shield, Copy, Check, CheckCircle, ChevronDown, ChevronUp, FileCheck, Upload, AlertTriangle, Clock, WifiOff, XCircle } from 'lucide-react'
 import DocumentUploadSection from '@/components/DocumentUploadSection'
 import BlockchainStatusPill from '@/components/BlockchainStatusPill'
 import TrustSealCard from '@/components/TrustSealCard'
@@ -284,13 +284,13 @@ function ReceiptUploader({ expenseId, expenseTitle, onUploaded }: { expenseId: s
   )
 }
 
-function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expense; onRefresh: () => void; onOpenSeal: (sealId: string, expense: Expense) => void; sealMap: Record<string, { sealId: string; anchorStatus: string; txHash: string | null }> }) {
+function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap, onVoid }: { expense: Expense; onRefresh: () => void; onOpenSeal: (sealId: string, expense: Expense) => void; sealMap: Record<string, { sealId: string; anchorStatus: string; txHash: string | null }>; onVoid: () => void }) {
   const [expanded, setExpanded] = useState(false)
 
   return (
     <>
       <div
-        className="px-4 py-3.5 hover:bg-[#e1eedd]/50 transition-colors cursor-pointer lg:grid lg:grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_50px] lg:gap-4 lg:items-center lg:px-5"
+        className={`px-4 py-3.5 hover:bg-[#e1eedd]/50 transition-colors cursor-pointer lg:grid lg:grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_50px] lg:gap-4 lg:items-center lg:px-5 ${(expense as any).voided ? 'opacity-50' : ''}`}
         onClick={() => setExpanded(e => !e)}
       >
         <div>
@@ -306,6 +306,9 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
           </div>
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
             <ExpenseTypeBadge type={expense.expenseType} />
+            {(expense as any).voided && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-500 border border-red-500/20">VOIDED</span>
+            )}
             {expense.category && (
               <span className="text-xs text-[#183a1d]/60">{expense.category}{expense.subCategory ? ` / ${expense.subCategory}` : ''}</span>
             )}
@@ -520,6 +523,14 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap }: { expense: Expe
 
             {/* Upload additional documents */}
             <DocumentUploadSection entityType="expense" entityId={expense.id} onUploaded={onRefresh} />
+
+            {/* Void button */}
+            {!(expense as any).voided && (
+              <button onClick={(e) => { e.stopPropagation(); onVoid() }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-500 border border-red-500/20 hover:bg-red-500/10 transition-all">
+                <XCircle size={12} /> Void Expense
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -535,6 +546,60 @@ function PendingSyncPill() {
   )
 }
 
+function VoidModal({ expenseId, expenseTitle, onClose, onVoided }: {
+  expenseId: string; expenseTitle: string; onClose: () => void; onVoided: () => void
+}) {
+  const [reason, setReason] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleVoid = async () => {
+    if (!reason.trim()) { setError('Reason is required'); return }
+    setLoading(true)
+    try {
+      const token = localStorage.getItem('tulip_token')
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/expenses/${expenseId}/void`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: reason.trim() }),
+      })
+      if (res.ok) {
+        onVoided()
+        onClose()
+      } else {
+        const d = await res.json().catch(() => ({}))
+        setError(d.error || 'Failed to void expense')
+      }
+    } catch { setError('Network error') }
+    setLoading(false)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="bg-[#fefbe9] rounded-xl border border-[#c8d6c0] p-6 max-w-md w-full space-y-4 shadow-xl" onClick={e => e.stopPropagation()}>
+        <h3 className="text-lg font-bold text-[#183a1d]">Void Expense</h3>
+        <p className="text-sm text-[#183a1d]/60">
+          Void <strong>&quot;{expenseTitle}&quot;</strong>? This cannot be undone. The expense will remain in the audit trail but marked as voided.
+        </p>
+        <div>
+          <label className="block text-xs font-medium text-[#183a1d]/60 mb-1.5 uppercase tracking-wide">Reason *</label>
+          <textarea value={reason} onChange={e => setReason(e.target.value)}
+            placeholder="Why is this expense being voided?"
+            rows={3} className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] resize-none" />
+        </div>
+        {error && <p className="text-xs text-red-500">{error}</p>}
+        <div className="flex items-center gap-3 pt-2">
+          <button onClick={handleVoid} disabled={loading || !reason.trim()}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-500 hover:bg-red-600 disabled:opacity-50">
+            {loading ? 'Voiding...' : 'Confirm Void'}
+          </button>
+          <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d]">Cancel</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [loading, setLoading] = useState(true)
@@ -542,6 +607,7 @@ export default function ExpensesPage() {
   const [activeSealId, setActiveSealId] = useState<string | null>(null)
   const [activeMismatch, setActiveMismatch] = useState<Expense | null>(null)
   const [sealMap, setSealMap] = useState<Record<string, { sealId: string; anchorStatus: string; txHash: string | null }>>({})
+  const [voidTarget, setVoidTarget] = useState<{id: string, title: string} | null>(null)
   const { isOnline } = useOfflineSync()
 
   // Load offline pending expenses from IndexedDB
@@ -713,12 +779,21 @@ export default function ExpensesPage() {
               </div>
             ))}
             {filtered.map(expense => (
-              <ExpenseRow key={expense.id} expense={expense} onRefresh={load} onOpenSeal={(sealId, exp) => { setActiveSealId(sealId); setActiveMismatch(exp) }} sealMap={sealMap} />
+              <ExpenseRow key={expense.id} expense={expense} onRefresh={load} onOpenSeal={(sealId, exp) => { setActiveSealId(sealId); setActiveMismatch(exp) }} sealMap={sealMap} onVoid={() => setVoidTarget({ id: expense.id, title: expense.title ?? expense.description })} />
             ))}
           </div>
         )}
       </div>
       <p className="text-xs text-[#183a1d]/30 text-center">Click any expense row to view documents and upload receipts</p>
+
+      {voidTarget && (
+        <VoidModal
+          expenseId={voidTarget.id}
+          expenseTitle={voidTarget.title}
+          onClose={() => setVoidTarget(null)}
+          onVoided={load}
+        />
+      )}
 
       {activeSealId && (
         <TrustSealCard sealId={activeSealId} onClose={() => { setActiveSealId(null); setActiveMismatch(null); resolveSeals(expenses) }}

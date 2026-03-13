@@ -6,7 +6,7 @@ const router  = express.Router()
 const { can } = require('../middleware/permission')
 const {
   getExpenses, getExpense,
-  createExpense, updateExpense, deleteExpense,
+  createExpense, updateExpense, deleteExpense, voidExpense,
   receiptUploadMiddleware, uploadReceipt
 } = require('../controllers/expenseController')
 
@@ -15,6 +15,7 @@ router.get('/:id',     can('expenses:read'),   getExpense)
 router.post('/',       can('expenses:write'),  createExpense)
 router.post('/upload-receipt', can('expenses:write'), receiptUploadMiddleware, uploadReceipt)
 router.put('/:id',     can('expenses:write'),  updateExpense)
+router.patch('/:id/void', can('expenses:delete'), voidExpense)
 router.delete('/:id',  can('expenses:delete'), deleteExpense)
 
 // Fraud risk score endpoint

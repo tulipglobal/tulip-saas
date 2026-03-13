@@ -479,6 +479,49 @@ exports.uploadReceipt = async (req, res) => {
   }
 }
 
+exports.voidExpense = async (req, res) => {
+  try {
+    const db = tenantClient(req.user.tenantId)
+    const { reason } = req.body
+    if (!reason || !reason.trim()) {
+      return res.status(400).json({ error: 'Void reason is required' })
+    }
+
+    const existing = await db.expense.findFirst({ where: { id: req.params.id } })
+    if (!existing) return res.status(404).json({ error: 'Expense not found' })
+    if (existing.voided) return res.status(400).json({ error: 'Expense is already voided' })
+
+    const updated = await db.expense.update({
+      where: { id: req.params.id },
+      data: {
+        voided: true,
+        voidedAt: new Date(),
+        voidedReason: reason.trim(),
+        voidedBy: req.user.userId,
+      },
+    })
+
+    await createAuditLog({
+      tenantId: req.user.tenantId,
+      userId: req.user.userId,
+      action: 'EXPENSE_VOIDED',
+      entityType: 'expense',
+      entityId: req.params.id,
+      metadata: {
+        amount: existing.amount,
+        currency: existing.currency,
+        description: existing.description,
+        reason: reason.trim(),
+      },
+    })
+
+    res.json(updated)
+  } catch (err) {
+    console.error('[void] expense void error:', err.message)
+    res.status(500).json({ error: 'Failed to void expense' })
+  }
+}
+
 exports.deleteExpense = async (req, res) => {
   try {
     const db       = tenantClient(req.user.tenantId)

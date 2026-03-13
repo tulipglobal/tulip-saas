@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Upload, FileCheck, X, Paperclip } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Upload, FileCheck, X, Paperclip, WifiOff } from 'lucide-react'
 
 interface Props {
   entityType: 'project' | 'expense'
@@ -12,6 +12,17 @@ interface Props {
 const DOC_TYPES = ['Invoice', 'Receipt', 'Contract', 'Report', 'Proposal', 'Registration', 'Tax Certificate', 'Donor Agreement', 'Payment Proof', 'Photo', 'Other']
 
 export default function DocumentUploadSection({ entityType, entityId, onUploaded }: Props) {
+  const [isOnline, setIsOnline] = useState(
+    typeof window !== 'undefined' ? navigator.onLine : true
+  )
+  useEffect(() => {
+    const goOnline = () => setIsOnline(true)
+    const goOffline = () => setIsOnline(false)
+    window.addEventListener('online', goOnline)
+    window.addEventListener('offline', goOffline)
+    return () => { window.removeEventListener('online', goOnline); window.removeEventListener('offline', goOffline) }
+  }, [])
+
   const [file, setFile] = useState<File | null>(null)
   const [name, setName] = useState('')
   const [docType, setDocType] = useState('')
@@ -36,6 +47,10 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
   }
 
   const upload = async () => {
+    if (!isOnline) {
+      setError('You are offline — document will upload when reconnected')
+      return
+    }
     if (!file) { setError('Please select a file'); return }
     if (!name.trim()) { setError('Document name is required'); return }
     setUploading(true)
@@ -94,6 +109,12 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
         <span className="text-sm font-medium text-[#183a1d]">Attach Document <span className="text-[#183a1d]/40 text-xs">(optional)</span></span>
       </div>
 
+      {!isOnline && (
+        <div className="rounded-lg bg-amber-100 border border-amber-300 px-4 py-3 text-sm text-amber-800 flex items-center gap-2">
+          <WifiOff size={14} /> You&apos;re offline — uploads will be available when reconnected
+        </div>
+      )}
+
       {/* Drop zone */}
       <div
         onDragOver={e => { e.preventDefault(); setDragOver(true) }}
@@ -151,7 +172,7 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
       )}
 
       {file && (
-        <button onClick={upload} disabled={uploading}
+        <button onClick={upload} disabled={uploading || !isOnline}
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] disabled:opacity-50 transition-all bg-[#f6c453] hover:bg-[#f0a04b]">
           <Upload size={14} />
           {uploading ? 'Uploading…' : 'Upload Document'}

@@ -22,6 +22,10 @@ interface Expense {
   blockchainTx?: string
   project?: { id: string; name: string }
   fundingSource?: { id: string; name: string } | null
+  voided?: boolean
+  voidedAt?: string
+  voidedReason?: string
+  voidedBy?: string
   documents?: Doc[]
 }
 
@@ -154,6 +158,21 @@ export default function ExpenseDetailPage() {
       <Link href="/dashboard/expenses" className="inline-flex items-center gap-2 text-[#183a1d]/60 hover:text-[#183a1d] text-sm mb-6 transition-colors">
         <ArrowLeft size={14} /> Back to Expenses
       </Link>
+
+      {/* Voided banner */}
+      {expense.voided && (
+        <div className="rounded-xl bg-red-500/10 border border-red-500/20 px-5 py-4 mb-6">
+          <div className="flex items-center gap-2 text-red-500 font-bold text-sm mb-1">
+            <XCircle size={16} /> This expense has been voided
+          </div>
+          <p className="text-sm text-[#183a1d]/60">
+            Reason: {expense.voidedReason || 'No reason provided'}
+          </p>
+          <p className="text-xs text-[#183a1d]/40 mt-1">
+            Voided on {expense.voidedAt ? new Date(expense.voidedAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
+          </p>
+        </div>
+      )}
 
       {/* Header */}
       <div className="flex items-start justify-between mb-8">

@@ -301,6 +301,10 @@ model Expense {
   fraudRiskScore     Int?
   fraudRiskLevel     String?
   fraudSignals       Json?
+  voided         Boolean           @default(false)
+  voidedAt       DateTime?
+  voidedReason   String?
+  voidedBy       String?
   createdAt          DateTime          @default(now())
   documents          Document[]
   fundingSource      FundingSource?    @relation(fields: [fundingSourceId], references: [id])

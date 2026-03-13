@@ -44,6 +44,14 @@ export function useOfflineSync() {
     if (token) cacheProjects(token).catch(() => {});
   }, [online]);
 
+  // Drain pending queue on mount if already online
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (navigator.onLine) {
+      drain();
+    }
+  }, [drain]);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
 

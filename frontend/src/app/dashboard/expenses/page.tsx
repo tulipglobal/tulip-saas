@@ -596,6 +596,13 @@ export default function ExpensesPage() {
 
   useEffect(() => { load() }, [])
 
+  // Refresh expense list when offline sync completes
+  useEffect(() => {
+    const onSyncComplete = () => { load() }
+    window.addEventListener('tulip-sync-complete', onSyncComplete)
+    return () => window.removeEventListener('tulip-sync-complete', onSyncComplete)
+  }, [])
+
   const filtered = expenses.filter(e =>
     (e.title ?? e.description ?? '').toLowerCase().includes(search.toLowerCase()) ||
     (e.vendor ?? '').toLowerCase().includes(search.toLowerCase()) ||

@@ -9,7 +9,7 @@ interface Props {
   onUploaded?: () => void
 }
 
-const DOC_TYPES = ['Invoice', 'Receipt', 'Contract', 'Report', 'Proposal', 'Registration', 'Tax Certificate', 'Donor Agreement', 'Payment Proof', 'Other']
+const DOC_TYPES = ['Invoice', 'Receipt', 'Contract', 'Report', 'Proposal', 'Registration', 'Tax Certificate', 'Donor Agreement', 'Payment Proof', 'Photo', 'Other']
 
 export default function DocumentUploadSection({ entityType, entityId, onUploaded }: Props) {
   const [file, setFile] = useState<File | null>(null)
@@ -26,6 +26,11 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
   const handleFile = (f: File) => {
     setFile(f)
     if (!name) setName(f.name.replace(/\.[^.]+$/, ''))
+    // Auto-default document type based on file type
+    if (!docType) {
+      if (f.type.startsWith('image/')) setDocType('Photo')
+      else if (f.type === 'application/pdf') setDocType('Other')
+    }
     setSuccess(false)
     setError('')
   }
@@ -100,7 +105,7 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
         }`}
       >
         <input id={`file-input-${entityId}`} type="file" className="hidden"
-          accept=".pdf,.doc,.docx,.xlsx,.xls,.jpg,.jpeg,.png,.csv"
+          accept="image/*,video/*,.pdf,.doc,.docx,.xlsx,.xls,.csv"
           onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }} />
         {file ? (
           <div className="flex items-center justify-center gap-2">

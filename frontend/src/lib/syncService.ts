@@ -72,10 +72,16 @@ export async function drainQueue(token: string): Promise<number> {
     .equals('pending')
     .toArray();
 
+  console.log('[sync] token:', token ? 'found' : 'MISSING');
+  console.log('[sync] draining', pending.length, 'items');
+
+  if (pending.length === 0) return 0;
+
   let synced = 0;
 
   for (const expense of pending) {
     try {
+      console.log('[sync] syncing expense:', expense.id, expense.description, expense.amount);
       // Mark syncing
       await offlineDb.pending_expenses.update(expense.id!, { status: 'syncing' });
 

@@ -520,7 +520,7 @@ export default function NewExpensePage() {
                   <Upload size={14} />
                   <span>{receiptFile ? receiptFile.name : 'Choose file...'}</span>
                   <input type="file" className="hidden"
-                    accept="image/*,application/pdf" capture="environment"
+                    accept="image/*,application/pdf"
                     onChange={e => { if (e.target.files?.[0]) setReceiptFile(e.target.files[0]) }} />
                 </label>
                 {receiptFile && (

@@ -5,15 +5,13 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { offlineDb } from '@/lib/offlineDb';
 import { drainQueue, cacheProjects } from '@/lib/syncService';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5050';
-
-// Probe real connectivity — navigator.onLine is unreliable in Safari PWA
+// Same-origin probe — avoids CORS issues on Android Chrome PWA
 async function checkOnline(): Promise<boolean> {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 3000);
-    await fetch(`${API_URL}/`, {
-      method: 'HEAD',
+    await fetch('/api/ping', {
+      method: 'GET',
       signal: controller.signal,
       cache: 'no-store',
     });
@@ -40,7 +38,8 @@ export function useOfflineSync() {
     if (drainRef.current) return;
     drainRef.current = true;
     const token = typeof window !== 'undefined' ? localStorage.getItem('tulip_token') : null;
-    if (!token) { console.warn('[tulip-sync] No token, skipping drain'); drainRef.current = false; return; }
+    console.log('[tulip-sync] token:', token ? 'found' : 'MISSING');
+    if (!token) { console.error('[tulip-sync] No token — cannot drain'); drainRef.current = false; return; }
 
     console.log('[tulip-sync] Starting drain...');
     setIsSyncing(true);
@@ -59,6 +58,7 @@ export function useOfflineSync() {
   }, []);
 
   const goOnline = useCallback(() => {
+    console.log('[tulip-sync] Going online — triggering drain');
     setOnline(true);
     drain();
   }, [drain]);
@@ -74,12 +74,13 @@ export function useOfflineSync() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     checkOnline().then(up => {
+      console.log('[tulip-sync] Initial probe:', up ? 'online' : 'offline');
       setOnline(up);
       if (up) drain();
     });
   }, [drain]);
 
-  // Poll every 3s when offline — catches Safari stuck state
+  // Poll every 3s when offline — catches Safari/Android stuck state
   useEffect(() => {
     if (typeof window === 'undefined' || online) return;
     const interval = setInterval(async () => {
@@ -89,7 +90,7 @@ export function useOfflineSync() {
     return () => clearInterval(interval);
   }, [online, goOnline]);
 
-  // Re-probe when app comes to foreground (Safari PWA resume)
+  // Re-probe when app comes to foreground (PWA resume)
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const onVisible = async () => {

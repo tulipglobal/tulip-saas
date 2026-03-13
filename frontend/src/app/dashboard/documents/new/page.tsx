@@ -10,9 +10,9 @@ interface Project { id: string; name: string }
 interface Expense { id: string; description: string; amount: number; currency: string }
 
 const DOCUMENT_TYPES = {
-  ngo: ['Registration Certificate','Tax Exemption Certificate','Audited Financial Statement','Annual Report','Board Resolution','MOU / Agreement','Other'],
-  project: ['Project Proposal','Donor Agreement','Progress Report','Completion Certificate','Budget Plan','Procurement Document','Other'],
-  expense: ['Invoice','Receipt','Payment Proof','Purchase Order','Bank Transfer','Petty Cash Voucher','Other'],
+  ngo: ['Registration Certificate','Tax Exemption Certificate','Audited Financial Statement','Annual Report','Board Resolution','MOU / Agreement','Photo','Other'],
+  project: ['Project Proposal','Donor Agreement','Progress Report','Completion Certificate','Budget Plan','Procurement Document','Photo','Other'],
+  expense: ['Invoice','Receipt','Payment Proof','Purchase Order','Bank Transfer','Petty Cash Voucher','Photo','Other'],
 }
 
 const KEY_DOCUMENT_CATEGORIES = ['licence','certificate','contract','permit','insurance','visa','id_document','mou']

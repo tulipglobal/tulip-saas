@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import {
   Building2, FolderOpen, Users, Rocket,
@@ -24,6 +25,7 @@ const STEPS = [
 ]
 
 export default function SetupWizardPage() {
+  const t = useTranslations('setup')
   const router = useRouter()
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
@@ -42,6 +44,8 @@ export default function SetupWizardPage() {
   // Step 3: Invite team
   const [emails, setEmails] = useState(['', '', ''])
   const [inviteResults, setInviteResults] = useState<{ email: string; status: string }[]>([])
+
+  const stepLabels: Record<number, string> = { 1: t('stepOrganisation'), 2: t('stepFirstProject'), 3: t('stepInviteTeam'), 4: t('stepReady') }
 
   useEffect(() => {
     const token = localStorage.getItem('tulip_token')
@@ -92,21 +96,21 @@ export default function SetupWizardPage() {
       })
       if (!res.ok) {
         const text = await res.text()
-        let msg = 'Failed to save'
+        let msg = t('failedToSave')
         try { msg = JSON.parse(text).error || msg } catch {}
         throw new Error(msg)
       }
 
       setStep(2)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to save organisation details')
+      setError(err instanceof Error ? err.message : t('failedToSaveOrg'))
     } finally {
       setLoading(false)
     }
   }
 
   const handleProjectSubmit = async () => {
-    if (!projectForm.name.trim()) { setError('Project name is required'); return }
+    if (!projectForm.name.trim()) { setError(t('projectNameRequired')); return }
     setLoading(true)
     setError('')
     try {
@@ -117,13 +121,13 @@ export default function SetupWizardPage() {
       })
       if (!res.ok) {
         const text = await res.text()
-        let msg = 'Failed to create project'
+        let msg = t('failedToCreateProject')
         try { msg = JSON.parse(text).error || msg } catch {}
         throw new Error(msg)
       }
       setStep(3)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to create project')
+      setError(err instanceof Error ? err.message : t('failedToCreateProject'))
     } finally {
       setLoading(false)
     }
@@ -145,7 +149,7 @@ export default function SetupWizardPage() {
       setInviteResults(data.results || [])
       setStep(4)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to send invitations')
+      setError(err instanceof Error ? err.message : t('failedToSendInvites'))
     } finally {
       setLoading(false)
     }
@@ -193,7 +197,7 @@ export default function SetupWizardPage() {
           </div>
           <button onClick={() => router.push('/dashboard')}
             className="text-[#183a1d]/40 text-xs hover:text-[#183a1d]/60 transition-colors">
-            Skip setup →
+            {t('skipSetup')}
           </button>
         </div>
       </div>
@@ -222,7 +226,7 @@ export default function SetupWizardPage() {
                   </div>
                   <span className={`text-xs font-medium hidden sm:block ${
                     isDone ? 'text-emerald-400' : isActive ? 'text-[#183a1d]' : 'text-[#183a1d]/40'
-                  }`}>{s.label}</span>
+                  }`}>{stepLabels[s.id]}</span>
                 </div>
                 {i < STEPS.length - 1 && (
                   <div className={`flex-1 h-px mx-4 ${isDone ? 'bg-emerald-500/25' : 'bg-[#c8d6c0]'}`} />
@@ -243,14 +247,14 @@ export default function SetupWizardPage() {
         {step === 1 && (
           <div className="animate-in">
             <h1 className="text-2xl font-bold text-[#183a1d] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
-              Organisation Details
+              {t('orgDetailsTitle')}
             </h1>
-            <p className="text-[#183a1d]/60 text-sm mb-8">Tell us a bit about your organisation. You can update this later in settings.</p>
+            <p className="text-[#183a1d]/60 text-sm mb-8">{t('orgDetailsDesc')}</p>
 
             <div className="space-y-5">
               {/* Logo upload */}
               <div>
-                <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">Logo</label>
+                <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">{t('logo')}</label>
                 <div className="flex items-center gap-4">
                   <div
                     onClick={() => fileInputRef.current?.click()}
@@ -265,9 +269,9 @@ export default function SetupWizardPage() {
                   <div>
                     <button onClick={() => fileInputRef.current?.click()}
                       className="text-[#183a1d] text-sm hover:underline">
-                      {logoPreview ? 'Change logo' : 'Upload logo'}
+                      {logoPreview ? t('changeLogo') : t('uploadLogo')}
                     </button>
-                    <p className="text-[#183a1d]/30 text-xs mt-1">PNG, JPG, max 5MB</p>
+                    <p className="text-[#183a1d]/30 text-xs mt-1">{t('logoHint')}</p>
                   </div>
                   <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoSelect} className="hidden" />
                 </div>
@@ -275,11 +279,11 @@ export default function SetupWizardPage() {
 
               {/* Description */}
               <div>
-                <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">Description</label>
+                <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">{t('description')}</label>
                 <textarea
                   value={orgForm.description}
                   onChange={e => setOrgForm(f => ({ ...f, description: e.target.value }))}
-                  placeholder="What does your organisation do?"
+                  placeholder={t('descriptionPlaceholder')}
                   rows={3}
                   className="w-full px-4 py-3 rounded-xl border border-[#c8d6c0] bg-[#e1eedd] text-[#183a1d] placeholder-[#183a1d]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[#f6c453]/30 focus:border-[#f6c453] transition-all resize-none"
                 />
@@ -287,7 +291,7 @@ export default function SetupWizardPage() {
 
               {/* Country */}
               <div>
-                <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">Country</label>
+                <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">{t('country')}</label>
                 <CountrySelect
                   value={orgForm.country}
                   onChange={v => setOrgForm(f => ({ ...f, country: v }))}
@@ -297,7 +301,7 @@ export default function SetupWizardPage() {
               {/* Website + Reg number */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">Website</label>
+                  <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">{t('website')}</label>
                   <div className="relative">
                     <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#183a1d]/30" />
                     <input
@@ -310,7 +314,7 @@ export default function SetupWizardPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">Registration Number</label>
+                  <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">{t('registrationNumber')}</label>
                   <div className="relative">
                     <FileText className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#183a1d]/30" />
                     <input
@@ -328,12 +332,12 @@ export default function SetupWizardPage() {
             <div className="flex items-center justify-between mt-8 pt-6 border-t border-[#c8d6c0]">
               <button onClick={() => { setError(''); setStep(2) }}
                 className="text-[#183a1d]/40 text-sm hover:text-[#183a1d]/60 flex items-center gap-1 transition-colors">
-                <SkipForward className="w-3.5 h-3.5" /> Skip this step
+                <SkipForward className="w-3.5 h-3.5" /> {t('skipStep')}
               </button>
               <button onClick={handleOrgSubmit} disabled={loading}
                 className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-[#183a1d] text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
                 style={{ background: '#f6c453' }}>
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Save & Continue</span><ChevronRight className="w-4 h-4" /></>}
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>{t('saveContinue')}</span><ChevronRight className="w-4 h-4" /></>}
               </button>
             </div>
           </div>
@@ -343,13 +347,13 @@ export default function SetupWizardPage() {
         {step === 2 && (
           <div className="animate-in">
             <h1 className="text-2xl font-bold text-[#183a1d] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
-              Create Your First Project
+              {t('createProjectTitle')}
             </h1>
-            <p className="text-[#183a1d]/60 text-sm mb-8">Projects help you organise expenses, documents, and funding sources.</p>
+            <p className="text-[#183a1d]/60 text-sm mb-8">{t('createProjectDesc')}</p>
 
             <div className="space-y-5">
               <div>
-                <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">Project Name *</label>
+                <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">{t('projectName')}</label>
                 <input
                   type="text"
                   value={projectForm.name}
@@ -360,7 +364,7 @@ export default function SetupWizardPage() {
               </div>
 
               <div>
-                <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">Description</label>
+                <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">{t('projectDescription')}</label>
                 <textarea
                   value={projectForm.description}
                   onChange={e => setProjectForm(f => ({ ...f, description: e.target.value }))}
@@ -371,7 +375,7 @@ export default function SetupWizardPage() {
               </div>
 
               <div className="sm:w-1/2">
-                <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">Budget (USD)</label>
+                <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">{t('budgetUsd')}</label>
                 <input
                   type="number"
                   value={projectForm.budget}
@@ -385,12 +389,12 @@ export default function SetupWizardPage() {
             <div className="flex items-center justify-between mt-8 pt-6 border-t border-[#c8d6c0]">
               <button onClick={() => { setError(''); setStep(3) }}
                 className="text-[#183a1d]/40 text-sm hover:text-[#183a1d]/60 flex items-center gap-1 transition-colors">
-                <SkipForward className="w-3.5 h-3.5" /> Skip this step
+                <SkipForward className="w-3.5 h-3.5" /> {t('skipStep')}
               </button>
               <button onClick={handleProjectSubmit} disabled={loading}
                 className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-[#183a1d] text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
                 style={{ background: '#f6c453' }}>
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Create Project</span><ChevronRight className="w-4 h-4" /></>}
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>{t('createProject')}</span><ChevronRight className="w-4 h-4" /></>}
               </button>
             </div>
           </div>
@@ -400,9 +404,9 @@ export default function SetupWizardPage() {
         {step === 3 && (
           <div className="animate-in">
             <h1 className="text-2xl font-bold text-[#183a1d] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
-              Invite Your Team
+              {t('inviteTeamTitle')}
             </h1>
-            <p className="text-[#183a1d]/60 text-sm mb-8">Add up to 3 colleagues. They&apos;ll receive an email invitation to join your workspace.</p>
+            <p className="text-[#183a1d]/60 text-sm mb-8">{t('inviteTeamDesc')}</p>
 
             <div className="space-y-3">
               {emails.map((email, i) => (
@@ -437,12 +441,12 @@ export default function SetupWizardPage() {
             <div className="flex items-center justify-between mt-8 pt-6 border-t border-[#c8d6c0]">
               <button onClick={() => { setError(''); setStep(4) }}
                 className="text-[#183a1d]/40 text-sm hover:text-[#183a1d]/60 flex items-center gap-1 transition-colors">
-                <SkipForward className="w-3.5 h-3.5" /> Skip this step
+                <SkipForward className="w-3.5 h-3.5" /> {t('skipStep')}
               </button>
               <button onClick={handleInviteSubmit} disabled={loading}
                 className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-[#183a1d] text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
                 style={{ background: '#f6c453' }}>
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Send Invitations</span><ChevronRight className="w-4 h-4" /></>}
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>{t('sendInvitations')}</span><ChevronRight className="w-4 h-4" /></>}
               </button>
             </div>
           </div>
@@ -456,16 +460,16 @@ export default function SetupWizardPage() {
               <Rocket className="w-9 h-9 text-emerald-400" />
             </div>
             <h1 className="text-3xl font-bold text-[#183a1d] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
-              Your workspace is ready!
+              {t('workspaceReady')}
             </h1>
             <p className="text-[#183a1d]/60 text-sm mb-8 max-w-md mx-auto">
-              {tenantName ? `${tenantName} is all set up.` : 'Your organisation is all set up.'} Every record you create will be cryptographically verified and anchored to the blockchain.
+              {tenantName ? t('workspaceReadyDesc', { name: tenantName }) : t('workspaceReadyDescDefault')}
             </p>
 
             {/* Invite results */}
             {inviteResults.length > 0 && (
               <div className="mb-8 max-w-sm mx-auto">
-                <h3 className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-3">Invitation Status</h3>
+                <h3 className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-3">{t('invitationStatus')}</h3>
                 <div className="space-y-2">
                   {inviteResults.map((r, i) => (
                     <div key={i} className="flex items-center justify-between px-4 py-2.5 rounded-lg bg-[#e1eedd] border border-[#c8d6c0]">
@@ -475,7 +479,7 @@ export default function SetupWizardPage() {
                         r.status === 'already_registered' ? 'text-yellow-400' :
                         'text-red-400'
                       }`}>
-                        {r.status === 'sent' ? 'Sent' : r.status === 'already_registered' ? 'Already registered' : 'Failed'}
+                        {r.status === 'sent' ? t('statusSent') : r.status === 'already_registered' ? t('statusAlreadyRegistered') : t('statusFailed')}
                       </span>
                     </div>
                   ))}
@@ -486,9 +490,9 @@ export default function SetupWizardPage() {
             {/* Action links */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-lg mx-auto mb-8">
               {[
-                { label: 'Dashboard', href: '/dashboard', icon: Rocket },
-                { label: 'Projects', href: '/dashboard/projects', icon: FolderOpen },
-                { label: 'Documents', href: '/dashboard/documents', icon: FileText },
+                { label: t('dashboard'), href: '/dashboard', icon: Rocket },
+                { label: t('projects'), href: '/dashboard/projects', icon: FolderOpen },
+                { label: t('documents'), href: '/dashboard/documents', icon: FileText },
               ].map(link => {
                 const Icon = link.icon
                 return (
@@ -505,7 +509,7 @@ export default function SetupWizardPage() {
             <button onClick={handleComplete} disabled={loading}
               className="px-8 py-3 rounded-xl text-white font-semibold text-sm transition-all hover:opacity-90"
               style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Go to Dashboard →'}
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : t('goToDashboard')}
             </button>
           </div>
         )}

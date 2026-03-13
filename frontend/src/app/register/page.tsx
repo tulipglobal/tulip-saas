@@ -2,15 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 
 type ProductType = 'NGO' | 'DON' | 'API'
 
 const products = [
   {
     type: 'NGO' as ProductType,
-    label: 'NGO / Organisation',
     shortLabel: 'NGO',
-    desc: 'Manage projects, track expenses & generate cryptographically verified impact reports',
     icon: '🌱',
     accent: '#00C896',
     accentDim: 'rgba(0,200,150,0.12)',
@@ -19,9 +18,7 @@ const products = [
   },
   {
     type: 'DON' as ProductType,
-    label: 'Donor / Foundation',
     shortLabel: 'DONOR',
-    desc: 'Verify entire grantee portfolios and monitor integrity scores in real time',
     icon: '🏛️',
     accent: '#3B82F6',
     accentDim: 'rgba(59,130,246,0.12)',
@@ -30,9 +27,7 @@ const products = [
   },
   {
     type: 'API' as ProductType,
-    label: 'Developer / API',
     shortLabel: 'API',
-    desc: 'Blockchain anchoring, RFC 3161 timestamps and verification-as-a-service',
     icon: '⚡',
     accent: '#A855F7',
     accentDim: 'rgba(168,85,247,0.12)',
@@ -61,11 +56,15 @@ import { COUNTRIES } from '@/lib/ngo-categories'
 
 export default function RegisterPage() {
   const router = useRouter()
+  const t = useTranslations('register')
   const [step, setStep] = useState<1 | 2>(1)
   const [selectedProduct, setSelectedProduct] = useState<typeof products[0] | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [mounted, setMounted] = useState(false)
+
+  const productLabels: Record<ProductType, string> = { NGO: t('ngoLabel'), DON: t('donorLabel'), API: t('apiLabel') }
+  const productDescs: Record<ProductType, string> = { NGO: t('ngoDesc'), DON: t('donorDesc'), API: t('apiDesc') }
 
   const [form, setForm] = useState({
     firstName: '', lastName: '', role: '', email: '',
@@ -88,11 +87,11 @@ export default function RegisterPage() {
     if (!selectedProduct) return
     const { firstName, lastName, role, email, password, confirmPassword, organisationName, country } = form
     if (!firstName || !lastName || !role || !email || !password || !organisationName || !country) {
-      setError('Please fill in all fields')
+      setError(t('fillAllFields'))
       return
     }
-    if (password !== confirmPassword) { setError('Passwords do not match'); return }
-    if (password.length < 8) { setError('Password must be at least 8 characters'); return }
+    if (password !== confirmPassword) { setError(t('passwordsNoMatch')); return }
+    if (password.length < 8) { setError(t('passwordMinLength')); return }
 
     setLoading(true)
     setError('')
@@ -116,7 +115,7 @@ export default function RegisterPage() {
 
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error || data.message || 'Registration failed. Please try again.')
+        setError(data.error || data.message || t('registrationFailed'))
         setLoading(false)
         return
       }
@@ -130,7 +129,7 @@ export default function RegisterPage() {
       // NGO accounts go to setup wizard; others go to their dashboards
       router.push(selectedProduct.type === 'NGO' ? '/setup' : selectedProduct.redirect)
     } catch {
-      setError('Unable to connect to server. Please try again.')
+      setError(t('serverError'))
       setLoading(false)
     }
   }
@@ -224,24 +223,24 @@ export default function RegisterPage() {
             Tulip DS
           </a>
           <div className="left-body">
-            <div className="left-eyebrow">Transparency Infrastructure</div>
-            <h1 className="left-heading">Trust that<br /><em>travels</em><br />with your data</h1>
-            <p className="left-sub">Every project, expense, and report your organisation creates is cryptographically verified and independently provable — forever.</p>
+            <div className="left-eyebrow">{t('eyebrow')}</div>
+            <h1 className="left-heading">{t('heading')}<br /><em>{t('headingEmphasis')}</em><br />{t('headingEnd')}</h1>
+            <p className="left-sub">{t('subtext')}</p>
             <div className="proof-list">
               {[
-                ['Blockchain-anchored audit trail','Every record hashed to Polygon — immutable proof'],
-                ['RFC 3161 trusted timestamps','Legally recognised time proof on every document'],
-                ['One-click donor verification','Share a link. Donors verify instantly. No login needed'],
-                ['GDPR compliant','Full data export and erasure tools built in'],
-              ].map(([t,d]) => (
-                <div className="proof-item" key={t}>
+                [t('proof1Title'), t('proof1Desc')],
+                [t('proof2Title'), t('proof2Desc')],
+                [t('proof3Title'), t('proof3Desc')],
+                [t('proof4Title'), t('proof4Desc')],
+              ].map(([title, desc]) => (
+                <div className="proof-item" key={title}>
                   <div className="proof-check">✓</div>
-                  <div className="proof-text"><strong>{t}</strong> — {d}</div>
+                  <div className="proof-text"><strong>{title}</strong> — {desc}</div>
                 </div>
               ))}
             </div>
           </div>
-          <div className="left-footer">Already have an account? <a href="/login">Sign in →</a></div>
+          <div className="left-footer">{t('alreadyHaveAccount')} <a href="/login">{t('signIn')} →</a></div>
         </div>
 
         {/* RIGHT PANEL */}
@@ -250,20 +249,20 @@ export default function RegisterPage() {
             <div className="steps">
               <div className={`step-item ${step === 1 ? 'active' : 'done'}`}>
                 <div className="step-num">{step === 1 ? '1' : '✓'}</div>
-                Account type
+                {t('step1')}
               </div>
               <div className={`step-connector ${step === 2 ? 'done' : ''}`} />
               <div className={`step-item ${step === 2 ? 'active' : ''}`}>
                 <div className="step-num">2</div>
-                Your details
+                {t('step2')}
               </div>
             </div>
 
             {/* STEP 1 — CHOOSE PRODUCT */}
             {step === 1 && (
               <div className="animate-in">
-                <h2 className="form-heading">Create your account</h2>
-                <p className="form-sub">Choose the account type that fits your role</p>
+                <h2 className="form-heading">{t('createYourAccount')}</h2>
+                <p className="form-sub">{t('chooseAccountType')}</p>
                 <div className="product-list">
                   {products.map(p => (
                     <button key={p.type} className="product-btn"
@@ -283,81 +282,81 @@ export default function RegisterPage() {
                     >
                       <div className="product-icon-wrap" style={{ background: p.accentDim, border: `1px solid ${p.accentBorder}` }}>{p.icon}</div>
                       <div className="product-btn-body">
-                        <div className="product-btn-name">{p.label}</div>
-                        <div className="product-btn-desc">{p.desc}</div>
+                        <div className="product-btn-name">{productLabels[p.type]}</div>
+                        <div className="product-btn-desc">{productDescs[p.type]}</div>
                       </div>
                       <div className="product-btn-arrow">→</div>
                     </button>
                   ))}
                 </div>
-                <div className="divider">or</div>
-                <div className="signin-row">Already have an account? <a href="/login">Sign in</a></div>
+                <div className="divider">{t('or')}</div>
+                <div className="signin-row">{t('alreadyHaveAccount')} <a href="/login">{t('signIn')}</a></div>
               </div>
             )}
 
             {/* STEP 2 — FILL DETAILS */}
             {step === 2 && selectedProduct && (
               <div className="animate-in">
-                <button className="btn-back" onClick={() => setStep(1)}>← Back</button>
+                <button className="btn-back" onClick={() => setStep(1)}>← {t('back')}</button>
                 <div className="selected-tag" style={{ background: selectedProduct.accentDim, borderColor: selectedProduct.accentBorder, color: selectedProduct.accent }}>
-                  <span>{selectedProduct.icon}</span>{selectedProduct.label}
+                  <span>{selectedProduct.icon}</span>{productLabels[selectedProduct.type]}
                 </div>
-                <h2 className="form-heading">Your details</h2>
-                <p className="form-sub">Set up your organisation account</p>
+                <h2 className="form-heading">{t('yourDetails')}</h2>
+                <p className="form-sub">{t('setupOrgAccount')}</p>
 
-                <div className="section-label">Personal information</div>
+                <div className="section-label">{t('personalInfo')}</div>
                 <div className="field-row">
                   <div className="field">
-                    <label>First Name</label>
+                    <label>{t('firstName')}</label>
                     <input name="firstName" type="text" placeholder="Jane" value={form.firstName} onChange={handleChange} autoComplete="given-name" />
                   </div>
                   <div className="field">
-                    <label>Last Name</label>
+                    <label>{t('lastName')}</label>
                     <input name="lastName" type="text" placeholder="Doe" value={form.lastName} onChange={handleChange} autoComplete="family-name" />
                   </div>
                 </div>
                 <div className="field-row">
                   <div className="field">
-                    <label>Your Role</label>
+                    <label>{t('yourRole')}</label>
                     <div className="select-wrap">
                       <select name="role" value={form.role} onChange={handleChange}>
-                        <option value="">Select your role</option>
+                        <option value="">{t('selectRole')}</option>
                         {ROLES[selectedProduct.type].map(r => <option key={r} value={r}>{r}</option>)}
                       </select>
                     </div>
                   </div>
                   <div className="field">
-                    <label>Email Address</label>
+                    <label>{t('emailAddress')}</label>
                     <input name="email" type="email" placeholder="jane@org.com" value={form.email} onChange={handleChange} autoComplete="email" />
                   </div>
                 </div>
 
-                <div className="section-label">Organisation</div>
+                <div className="section-label">{t('organisation')}</div>
                 <div className="field-row">
                   <div className="field">
-                    <label>Organisation Name</label>
+                    <label>{t('organisationName')}</label>
                     <input name="organisationName" type="text" placeholder="Your NGO / Foundation" value={form.organisationName} onChange={handleChange} />
                   </div>
                   <div className="field">
-                    <label>Country</label>
+                    <label>{t('country')}</label>
                     <div className="select-wrap">
                       <select name="country" value={form.country} onChange={handleChange}>
-                        <option value="">Select country</option>
+                        <option value="">{t('selectCountry')}</option>
                         {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
                       </select>
                     </div>
                   </div>
                 </div>
 
-                <div className="section-label">Security</div>
+                <div className="section-label">{t('security')}</div>
                 <div className="field-row">
                   <div className="field">
-                    <label>Password</label>
-                    <input name="password" type="password" placeholder="Min. 8 characters" value={form.password} onChange={handleChange} autoComplete="new-password" />
+                    <label>{t('password')}</label>
+                    <input name="password" type="password" placeholder={t('minChars')} value={form.password} onChange={handleChange} autoComplete="new-password" />
                   </div>
                   <div className="field">
-                    <label>Confirm Password</label>
-                    <input name="confirmPassword" type="password" placeholder="Repeat password" value={form.confirmPassword} onChange={handleChange} autoComplete="new-password" />
+                    <label>{t('confirmPassword')}</label>
+                    <input name="confirmPassword" type="password" placeholder={t('repeatPassword')} value={form.confirmPassword} onChange={handleChange} autoComplete="new-password" />
                   </div>
                 </div>
 
@@ -368,10 +367,10 @@ export default function RegisterPage() {
                   onMouseEnter={e => { if (!loading) (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)' }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)' }}
                 >
-                  {loading ? <><div className="spinner" /> Creating account...</> : `Create ${selectedProduct.shortLabel} Account →`}
+                  {loading ? <><div className="spinner" /> {t('creatingAccount')}</> : t('createAccount', { type: selectedProduct.shortLabel })}
                 </button>
 
-                <div className="signin-row">Already have an account? <a href="/login">Sign in</a></div>
+                <div className="signin-row">{t('alreadyHaveAccount')} <a href="/login">{t('signIn')}</a></div>
               </div>
             )}
           </div>

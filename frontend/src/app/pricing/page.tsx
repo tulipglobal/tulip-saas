@@ -2,125 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { CheckCircle, Shield, Zap, TrendingUp, Building2, ArrowRight, HelpCircle, ChevronDown } from 'lucide-react'
-
-const plans = [
-  {
-    name: 'Starter',
-    icon: Shield,
-    price: { monthly: 0, annual: 0 },
-    description: 'For small NGOs getting started with verified transparency.',
-    cta: 'Start free',
-    ctaHref: '/register',
-    highlight: false,
-    features: [
-      '1 project',
-      'Up to 100 audit entries/month',
-      'SHA-256 hashing',
-      'Blockchain anchoring (Polygon)',
-      'Public verify page',
-      'Tulip DS branding',
-      'Community support',
-    ],
-    limits: ['No custom domain', 'No API access', 'No webhooks'],
-  },
-  {
-    name: 'Growth',
-    icon: TrendingUp,
-    price: { monthly: 19, annual: 15 },
-    description: 'For growing NGOs managing up to 10 projects with donor reporting.',
-    cta: 'Start 14-day trial',
-    ctaHref: '/register',
-    highlight: false,
-    badge: null,
-    features: [
-      'Up to 10 projects',
-      'Up to 2,000 audit entries/month',
-      'SHA-256 + RFC 3161 timestamps',
-      'Blockchain anchoring (Polygon)',
-      'Public donor portal page',
-      'API access (1 key)',
-      'Webhooks (1 endpoint)',
-      'CSV export',
-      'Email support',
-    ],
-    limits: ['No custom domain', 'Tulip DS branding'],
-  },
-  {
-    name: 'NGO',
-    icon: Zap,
-    price: { monthly: 49, annual: 39 },
-    description: 'For active NGOs managing multiple projects and donor reporting.',
-    cta: 'Start 14-day trial',
-    ctaHref: '/register',
-    highlight: true,
-    badge: 'Most popular',
-    features: [
-      'Unlimited projects',
-      'Up to 10,000 audit entries/month',
-      'SHA-256 + RFC 3161 timestamps',
-      'Blockchain anchoring (Polygon)',
-      'Public donor portal page',
-      'API access (1 key)',
-      'Webhooks (3 endpoints)',
-      'Remove Tulip DS branding',
-      'CSV export',
-      'Email support',
-    ],
-    limits: [],
-  },
-  {
-    name: 'Enterprise',
-    icon: Building2,
-    price: { monthly: null, annual: null },
-    description: 'For large NGOs, foundations, and government-funded organisations.',
-    cta: 'Contact us',
-    ctaHref: 'mailto:hello@tulipds.com',
-    highlight: false,
-    features: [
-      'Unlimited everything',
-      'Custom audit entry volume',
-      'Dedicated blockchain wallet',
-      'Custom domain (verify.yourngо.org)',
-      'Multi-tenant (sub-organisations)',
-      'SSO / SAML',
-      'API keys (unlimited)',
-      'Webhooks (unlimited)',
-      'SLA 99.9% uptime',
-      'GDPR DPA included',
-      'Dedicated account manager',
-      'Priority support',
-    ],
-    limits: [],
-  },
-]
-
-const faqs = [
-  {
-    q: 'What is a blockchain anchor?',
-    a: 'Each batch of audit entries is hashed into a Merkle tree and the root hash is written to the Polygon blockchain as an on-chain transaction. This creates an immutable, publicly verifiable timestamp that proves your records existed at that moment and have not been altered since.'
-  },
-  {
-    q: 'What is RFC 3161?',
-    a: 'RFC 3161 is an international standard for trusted timestamping. A certified timestamp authority signs a hash of your data with a cryptographic timestamp, making it legally admissible as evidence under EU eIDAS regulation and the US ESIGN Act.'
-  },
-  {
-    q: 'Can donors verify records without an account?',
-    a: 'Yes. The public verifier at tulipds.com/verify requires no login. Any donor can paste a hash and see full blockchain proof instantly. Your donor portal page is also fully public.'
-  },
-  {
-    q: 'What happens if I exceed my audit entry limit?',
-    a: 'We\'ll notify you at 80% usage. Entries over the limit are still saved and hashed — blockchain anchoring is queued and processed when you upgrade. No data is ever lost.'
-  },
-  {
-    q: 'Is my data stored securely?',
-    a: 'All data is encrypted at rest and in transit. Each NGO\'s data is isolated using row-level security. We are GDPR compliant and can sign a Data Processing Agreement for Enterprise customers.'
-  },
-  {
-    q: 'Can I use my own Polygon wallet?',
-    a: 'On Enterprise plans you can provide a dedicated wallet for anchoring — all blockchain transactions will originate from your address, giving you full chain-of-custody ownership of the proof.'
-  },
-]
 
 function FAQ({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false)
@@ -138,6 +21,129 @@ function FAQ({ q, a }: { q: string; a: string }) {
 
 export default function PricingPage() {
   const [annual, setAnnual] = useState(true)
+  const t = useTranslations('pricing')
+
+  const plans = [
+    {
+      name: t('starterName'),
+      icon: Shield,
+      price: { monthly: 0, annual: 0 },
+      description: t('starterDesc'),
+      cta: t('starterCta'),
+      ctaHref: '/register',
+      highlight: false,
+      features: [
+        t('starterFeature1'),
+        t('starterFeature2'),
+        t('starterFeature3'),
+        t('starterFeature4'),
+        t('starterFeature5'),
+        t('starterFeature6'),
+        t('starterFeature7'),
+      ],
+      limits: [t('starterLimit1'), t('starterLimit2'), t('starterLimit3')],
+    },
+    {
+      name: t('growthName'),
+      icon: TrendingUp,
+      price: { monthly: 19, annual: 15 },
+      description: t('growthDesc'),
+      cta: t('growthCta'),
+      ctaHref: '/register',
+      highlight: false,
+      badge: null,
+      features: [
+        t('growthFeature1'),
+        t('growthFeature2'),
+        t('growthFeature3'),
+        t('growthFeature4'),
+        t('growthFeature5'),
+        t('growthFeature6'),
+        t('growthFeature7'),
+        t('growthFeature8'),
+        t('growthFeature9'),
+      ],
+      limits: [t('growthLimit1'), t('growthLimit2')],
+    },
+    {
+      name: t('ngoName'),
+      icon: Zap,
+      price: { monthly: 49, annual: 39 },
+      description: t('ngoDesc'),
+      cta: t('ngoCta'),
+      ctaHref: '/register',
+      highlight: true,
+      badge: t('mostPopular'),
+      features: [
+        t('ngoFeature1'),
+        t('ngoFeature2'),
+        t('ngoFeature3'),
+        t('ngoFeature4'),
+        t('ngoFeature5'),
+        t('ngoFeature6'),
+        t('ngoFeature7'),
+        t('ngoFeature8'),
+        t('ngoFeature9'),
+        t('ngoFeature10'),
+      ],
+      limits: [],
+    },
+    {
+      name: t('enterpriseName'),
+      icon: Building2,
+      price: { monthly: null, annual: null },
+      description: t('enterpriseDesc'),
+      cta: t('enterpriseCta'),
+      ctaHref: 'mailto:hello@tulipds.com',
+      highlight: false,
+      features: [
+        t('enterpriseFeature1'),
+        t('enterpriseFeature2'),
+        t('enterpriseFeature3'),
+        t('enterpriseFeature4'),
+        t('enterpriseFeature5'),
+        t('enterpriseFeature6'),
+        t('enterpriseFeature7'),
+        t('enterpriseFeature8'),
+        t('enterpriseFeature9'),
+        t('enterpriseFeature10'),
+        t('enterpriseFeature11'),
+        t('enterpriseFeature12'),
+      ],
+      limits: [],
+    },
+  ]
+
+  const faqs = [
+    { q: t('faq1q'), a: t('faq1a') },
+    { q: t('faq2q'), a: t('faq2a') },
+    { q: t('faq3q'), a: t('faq3a') },
+    { q: t('faq4q'), a: t('faq4a') },
+    { q: t('faq5q'), a: t('faq5a') },
+    { q: t('faq6q'), a: t('faq6a') },
+  ]
+
+  const trustItems = [
+    { value: t('trustBlockchain'), label: t('trustBlockchainLabel') },
+    { value: t('trustEidas'), label: t('trustEidasLabel') },
+    { value: t('trustGdpr'), label: t('trustGdprLabel') },
+    { value: t('trustUptime'), label: t('trustUptimeLabel') },
+  ]
+
+  const compareRows = [
+    [t('compareProjects'), '1', '10', t('compareUnlimited'), t('compareUnlimited')],
+    [t('compareAuditEntries'), '100', '2,000', '10,000', t('compareCustom')],
+    [t('compareBlockchain'), '✓', '✓', '✓', '✓'],
+    [t('compareRfc3161'), '✓', '✓', '✓', '✓'],
+    [t('comparePublicVerifier'), '✓', '✓', '✓', '✓'],
+    [t('compareDonorPortal'), '—', '✓', '✓', '✓'],
+    [t('compareApiAccess'), '—', t('compareOneKey'), t('compareOneKey'), t('compareUnlimited')],
+    [t('compareWebhooks'), '—', '1', '3', t('compareUnlimited')],
+    [t('compareCustomDomain'), '—', '—', '—', '✓'],
+    [t('compareSso'), '—', '—', '—', '✓'],
+    [t('compareSla'), '—', '—', '—', '99.9%'],
+    [t('compareSupport'), t('compareCommunity'), t('compareEmail'), t('compareEmail'), t('compareDedicated')],
+  ]
 
   return (
     <div className="min-h-screen" style={{
@@ -158,12 +164,12 @@ export default function PricingPage() {
           </span>
         </Link>
         <div className="flex items-center gap-4">
-          <Link href="/docs" className="text-sm text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">API Docs</Link>
-          <Link href="/donors" className="text-sm text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">Donor Portal</Link>
+          <Link href="/docs" className="text-sm text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">{t('apiDocs')}</Link>
+          <Link href="/donors" className="text-sm text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">{t('donorPortal')}</Link>
           <Link href="/register"
             className="px-4 py-1.5 rounded-lg text-sm font-medium text-[#183a1d]"
             style={{ background: '#f6c453' }}>
-            Get started
+            {t('getStarted')}
           </Link>
         </div>
       </nav>
@@ -172,26 +178,26 @@ export default function PricingPage() {
       <div className="max-w-5xl mx-auto px-6 pt-16 pb-10 text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#f6c453]/30 bg-[#f6c453]/10 text-xs text-[#183a1d] mb-6">
           <CheckCircle size={12} />
-          No setup fees · Cancel anytime
+          {t('noSetupFees')}
         </div>
         <h1 className="text-4xl md:text-5xl font-bold text-[#183a1d] mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
-          Simple, transparent pricing
+          {t('heroTitle')}
         </h1>
         <p className="text-[#183a1d]/60 text-lg max-w-xl mx-auto mb-8">
-          Start free. Upgrade when you need more. Every plan includes blockchain anchoring and public verification.
+          {t('heroDesc')}
         </p>
 
         {/* Billing toggle */}
         <div className="inline-flex items-center gap-3 bg-[#e1eedd] border border-[#c8d6c0] rounded-xl p-1.5">
           <button onClick={() => setAnnual(false)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${!annual ? 'bg-[#fefbe9] text-[#183a1d]' : 'text-[#183a1d]/60 hover:text-[#183a1d]'}`}>
-            Monthly
+            {t('monthly')}
           </button>
           <button onClick={() => setAnnual(true)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${annual ? 'bg-[#fefbe9] text-[#183a1d]' : 'text-[#183a1d]/60 hover:text-[#183a1d]'}`}>
-            Annual
+            {t('annual')}
             <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${annual ? 'bg-green-500 text-[#183a1d]' : 'bg-green-500/20 text-green-400'}`}>
-              −20%
+              {t('save20')}
             </span>
           </button>
         </div>
@@ -242,16 +248,16 @@ export default function PricingPage() {
                   {price === null ? (
                     <div>
                       <div className="text-3xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                        Custom
+                        {t('custom')}
                       </div>
-                      <div className="text-xs text-[#183a1d]/40 mt-1">Contact us for a quote</div>
+                      <div className="text-xs text-[#183a1d]/40 mt-1">{t('contactForQuote')}</div>
                     </div>
                   ) : price === 0 ? (
                     <div>
                       <div className="text-3xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                        Free
+                        {t('free')}
                       </div>
-                      <div className="text-xs text-[#183a1d]/40 mt-1">Forever</div>
+                      <div className="text-xs text-[#183a1d]/40 mt-1">{t('forever')}</div>
                     </div>
                   ) : (
                     <div>
@@ -260,11 +266,11 @@ export default function PricingPage() {
                         <span className="text-3xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
                           {price}
                         </span>
-                        <span className="text-[#183a1d]/60 text-sm mb-1">/mo</span>
+                        <span className="text-[#183a1d]/60 text-sm mb-1">{t('perMonth')}</span>
                       </div>
                       {annual && (
                         <div className="text-xs text-green-400 mt-1">
-                          Billed annually · Save ${(49 - 39) * 12}/yr
+                          {t('billedAnnually', { amount: (49 - 39) * 12 })}
                         </div>
                       )}
                     </div>
@@ -309,12 +315,7 @@ export default function PricingPage() {
         style={{ background: '#e1eedd' }}>
         <div className="max-w-4xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            {[
-              { value: '100%', label: 'Blockchain anchored' },
-              { value: 'eIDAS', label: 'Legally admissible' },
-              { value: 'GDPR', label: 'Compliant' },
-              { value: '99.9%', label: 'Uptime SLA (Enterprise)' },
-            ].map(({ value, label }) => (
+            {trustItems.map(({ value, label }) => (
               <div key={label}>
                 <div className="text-xl font-bold text-[#183a1d] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
                 <div className="text-xs text-[#183a1d]/40">{label}</div>
@@ -327,31 +328,18 @@ export default function PricingPage() {
       {/* Compare table */}
       <div className="max-w-4xl mx-auto px-6 py-16">
         <h2 className="text-2xl font-bold text-[#183a1d] text-center mb-10" style={{ fontFamily: 'Inter, sans-serif' }}>
-          Compare plans
+          {t('comparePlans')}
         </h2>
         <div className="rounded-2xl border border-[#c8d6c0] overflow-hidden"
           style={{ background: '#e1eedd' }}>
           <div className="grid grid-cols-5 border-b border-[#c8d6c0]">
-            <div className="px-4 py-4 text-xs text-[#183a1d]/40 uppercase tracking-wide font-medium">Feature</div>
-            {['Starter', 'Growth', 'NGO', 'Enterprise'].map(p => (
-              <div key={p} className={`px-4 py-4 text-sm font-semibold text-center ${p === 'NGO' ? 'text-[#f6c453]' : 'text-[#183a1d]'}`}
+            <div className="px-4 py-4 text-xs text-[#183a1d]/40 uppercase tracking-wide font-medium">{t('featureColumn')}</div>
+            {[t('starterName'), t('growthName'), t('ngoName'), t('enterpriseName')].map(p => (
+              <div key={p} className={`px-4 py-4 text-sm font-semibold text-center ${p === t('ngoName') ? 'text-[#f6c453]' : 'text-[#183a1d]'}`}
                 style={{ fontFamily: 'Inter, sans-serif' }}>{p}</div>
             ))}
           </div>
-          {[
-            ['Projects', '1', '10', 'Unlimited', 'Unlimited'],
-            ['Audit entries/month', '100', '2,000', '10,000', 'Custom'],
-            ['Blockchain anchoring', '✓', '✓', '✓', '✓'],
-            ['RFC 3161 timestamps', '✓', '✓', '✓', '✓'],
-            ['Public verifier', '✓', '✓', '✓', '✓'],
-            ['Donor portal page', '—', '✓', '✓', '✓'],
-            ['API access', '—', '1 key', '1 key', 'Unlimited'],
-            ['Webhooks', '—', '1', '3', 'Unlimited'],
-            ['Custom domain', '—', '—', '—', '✓'],
-            ['SSO / SAML', '—', '—', '—', '✓'],
-            ['SLA', '—', '—', '—', '99.9%'],
-            ['Support', 'Community', 'Email', 'Email', 'Dedicated'],
-          ].map(([feature, starter, growth, ngo, enterprise]) => (
+          {compareRows.map(([feature, starter, growth, ngo, enterprise]) => (
             <div key={feature} className="grid grid-cols-5 border-b border-[#c8d6c0]/50 last:border-0 hover:bg-[#e1eedd]/50 transition-colors">
               <div className="px-4 py-3.5 text-sm text-[#183a1d]/60">{feature}</div>
               {[starter, growth, ngo, enterprise].map((val, i) => (
@@ -371,7 +359,7 @@ export default function PricingPage() {
         <div className="flex items-center gap-2 justify-center mb-10">
           <HelpCircle size={18} className="text-[#f6c453]" />
           <h2 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
-            Frequently asked questions
+            {t('faqTitle')}
           </h2>
         </div>
         <div className="rounded-2xl border border-[#c8d6c0] px-6"
@@ -385,27 +373,27 @@ export default function PricingPage() {
         <div className="rounded-2xl border border-[#f6c453]/20 p-10"
           style={{ background: 'rgba(246,196,83,0.08)' }}>
           <h2 className="text-2xl font-bold text-[#183a1d] mb-3" style={{ fontFamily: 'Inter, sans-serif' }}>
-            Start proving your integrity today
+            {t('ctaTitle')}
           </h2>
           <p className="text-[#183a1d]/60 text-sm mb-6 max-w-md mx-auto">
-            Free to start. No credit card required. Your first blockchain anchor in under 5 minutes.
+            {t('ctaDesc')}
           </p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <Link href="/register"
               className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium text-[#183a1d]"
               style={{ background: '#f6c453' }}>
-              Start free <ArrowRight size={15} />
+              {t('startFree')} <ArrowRight size={15} />
             </Link>
             <Link href="mailto:hello@tulipds.com"
               className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm text-[#183a1d]/70 border border-[#c8d6c0] hover:border-[#c8d6c0] hover:text-[#183a1d] transition-all">
-              Talk to us
+              {t('talkToUs')}
             </Link>
           </div>
         </div>
       </div>
 
       <footer className="border-t border-[#c8d6c0] py-8 text-center">
-        <p className="text-[#183a1d]/30 text-xs">© 2026 Tulip DS · Bright Bytes Technology · Dubai UAE</p>
+        <p className="text-[#183a1d]/30 text-xs">{t('footer')}</p>
       </footer>
     </div>
   )

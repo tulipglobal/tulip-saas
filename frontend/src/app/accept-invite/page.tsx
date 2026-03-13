@@ -4,6 +4,7 @@ import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 export default function AcceptInvitePage() {
   return (
@@ -18,6 +19,7 @@ export default function AcceptInvitePage() {
 }
 
 function AcceptInviteForm() {
+  const t = useTranslations('acceptInvite')
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
 
@@ -31,10 +33,10 @@ function AcceptInviteForm() {
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
 
   const submit = async () => {
-    if (!form.firstName || !form.lastName) { setError('First and last name are required'); return }
-    if (form.password.length < 6) { setError('Password must be at least 6 characters'); return }
-    if (form.password !== form.confirmPassword) { setError('Passwords do not match'); return }
-    if (!token) { setError('Invalid invite link'); return }
+    if (!form.firstName || !form.lastName) { setError(t('nameRequired')); return }
+    if (form.password.length < 6) { setError(t('passwordMinLength')); return }
+    if (form.password !== form.confirmPassword) { setError(t('passwordsNoMatch')); return }
+    if (!token) { setError(t('invalidInvite')); return }
 
     setStep('loading')
     setError('')
@@ -56,11 +58,11 @@ function AcceptInviteForm() {
       if (res.ok) {
         setStep('success')
       } else {
-        setError(data.error || 'Failed to accept invitation')
+        setError(data.error || t('failedToAccept'))
         setStep('form')
       }
     } catch {
-      setError('Network error')
+      setError(t('networkError'))
       setStep('form')
     }
   }
@@ -69,8 +71,8 @@ function AcceptInviteForm() {
     <div className="min-h-screen bg-[#fefbe9] flex items-center justify-center">
       <div className="text-center">
         <AlertCircle size={48} className="text-red-400 mx-auto mb-4" />
-        <h1 className="text-xl font-semibold text-[#183a1d] mb-2">Invalid Invite Link</h1>
-        <p className="text-[#183a1d]/60 text-sm">This invitation link is missing the token parameter.</p>
+        <h1 className="text-xl font-semibold text-[#183a1d] mb-2">{t('invalidInviteLink')}</h1>
+        <p className="text-[#183a1d]/60 text-sm">{t('missingToken')}</p>
       </div>
     </div>
   )
@@ -79,11 +81,11 @@ function AcceptInviteForm() {
     <div className="min-h-screen bg-[#fefbe9] flex items-center justify-center">
       <div className="text-center max-w-md">
         <CheckCircle size={48} className="text-emerald-400 mx-auto mb-4" />
-        <h1 className="text-xl font-semibold text-[#183a1d] mb-2">Invitation Accepted</h1>
-        <p className="text-[#183a1d]/60 text-sm mb-6">Your donor account has been created. You can now access the donor portal to view verified financial records.</p>
+        <h1 className="text-xl font-semibold text-[#183a1d] mb-2">{t('invitationAccepted')}</h1>
+        <p className="text-[#183a1d]/60 text-sm mb-6">{t('successDesc')}</p>
         <Link href="/login" className="inline-block px-6 py-3 rounded-lg text-sm font-medium text-[#183a1d]"
           style={{ background: '#f6c453' }}>
-          Go to Login
+          {t('goToLogin')}
         </Link>
       </div>
     </div>
@@ -106,8 +108,8 @@ function AcceptInviteForm() {
             style={{ background: '#f6c453' }}>
             <span className="text-[#183a1d] font-bold text-lg" style={{ fontFamily: 'Inter, sans-serif' }}>T</span>
           </div>
-          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Accept Invitation</h1>
-          <p className="text-[#183a1d]/60 text-sm mt-2">Create your donor account to view verified financial records</p>
+          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('title')}</h1>
+          <p className="text-[#183a1d]/60 text-sm mt-2">{t('subtitle')}</p>
         </div>
 
         <div className="rounded-xl border border-[#c8d6c0] p-6 space-y-4"
@@ -115,48 +117,48 @@ function AcceptInviteForm() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelCls}>First Name *</label>
+              <label className={labelCls}>{t('firstName')}</label>
               <input value={form.firstName} onChange={e => set('firstName', e.target.value)}
                 placeholder="John" className={inputCls} />
             </div>
             <div>
-              <label className={labelCls}>Last Name *</label>
+              <label className={labelCls}>{t('lastName')}</label>
               <input value={form.lastName} onChange={e => set('lastName', e.target.value)}
                 placeholder="Smith" className={inputCls} />
             </div>
           </div>
 
           <div>
-            <label className={labelCls}>Organisation Name</label>
+            <label className={labelCls}>{t('organisationName')}</label>
             <input value={form.donorName} onChange={e => set('donorName', e.target.value)}
               placeholder="e.g. Gulf Foundation" className={inputCls} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelCls}>Organisation Type</label>
+              <label className={labelCls}>{t('organisationType')}</label>
               <select value={form.donorType} onChange={e => set('donorType', e.target.value)} className={inputCls}>
-                <option value="FOUNDATION">Foundation</option>
-                <option value="GOVERNMENT">Government</option>
-                <option value="CORPORATE">Corporate</option>
-                <option value="INDIVIDUAL">Individual</option>
-                <option value="MULTILATERAL">Multilateral</option>
+                <option value="FOUNDATION">{t('typeFoundation')}</option>
+                <option value="GOVERNMENT">{t('typeGovernment')}</option>
+                <option value="CORPORATE">{t('typeCorporate')}</option>
+                <option value="INDIVIDUAL">{t('typeIndividual')}</option>
+                <option value="MULTILATERAL">{t('typeMultilateral')}</option>
               </select>
             </div>
             <div>
-              <label className={labelCls}>Country</label>
+              <label className={labelCls}>{t('country')}</label>
               <input value={form.country} onChange={e => set('country', e.target.value)}
                 placeholder="e.g. UAE" className={inputCls} />
             </div>
           </div>
 
           <div>
-            <label className={labelCls}>Password *</label>
+            <label className={labelCls}>{t('password')}</label>
             <input type="password" value={form.password} onChange={e => set('password', e.target.value)}
               placeholder="Min 6 characters" className={inputCls} />
           </div>
           <div>
-            <label className={labelCls}>Confirm Password *</label>
+            <label className={labelCls}>{t('confirmPassword')}</label>
             <input type="password" value={form.confirmPassword} onChange={e => set('confirmPassword', e.target.value)}
               placeholder="Re-enter password" className={inputCls} />
           </div>
@@ -168,11 +170,11 @@ function AcceptInviteForm() {
           <button onClick={submit}
             className="w-full py-3 rounded-lg text-sm font-medium text-[#183a1d] transition-all"
             style={{ background: '#f6c453' }}>
-            Accept & Create Account
+            {t('acceptCreateAccount')}
           </button>
         </div>
 
-        <p className="text-center text-[#183a1d]/30 text-xs mt-6">Tulip DS · Blockchain-Verified Financial Transparency</p>
+        <p className="text-center text-[#183a1d]/30 text-xs mt-6">{t('footerText')}</p>
       </div>
     </div>
   )

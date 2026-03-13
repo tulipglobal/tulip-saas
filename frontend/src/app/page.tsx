@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { Shield, CheckCircle, Globe, Zap, ArrowRight, Lock, Hash, Clock } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -59,6 +60,7 @@ export default function HomePage() {
             ))}
           </div>
           <div className="flex items-center gap-3">
+            <LanguageSwitcher />
             <Link href="/login"
               style={{ color: '#183a1d', fontSize: '14px', fontWeight: 500, opacity: 0.7 }}
               className="hover:opacity-100 transition-colors hidden md:block">

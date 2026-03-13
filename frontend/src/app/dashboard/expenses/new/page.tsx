@@ -18,7 +18,32 @@ const CURRENCIES = ['USD', 'EUR', 'GBP', 'KES', 'UGX', 'TZS', 'INR', 'NGN', 'ZAR
 
 export default function NewExpensePage() {
   const router = useRouter()
-  const { isOnline } = useOfflineSync()
+  const { isOnline: hookOnline } = useOfflineSync()
+
+  // Track navigator.onLine directly — fires instantly on Android airplane toggle
+  const [browserOnline, setBrowserOnline] = useState(
+    typeof navigator !== 'undefined' ? navigator.onLine : true
+  )
+  useEffect(() => {
+    const on = () => setBrowserOnline(true)
+    const off = () => setBrowserOnline(false)
+    window.addEventListener('online', on)
+    window.addEventListener('offline', off)
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off) }
+  }, [])
+
+  // Offline if either signal says offline
+  const isOnline = hookOnline && browserOnline
+
+  // DEBUG panel state — toggle with ?debug in URL or "Simulate Offline" button
+  const [debugSimOffline, setDebugSimOffline] = useState(false)
+  const [showDebug, setShowDebug] = useState(false)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.search.includes('debug')) setShowDebug(true)
+  }, [])
+  // Override isOnline when simulating
+  const effectiveOnline = debugSimOffline ? false : isOnline
+
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [offlineSaved, setOfflineSaved] = useState(false)
@@ -47,7 +72,7 @@ export default function NewExpensePage() {
   // Fetch projects — online: API + cache; offline: IndexedDB
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('tulip_token') : null
-    if (isOnline) {
+    if (effectiveOnline) {
       apiGet('/api/projects?limit=100')
         .then(r => r.ok ? r.json() : { items: [] })
         .then(d => {
@@ -63,7 +88,7 @@ export default function NewExpensePage() {
         .then(cached => setProjects(cached.map(c => ({ id: c.id, name: c.name }))))
         .catch(() => {})
     }
-  }, [isOnline])
+  }, [effectiveOnline])
 
   // Fetch budgets when project changes — online: API + cache; offline: IndexedDB
   const handleProjectChange = async (projectId: string) => {
@@ -74,7 +99,7 @@ export default function NewExpensePage() {
 
     setLoadingBudgets(true)
     const token = typeof window !== 'undefined' ? localStorage.getItem('tulip_token') : null
-    if (isOnline) {
+    if (effectiveOnline) {
       try {
         const res = await apiGet(`/api/budgets?projectId=${projectId}&limit=50`)
         if (res.ok) {
@@ -101,7 +126,7 @@ export default function NewExpensePage() {
     setForm(f => ({ ...f, budgetId, budgetLineId: '', expenseType: '', category: '', subCategory: '' }))
     setSelectedBudget(null)
     if (!budgetId) return
-    if (isOnline) {
+    if (effectiveOnline) {
       try {
         const res = await apiGet(`/api/budgets/${budgetId}`)
         if (res.ok) {
@@ -221,7 +246,7 @@ export default function NewExpensePage() {
     setSaving(true); setError('')
 
     // OFFLINE: queue to IndexedDB instead of API
-    if (!isOnline) {
+    if (!effectiveOnline) {
       try {
         let receiptBlob: Blob | undefined
         let receiptName: string | undefined
@@ -297,6 +322,39 @@ export default function NewExpensePage() {
 
   return (
     <div className="p-6 max-w-2xl animate-fade-up">
+      {/* DEBUG PANEL — access via ?debug in URL */}
+      {showDebug && (
+        <div className="mb-4 rounded-xl border-2 border-red-400 bg-red-50 p-4 text-xs font-mono space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="font-bold text-red-600 text-sm">OFFLINE DEBUG PANEL</span>
+            <button onClick={() => setShowDebug(false)} className="text-red-400 hover:text-red-600">close</button>
+          </div>
+          <div className="grid grid-cols-2 gap-1">
+            <span className="text-[#183a1d]/60">navigator.onLine:</span>
+            <span className={typeof navigator !== 'undefined' && navigator.onLine ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
+              {typeof navigator !== 'undefined' ? String(navigator.onLine) : 'N/A'}
+            </span>
+            <span className="text-[#183a1d]/60">hookOnline (useOfflineSync):</span>
+            <span className={hookOnline ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>{String(hookOnline)}</span>
+            <span className="text-[#183a1d]/60">browserOnline (local state):</span>
+            <span className={browserOnline ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>{String(browserOnline)}</span>
+            <span className="text-[#183a1d]/60">debugSimOffline:</span>
+            <span className={debugSimOffline ? 'text-red-600 font-bold' : 'text-[#183a1d]/40'}>{String(debugSimOffline)}</span>
+            <span className="text-[#183a1d]/60 font-bold border-t border-red-200 pt-1">effectiveOnline (final):</span>
+            <span className={`font-bold border-t border-red-200 pt-1 ${effectiveOnline ? 'text-green-600' : 'text-red-600'}`}>{String(effectiveOnline)}</span>
+            <span className="text-[#183a1d]/60">Button shows:</span>
+            <span className="font-bold text-[#183a1d]">{effectiveOnline ? '"Log Expense"' : '"Save Offline"'}</span>
+          </div>
+          <div className="flex gap-2 pt-2 border-t border-red-200">
+            <button
+              onClick={() => setDebugSimOffline(!debugSimOffline)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold ${debugSimOffline ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}
+            >
+              {debugSimOffline ? 'Stop Simulating (go online)' : 'Simulate Offline'}
+            </button>
+          </div>
+        </div>
+      )}
       <div className="flex items-center gap-3 mb-6">
         <Link href="/dashboard/expenses" className="text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">
           <ArrowLeft size={18} />
@@ -312,7 +370,7 @@ export default function NewExpensePage() {
         {/* 1. Project */}
         <div>
           <label className={labelCls}>Project *</label>
-          {!isOnline && projects.length === 0 ? (
+          {!effectiveOnline && projects.length === 0 ? (
             <div className="rounded-lg bg-amber-100 border border-amber-300 px-4 py-3 text-sm text-amber-800">
               Open this page while online first to cache your projects
             </div>
@@ -545,7 +603,7 @@ export default function NewExpensePage() {
             placeholder="Additional notes..." rows={2} className={inputCls + ' resize-none'} />
         </div>
 
-        {!isOnline && (
+        {!effectiveOnline && (
           <div className="rounded-lg bg-amber-100 border border-amber-300 px-4 py-3 text-sm text-amber-800 flex items-center gap-2">
             <WifiOff size={14} /> You&apos;re offline — expense will be saved locally and synced when you reconnect
           </div>
@@ -564,7 +622,7 @@ export default function NewExpensePage() {
         <div className="flex items-center gap-3 pt-2">
           <button onClick={submit} disabled={saving}
             className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-[#183a1d] disabled:opacity-50 bg-[#f6c453] hover:bg-[#f0a04b]">
-            <Save size={15} /> {saving ? 'Saving...' : isOnline ? 'Log Expense' : 'Save Offline'}
+            <Save size={15} /> {saving ? 'Saving...' : effectiveOnline ? 'Log Expense' : 'Save Offline'}
           </button>
           <Link href="/dashboard/expenses" className="px-5 py-2.5 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">
             Cancel

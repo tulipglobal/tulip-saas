@@ -1,8 +1,9 @@
-const withPWA = require('next-pwa')({
+const withPWA = require('@ducanh2912/next-pwa').default({
   dest: 'public',
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === 'development',
+  customWorkerSrc: 'worker',
   runtimeCaching: [
     {
       urlPattern: /^https:\/\/api\.tulipds\.com\/api\/(projects|budgets|expenses|categories).*/,
@@ -25,6 +26,8 @@ const withPWA = require('next-pwa')({
 })
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {}
+const nextConfig = {
+  turbopack: {},
+}
 
 module.exports = withPWA(nextConfig)

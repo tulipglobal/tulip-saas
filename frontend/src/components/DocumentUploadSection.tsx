@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Upload, FileCheck, X, Paperclip, WifiOff } from 'lucide-react'
+import { Upload, FileCheck, X, Paperclip, WifiOff, Clock } from 'lucide-react'
+import { queueDocument } from '@/lib/syncService'
 
 interface Props {
   entityType: 'project' | 'expense'
@@ -28,6 +29,7 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
   const [docType, setDocType] = useState('')
   const [uploading, setUploading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [queued, setQueued] = useState(false)
   const [error, setError] = useState('')
   const [dragOver, setDragOver] = useState(false)
 
@@ -47,14 +49,38 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
   }
 
   const upload = async () => {
-    if (!isOnline) {
-      setError('You are offline — document will upload when reconnected')
-      return
-    }
     if (!file) { setError('Please select a file'); return }
     if (!name.trim()) { setError('Document name is required'); return }
     setUploading(true)
     setError('')
+    setQueued(false)
+
+    // Offline → queue in IndexedDB
+    if (!isOnline) {
+      try {
+        const blob = new Blob([await file.arrayBuffer()], { type: file.type })
+        await queueDocument({
+          entityType,
+          entityId,
+          documentName: name.trim(),
+          documentType: docType || 'Other',
+          fileBlob: blob,
+          fileType: file.type,
+          fileName: file.name,
+          status: 'pending',
+          createdAt: Date.now(),
+          retries: 0,
+        })
+        setQueued(true)
+        setFile(null)
+        setName('')
+        setDocType('')
+      } catch { setError('Failed to save offline') }
+      setUploading(false)
+      return
+    }
+
+    // Online → upload directly
     try {
       const token = localStorage.getItem('tulip_token')
       const fd = new FormData()
@@ -171,11 +197,19 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
         </div>
       )}
 
+      {queued && (
+        <div className="flex items-center gap-2 text-amber-600 text-sm">
+          <Clock size={14} /> Document saved offline — will auto-upload when reconnected
+        </div>
+      )}
+
       {file && (
-        <button onClick={upload} disabled={uploading || !isOnline}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] disabled:opacity-50 transition-all bg-[#f6c453] hover:bg-[#f0a04b]">
-          <Upload size={14} />
-          {uploading ? 'Uploading…' : 'Upload Document'}
+        <button onClick={upload} disabled={uploading}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] disabled:opacity-50 transition-all ${
+            isOnline ? 'bg-[#f6c453] hover:bg-[#f0a04b]' : 'bg-amber-400 hover:bg-amber-500'
+          }`}>
+          {isOnline ? <Upload size={14} /> : <WifiOff size={14} />}
+          {uploading ? 'Saving…' : isOnline ? 'Upload Document' : 'Save Offline'}
         </button>
       )}
     </div>

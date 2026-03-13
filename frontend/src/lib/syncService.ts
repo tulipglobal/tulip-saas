@@ -1,4 +1,4 @@
-import { offlineDb, type PendingExpense } from './offlineDb';
+import { offlineDb, type PendingExpense, type PendingDocument } from './offlineDb';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5050';
 
@@ -271,6 +271,100 @@ export async function drainQueue(token: string): Promise<number> {
   // Fire custom event
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('tulip-sync-complete', { detail: { synced } }));
+  }
+
+  return synced;
+}
+
+export async function queueDocument(doc: PendingDocument) {
+  await offlineDb.pending_documents.add(doc);
+  // Register background sync if available
+  if ('serviceWorker' in navigator && 'SyncManager' in window) {
+    try {
+      const sw = await navigator.serviceWorker.ready;
+      await (sw as any).sync.register('document-sync');
+    } catch {
+      // Background sync not supported — will drain on online event
+    }
+  }
+}
+
+export async function drainDocumentQueue(token: string): Promise<number> {
+  const pending = await offlineDb.pending_documents
+    .where('status')
+    .equals('pending')
+    .toArray();
+
+  console.log('[sync] draining', pending.length, 'documents');
+  if (pending.length === 0) return 0;
+
+  let activeToken = await getValidToken();
+  if (!activeToken) {
+    console.error('[sync] No valid token — cannot drain documents');
+    return 0;
+  }
+
+  let synced = 0;
+
+  for (const doc of pending) {
+    try {
+      await offlineDb.pending_documents.update(doc.id!, { status: 'syncing' });
+
+      const fd = new FormData();
+      fd.append('file', doc.fileBlob, doc.fileName);
+      fd.append('name', doc.documentName);
+      fd.append('documentType', doc.documentType);
+      fd.append('documentLevel', doc.entityType);
+      if (doc.entityType === 'project') fd.append('projectId', doc.entityId);
+      if (doc.entityType === 'expense') fd.append('expenseId', doc.entityId);
+
+      let res = await fetch(`${API_URL}/api/documents`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${activeToken}` },
+        body: fd,
+      });
+
+      // Handle 401 — refresh token and retry once
+      if (res.status === 401) {
+        const refreshed = await refreshAccessToken();
+        if (!refreshed) {
+          await offlineDb.pending_documents.update(doc.id!, { status: 'pending' });
+          break;
+        }
+        activeToken = refreshed;
+        res = await fetch(`${API_URL}/api/documents`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${activeToken}` },
+          body: fd,
+        });
+      }
+
+      // Handle 409 duplicate — auto-retry with allowDuplicate
+      if (res.status === 409) {
+        res = await fetch(`${API_URL}/api/documents?allowDuplicate=1`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${activeToken}` },
+          body: fd,
+        });
+      }
+
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        console.error('[sync] Document upload failed:', res.status, errBody);
+        throw new Error('API error');
+      }
+
+      await offlineDb.pending_documents.update(doc.id!, { status: 'synced' });
+      synced++;
+    } catch (err) {
+      console.error('[sync] Failed to sync document', doc.id, ':', err instanceof Error ? err.message : err);
+      const retries = (doc.retries ?? 0) + 1;
+      await offlineDb.pending_documents.update(doc.id!, {
+        status: retries >= 3 ? 'failed' : 'pending',
+        retries,
+        error: err instanceof Error ? err.message : 'Unknown error',
+      });
+    }
   }
 
   return synced;

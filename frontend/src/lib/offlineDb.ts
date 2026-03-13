@@ -44,6 +44,21 @@ export interface CachedBudget {
   cachedAt: Date;
 }
 
+export interface PendingDocument {
+  id?: number;
+  entityType: string;
+  entityId: string;
+  documentName: string;
+  documentType: string;
+  fileBlob: Blob;
+  fileType: string;
+  fileName: string;
+  status: 'pending' | 'syncing' | 'synced' | 'failed';
+  createdAt: number;
+  retries: number;
+  error?: string;
+}
+
 export interface CachedDocument {
   id: string;
   name: string;
@@ -60,6 +75,7 @@ export interface CachedExpense {
 class TulipOfflineDB extends Dexie {
   sync_queue!: Table<SyncQueueItem>;
   pending_expenses!: Table<PendingExpense>;
+  pending_documents!: Table<PendingDocument>;
   cached_projects!: Table<CachedProject>;
   cached_budgets!: Table<CachedBudget>;
   cached_documents!: Table<CachedDocument>;
@@ -84,6 +100,15 @@ class TulipOfflineDB extends Dexie {
     this.version(3).stores({
       sync_queue: '++id, status, createdAt',
       pending_expenses: '++id, budgetId, projectId, status, createdOffline',
+      cached_projects: 'id, cachedAt',
+      cached_budgets: 'id, projectId, cachedAt',
+      cached_documents: 'id, cachedAt',
+      cached_expenses: 'id, cachedAt',
+    });
+    this.version(4).stores({
+      sync_queue: '++id, status, createdAt',
+      pending_expenses: '++id, budgetId, projectId, status, createdOffline',
+      pending_documents: '++id, entityType, entityId, status, createdAt',
       cached_projects: 'id, cachedAt',
       cached_budgets: 'id, projectId, cachedAt',
       cached_documents: 'id, cachedAt',

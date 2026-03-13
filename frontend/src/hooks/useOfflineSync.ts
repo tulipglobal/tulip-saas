@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { offlineDb } from '@/lib/offlineDb';
-import { drainQueue, cacheProjects, cacheDocuments, cacheExpenses } from '@/lib/syncService';
+import { drainQueue, drainDocumentQueue, cacheProjects, cacheDocuments, cacheExpenses } from '@/lib/syncService';
 
 // Warm the SW page cache so Android Chrome can serve pages offline.
 // Next.js Link does client-side routing (RSC payloads) which workbox can't
@@ -81,8 +81,9 @@ export function useOfflineSync() {
     setIsSyncing(true);
     try {
       const synced = await drainQueue(token);
-      console.log('[tulip-sync] Drain complete, synced:', synced);
-      if (synced > 0) {
+      const docsSynced = await drainDocumentQueue(token);
+      console.log('[tulip-sync] Drain complete, expenses:', synced, 'documents:', docsSynced);
+      if (synced > 0 || docsSynced > 0) {
         setJustSynced(true);
         setTimeout(() => setJustSynced(false), 3000);
       }

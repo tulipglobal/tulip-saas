@@ -1,18 +1,8 @@
-import type { Metadata } from 'next'
+'use client'
+
 import Link from 'next/link'
 import { Shield, CheckCircle, Globe, Zap, ArrowRight, Lock, Hash, Clock } from 'lucide-react'
-
-export const metadata: Metadata = {
-  title: 'Tulip DS — Every Document. Blockchain Verified. Forever.',
-  description: 'Blockchain-verified audit trails, RFC 3161 timestamps, and document verification for NGOs, donors, and enterprises. Drag any document and know in seconds if it is authentic.',
-  alternates: { canonical: 'https://tulipds.com' },
-  openGraph: {
-    title: 'Tulip DS — Every Document. Blockchain Verified. Forever.',
-    description: 'Blockchain-verified audit trails for NGOs, donors, and enterprises. Prove your integrity with immutable, on-chain verification.',
-    url: 'https://tulipds.com',
-    type: 'website',
-  },
-}
+import { useTranslations } from 'next-intl'
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -41,6 +31,7 @@ const jsonLd = {
 }
 
 export default function HomePage() {
+  const t = useTranslations()
   return (
     <div className="min-h-screen" style={{ fontFamily: 'Inter, sans-serif' }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
@@ -57,21 +48,26 @@ export default function HomePage() {
             </span>
           </div>
           <div className="hidden md:flex items-center gap-8">
-            {['Products', 'Verify API', 'Pricing', 'Docs'].map(item => (
-              <a key={item} href="#" style={{ color: '#183a1d', fontSize: '14px', fontWeight: 500, opacity: 0.7 }}
-                className="hover:opacity-100 transition-colors">{item}</a>
+            {[
+              { key: 'products', label: t('landing.products') },
+              { key: 'verifyApi', label: t('landing.verifyApi') },
+              { key: 'pricing', label: t('landing.pricing') },
+              { key: 'docs', label: t('landing.docs') },
+            ].map(item => (
+              <a key={item.key} href="#" style={{ color: '#183a1d', fontSize: '14px', fontWeight: 500, opacity: 0.7 }}
+                className="hover:opacity-100 transition-colors">{item.label}</a>
             ))}
           </div>
           <div className="flex items-center gap-3">
             <Link href="/login"
               style={{ color: '#183a1d', fontSize: '14px', fontWeight: 500, opacity: 0.7 }}
               className="hover:opacity-100 transition-colors hidden md:block">
-              Sign in
+              {t('landing.signIn')}
             </Link>
             <Link href="/login"
               className="px-4 py-2 rounded-lg text-[#183a1d] text-sm font-medium hover:opacity-90 transition-opacity"
               style={{ background: '#f6c453' }}>
-              Get started
+              {t('landing.getStarted')}
             </Link>
           </div>
         </div>
@@ -84,32 +80,32 @@ export default function HomePage() {
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#f6c453]/30 bg-[#f6c453]/10 mb-8 animate-fade-up">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               <span style={{ color: '#183a1d', fontSize: '13px', fontWeight: 500, opacity: 0.7 }}>
-                Blockchain-verified · RFC 3161 Timestamped · GDPR Compliant
+                {t('landing.tagline')}
               </span>
             </div>
 
             <h1 className="animate-fade-up-delay-1"
               style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: 'clamp(40px, 6vw, 72px)', color: '#183a1d', lineHeight: 1.1, letterSpacing: '-0.03em' }}>
-              Every Document. Blockchain Verified. Forever.
+              {t('landing.heroTitle')}
 
             </h1>
 
             <p className="mt-6 animate-fade-up-delay-2"
               style={{ color: '#183a1d', fontSize: '18px', lineHeight: 1.7, maxWidth: '560px', opacity: 0.7 }}>
-              Drag any document. Know in seconds if it's authentic.
+              {t('landing.heroDesc')}
             </p>
 
             <div className="flex flex-wrap items-center gap-4 mt-10 animate-fade-up-delay-3">
               <Link href="/dashboard"
                 className="flex items-center gap-2 px-6 py-3 rounded-lg text-[#183a1d] font-medium hover:opacity-90 transition-opacity"
                 style={{ background: '#f6c453' }}>
-                Start for free
+                {t('landing.startFree')}
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link href="/verify"
                 className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium border border-[#c8d6c0] text-[#183a1d] hover:bg-[#e1eedd]/50 transition-colors">
                 <Hash className="w-4 h-4" />
-                Verify a hash
+                {t('landing.verifyHash')}
               </Link>
             </div>
 
@@ -117,14 +113,14 @@ export default function HomePage() {
             <div className="mt-12 animate-fade-up-delay-4 p-4 rounded-xl border border-[#c8d6c0] bg-[#e1eedd] max-w-xl">
               <div className="flex items-center gap-2 mb-3">
                 <CheckCircle className="w-4 h-4 text-emerald-400" />
-                <span style={{ color: '#10b981', fontSize: '13px', fontWeight: 600 }}>VERIFIED</span>
-                <span style={{ color: '#183a1d', fontSize: '13px', opacity: 0.7 }}>· Polygon · FreeTSA · 2 seconds ago</span>
+                <span style={{ color: '#10b981', fontSize: '13px', fontWeight: 600 }}>{t('landing.verified')}</span>
+                <span style={{ color: '#183a1d', fontSize: '13px', opacity: 0.7 }}>{t('landing.verifiedMeta')}</span>
               </div>
               <p className="hash-mono" style={{ color: '#183a1d', opacity: 0.7, fontSize: '11px', wordBreak: 'break-all' }}>
                 72ae9c6c4f8b3d2e1a5c9f0b6e2d8a4c7f3e9b1d5a2c8e4f0b6d2a8c4e0f6b2
               </p>
               <p style={{ color: '#183a1d', fontSize: '12px', marginTop: '8px', opacity: 0.7 }}>
-                Caritas Kenya · Q3 2026 Impact Report · AED 142,000 verified
+                {t('landing.demoOrg')}
               </p>
             </div>
           </div>
@@ -135,10 +131,10 @@ export default function HomePage() {
       <section className="border-y border-[#c8d6c0] bg-[#e1eedd]">
         <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
           {[
-            { value: '9', label: 'Blockchain anchors', suffix: '+' },
-            { value: '25', label: 'API tests passing', suffix: '/25' },
-            { value: '4,644', label: 'RFC 3161 token bytes', suffix: '' },
-            { value: '100%', label: 'GDPR compliant', suffix: '' },
+            { value: '9', label: t('landing.blockchainAnchors'), suffix: '+' },
+            { value: '25', label: t('landing.apiTestsPassing'), suffix: '/25' },
+            { value: '4,644', label: t('landing.rfcTokenBytes'), suffix: '' },
+            { value: '100%', label: t('landing.gdprCompliant'), suffix: '' },
           ].map(stat => (
             <div key={stat.label} className="text-center">
               <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '36px', color: '#183a1d' }}>
@@ -154,9 +150,9 @@ export default function HomePage() {
       <section className="bg-[#fefbe9] py-24">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            <p style={{ color: '#f6c453', fontSize: '13px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Three products. One platform.</p>
+            <p style={{ color: '#f6c453', fontSize: '13px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{t('landing.threeProducts')}</p>
             <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: 'clamp(28px, 4vw, 48px)', color: '#183a1d', marginTop: '12px', letterSpacing: '-0.02em' }}>
-              Built for transparency at scale
+              {t('landing.builtForTransparency')}
             </h2>
           </div>
 
@@ -164,29 +160,29 @@ export default function HomePage() {
             {[
               {
                 icon: <Globe className="w-6 h-6" />,
-                tag: 'Product 1',
-                title: 'NGO SaaS',
-                desc: 'Project management, expense tracking, and verified impact reporting for NGOs. Every record anchored to blockchain automatically.',
+                tag: t('landing.product1Tag'),
+                title: t('landing.product1Title'),
+                desc: t('landing.product1Desc'),
                 href: '/dashboard',
-                cta: 'Manage your NGO',
+                cta: t('landing.product1Cta'),
                 color: '#f6c453',
               },
               {
                 icon: <Shield className="w-6 h-6" />,
-                tag: 'Product 2',
-                title: 'Donor Platform',
-                desc: 'Portfolio-level verification for foundations and development banks. Verify all your grantees in one dashboard.',
+                tag: t('landing.product2Tag'),
+                title: t('landing.product2Title'),
+                desc: t('landing.product2Desc'),
                 href: '/donors',
-                cta: 'Verify your portfolio',
+                cta: t('landing.product2Cta'),
                 color: '#10b981',
               },
               {
                 icon: <Zap className="w-6 h-6" />,
-                tag: 'Product 3',
-                title: 'Verify API',
-                desc: 'Blockchain anchoring + RFC 3161 timestamps as a service. Any data, any industry. Pay per call like Stripe.',
+                tag: t('landing.product3Tag'),
+                title: t('landing.product3Title'),
+                desc: t('landing.product3Desc'),
                 href: '/developers',
-                cta: 'View API docs',
+                cta: t('landing.product3Cta'),
                 color: '#f59e0b',
               },
             ].map(product => (
@@ -222,22 +218,22 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: 'clamp(28px, 4vw, 48px)', color: '#183a1d', letterSpacing: '-0.02em' }}>
-              How verification works
+              {t('landing.howItWorks')}
             </h2>
           </div>
           <div className="grid md:grid-cols-4 gap-8">
             {[
-              { step: '01', icon: <Lock className="w-5 h-5" />, title: 'Hash your data', desc: 'SHA-256 hash generated from your record. Original data never leaves your system.' },
-              { step: '02', icon: <Hash className="w-5 h-5" />, title: 'Build hash chain', desc: 'Each hash links to the previous. Any tampering breaks the chain instantly.' },
-              { step: '03', icon: <Globe className="w-5 h-5" />, title: 'Anchor to blockchain', desc: 'Merkle root anchored to Polygon. Immutable, public, permanent.' },
-              { step: '04', icon: <Clock className="w-5 h-5" />, title: 'RFC 3161 timestamp', desc: 'Trusted timestamp from FreeTSA. Legally admissible under eIDAS and ESIGN Act.' },
+              { step: '01', icon: <Lock className="w-5 h-5" />, title: t('landing.step01Title'), desc: t('landing.step01Desc') },
+              { step: '02', icon: <Hash className="w-5 h-5" />, title: t('landing.step02Title'), desc: t('landing.step02Desc') },
+              { step: '03', icon: <Globe className="w-5 h-5" />, title: t('landing.step03Title'), desc: t('landing.step03Desc') },
+              { step: '04', icon: <Clock className="w-5 h-5" />, title: t('landing.step04Title'), desc: t('landing.step04Desc') },
             ].map(step => (
               <div key={step.step} className="text-center">
                 <div className="w-12 h-12 rounded-full border border-[#f6c453]/30 bg-[#f6c453]/10 flex items-center justify-center mx-auto mb-4 text-[#183a1d]">
                   {step.icon}
                 </div>
                 <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '11px', color: '#f6c453', letterSpacing: '0.1em' }}>
-                  STEP {step.step}
+                  {t('landing.step')} {step.step}
                 </p>
                 <h3 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: '#183a1d', marginTop: '6px' }}>
                   {step.title}
@@ -255,21 +251,21 @@ export default function HomePage() {
       <section className="tulip-mesh py-24">
         <div className="max-w-3xl mx-auto px-6 text-center">
           <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: 'clamp(28px, 4vw, 48px)', color: '#183a1d', letterSpacing: '-0.02em' }}>
-            Ready to prove your integrity?
+            {t('landing.ctaTitle')}
           </h2>
           <p style={{ color: '#183a1d', opacity: 0.7, fontSize: '18px', marginTop: '16px', lineHeight: 1.7 }}>
-            Join NGOs and enterprises using Tulip DS to make their data tamper-proof.
+            {t('landing.ctaDesc')}
           </p>
           <div className="flex flex-wrap justify-center gap-4 mt-10">
             <Link href="/dashboard"
               className="flex items-center gap-2 px-8 py-4 rounded-xl text-[#183a1d] font-semibold hover:opacity-90 transition-opacity text-lg"
               style={{ background: '#f6c453' }}>
-              Get started free
+              {t('landing.getStartedFree')}
               <ArrowRight className="w-5 h-5" />
             </Link>
             <Link href="/verify"
               className="flex items-center gap-2 px-8 py-4 rounded-xl font-semibold border border-[#c8d6c0] text-[#183a1d] hover:bg-[#e1eedd]/50 transition-colors text-lg">
-              Try the verifier
+              {t('landing.tryVerifier')}
             </Link>
           </div>
         </div>
@@ -288,11 +284,16 @@ export default function HomePage() {
               </span>
             </div>
             <p style={{ color: '#183a1d', fontSize: '13px', textAlign: 'center', opacity: 0.7 }}>
-              © 2026 Tulip DS · A Bright Bytes Technology Product · Dubai, UAE · Tulip Management Consultancy Ltd, London UK
+              {t('landing.footer')}
             </p>
             <div className="flex gap-6">
-              {['Privacy', 'Terms', 'Docs', 'Status'].map(link => (
-                <a key={link} href="#" style={{ color: '#183a1d', fontSize: '13px', opacity: 0.7 }} className="hover:opacity-100 transition-colors">{link}</a>
+              {[
+                { key: 'privacy', label: t('landing.privacy') },
+                { key: 'terms', label: t('landing.terms') },
+                { key: 'docs', label: t('landing.docs') },
+                { key: 'status', label: t('landing.status') },
+              ].map(link => (
+                <a key={link.key} href="#" style={{ color: '#183a1d', fontSize: '13px', opacity: 0.7 }} className="hover:opacity-100 transition-colors">{link.label}</a>
               ))}
             </div>
           </div>

@@ -1,16 +1,18 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 const languages = [
-  { code: 'en', label: 'EN', flag: '🇬🇧', name: 'English' },
-  { code: 'fr', label: 'FR', flag: '🇫🇷', name: 'French' },
-  { code: 'es', label: 'ES', flag: '🇪🇸', name: 'Spanish' },
-  { code: 'pt', label: 'PT', flag: '🇵🇹', name: 'Portuguese' },
-  { code: 'it', label: 'IT', flag: '🇮🇹', name: 'Italian' },
+  { code: 'en', label: 'EN', flag: '🇬🇧' },
+  { code: 'fr', label: 'FR', flag: '🇫🇷' },
+  { code: 'es', label: 'ES', flag: '🇪🇸' },
+  { code: 'pt', label: 'PT', flag: '🇵🇹' },
+  { code: 'it', label: 'IT', flag: '🇮🇹' },
 ];
 
 export default function LanguageSwitcher() {
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [current, setCurrent] = useState('en');
   const router = useRouter();
@@ -80,7 +82,7 @@ export default function LanguageSwitcher() {
               }`}
             >
               <span className="text-base">{lang.flag}</span>
-              <span>{lang.name}</span>
+              <span>{t('language.' + lang.code)}</span>
               {current === lang.code && (
                 <svg className="w-4 h-4 ml-auto text-[#183a1d]" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />

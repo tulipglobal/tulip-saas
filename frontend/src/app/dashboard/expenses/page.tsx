@@ -65,13 +65,14 @@ interface Expense {
 }
 
 function ApprovalBadge({ status }: { status?: string }) {
+  const t = useTranslations()
   if (!status || status === 'approved' || status === 'pending') return null
   const map: Record<string, string> = {
     pending_review: 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20',
     rejected: 'bg-red-400/10 text-red-400 border-red-400/20',
   }
   const labels: Record<string, string> = {
-    pending_review: 'Pending Review', rejected: 'Rejected',
+    pending_review: t('expenses.pendingReview'), rejected: 'Rejected',
   }
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] border font-medium ${map[status] ?? 'bg-[#e1eedd] text-[#183a1d]/60 border-[#c8d6c0]'}`}>
@@ -181,6 +182,7 @@ interface PHashResult {
 }
 
 function ReceiptUploader({ expenseId, expenseTitle, onUploaded }: { expenseId: string; expenseTitle: string; onUploaded: () => void }) {
+  const t = useTranslations()
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
@@ -228,7 +230,7 @@ function ReceiptUploader({ expenseId, expenseTitle, onUploaded }: { expenseId: s
         {file && (
           <button onClick={upload} disabled={uploading}
             className="px-3 py-2 rounded-lg text-xs font-medium text-[#183a1d] disabled:opacity-50 shrink-0 bg-[#f6c453] hover:bg-[#f0a04b]">
-            {uploading ? 'Scanning & Sealing...' : 'Upload & Seal'}
+            {uploading ? t('expenses.scanningSealing') : t('expenses.uploadAndSeal')}
           </button>
         )}
       </div>
@@ -236,7 +238,7 @@ function ReceiptUploader({ expenseId, expenseTitle, onUploaded }: { expenseId: s
       {ocrResult && (ocrResult.amount || ocrResult.vendor || ocrResult.currency || Object.keys(ocrResult.extras).length > 0) && (
         <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 space-y-1">
           <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-600">
-            <FileCheck size={12} /> Fields auto-filled from OCR
+            <FileCheck size={12} /> {t('expenses.ocrAutoFilled')}
           </div>
           <div className="flex flex-wrap gap-2 text-[11px] text-emerald-700">
             {ocrResult.amount && <span className="px-1.5 py-0.5 bg-emerald-100 rounded">Amount: {ocrResult.amount}</span>}
@@ -247,7 +249,7 @@ function ReceiptUploader({ expenseId, expenseTitle, onUploaded }: { expenseId: s
               <span key={k} className="px-1.5 py-0.5 bg-emerald-100 rounded">{k}: {v}</span>
             ))}
           </div>
-          <p className="text-[10px] text-emerald-500">Fields are editable — OCR is a suggestion, not a lock</p>
+          <p className="text-[10px] text-emerald-500">{t('expenses.ocrEditable')}</p>
         </div>
       )}
       {ocrResult?.crossTenantDuplicate && (
@@ -286,6 +288,7 @@ function ReceiptUploader({ expenseId, expenseTitle, onUploaded }: { expenseId: s
 }
 
 function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap, onVoid }: { expense: Expense; onRefresh: () => void; onOpenSeal: (sealId: string, expense: Expense) => void; sealMap: Record<string, { sealId: string; anchorStatus: string; txHash: string | null }>; onVoid: () => void }) {
+  const t = useTranslations()
   const [expanded, setExpanded] = useState(false)
 
   return (
@@ -308,7 +311,7 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap, onVoid }: { expen
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
             <ExpenseTypeBadge type={expense.expenseType} />
             {(expense as any).voided && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-500 border border-red-500/20">VOIDED</span>
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-500 border border-red-500/20">{t('expenses.voided')}</span>
             )}
             {expense.category && (
               <span className="text-xs text-[#183a1d]/60">{expense.category}{expense.subCategory ? ` / ${expense.subCategory}` : ''}</span>
@@ -327,7 +330,7 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap, onVoid }: { expen
             )}
             {(expense.amountMismatch || expense.vendorMismatch || expense.dateMismatch) && (
               <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white" title={expense.mismatchNote || 'Mismatch detected'}>
-                <AlertTriangle size={9} /> Mismatch
+                <AlertTriangle size={9} /> {t('expenses.mismatch')}
               </span>
             )}
             {expense.documents?.some(d => d.crossTenantDuplicate) && (
@@ -397,7 +400,7 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap, onVoid }: { expen
               onClick={() => onOpenSeal(expense.receiptSealId!, expense)}
             />
           ) : (
-            <span className="text-[#183a1d]/30 text-xs">No receipt</span>
+            <span className="text-[#183a1d]/30 text-xs">{t('common.noReceipt')}</span>
           )}
         </div>
         <div className="hidden lg:flex lg:items-center lg:gap-1.5">
@@ -430,24 +433,24 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap, onVoid }: { expen
 
             {/* Receipt section */}
             <div className="rounded-lg border border-[#c8d6c0] p-4 space-y-3 bg-[#e1eedd]">
-              <div className="text-xs font-medium text-[#183a1d]/60 uppercase tracking-wide">Receipt / Invoice</div>
+              <div className="text-xs font-medium text-[#183a1d]/60 uppercase tracking-wide">{t('expenses.receiptInvoice')}</div>
               {expense.receiptHash ? (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-green-400 text-sm">
-                    <CheckCircle size={14} /> Receipt Sealed
+                    <CheckCircle size={14} /> {t('expenses.receiptSealed')}
                   </div>
                   <div className="text-xs text-[#183a1d]/40 font-mono break-all">SHA-256: {expense.receiptHash}</div>
                   <div className="flex items-center gap-3">
                     {expense.receiptSealId && (
                       <button onClick={(e) => { e.stopPropagation(); onOpenSeal(expense.receiptSealId!, expense) }}
                         className="text-xs text-[#183a1d] hover:text-[#f6c453] flex items-center gap-1">
-                        <Shield size={11} /> View Seal
+                        <Shield size={11} /> {t('expenses.viewSeal')}
                       </button>
                     )}
                     {expense.blockchainTx && (
                       <a href={`https://polygonscan.com/tx/${expense.blockchainTx}`} target="_blank" rel="noopener noreferrer"
                         className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1" onClick={e => e.stopPropagation()}>
-                        <ExternalLink size={11} /> View on Polygon
+                        <ExternalLink size={11} /> {t('expenses.viewOnPolygon')}
                       </a>
                     )}
                   </div>
@@ -461,7 +464,7 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap, onVoid }: { expen
             {(expense.amountMismatch || expense.vendorMismatch || expense.dateMismatch) && (
               <div className="rounded-lg bg-red-600 p-4 space-y-2">
                 <div className="flex items-center gap-2 text-white font-bold text-sm">
-                  <AlertTriangle size={16} /> OCR Mismatch Detected
+                  <AlertTriangle size={16} /> {t('expenses.ocrMismatchDetected')}
                 </div>
                 <div className="space-y-1 text-sm text-white/90">
                   {expense.amountMismatch && (
@@ -529,7 +532,7 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap, onVoid }: { expen
             {!(expense as any).voided && (
               <button onClick={(e) => { e.stopPropagation(); onVoid() }}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-500 border border-red-500/20 hover:bg-red-500/10 transition-all">
-                <XCircle size={12} /> Void Expense
+                <XCircle size={12} /> {t('expenses.voidExpense')}
               </button>
             )}
           </div>
@@ -540,17 +543,19 @@ function ExpenseRow({ expense, onRefresh, onOpenSeal, sealMap, onVoid }: { expen
 }
 
 function PendingSyncPill() {
+  const t = useTranslations()
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-300">
-      <Clock size={9} /> Pending Sync
+      <Clock size={9} /> {t('expenses.pendingSync')}
     </span>
   )
 }
 
 function BlockedPill({ reason }: { reason?: string }) {
+  const t = useTranslations()
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white" title={reason || 'Blocked by fraud detection'}>
-      <AlertTriangle size={9} /> Blocked
+      <AlertTriangle size={9} /> {t('expenses.blocked')}
     </span>
   )
 }
@@ -558,12 +563,13 @@ function BlockedPill({ reason }: { reason?: string }) {
 function VoidModal({ expenseId, expenseTitle, onClose, onVoided }: {
   expenseId: string; expenseTitle: string; onClose: () => void; onVoided: () => void
 }) {
+  const t = useTranslations()
   const [reason, setReason] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const handleVoid = async () => {
-    if (!reason.trim()) { setError('Reason is required'); return }
+    if (!reason.trim()) { setError(t('expenses.reasonRequired')); return }
     setLoading(true)
     try {
       const token = localStorage.getItem('tulip_token')
@@ -586,12 +592,12 @@ function VoidModal({ expenseId, expenseTitle, onClose, onVoided }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={onClose}>
       <div className="bg-[#fefbe9] rounded-xl border border-[#c8d6c0] p-6 max-w-md w-full space-y-4 shadow-xl" onClick={e => e.stopPropagation()}>
-        <h3 className="text-lg font-bold text-[#183a1d]">Void Expense</h3>
+        <h3 className="text-lg font-bold text-[#183a1d]">{t('expenses.voidExpense')}</h3>
         <p className="text-sm text-[#183a1d]/60">
           Void <strong>&quot;{expenseTitle}&quot;</strong>? This cannot be undone. The expense will remain in the audit trail but marked as voided.
         </p>
         <div>
-          <label className="block text-xs font-medium text-[#183a1d]/60 mb-1.5 uppercase tracking-wide">Reason *</label>
+          <label className="block text-xs font-medium text-[#183a1d]/60 mb-1.5 uppercase tracking-wide">{t('expenses.reason')}</label>
           <textarea value={reason} onChange={e => setReason(e.target.value)}
             placeholder="Why is this expense being voided?"
             rows={3} className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] resize-none" />
@@ -600,7 +606,7 @@ function VoidModal({ expenseId, expenseTitle, onClose, onVoided }: {
         <div className="flex items-center gap-3 pt-2">
           <button onClick={handleVoid} disabled={loading || !reason.trim()}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-500 hover:bg-red-600 disabled:opacity-50">
-            {loading ? 'Voiding...' : 'Confirm Void'}
+            {loading ? t('expenses.voiding') : t('expenses.confirmVoid')}
           </button>
           <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d]">Cancel</button>
         </div>
@@ -716,7 +722,7 @@ export default function ExpensesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('expenses.title')}</h1>
-          <p className="text-[#183a1d]/60 text-sm mt-1">{expenses.length} expense{expenses.length !== 1 ? 's' : ''} — every entry blockchain anchored</p>
+          <p className="text-[#183a1d]/60 text-sm mt-1">{expenses.length} expense{expenses.length !== 1 ? 's' : ''} — {t('expenses.everyEntryAnchored')}</p>
         </div>
         <Link href="/dashboard/expenses/new"
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] self-start bg-[#f6c453] hover:bg-[#f0a04b]">
@@ -728,16 +734,16 @@ export default function ExpensesPage() {
         <div className="rounded-xl border p-3.5 flex items-center gap-3"
           style={{ background: 'rgba(251,191,36,0.08)', borderColor: 'rgba(251,191,36,0.2)' }}>
           <WifiOff size={16} className="text-amber-400 shrink-0" />
-          <p className="text-[#183a1d]/60 text-xs">You are offline — showing pending expenses only. Synced expenses will appear when back online.</p>
+          <p className="text-[#183a1d]/60 text-xs">{t('expenses.offlineShowPending')}</p>
         </div>
       )}
 
       {filtered.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { label: 'Total Logged', value: `$${total.toLocaleString()}` },
-            { label: 'Anchored', value: filtered.filter(e => e.receiptHash && sealMap[e.receiptHash]?.anchorStatus === 'confirmed').length },
-            { label: 'Pending Anchor', value: filtered.filter(e => !e.receiptHash || !sealMap[e.receiptHash] || sealMap[e.receiptHash]?.anchorStatus === 'pending').length },
+            { label: t('expenses.totalLogged'), value: `$${total.toLocaleString()}` },
+            { label: t('expenses.anchored'), value: filtered.filter(e => e.receiptHash && sealMap[e.receiptHash]?.anchorStatus === 'confirmed').length },
+            { label: t('expenses.pendingAnchor'), value: filtered.filter(e => !e.receiptHash || !sealMap[e.receiptHash] || sealMap[e.receiptHash]?.anchorStatus === 'pending').length },
           ].map(({ label, value }) => (
             <div key={label} className="rounded-xl border border-[#c8d6c0] px-5 py-4" style={{ background: '#e1eedd' }}>
               <div className="text-xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
@@ -750,21 +756,21 @@ export default function ExpensesPage() {
       <div className="flex items-center gap-3 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 max-w-sm">
         <Search size={15} className="text-[#183a1d]/40" />
         <input value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="Search expenses..." className="bg-transparent text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none w-full" />
+          placeholder={t('expenses.searchExpenses')} className="bg-transparent text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none w-full" />
       </div>
 
       <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
         <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_60px] gap-4 px-5 py-3 border-b border-[#c8d6c0] text-xs text-[#183a1d]/40 uppercase tracking-wide font-medium">
-          <span>Expense</span><span>Amount</span><span>Project</span><span>Date</span><span>Seal</span><span>Status</span><span>Actions</span>
+          <span>{t('expenses.expense')}</span><span>{t('expenses.amount')}</span><span>{t('expenses.project')}</span><span>{t('common.date')}</span><span>{t('expenses.seal')}</span><span>{t('common.status')}</span><span>{t('common.actions')}</span>
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-[#183a1d]/40 text-sm">Loading…</div>
+          <div className="p-8 text-center text-[#183a1d]/40 text-sm">{t('common.loading')}</div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center py-16 gap-3">
             <Receipt size={32} className="text-[#183a1d]/30" />
-            <p className="text-[#183a1d]/40 text-sm">No expenses logged yet</p>
-            <Link href="/dashboard/expenses/new" className="text-[#183a1d] text-sm hover:underline">Log your first expense</Link>
+            <p className="text-[#183a1d]/40 text-sm">{t('expenses.noExpenses')}</p>
+            <Link href="/dashboard/expenses/new" className="text-[#183a1d] text-sm hover:underline">{t('expenses.logFirst')}</Link>
           </div>
         ) : (
           <div className="divide-y divide-[#c8d6c0]">
@@ -807,7 +813,7 @@ export default function ExpensesPage() {
           </div>
         )}
       </div>
-      <p className="text-xs text-[#183a1d]/30 text-center">Click any expense row to view documents and upload receipts</p>
+      <p className="text-xs text-[#183a1d]/30 text-center">{t('expenses.clickToView')}</p>
 
       {voidTarget && (
         <VoidModal

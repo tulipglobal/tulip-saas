@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Banknote, Search } from 'lucide-react'
 import BlockchainStatusPill from '@/components/BlockchainStatusPill'
 import TrustSealCard from '@/components/TrustSealCard'
+import { useTranslations } from 'next-intl'
 
 interface FundingSource {
   id: string
@@ -34,6 +35,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function FundingPage() {
+  const t = useTranslations()
   const [sources, setSources] = useState<FundingSource[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -69,19 +71,19 @@ export default function FundingPage() {
   return (
     <div className="p-4 md:p-6 space-y-6 animate-fade-up">
       <div>
-        <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Funding Sources</h1>
-        <p className="text-[#183a1d]/60 text-sm mt-1">Read-only summary of all funding across budgets. To add or edit, go to the budget page.</p>
+        <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('funding.title')}</h1>
+        <p className="text-[#183a1d]/60 text-sm mt-1">{t('funding.subtitle')}</p>
       </div>
 
       {filtered.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="rounded-xl border border-[#c8d6c0] px-5 py-4" style={{ background: '#e1eedd' }}>
             <div className="text-xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>${totalFunding.toLocaleString()}</div>
-            <div className="text-xs text-[#183a1d]/60 mt-1">Total Funding</div>
+            <div className="text-xs text-[#183a1d]/60 mt-1">{t('funding.totalFunding')}</div>
           </div>
           <div className="rounded-xl border border-[#c8d6c0] px-5 py-4" style={{ background: '#e1eedd' }}>
             <div className="text-xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{filtered.length}</div>
-            <div className="text-xs text-[#183a1d]/60 mt-1">Funding Sources</div>
+            <div className="text-xs text-[#183a1d]/60 mt-1">{t('funding.fundingSources')}</div>
           </div>
         </div>
       )}
@@ -89,21 +91,21 @@ export default function FundingPage() {
       <div className="flex items-center gap-3 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 max-w-sm">
         <Search size={15} className="text-[#183a1d]/40" />
         <input value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="Search by donor, type, or budget..." className="bg-transparent text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none w-full" />
+          placeholder={t('funding.searchPlaceholder')} className="bg-transparent text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none w-full" />
       </div>
 
       <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
         <div className="hidden lg:grid grid-cols-[1.5fr_1.5fr_1fr_1fr_80px_1fr] gap-4 px-5 py-3 border-b border-[#c8d6c0] text-xs text-[#183a1d]/40 uppercase tracking-wide font-medium">
-          <span>Donor</span><span>Budget</span><span>Type</span><span>Amount</span><span>Seal</span><span>Status</span>
+          <span>{t('funding.donor')}</span><span>{t('funding.budget')}</span><span>{t('funding.type')}</span><span>{t('funding.amount')}</span><span>{t('funding.seal')}</span><span>{t('funding.status')}</span>
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-[#183a1d]/40 text-sm">Loading...</div>
+          <div className="p-8 text-center text-[#183a1d]/40 text-sm">{t('common.loading')}</div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center py-16 gap-3">
             <Banknote size={32} className="text-[#183a1d]/30" />
-            <p className="text-[#183a1d]/40 text-sm">No funding sources found</p>
-            <p className="text-[#183a1d]/30 text-xs">Create funding sources from within a budget</p>
+            <p className="text-[#183a1d]/40 text-sm">{t('funding.noFunding')}</p>
+            <p className="text-[#183a1d]/30 text-xs">{t('funding.createFromBudget')}</p>
           </div>
         ) : (
           <div className="divide-y divide-[#c8d6c0]">

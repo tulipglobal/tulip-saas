@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { Shield, Copy, Check, Search, RefreshCw, Download, X, FileArchive, Loader2 } from 'lucide-react'
 import { apiGet } from '@/lib/api'
@@ -56,6 +57,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function AuditPage() {
+  const t = useTranslations()
   const [entries, setEntries] = useState<AuditEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -71,6 +73,10 @@ export default function AuditPage() {
     entityType: 'all',
     includeFiles: true,
   })
+  const filterLabel = (f: string) => {
+    const labels: Record<string, string> = { all: t('audit.all'), confirmed: t('audit.confirmed'), pending: t('audit.pending'), failed: t('audit.failed') }
+    return labels[f] ?? f
+  }
   const limit = 20
 
   const load = (p = 1) => {
@@ -129,19 +135,19 @@ export default function AuditPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Audit Log</h1>
-          <p className="text-[#183a1d]/60 text-sm mt-1">{total} entries — immutable blockchain hash chain</p>
+          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('audit.title')}</h1>
+          <p className="text-[#183a1d]/60 text-sm mt-1">{t('audit.subtitle', { total })}</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setShowExport(true)}
             className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-[#183a1d] hover:opacity-90 transition-opacity bg-[#f6c453] hover:bg-[#f0a04b]">
             <Download size={14} />
-            Export
+            {t('audit.export')}
           </button>
           <button onClick={() => load(page)}
             className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] border border-[#c8d6c0] hover:border-[#c8d6c0] transition-all">
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-            Refresh
+            {t('audit.refresh')}
           </button>
         </div>
       </div>
@@ -152,7 +158,7 @@ export default function AuditPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <FileArchive size={18} className="text-[#183a1d]" />
-              <h3 className="text-[#183a1d] font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>Export Audit Log</h3>
+              <h3 className="text-[#183a1d] font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>{t('audit.exportAuditLog')}</h3>
             </div>
             <button onClick={() => setShowExport(false)} className="text-[#183a1d]/40 hover:text-[#183a1d] transition-colors">
               <X size={16} />
@@ -162,39 +168,39 @@ export default function AuditPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {/* Date range */}
             <div>
-              <label className="block text-[#183a1d]/40 text-xs mb-1.5">From</label>
+              <label className="block text-[#183a1d]/40 text-xs mb-1.5">{t('audit.from')}</label>
               <input type="date" value={exportOpts.from} onChange={e => setExportOpts(o => ({ ...o, from: e.target.value }))}
                 className="w-full px-3 py-2 rounded-lg bg-[#e1eedd] border border-[#c8d6c0] text-[#183a1d] text-sm outline-none focus:border-[#f6c453] transition-colors" />
             </div>
             <div>
-              <label className="block text-[#183a1d]/40 text-xs mb-1.5">To</label>
+              <label className="block text-[#183a1d]/40 text-xs mb-1.5">{t('audit.to')}</label>
               <input type="date" value={exportOpts.to} onChange={e => setExportOpts(o => ({ ...o, to: e.target.value }))}
                 className="w-full px-3 py-2 rounded-lg bg-[#e1eedd] border border-[#c8d6c0] text-[#183a1d] text-sm outline-none focus:border-[#f6c453] transition-colors" />
             </div>
 
             {/* Status filter */}
             <div>
-              <label className="block text-[#183a1d]/40 text-xs mb-1.5">Status</label>
+              <label className="block text-[#183a1d]/40 text-xs mb-1.5">{t('audit.status')}</label>
               <select value={exportOpts.anchorStatus} onChange={e => setExportOpts(o => ({ ...o, anchorStatus: e.target.value }))}
                 className="w-full px-3 py-2 rounded-lg bg-[#e1eedd] border border-[#c8d6c0] text-[#183a1d] text-sm outline-none focus:border-[#f6c453] transition-colors appearance-none">
-                <option value="all">All statuses</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="pending">Pending</option>
-                <option value="failed">Failed</option>
+                <option value="all">{t('audit.allStatuses')}</option>
+                <option value="confirmed">{t('audit.confirmed')}</option>
+                <option value="pending">{t('audit.pending')}</option>
+                <option value="failed">{t('audit.failed')}</option>
               </select>
             </div>
 
             {/* Entity type filter */}
             <div>
-              <label className="block text-[#183a1d]/40 text-xs mb-1.5">Entity type</label>
+              <label className="block text-[#183a1d]/40 text-xs mb-1.5">{t('audit.entityType')}</label>
               <select value={exportOpts.entityType} onChange={e => setExportOpts(o => ({ ...o, entityType: e.target.value }))}
                 className="w-full px-3 py-2 rounded-lg bg-[#e1eedd] border border-[#c8d6c0] text-[#183a1d] text-sm outline-none focus:border-[#f6c453] transition-colors appearance-none">
-                <option value="all">All types</option>
-                <option value="Document">Documents</option>
-                <option value="Expense">Expenses</option>
-                <option value="Project">Projects</option>
-                <option value="FundingSource">Funding</option>
-                <option value="User">Users</option>
+                <option value="all">{t('audit.allTypes')}</option>
+                <option value="Document">{t('audit.documents')}</option>
+                <option value="Expense">{t('audit.expenses')}</option>
+                <option value="Project">{t('audit.projects')}</option>
+                <option value="FundingSource">{t('audit.funding')}</option>
+                <option value="User">{t('audit.users')}</option>
               </select>
             </div>
           </div>
@@ -206,13 +212,13 @@ export default function AuditPage() {
                 className={`w-9 h-5 rounded-full transition-colors relative ${exportOpts.includeFiles ? 'bg-[#f6c453]' : 'bg-[#e1eedd]'}`}>
                 <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${exportOpts.includeFiles ? 'left-[18px]' : 'left-0.5'}`} />
               </button>
-              <span className="text-[#183a1d]/60 text-sm">Include document files in ZIP</span>
+              <span className="text-[#183a1d]/60 text-sm">{t('audit.includeFiles')}</span>
             </label>
 
             <button onClick={doExport} disabled={exporting}
               className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-[#183a1d] hover:opacity-90 transition-opacity disabled:opacity-50 bg-[#f6c453] hover:bg-[#f0a04b]">
               {exporting ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-              {exporting ? 'Exporting…' : 'Download ZIP'}
+              {exporting ? t('audit.exporting') : t('audit.downloadZip')}
             </button>
           </div>
         </div>
@@ -223,7 +229,7 @@ export default function AuditPage() {
         <div className="flex items-center gap-2 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2">
           <Search size={14} className="text-[#183a1d]/40" />
           <input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search action, entity, hash…"
+            placeholder={t('audit.searchPlaceholder')}
             className="bg-transparent text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none w-48" />
         </div>
         <div className="flex items-center gap-1 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg p-1">
@@ -232,7 +238,7 @@ export default function AuditPage() {
               className={`px-3 py-1.5 rounded-md text-xs font-medium capitalize transition-all ${
                 filter === f ? 'bg-[#f6c453] text-[#183a1d]' : 'text-[#183a1d]/60 hover:text-[#183a1d]'
               }`}>
-              {f}
+              {filterLabel(f)}
             </button>
           ))}
         </div>
@@ -242,15 +248,15 @@ export default function AuditPage() {
       <div className="rounded-xl border border-[#c8d6c0] overflow-hidden"
         style={{ background: '#e1eedd' }}>
         <div className="grid grid-cols-[1fr_1fr_1fr_2fr_1fr_1fr_32px] gap-3 px-5 py-3 border-b border-[#c8d6c0] text-xs text-[#183a1d]/40 uppercase tracking-wide font-medium">
-          <span>Action</span><span>Entity</span><span>Project</span><span>Hash</span><span>Status</span><span>Date</span><span/>
+          <span>{t('audit.action')}</span><span>{t('audit.entity')}</span><span>{t('audit.project')}</span><span>{t('audit.hash')}</span><span>{t('audit.status')}</span><span>{t('audit.date')}</span><span/>
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-[#183a1d]/40 text-sm">Loading audit entries…</div>
+          <div className="p-8 text-center text-[#183a1d]/40 text-sm">{t('audit.loadingEntries')}</div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center py-16 gap-3">
             <Shield size={32} className="text-[#183a1d]/30" />
-            <p className="text-[#183a1d]/40 text-sm">No audit entries found</p>
+            <p className="text-[#183a1d]/40 text-sm">{t('audit.noEntries')}</p>
           </div>
         ) : (
           <div className="divide-y divide-[#c8d6c0]">
@@ -288,15 +294,15 @@ export default function AuditPage() {
       {/* Pagination */}
       {total > limit && (
         <div className="flex items-center justify-between text-sm">
-          <span className="text-[#183a1d]/40">Showing {((page-1)*limit)+1}–{Math.min(page*limit, total)} of {total}</span>
+          <span className="text-[#183a1d]/40">{t('audit.showing', { from: ((page-1)*limit)+1, to: Math.min(page*limit, total), total })}</span>
           <div className="flex gap-2">
             <button onClick={() => { setPage(p => p-1); load(page-1) }} disabled={page === 1}
               className="px-3 py-1.5 rounded-lg border border-[#c8d6c0] text-[#183a1d]/60 hover:text-[#183a1d] disabled:opacity-30 transition-all">
-              Previous
+              {t('audit.previous')}
             </button>
             <button onClick={() => { setPage(p => p+1); load(page+1) }} disabled={page * limit >= total}
               className="px-3 py-1.5 rounded-lg border border-[#c8d6c0] text-[#183a1d]/60 hover:text-[#183a1d] disabled:opacity-30 transition-all">
-              Next
+              {t('audit.next')}
             </button>
           </div>
         </div>

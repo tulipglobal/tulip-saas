@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { Building2, Shield, Save, Check, AlertCircle, Bell, Coins } from 'lucide-react'
 import { apiGet, apiPatch } from '@/lib/api'
 import CountrySelect from '@/components/CountrySelect'
@@ -37,6 +38,7 @@ function Toast({ message, type, onClose }: { message: string; type: 'success' | 
 }
 
 export default function SettingsPage() {
+  const t = useTranslations()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [org, setOrg] = useState<OrgDetails | null>(null)
   const [loading, setLoading] = useState(true)
@@ -106,24 +108,24 @@ export default function SettingsPage() {
           const u = JSON.parse(stored)
           localStorage.setItem('tulip_user', JSON.stringify({ ...u, name: updated.name, email: updated.email }))
         }
-        setToast({ message: 'Profile updated', type: 'success' })
+        setToast({ message: t('settings.profileUpdated'), type: 'success' })
       } else {
         const err = await res.json()
-        setToast({ message: err.error || 'Failed to update profile', type: 'error' })
+        setToast({ message: err.error || t('settings.failedUpdateProfile'), type: 'error' })
       }
     } catch {
-      setToast({ message: 'Failed to update profile', type: 'error' })
+      setToast({ message: t('settings.failedUpdateProfile'), type: 'error' })
     }
     setSavingProfile(false)
   }
 
   const savePassword = async () => {
     if (newPassword !== confirmPassword) {
-      setToast({ message: 'Passwords do not match', type: 'error' })
+      setToast({ message: t('settings.passwordsNotMatch'), type: 'error' })
       return
     }
     if (newPassword.length < 8) {
-      setToast({ message: 'Password must be at least 8 characters', type: 'error' })
+      setToast({ message: t('settings.passwordMinLength'), type: 'error' })
       return
     }
     setSavingPassword(true)
@@ -133,13 +135,13 @@ export default function SettingsPage() {
         setCurrentPassword('')
         setNewPassword('')
         setConfirmPassword('')
-        setToast({ message: 'Password changed successfully', type: 'success' })
+        setToast({ message: t('settings.passwordChanged'), type: 'success' })
       } else {
         const err = await res.json()
-        setToast({ message: err.error || 'Failed to change password', type: 'error' })
+        setToast({ message: err.error || t('settings.failedChangePassword'), type: 'error' })
       }
     } catch {
-      setToast({ message: 'Failed to change password', type: 'error' })
+      setToast({ message: t('settings.failedChangePassword'), type: 'error' })
     }
     setSavingPassword(false)
   }
@@ -155,12 +157,12 @@ export default function SettingsPage() {
       if (res.ok) {
         const updated = await res.json()
         setNotifPrefs(updated)
-        setToast({ message: 'Notification preferences saved', type: 'success' })
+        setToast({ message: t('settings.notifSaved'), type: 'success' })
       } else {
-        setToast({ message: 'Failed to update notifications', type: 'error' })
+        setToast({ message: t('settings.failedUpdateNotif'), type: 'error' })
       }
     } catch {
-      setToast({ message: 'Failed to update notifications', type: 'error' })
+      setToast({ message: t('settings.failedUpdateNotif'), type: 'error' })
     }
     setSavingNotif(false)
   }
@@ -175,21 +177,21 @@ export default function SettingsPage() {
       if (res.ok) {
         const updated = await res.json()
         setOrg(updated)
-        setToast({ message: 'Organisation updated', type: 'success' })
+        setToast({ message: t('settings.orgUpdated'), type: 'success' })
       } else {
         const err = await res.json()
-        setToast({ message: err.error || 'Failed to update organisation', type: 'error' })
+        setToast({ message: err.error || t('settings.failedUpdateOrg'), type: 'error' })
       }
     } catch {
-      setToast({ message: 'Failed to update organisation', type: 'error' })
+      setToast({ message: t('settings.failedUpdateOrg'), type: 'error' })
     }
     setSavingOrg(false)
   }
 
   if (loading) return (
     <div className="p-6 animate-fade-up">
-      <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Settings</h1>
-      <p className="text-[#183a1d]/40 text-sm mt-4">Loading...</p>
+      <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('settings.title')}</h1>
+      <p className="text-[#183a1d]/40 text-sm mt-4">{t('common.loading')}</p>
     </div>
   )
 
@@ -200,8 +202,8 @@ export default function SettingsPage() {
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       <div>
-        <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Settings</h1>
-        <p className="text-[#183a1d]/60 text-sm mt-1">Account and organisation settings</p>
+        <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('settings.title')}</h1>
+        <p className="text-[#183a1d]/60 text-sm mt-1">{t('settings.subtitle')}</p>
       </div>
 
       {/* Profile Section */}
@@ -211,16 +213,16 @@ export default function SettingsPage() {
             {profile?.name?.charAt(0)?.toUpperCase() ?? 'U'}
           </div>
           <div>
-            <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide">Profile</h2>
+            <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide">{t('settings.profile')}</h2>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="text-xs text-[#183a1d]/40 block mb-1">Full Name</label>
+            <label className="text-xs text-[#183a1d]/40 block mb-1">{t('settings.fullName')}</label>
             <input className={inputClass} value={profileName} onChange={e => setProfileName(e.target.value)} />
           </div>
           <div>
-            <label className="text-xs text-[#183a1d]/40 block mb-1">Email</label>
+            <label className="text-xs text-[#183a1d]/40 block mb-1">{t('settings.email')}</label>
             <input className={inputClass} type="email" value={profileEmail} onChange={e => setProfileEmail(e.target.value)} />
           </div>
         </div>
@@ -228,9 +230,9 @@ export default function SettingsPage() {
           <button onClick={saveProfile} disabled={savingProfile}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50 transition-all">
             <Save size={14} />
-            {savingProfile ? 'Saving...' : 'Save Profile'}
+            {savingProfile ? t('common.saving') : t('settings.saveProfile')}
           </button>
-          <span className="text-xs text-[#183a1d]/30">Member since {profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}</span>
+          <span className="text-xs text-[#183a1d]/30">{t('settings.memberSince')} {profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}</span>
         </div>
       </div>
 
@@ -238,26 +240,26 @@ export default function SettingsPage() {
       <div className="rounded-xl border border-[#c8d6c0] px-5 py-5 space-y-4 bg-[#e1eedd]">
         <div className="flex items-center gap-3">
           <Shield size={18} className="text-[#183a1d]/60" />
-          <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide">Change Password</h2>
+          <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide">{t('settings.changePassword')}</h2>
         </div>
         <div className="grid grid-cols-1 gap-4 max-w-md">
           <div>
-            <label className="text-xs text-[#183a1d]/40 block mb-1">Current Password</label>
+            <label className="text-xs text-[#183a1d]/40 block mb-1">{t('settings.currentPassword')}</label>
             <input className={inputClass} type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} placeholder="Enter current password" />
           </div>
           <div>
-            <label className="text-xs text-[#183a1d]/40 block mb-1">New Password</label>
+            <label className="text-xs text-[#183a1d]/40 block mb-1">{t('settings.newPassword')}</label>
             <input className={inputClass} type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="At least 8 characters" />
           </div>
           <div>
-            <label className="text-xs text-[#183a1d]/40 block mb-1">Confirm New Password</label>
+            <label className="text-xs text-[#183a1d]/40 block mb-1">{t('settings.confirmPassword')}</label>
             <input className={inputClass} type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirm new password" />
           </div>
         </div>
         <button onClick={savePassword} disabled={savingPassword || !currentPassword || !newPassword}
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50 transition-all">
           <Save size={14} />
-          {savingPassword ? 'Saving...' : 'Change Password'}
+          {savingPassword ? t('common.saving') : t('settings.changePassword')}
         </button>
       </div>
 
@@ -265,21 +267,21 @@ export default function SettingsPage() {
       <div className="rounded-xl border border-[#c8d6c0] px-5 py-5 space-y-4 bg-[#e1eedd]">
         <div className="flex items-center gap-3">
           <Bell size={18} className="text-[#183a1d]/60" />
-          <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide">Email Notifications</h2>
+          <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide">{t('settings.emailNotifications')}</h2>
         </div>
-        <p className="text-xs text-[#183a1d]/50">Choose which email alerts your organisation receives.</p>
+        <p className="text-xs text-[#183a1d]/50">{t('settings.notifDesc')}</p>
         <div className="space-y-3">
           {[
-            { key: 'fraud', label: 'Fraud alerts', desc: 'When a receipt is blocked for high fraud risk' },
-            { key: 'duplicate', label: 'Duplicate alerts', desc: 'When a duplicate receipt is detected and blocked' },
-            { key: 'mismatch', label: 'Mismatch alerts', desc: 'When OCR values differ from logged expense data' },
-            { key: 'void', label: 'Void notifications', desc: 'When an expense is voided by a team member' },
-            { key: 'seal', label: 'Seal confirmations', desc: 'When a Trust Seal is issued for a document' },
-          ].map(({ key, label, desc }) => (
+            { key: 'fraud', labelKey: 'settings.fraudAlerts', descKey: 'settings.fraudAlertsDesc' },
+            { key: 'duplicate', labelKey: 'settings.duplicateAlerts', descKey: 'settings.duplicateAlertsDesc' },
+            { key: 'mismatch', labelKey: 'settings.mismatchAlerts', descKey: 'settings.mismatchAlertsDesc' },
+            { key: 'void', labelKey: 'settings.voidNotif', descKey: 'settings.voidNotifDesc' },
+            { key: 'seal', labelKey: 'settings.sealConfirmations', descKey: 'settings.sealConfirmationsDesc' },
+          ].map(({ key, labelKey, descKey }) => (
             <div key={key} className="flex items-center justify-between py-2 border-b border-[#c8d6c0]/50 last:border-0">
               <div>
-                <p className="text-sm font-medium text-[#183a1d]">{label}</p>
-                <p className="text-xs text-[#183a1d]/40">{desc}</p>
+                <p className="text-sm font-medium text-[#183a1d]">{t(labelKey)}</p>
+                <p className="text-xs text-[#183a1d]/40">{t(descKey)}</p>
               </div>
               <button
                 onClick={() => toggleNotif(key)}
@@ -293,7 +295,7 @@ export default function SettingsPage() {
         <button onClick={saveNotif} disabled={savingNotif}
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50 transition-all">
           <Save size={14} />
-          {savingNotif ? 'Saving...' : 'Save Notifications'}
+          {savingNotif ? t('common.saving') : t('settings.saveNotifications')}
         </button>
       </div>
 
@@ -301,31 +303,31 @@ export default function SettingsPage() {
       <div className="rounded-xl border border-[#c8d6c0] px-5 py-5 space-y-4 bg-[#e1eedd]">
         <div className="flex items-center gap-3">
           <Building2 size={18} className="text-[#183a1d]/60" />
-          <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide">Organisation</h2>
+          <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide">{t('settings.organization')}</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="text-xs text-[#183a1d]/40 block mb-1">Organisation Name</label>
+            <label className="text-xs text-[#183a1d]/40 block mb-1">{t('settings.orgName')}</label>
             <input className={inputClass} value={orgName} onChange={e => setOrgName(e.target.value)} />
           </div>
           <div>
-            <label className="text-xs text-[#183a1d]/40 block mb-1">Country</label>
+            <label className="text-xs text-[#183a1d]/40 block mb-1">{t('settings.country')}</label>
             <CountrySelect value={orgCountry} onChange={setOrgCountry} />
           </div>
           <div>
-            <label className="text-xs text-[#183a1d]/40 block mb-1">Base Currency</label>
+            <label className="text-xs text-[#183a1d]/40 block mb-1">{t('settings.baseCurrency')}</label>
             <CurrencySelect value={orgCurrency} onChange={setOrgCurrency} />
           </div>
           <div>
-            <label className="text-xs text-[#183a1d]/40 block mb-1">Website</label>
+            <label className="text-xs text-[#183a1d]/40 block mb-1">{t('settings.website')}</label>
             <input className={inputClass} value={orgWebsite} onChange={e => setOrgWebsite(e.target.value)} placeholder="https://..." />
           </div>
           <div>
-            <label className="text-xs text-[#183a1d]/40 block mb-1">Registration Number</label>
+            <label className="text-xs text-[#183a1d]/40 block mb-1">{t('settings.registrationNumber')}</label>
             <input className={inputClass} value={orgRegNumber} onChange={e => setOrgRegNumber(e.target.value)} placeholder="e.g. REG-12345" />
           </div>
           <div className="md:col-span-2">
-            <label className="text-xs text-[#183a1d]/40 block mb-1">Description</label>
+            <label className="text-xs text-[#183a1d]/40 block mb-1">{t('settings.description')}</label>
             <textarea className={inputClass + ' min-h-[80px] resize-y'} value={orgDescription} onChange={e => setOrgDescription(e.target.value)} placeholder="Brief description of your organisation" />
           </div>
         </div>
@@ -333,7 +335,7 @@ export default function SettingsPage() {
           <button onClick={saveOrg} disabled={savingOrg}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50 transition-all">
             <Save size={14} />
-            {savingOrg ? 'Saving...' : 'Save Organisation'}
+            {savingOrg ? t('common.saving') : t('settings.saveOrganisation')}
           </button>
           {org?.id && <span className="text-xs text-[#183a1d]/30 font-mono">Tenant: {org.id.slice(0, 8)}...</span>}
         </div>

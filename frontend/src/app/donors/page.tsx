@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { Shield, CheckCircle, Search, ArrowUpRight, Globe, Star } from 'lucide-react'
 
@@ -19,8 +20,9 @@ interface NGOProfile {
 }
 
 function TrustScore({ score }: { score: number }) {
+  const t = useTranslations()
   const color = score >= 90 ? '#4ade80' : score >= 70 ? '#facc15' : '#f87171'
-  const label = score >= 90 ? 'Excellent' : score >= 70 ? 'Good' : 'Fair'
+  const label = score >= 90 ? t('donors.excellent') : score >= 70 ? t('donors.good') : t('donors.fair')
   return (
     <div className="flex items-center gap-2">
       <div className="relative w-8 h-8">
@@ -35,13 +37,14 @@ function TrustScore({ score }: { score: number }) {
       </div>
       <div>
         <div className="text-xs font-semibold" style={{ color }}>{label}</div>
-        <div className="text-xs text-[#183a1d]/40">Integrity</div>
+        <div className="text-xs text-[#183a1d]/40">{t('donors.integrity')}</div>
       </div>
     </div>
   )
 }
 
 function NGOCard({ ngo }: { ngo: NGOProfile }) {
+  const t = useTranslations()
   return (
     <Link href={`/donors/${ngo.slug || ngo.id}`}
       className="group block rounded-2xl border border-[#c8d6c0] hover:border-[#f6c453]/40 p-6 transition-all hover:bg-[#f6c453]/5"
@@ -67,15 +70,15 @@ function NGOCard({ ngo }: { ngo: NGOProfile }) {
       <div className="flex items-center gap-4 pt-4 border-t border-[#c8d6c0]/50">
         <div className="text-center">
           <div className="text-sm font-bold text-[#183a1d]">{ngo.totalProjects}</div>
-          <div className="text-xs text-[#183a1d]/40">Projects</div>
+          <div className="text-xs text-[#183a1d]/40">{t('donors.projects')}</div>
         </div>
         <div className="text-center">
           <div className="text-sm font-bold text-[#183a1d]">{ngo.totalExpenses}</div>
-          <div className="text-xs text-[#183a1d]/40">Expenses</div>
+          <div className="text-xs text-[#183a1d]/40">{t('donors.expenses')}</div>
         </div>
         <div className="text-center">
           <div className="text-sm font-bold text-[#183a1d]">{ngo.totalAnchored}</div>
-          <div className="text-xs text-[#183a1d]/40">Anchored</div>
+          <div className="text-xs text-[#183a1d]/40">{t('donors.anchored')}</div>
         </div>
         {ngo.country && (
           <div className="ml-auto flex items-center gap-1 text-xs text-[#183a1d]/40">
@@ -89,7 +92,7 @@ function NGOCard({ ngo }: { ngo: NGOProfile }) {
         <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-[#c8d6c0]/50">
           <CheckCircle size={12} className="text-green-400" />
           <span className="text-xs text-[#183a1d]/40">
-            Verified since {new Date(ngo.verifiedAt).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
+            {t('donors.verifiedSince', { date: new Date(ngo.verifiedAt).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) })}
           </span>
         </div>
       )}
@@ -120,6 +123,7 @@ const DEMO_NGOS: NGOProfile[] = [
 ]
 
 export default function DonorPortalPage() {
+  const t = useTranslations()
   const [ngos, setNgos] = useState<NGOProfile[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -159,9 +163,9 @@ export default function DonorPortalPage() {
           </span>
         </Link>
         <div className="flex items-center gap-4">
-          <Link href="/verify" className="text-sm text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">Verify a hash</Link>
+          <Link href="/verify" className="text-sm text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">{t('donors.verifyHash')}</Link>
           <Link href="/login" className="px-4 py-1.5 rounded-lg text-sm font-medium text-[#183a1d] border border-[#c8d6c0] hover:border-[#f6c453]/30 transition-all">
-            NGO Sign in
+            {t('donors.ngoSignIn')}
           </Link>
         </div>
       </nav>
@@ -170,24 +174,29 @@ export default function DonorPortalPage() {
       <div className="max-w-4xl mx-auto px-6 pt-16 pb-12 text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#f6c453]/30 bg-[#f6c453]/10 text-xs text-[#183a1d] mb-6">
           <Shield size={12} />
-          Every expense verified on Polygon blockchain
+          {t('donors.heroBadge')}
         </div>
         <h1 className="text-4xl md:text-5xl font-bold text-[#183a1d] mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
-          Donate with<br />
+          {t('donors.heroTitle1')}<br />
           <span style={{ background: 'linear-gradient(135deg, #f6c453, #f6c453)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            cryptographic proof
+            {t('donors.heroTitle2')}
           </span>
         </h1>
         <p className="text-[#183a1d]/60 text-lg max-w-xl mx-auto mb-8">
-          Every NGO on Tulip DS publishes verified, blockchain-anchored financial records. See exactly where your money goes — provably.
+          {t('donors.heroDesc')}
         </p>
 
         {/* Trust pills */}
         <div className="flex items-center justify-center gap-3 flex-wrap mb-10">
-          {['SHA-256 Hashed', 'Polygon Anchored', 'RFC 3161 Timestamped', 'eIDAS Compliant'].map(t => (
-            <div key={t} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#e1eedd] border border-[#c8d6c0] text-xs text-[#183a1d]/60">
+          {[
+            { key: 'sha256', label: t('donors.sha256') },
+            { key: 'polygon', label: t('donors.polygonAnchored') },
+            { key: 'rfc', label: t('donors.rfcTimestamped') },
+            { key: 'eidas', label: t('donors.eidasCompliant') },
+          ].map(pill => (
+            <div key={pill.key} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#e1eedd] border border-[#c8d6c0] text-xs text-[#183a1d]/60">
               <CheckCircle size={11} className="text-green-400" />
-              {t}
+              {pill.label}
             </div>
           ))}
         </div>
@@ -198,7 +207,7 @@ export default function DonorPortalPage() {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search NGOs by name or country..."
+            placeholder={t('donors.searchPlaceholder')}
             className="bg-transparent text-[#183a1d] placeholder-[#183a1d]/40 outline-none w-full text-sm"
           />
         </div>
@@ -209,9 +218,9 @@ export default function DonorPortalPage() {
         style={{ background: '#e1eedd' }}>
         <div className="max-w-4xl mx-auto px-6 grid grid-cols-3 gap-6 text-center">
           {[
-            { label: 'Verified NGOs', value: ngos.length },
-            { label: 'Expenses Anchored', value: ngos.reduce((s, n) => s + n.totalAnchored, 0) },
-            { label: 'Avg Integrity Score', value: ngos.length ? `${Math.round(ngos.reduce((s, n) => s + n.integrityScore, 0) / ngos.length)}%` : '—' },
+            { label: t('donors.verifiedNgos'), value: ngos.length },
+            { label: t('donors.expensesAnchored'), value: ngos.reduce((s, n) => s + n.totalAnchored, 0) },
+            { label: t('donors.avgIntegrity'), value: ngos.length ? `${Math.round(ngos.reduce((s, n) => s + n.integrityScore, 0) / ngos.length)}%` : '—' },
           ].map(({ label, value }) => (
             <div key={label}>
               <div className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
@@ -225,11 +234,11 @@ export default function DonorPortalPage() {
       <div className="max-w-4xl mx-auto px-6 pb-20">
         <div className="flex items-center justify-between mb-6">
           <h2 className="font-semibold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
-            {filtered.length} Verified Organisation{filtered.length !== 1 ? 's' : ''}
+            {t('donors.verifiedOrgs', { count: filtered.length })}
           </h2>
           <div className="flex items-center gap-1.5 text-xs text-[#183a1d]/40">
             <Star size={12} className="text-yellow-400" />
-            Sorted by integrity score
+            {t('donors.sortedByIntegrity')}
           </div>
         </div>
 
@@ -254,7 +263,7 @@ export default function DonorPortalPage() {
 
       {/* Footer */}
       <footer className="border-t border-[#c8d6c0] py-8 text-center">
-        <p className="text-[#183a1d]/30 text-xs">© 2026 Tulip DS · Bright Bytes Technology · Dubai UAE</p>
+        <p className="text-[#183a1d]/30 text-xs">{t('donors.footer')}</p>
       </footer>
     </div>
   )

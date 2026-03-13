@@ -21,19 +21,19 @@ const navItems = [
   { key: 'funding',    href: '/dashboard/funding',   icon: Banknote },
   { key: 'documents',  href: '/dashboard/documents', icon: FileCheck },
   { key: 'expenses',   href: '/dashboard/expenses',  icon: Receipt },
-  { key: null, label: 'Audit Log', href: '/dashboard/audit',     icon: Shield },
+  { key: 'auditLog',    href: '/dashboard/audit',     icon: Shield },
   { key: 'analytics',  href: '/dashboard/analytics', icon: BarChart3 },
   { key: 'approvals',  href: '/dashboard/workflow',  icon: ListChecks, fallback: 'Workflow' },
-  { key: null, label: 'Billing',   href: '/dashboard/billing',   icon: CreditCard },
-  { key: null, label: 'Team',      href: '/dashboard/team',      icon: Users },
-  { key: null, label: 'API Keys',  href: '/dashboard/api-keys',  icon: Key },
-  { key: null, label: 'Webhooks',  href: '/dashboard/webhooks',  icon: Webhook },
-  { key: null, label: 'Trust Seal',  href: '/dashboard/trust-seal',     icon: ShieldCheck },
-  { key: null, label: 'Cases',      href: '/dashboard/cases',          icon: Briefcase },
-  { key: null, label: 'OCR Engine', href: '/dashboard/api-portal/ocr', icon: ScanLine },
-  { key: null, label: 'Bundle Verify', href: '/dashboard/api-portal/bundle', icon: FolderSearch },
-  { key: null, label: 'Developer API', href: '/dashboard/api-portal/developer', icon: Code2 },
-  { key: null, label: 'Embed',     href: '/dashboard/embed',     icon: Code2 },
+  { key: 'billing',     href: '/dashboard/billing',   icon: CreditCard },
+  { key: 'team',        href: '/dashboard/team',      icon: Users },
+  { key: 'apiKeys',     href: '/dashboard/api-keys',  icon: Key },
+  { key: 'webhooks',    href: '/dashboard/webhooks',  icon: Webhook },
+  { key: 'trustSeal',   href: '/dashboard/trust-seal',     icon: ShieldCheck },
+  { key: 'cases',       href: '/dashboard/cases',          icon: Briefcase },
+  { key: 'ocrEngine',   href: '/dashboard/api-portal/ocr', icon: ScanLine },
+  { key: 'bundleVerify', href: '/dashboard/api-portal/bundle', icon: FolderSearch },
+  { key: 'developerApi', href: '/dashboard/api-portal/developer', icon: Code2 },
+  { key: 'embed',       href: '/dashboard/embed',     icon: Code2 },
   { key: 'settings',   href: '/dashboard/settings',  icon: Settings },
 ]
 
@@ -118,7 +118,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <nav className="flex-1 py-4 overflow-y-auto">
         {navItems.map((item) => {
           const { href, icon: Icon } = item
-          const label = item.key ? (item.fallback ? t(item.key, { defaultValue: item.fallback }) : t(item.key)) : item.label!
+          const label = item.fallback ? t(item.key, { defaultValue: item.fallback }) : t(item.key)
           const isWorkflow = href === '/dashboard/workflow'
           const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
           return (
@@ -158,7 +158,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               : 'text-[#f0a04b]/60 hover:text-[#f0a04b] hover:bg-[#f0a04b]/10'
           )}>
             <Crown size={18} className="shrink-0" />
-            {(!collapsed || mobileOpen) && <span className="text-sm font-medium">Admin</span>}
+            {(!collapsed || mobileOpen) && <span className="text-sm font-medium">{t('admin')}</span>}
           </Link>
         )}
         {/* Collapse toggle — desktop only */}
@@ -167,14 +167,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           className="hidden md:flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-[#fefbe9]/60 hover:text-[#fefbe9] hover:bg-[#fefbe9]/10 transition-all"
         >
           {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-          {!collapsed && <span className="text-sm">Collapse</span>}
+          {!collapsed && <span className="text-sm">{t('collapse')}</span>}
         </button>
         <button
           onClick={handleSignOut}
           className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-[#fefbe9]/60 hover:text-red-400 hover:bg-red-400/10 transition-all"
         >
           <LogOut size={18} className="shrink-0" />
-          {(!collapsed || mobileOpen) && <span className="text-sm">Sign out</span>}
+          {(!collapsed || mobileOpen) && <span className="text-sm">{t('signOut')}</span>}
         </button>
       </div>
     </>
@@ -234,7 +234,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="hidden md:flex items-center gap-3 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 w-72">
               <Search size={15} className="text-[#183a1d]/40" />
               <input
-                placeholder="Search projects, documents..."
+                placeholder={t('searchPlaceholder')}
                 className="bg-transparent text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none w-full"
               />
             </div>

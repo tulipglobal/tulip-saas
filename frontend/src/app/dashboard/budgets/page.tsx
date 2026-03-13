@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { apiGet } from '@/lib/api'
 import Link from 'next/link'
 import { BarChart3, Plus, Search } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface BudgetLine {
   id: string
@@ -50,6 +51,7 @@ function formatDate(d: string) {
 }
 
 export default function BudgetsPage() {
+  const t = useTranslations()
   const [budgets, setBudgets] = useState<Budget[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -72,21 +74,21 @@ export default function BudgetsPage() {
     <div className="p-4 md:p-6 space-y-6 animate-fade-up">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Budgets</h1>
+          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('budgets.title')}</h1>
           <p className="text-[#183a1d]/60 text-sm mt-1">{budgets.length} budget{budgets.length !== 1 ? 's' : ''}</p>
         </div>
         <Link href="/dashboard/budgets/new"
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] self-start bg-[#f6c453] hover:bg-[#f0a04b] transition-all">
-          <Plus size={16} /> New Budget
+          <Plus size={16} /> {t('budgets.new')}
         </Link>
       </div>
 
       {filtered.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { label: 'Total Budgeted', value: `$${totalBudgeted.toLocaleString()}` },
-            { label: 'Total Spent', value: `$${totalSpent.toLocaleString()}` },
-            { label: 'Utilisation', value: totalBudgeted > 0 ? `${Math.round((totalSpent / totalBudgeted) * 100)}%` : '0%' },
+            { label: t('budgets.totalBudgeted'), value: `$${totalBudgeted.toLocaleString()}` },
+            { label: t('budgets.totalSpent'), value: `$${totalSpent.toLocaleString()}` },
+            { label: t('budgets.utilisation'), value: totalBudgeted > 0 ? `${Math.round((totalSpent / totalBudgeted) * 100)}%` : '0%' },
           ].map(({ label, value }) => (
             <div key={label} className="rounded-xl border border-[#c8d6c0] px-5 py-4"
               style={{ background: '#e1eedd' }}>
@@ -100,22 +102,22 @@ export default function BudgetsPage() {
       <div className="flex items-center gap-3 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 max-w-sm">
         <Search size={15} className="text-[#183a1d]/40" />
         <input value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="Search budgets..." className="bg-transparent text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none w-full" />
+          placeholder={t('budgets.searchBudgets')} className="bg-transparent text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none w-full" />
       </div>
 
       <div className="rounded-xl border border-[#c8d6c0] overflow-hidden"
         style={{ background: '#e1eedd' }}>
         <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1.5fr] gap-4 px-5 py-3 border-b border-[#c8d6c0] text-xs text-[#183a1d]/40 uppercase tracking-wide font-medium">
-          <span>Budget</span><span>Period</span><span>Lines</span><span>Amount</span><span>Status</span><span>Progress</span>
+          <span>{t('budgets.budget')}</span><span>{t('budgets.period')}</span><span>{t('budgets.lines')}</span><span>{t('budgets.amount')}</span><span>{t('budgets.status')}</span><span>{t('budgets.progress')}</span>
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-[#183a1d]/40 text-sm">Loading…</div>
+          <div className="p-8 text-center text-[#183a1d]/40 text-sm">{t('common.loading')}</div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center py-16 gap-3">
             <BarChart3 size={32} className="text-[#183a1d]/30" />
-            <p className="text-[#183a1d]/40 text-sm">No budgets yet</p>
-            <Link href="/dashboard/budgets/new" className="text-[#183a1d] text-sm hover:underline">Create your first budget</Link>
+            <p className="text-[#183a1d]/40 text-sm">{t('budgets.noBudgets')}</p>
+            <Link href="/dashboard/budgets/new" className="text-[#183a1d] text-sm hover:underline">{t('budgets.createFirst')}</Link>
           </div>
         ) : (
           <div className="divide-y divide-[#c8d6c0]">

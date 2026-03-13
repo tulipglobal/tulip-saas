@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { Upload, FileCheck, X, Paperclip, WifiOff, Clock, Loader2, AlertCircle, CheckCircle } from 'lucide-react'
 import { queueDocument } from '@/lib/syncService'
 
@@ -27,6 +28,7 @@ function formatSize(bytes: number) {
 }
 
 export default function DocumentUploadSection({ entityType, entityId, onUploaded }: Props) {
+  const t = useTranslations()
   const [isOnline, setIsOnline] = useState(
     typeof window !== 'undefined' ? navigator.onLine : true
   )
@@ -147,12 +149,12 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
       style={{ background: '#e1eedd' }}>
       <div className="flex items-center gap-2">
         <Paperclip size={14} className="text-[#183a1d]" />
-        <span className="text-sm font-medium text-[#183a1d]">Attach Documents <span className="text-[#183a1d]/40 text-xs">(up to {MAX_FILES} files)</span></span>
+        <span className="text-sm font-medium text-[#183a1d]">{t('documents.attachDocuments')} <span className="text-[#183a1d]/40 text-xs">({t('documents.upToFiles', { count: MAX_FILES })})</span></span>
       </div>
 
       {!isOnline && (
         <div className="rounded-lg bg-amber-100 border border-amber-300 px-4 py-3 text-sm text-amber-800 flex items-center gap-2">
-          <WifiOff size={14} /> You&apos;re offline — files will be queued for upload when reconnected
+          <WifiOff size={14} /> {t('documents.offlineQueued')}
         </div>
       )}
 
@@ -170,8 +172,8 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
           accept="image/*,video/*,.pdf,.doc,.docx,.xlsx,.xls,.csv"
           onChange={e => { if (e.target.files && e.target.files.length > 0) { addFiles(e.target.files); e.target.value = '' } }} />
         <Upload size={20} className="text-[#183a1d]/30 mx-auto mb-2" />
-        <p className="text-sm text-[#183a1d]/60">Drop files here or <span className="text-[#f6c453] font-medium">browse</span></p>
-        <p className="text-xs text-[#183a1d]/30 mt-1">PDF, Word, Excel, Image — max 20MB each</p>
+        <p className="text-sm text-[#183a1d]/60">{t('documents.dropOrBrowse')}</p>
+        <p className="text-xs text-[#183a1d]/30 mt-1">{t('documents.fileFormats')}</p>
       </div>
 
       {/* File list */}
@@ -195,9 +197,9 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
                 )}
                 <p className="text-[10px] m-0 mt-0.5" style={{ color: entry.status === 'failed' ? '#ef4444' : '#183a1d80' }}>
                   {formatSize(entry.file.size)}
-                  {entry.status === 'sealed' && ' — sealed'}
+                  {entry.status === 'sealed' && ` — ${t('documents.sealed')}`}
                   {entry.status === 'failed' && ` — ${entry.error}`}
-                  {entry.status === 'offline_queued' && ' — queued offline'}
+                  {entry.status === 'offline_queued' && ` — ${t('documents.queuedOffline')}`}
                 </p>
               </div>
               {entry.status === 'queued' && !uploading && (
@@ -213,10 +215,10 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
       {/* Doc type selector — shared across all files */}
       {entries.length > 0 && entries.some(e => e.status === 'queued') && (
         <div>
-          <label className={labelCls}>Document Type (all files)</label>
+          <label className={labelCls}>{t('documents.docTypeAll')}</label>
           <select value={docType} onChange={e => setDocType(e.target.value)} className={inputCls}>
-            <option value="">Select type</option>
-            {DOC_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+            <option value="">{t('common.selectType')}</option>
+            {DOC_TYPES.map(dt => <option key={dt} value={dt}>{dt}</option>)}
           </select>
         </div>
       )}
@@ -225,13 +227,13 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
 
       {allDone && sealedCount > 0 && (
         <div className="flex items-center gap-2 text-green-400 text-sm">
-          <FileCheck size={14} /> {sealedCount} document{sealedCount > 1 ? 's' : ''} uploaded and SHA-256 fingerprinted
+          <FileCheck size={14} /> {t('documents.docsSealed', { count: sealedCount })}
         </div>
       )}
 
       {allDone && queuedOfflineCount > 0 && (
         <div className="flex items-center gap-2 text-amber-600 text-sm">
-          <Clock size={14} /> {queuedOfflineCount} document{queuedOfflineCount > 1 ? 's' : ''} saved offline — will auto-upload when reconnected
+          <Clock size={14} /> {t('documents.docsSavedOffline', { count: queuedOfflineCount })}
         </div>
       )}
 
@@ -241,11 +243,11 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
             isOnline ? 'bg-[#f6c453] hover:bg-[#f0a04b]' : 'bg-amber-400 hover:bg-amber-500'
           }`}>
           {isOnline ? <Upload size={14} /> : <WifiOff size={14} />}
-          {uploading ? 'Uploading...' : isOnline
+          {uploading ? t('expenses.uploading') : isOnline
             ? entries.filter(e => e.status === 'queued').length > 1
-              ? `Upload All (${entries.filter(e => e.status === 'queued').length} files)`
-              : 'Upload Document'
-            : `Save ${entries.filter(e => e.status === 'queued').length} Offline`}
+              ? t('documents.uploadAll', { count: entries.filter(e => e.status === 'queued').length })
+              : t('documents.uploadDocument')
+            : t('documents.saveOffline', { count: entries.filter(e => e.status === 'queued').length })}
         </button>
       )}
     </div>

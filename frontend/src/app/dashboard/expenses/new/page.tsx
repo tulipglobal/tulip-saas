@@ -11,6 +11,7 @@ import { queueExpense, cacheProjects, cacheBudgets } from '@/lib/syncService'
 import { offlineDb } from '@/lib/offlineDb'
 import CurrencySelect from '@/components/CurrencySelect'
 import { formatCurrencyShort } from '@/lib/currencies'
+import { useTranslations } from 'next-intl'
 
 interface Project { id: string; name: string }
 interface BudgetLine { id: string; expenseType: string; category: string; subCategory: string | null; approvedAmount: number; currency: string; spent?: number; remaining?: number }
@@ -18,6 +19,7 @@ interface BudgetOption { id: string; name: string; status: string; totalApproved
 
 export default function NewExpensePage() {
   const router = useRouter()
+  const t = useTranslations()
   const { isOnline } = useOfflineSync()
 
   // DEBUG panel state — toggle with ?debug in URL
@@ -229,10 +231,10 @@ export default function NewExpensePage() {
   }
 
   const submit = async () => {
-    if (!form.projectId) { setError('Project is required'); return }
-    if (!form.title.trim()) { setError('Title is required'); return }
-    if (!form.amount || isNaN(parseFloat(form.amount))) { setError('Valid amount is required'); return }
-    if (parseFloat(form.amount) <= 0) { setError('Amount must be greater than zero'); return }
+    if (!form.projectId) { setError(t('expenses.projectRequired')); return }
+    if (!form.title.trim()) { setError(t('expenses.titleRequired')); return }
+    if (!form.amount || isNaN(parseFloat(form.amount))) { setError(t('expenses.validAmount')); return }
+    if (parseFloat(form.amount) <= 0) { setError(t('expenses.amountPositive')); return }
     if (lineRemaining !== null && parseFloat(form.amount) > lineRemaining) {
       setError(`Amount exceeds remaining balance of ${formatCurrencyShort(selectedLine?.currency || '')} ${lineRemaining.toLocaleString()}`)
       return
@@ -356,8 +358,8 @@ export default function NewExpensePage() {
           <ArrowLeft size={18} />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Log Expense</h1>
-          <p className="text-[#183a1d]/60 text-sm">This expense will be SHA-256 hashed and anchored to Polygon</p>
+          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('expenses.logExpense')}</h1>
+          <p className="text-[#183a1d]/60 text-sm">{t('expenses.expenseAnchored')}</p>
         </div>
       </div>
 
@@ -365,14 +367,14 @@ export default function NewExpensePage() {
 
         {/* 1. Project */}
         <div>
-          <label className={labelCls}>Project *</label>
+          <label className={labelCls}>{t('expenses.project')}</label>
           {!effectiveOnline && projects.length === 0 ? (
             <div className="rounded-lg bg-amber-100 border border-amber-300 px-4 py-3 text-sm text-amber-800">
-              Open this page while online first to cache your projects
+              {t('expenses.cacheProjects')}
             </div>
           ) : (
             <select value={form.projectId} onChange={e => handleProjectChange(e.target.value)} className={inputCls}>
-              <option value="">Select project...</option>
+              <option value="">{t('common.selectProject')}</option>
               {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           )}
@@ -381,7 +383,7 @@ export default function NewExpensePage() {
         {/* 2. Expense Type (CapEx/OpEx) — filters budgets & lines */}
         {form.projectId && (
           <div>
-            <label className={labelCls}>Expense Type</label>
+            <label className={labelCls}>{t('expenses.expenseType')}</label>
             <div className="flex gap-3">
               {(['CAPEX', 'OPEX'] as const).map(type => (
                 <button key={type} type="button"
@@ -404,18 +406,18 @@ export default function NewExpensePage() {
         {/* 3. Budget (filtered by expense type if selected) */}
         {form.projectId && (
           <div>
-            <label className={labelCls}>Budget *</label>
+            <label className={labelCls}>{t('expenses.budget')}</label>
             {loadingBudgets ? (
-              <div className={inputCls + ' text-[#183a1d]/40'}>Loading budgets...</div>
+              <div className={inputCls + ' text-[#183a1d]/40'}>{t('expenses.loadingBudgets')}</div>
             ) : filteredBudgets.length === 0 ? (
               <div className="text-xs text-[#183a1d]/40 py-2">
-                {budgets.length === 0 ? <>No budgets found for this project.{' '}
-                  <Link href={`/dashboard/budgets/new?projectId=${form.projectId}`} className="text-[#183a1d] hover:text-[#f6c453]">Create one</Link>
+                {budgets.length === 0 ? <>{t('expenses.noBudgets')}{' '}
+                  <Link href={`/dashboard/budgets/new?projectId=${form.projectId}`} className="text-[#183a1d] hover:text-[#f6c453]">{t('expenses.createOne')}</Link>
                 </> : <>No budgets with {form.expenseType === 'CAPEX' ? 'CapEx' : 'OpEx'} lines found.</>}
               </div>
             ) : (
               <select value={form.budgetId} onChange={e => handleBudgetChange(e.target.value)} className={inputCls}>
-                <option value="">Select budget...</option>
+                <option value="">{t('common.selectBudget')}</option>
                 {filteredBudgets.map(b => (
                   <option key={b.id} value={b.id}>
                     {b.name} ({b.status}) — Remaining: ${(b.totalApproved - (b.totalSpent || 0)).toLocaleString()}
@@ -429,9 +431,9 @@ export default function NewExpensePage() {
         {/* 4. Budget Line (filtered by expense type if selected) */}
         {selectedBudget && (
           <div>
-            <label className={labelCls}>Budget Line *</label>
+            <label className={labelCls}>{t('expenses.budgetLine')}</label>
             <select value={form.budgetLineId} onChange={e => handleBudgetLineChange(e.target.value)} className={inputCls}>
-              <option value="">Select budget line...</option>
+              <option value="">{t('common.selectBudgetLine')}</option>
               {filteredLines.map(l => (
                 <option key={l.id} value={l.id}>
                   {l.expenseType} — {l.category}{l.subCategory ? ` / ${l.subCategory}` : ''} (Remaining: {l.currency} {(l.remaining ?? l.approvedAmount).toLocaleString()})
@@ -440,9 +442,9 @@ export default function NewExpensePage() {
             </select>
             {selectedLine && (
               <div className="text-xs text-[#183a1d]/60 mt-1 flex gap-4">
-                <span>Approved: <span className="text-[#183a1d]/70">{selectedLine.currency} {selectedLine.approvedAmount.toLocaleString()}</span></span>
+                <span>{t('expenses.approved')}: <span className="text-[#183a1d]/70">{selectedLine.currency} {selectedLine.approvedAmount.toLocaleString()}</span></span>
                 {selectedLine.remaining !== undefined && (
-                  <span>Remaining: <span className={selectedLine.remaining > 0 ? 'text-green-400' : 'text-red-400'}>{selectedLine.currency} {selectedLine.remaining.toLocaleString()}</span></span>
+                  <span>{t('expenses.remaining')}: <span className={selectedLine.remaining > 0 ? 'text-green-400' : 'text-red-400'}>{selectedLine.currency} {selectedLine.remaining.toLocaleString()}</span></span>
                 )}
               </div>
             )}
@@ -451,14 +453,14 @@ export default function NewExpensePage() {
 
         {/* Title + Amount */}
         <div>
-          <label className={labelCls}>Description / Title *</label>
+          <label className={labelCls}>{t('expenses.descriptionTitle')}</label>
           <input value={form.title} onChange={e => set('title', e.target.value)}
             placeholder="e.g. Field equipment purchase" className={inputCls} />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelCls}>Amount *</label>
+            <label className={labelCls}>{t('expenses.amount')}</label>
             <input type="number" step="0.01" value={form.amount} onChange={e => set('amount', e.target.value)}
               placeholder="0.00" className={inputCls} />
             {lineRemaining !== null && form.amount && parseFloat(form.amount) > lineRemaining && (
@@ -466,7 +468,7 @@ export default function NewExpensePage() {
             )}
           </div>
           <div>
-            <label className={labelCls}>Currency</label>
+            <label className={labelCls}>{t('common.currency')}</label>
             <CurrencySelect value={form.currency} onChange={v => set('currency', v)} />
           </div>
         </div>
@@ -474,16 +476,16 @@ export default function NewExpensePage() {
         {form.expenseType && (
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={labelCls}>Category</label>
+              <label className={labelCls}>{t('expenses.category')}</label>
               <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value, subCategory: '' }))} className={inputCls}>
-                <option value="">Select category</option>
+                <option value="">{t('common.selectCategory')}</option>
                 {Object.keys(categories).map(cat => <option key={cat} value={cat}>{cat}</option>)}
               </select>
             </div>
             <div>
-              <label className={labelCls}>Sub-Category</label>
+              <label className={labelCls}>{t('expenses.subCategory')}</label>
               <select value={form.subCategory} onChange={e => set('subCategory', e.target.value)} className={inputCls} disabled={!form.category}>
-                <option value="">Select sub-category</option>
+                <option value="">{t('common.selectSubCategory')}</option>
                 {subCategories.map(sub => <option key={sub} value={sub}>{sub}</option>)}
               </select>
             </div>
@@ -492,19 +494,19 @@ export default function NewExpensePage() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelCls}>Vendor</label>
+            <label className={labelCls}>{t('expenses.vendor')}</label>
             <input value={form.vendor} onChange={e => set('vendor', e.target.value)}
               placeholder="Vendor name" className={inputCls} />
           </div>
           <div>
-            <label className={labelCls}>Expense Date</label>
+            <label className={labelCls}>{t('expenses.expenseDate')}</label>
             <input type="date" value={form.expenseDate} onChange={e => set('expenseDate', e.target.value)} className={inputCls} />
           </div>
         </div>
 
         {/* Receipt Upload */}
         <div className="rounded-lg border border-[#c8d6c0] p-4 space-y-3 bg-[#e1eedd]">
-          <label className={labelCls + ' mb-0'}>Receipt / Invoice</label>
+          <label className={labelCls + ' mb-0'}>{t('expenses.receiptInvoice')}</label>
           {receiptData ? (
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-green-400 text-sm">
@@ -515,9 +517,9 @@ export default function NewExpensePage() {
               {crossTenantDuplicate && (
                 <div className="rounded-xl bg-red-600 p-5 space-y-2">
                   <div className="flex items-center gap-3 text-white font-bold text-lg">
-                    <AlertTriangle size={24} className="shrink-0" /> HIGH RISK — Cross-Organisation Duplicate
+                    <AlertTriangle size={24} className="shrink-0" /> {t('fraud.crossOrgDuplicate')}
                   </div>
-                  <p className="text-white font-bold text-base">This document was uploaded by another organisation. This is a serious fraud indicator.</p>
+                  <p className="text-white font-bold text-base">{t('fraud.crossOrgDesc')}</p>
                   <button onClick={() => { setReceiptData(null); setReceiptFile(null); setDuplicateInfo(null); setCrossTenantDuplicate(false); setDuplicateConfidence(null) }}
                     className="text-white/80 hover:text-white text-sm font-medium underline">Replace file</button>
                 </div>
@@ -525,7 +527,7 @@ export default function NewExpensePage() {
               {duplicateInfo && !crossTenantDuplicate && duplicateConfidence === 'HIGH' && (
                 <div className="rounded-xl bg-red-600 p-5 space-y-2">
                   <div className="flex items-center gap-3 text-white font-bold text-lg">
-                    <AlertTriangle size={24} className="shrink-0" /> DUPLICATE CONFIRMED
+                    <AlertTriangle size={24} className="shrink-0" /> {t('fraud.duplicateConfirmed')}
                   </div>
                   <p className="text-white font-bold text-base">This file matches &quot;{duplicateInfo.name}&quot; by both text content and visual appearance. This is almost certainly a duplicate receipt.</p>
                   <button onClick={() => { setReceiptData(null); setReceiptFile(null); setDuplicateInfo(null); setCrossTenantDuplicate(false); setDuplicateConfidence(null) }}
@@ -535,7 +537,7 @@ export default function NewExpensePage() {
               {duplicateInfo && !crossTenantDuplicate && duplicateConfidence === 'MEDIUM' && (
                 <div className="rounded-xl bg-orange-500 p-5 space-y-2">
                   <div className="flex items-center gap-3 text-white font-bold text-lg">
-                    <AlertTriangle size={24} className="shrink-0" /> LIKELY DUPLICATE
+                    <AlertTriangle size={24} className="shrink-0" /> {t('fraud.likelyDuplicate')}
                   </div>
                   <p className="text-white font-bold text-base">This file has the same text content as &quot;{duplicateInfo.name}&quot; uploaded on {new Date(duplicateInfo.uploadedAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}. This may be a duplicate expense claim.</p>
                   <button onClick={() => { setReceiptData(null); setReceiptFile(null); setDuplicateInfo(null); setCrossTenantDuplicate(false); setDuplicateConfidence(null) }}
@@ -545,7 +547,7 @@ export default function NewExpensePage() {
               {!crossTenantDuplicate && !duplicateInfo && duplicateConfidence === 'LOW' && (
                 <div className="rounded-xl bg-yellow-500 p-5 space-y-2">
                   <div className="flex items-center gap-3 text-[#183a1d] font-bold text-lg">
-                    <AlertTriangle size={24} className="shrink-0" /> POSSIBLE DUPLICATE
+                    <AlertTriangle size={24} className="shrink-0" /> {t('fraud.possibleDuplicate')}
                   </div>
                   <p className="text-[#183a1d] font-bold text-base">This file looks visually similar to another document on file. Please verify this is not a duplicate.</p>
                   <button onClick={() => { setReceiptData(null); setReceiptFile(null); setDuplicateInfo(null); setCrossTenantDuplicate(false); setDuplicateConfidence(null) }}
@@ -574,7 +576,7 @@ export default function NewExpensePage() {
               <div className="flex items-center gap-2">
                 <label className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-[#c8d6c0] hover:border-[#c8d6c0] cursor-pointer transition-all text-sm text-[#183a1d]/60">
                   <Upload size={14} />
-                  <span>{receiptFile ? receiptFile.name : 'Choose file...'}</span>
+                  <span>{receiptFile ? receiptFile.name : t('common.chooseFile')}</span>
                   <input type="file" className="hidden"
                     accept="image/*,application/pdf"
                     onChange={e => { if (e.target.files?.[0]) setReceiptFile(e.target.files[0]) }} />
@@ -582,24 +584,24 @@ export default function NewExpensePage() {
                 {receiptFile && (
                   <button onClick={handleReceiptUpload} disabled={uploading}
                     className="px-4 py-2.5 rounded-lg text-xs font-medium text-[#183a1d] disabled:opacity-50 shrink-0 bg-[#f6c453] hover:bg-[#f0a04b]">
-                    {uploading ? 'Uploading...' : 'Upload & Seal'}
+                    {uploading ? t('expenses.uploading') : t('expenses.uploadAndSeal')}
                   </button>
                 )}
               </div>
-              <p className="text-[10px] text-[#183a1d]/30">File will be hashed (SHA-256) and a Trust Seal will be created automatically</p>
+              <p className="text-[10px] text-[#183a1d]/30">{t('expenses.fileWillBeHashed')}</p>
             </div>
           )}
         </div>
 
         <div>
-          <label className={labelCls}>Notes</label>
+          <label className={labelCls}>{t('expenses.notes')}</label>
           <textarea value={form.notes} onChange={e => set('notes', e.target.value)}
             placeholder="Additional notes..." rows={2} className={inputCls + ' resize-none'} />
         </div>
 
         {!effectiveOnline && (
           <div className="rounded-lg bg-amber-100 border border-amber-300 px-4 py-3 text-sm text-amber-800 flex items-center gap-2">
-            <WifiOff size={14} /> You&apos;re offline — expense will be saved locally and synced when you reconnect
+            <WifiOff size={14} /> {t('expenses.offlineMsg')}
           </div>
         )}
 
@@ -608,13 +610,13 @@ export default function NewExpensePage() {
             <div className="flex items-center gap-3 text-white font-bold text-lg">
               <AlertTriangle size={24} className="shrink-0" />
               {fraudBlock.error === 'DUPLICATE_HIGH_CONFIDENCE'
-                ? 'Upload Blocked — Duplicate Receipt Detected'
-                : 'Upload Blocked — HIGH Fraud Risk'}
+                ? t('fraud.duplicateBlocked')
+                : t('fraud.fraudBlocked')}
             </div>
             <p className="text-white/90 text-sm">
               {fraudBlock.error === 'DUPLICATE_HIGH_CONFIDENCE'
-                ? 'This receipt has already been submitted. You cannot submit a duplicate receipt.'
-                : 'OCR detected significant discrepancies in this receipt.'}
+                ? t('fraud.duplicateBlockedDesc')
+                : t('fraud.fraudBlockedDesc')}
             </p>
             {fraudBlock.reasons && fraudBlock.reasons.length > 0 && (
               <ul className="text-white/80 text-sm space-y-1 list-disc list-inside">
@@ -622,19 +624,19 @@ export default function NewExpensePage() {
               </ul>
             )}
             {fraudBlock.fraudScore != null && (
-              <p className="text-white/60 text-xs">Fraud score: {fraudBlock.fraudScore}/100 ({fraudBlock.fraudLevel})</p>
+              <p className="text-white/60 text-xs">{t('fraud.fraudScoreLabel', { score: fraudBlock.fraudScore, level: fraudBlock.fraudLevel ?? '' })}</p>
             )}
-            <p className="text-white/70 text-sm">Please verify the receipt and contact your administrator.</p>
+            <p className="text-white/70 text-sm">{t('fraud.verifyContact')}</p>
             <button onClick={() => { setFraudBlock(null); setReceiptData(null); setReceiptFile(null) }}
               className="text-white/80 hover:text-white text-sm font-medium underline">
-              Try a different receipt
+              {t('fraud.tryDifferent')}
             </button>
           </div>
         )}
 
         {offlineSaved && (
           <div className="rounded-lg bg-green-100 border border-green-300 px-4 py-3 text-sm text-green-800 flex items-center gap-2">
-            <CheckCircle size={14} /> Saved offline — will sync when connected
+            <CheckCircle size={14} /> {t('expenses.savedOffline')}
           </div>
         )}
 
@@ -645,10 +647,10 @@ export default function NewExpensePage() {
         <div className="flex items-center gap-3 pt-2">
           <button onClick={submit} disabled={saving}
             className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-[#183a1d] disabled:opacity-50 bg-[#f6c453] hover:bg-[#f0a04b]">
-            <Save size={15} /> {saving ? 'Saving...' : effectiveOnline ? 'Log Expense' : 'Save Offline'}
+            <Save size={15} /> {saving ? t('common.saving') : effectiveOnline ? t('expenses.logExpense') : t('expenses.saveOffline')}
           </button>
           <Link href="/dashboard/expenses" className="px-5 py-2.5 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">
-            Cancel
+            {t('common.cancel')}
           </Link>
         </div>
       </div>

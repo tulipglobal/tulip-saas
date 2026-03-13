@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import {
   Shield, LogOut, FileText, CheckCircle, Clock,
   Calendar, ExternalLink, Search, Hash, Link2, Eye,
@@ -172,6 +173,7 @@ function AgreementCard({ agreement, documents, token }: {
   documents: Document[]
   token: string
 }) {
+  const t = useTranslations('donorDashboard')
   const [expanded, setExpanded] = useState(false)
   const pct = agreement.totalAmount > 0 ? Math.min(100, Math.round((agreement.spent / agreement.totalAmount) * 100)) : 0
 
@@ -203,11 +205,11 @@ function AgreementCard({ agreement, documents, token }: {
           {/* Amount + progress */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-3">
             <div>
-              <span className="text-[#183a1d]/40 text-xs">Funded</span>
+              <span className="text-[#183a1d]/40 text-xs">{t('funded')}</span>
               <p className="text-[#183a1d] font-bold text-sm">{agreement.currency} {agreement.totalAmount.toLocaleString()}</p>
             </div>
             <div>
-              <span className="text-[#183a1d]/40 text-xs">Spent</span>
+              <span className="text-[#183a1d]/40 text-xs">{t('spent')}</span>
               <p className="text-[#183a1d]/70 font-medium text-sm">{agreement.currency} {agreement.spent.toLocaleString()}</p>
             </div>
             <div className="flex-1 min-w-[120px]">
@@ -242,15 +244,15 @@ function AgreementCard({ agreement, documents, token }: {
               </h4>
               <div className="grid grid-cols-3 gap-2 mb-3">
                 <div className="rounded-lg border border-[#c8d6c0]/50 px-3 py-2 bg-[#e1eedd]">
-                  <div className="text-[10px] text-[#183a1d]/40">Budgeted</div>
+                  <div className="text-[10px] text-[#183a1d]/40">{t('budgeted')}</div>
                   <div className="text-sm font-bold text-[#183a1d]">${agreement.budget.totalApproved.toLocaleString()}</div>
                 </div>
                 <div className="rounded-lg border border-[#c8d6c0]/50 px-3 py-2 bg-[#e1eedd]">
-                  <div className="text-[10px] text-[#183a1d]/40">Spent</div>
+                  <div className="text-[10px] text-[#183a1d]/40">{t('spent')}</div>
                   <div className="text-sm font-bold text-orange-400">${agreement.budget.totalSpent.toLocaleString()}</div>
                 </div>
                 <div className="rounded-lg border border-[#c8d6c0]/50 px-3 py-2 bg-[#e1eedd]">
-                  <div className="text-[10px] text-[#183a1d]/40">Remaining</div>
+                  <div className="text-[10px] text-[#183a1d]/40">{t('remaining')}</div>
                   <div className={`text-sm font-bold ${(agreement.budget.totalApproved - agreement.budget.totalSpent) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                     ${(agreement.budget.totalApproved - agreement.budget.totalSpent).toLocaleString()}
                   </div>
@@ -286,7 +288,7 @@ function AgreementCard({ agreement, documents, token }: {
           {/* Linked projects */}
           {agreement.projectFunding.length > 0 && (
             <div>
-              <h4 className="text-[#183a1d]/40 text-xs uppercase tracking-wide font-medium mb-2">Linked Projects</h4>
+              <h4 className="text-[#183a1d]/40 text-xs uppercase tracking-wide font-medium mb-2">{t('linkedProjects')}</h4>
               <div className="flex flex-wrap gap-2">
                 {agreement.projectFunding.map(pf => (
                   <div key={pf.id} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#e1eedd] text-xs">
@@ -306,7 +308,7 @@ function AgreementCard({ agreement, documents, token }: {
           {linkedDocs.length > 0 && (
             <div>
               <h4 className="text-[#183a1d]/40 text-xs uppercase tracking-wide font-medium mb-2">
-                Project Documents ({linkedDocs.length})
+                {t('projectDocuments', { count: linkedDocs.length })}
               </h4>
               <div className="space-y-1">
                 {linkedDocs.map(doc => (
@@ -317,7 +319,7 @@ function AgreementCard({ agreement, documents, token }: {
           )}
 
           {linkedDocs.length === 0 && agreement.projectFunding.length > 0 && (
-            <p className="text-[#183a1d]/30 text-xs">No documents uploaded to linked projects yet</p>
+            <p className="text-[#183a1d]/30 text-xs">{t('noDocsLinked')}</p>
           )}
         </div>
       )}
@@ -330,6 +332,7 @@ function AgreementCard({ agreement, documents, token }: {
 /* ------------------------------------------------------------------ */
 
 function DocumentRow({ doc, token, compact = false }: { doc: Document; token: string; compact?: boolean }) {
+  const t = useTranslations('donorDashboard')
   const [viewLoading, setViewLoading] = useState(false)
 
   const openFile = async (e: React.MouseEvent) => {
@@ -422,23 +425,23 @@ function DocumentRow({ doc, token, compact = false }: { doc: Document; token: st
             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 hover:bg-emerald-400/15 transition-colors"
           >
             <CheckCircle size={12} />
-            Verified
+            {t('verified')}
             <span className="text-emerald-400/60 font-mono text-[10px]">{truncateTx(doc.blockchainTx)}</span>
             <ExternalLink size={10} />
           </a>
         ) : doc.anchorStatus === 'confirmed' ? (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">
             <CheckCircle size={12} />
-            Anchored
+            {t('anchored')}
           </span>
         ) : (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#e1eedd] text-[#183a1d]/40 border border-[#c8d6c0]">
             <Clock size={12} />
-            Pending
+            {t('pending')}
           </span>
         )}
         {doc.anchoredAt && (
-          <p className="text-[#183a1d]/30 text-[10px] mt-0.5 pl-1">Anchored {formatDate(doc.anchoredAt)}</p>
+          <p className="text-[#183a1d]/30 text-[10px] mt-0.5 pl-1">{t('anchoredDate', { date: formatDate(doc.anchoredAt) })}</p>
         )}
       </div>
 
@@ -452,7 +455,7 @@ function DocumentRow({ doc, token, compact = false }: { doc: Document; token: st
             ) : (
               <Eye size={12} />
             )}
-            Open
+            {t('open')}
           </button>
         )}
         {doc.sha256Hash && (
@@ -462,7 +465,7 @@ function DocumentRow({ doc, token, compact = false }: { doc: Document; token: st
             className="inline-flex items-center gap-1 text-xs text-[#183a1d]/60 hover:text-emerald-400 transition-colors"
           >
             <Link2 size={12} />
-            Verify
+            {t('verify')}
           </Link>
         )}
       </div>
@@ -486,6 +489,7 @@ interface DonorIEData {
 }
 
 function DonorIEStatement({ token }: { token: string }) {
+  const t = useTranslations('donorDashboard')
   const [data, setData] = useState<DonorIEData | null>(null)
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState(false)
@@ -507,7 +511,7 @@ function DonorIEStatement({ token }: { token: string }) {
       <button onClick={() => setExpanded(!expanded)}
         className="flex items-center justify-between w-full text-left mb-3">
         <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide">
-          Income & Expenditure
+          {t('incomeExpenditure')}
         </h2>
         <span className="text-[#183a1d]/40">
           {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -517,15 +521,15 @@ function DonorIEStatement({ token }: { token: string }) {
       {/* Summary always visible */}
       <div className="grid grid-cols-3 gap-3 mb-3">
         <div className="rounded-lg border border-[#c8d6c0] px-3 py-3" style={{ background: '#e1eedd' }}>
-          <div className="text-[10px] text-[#183a1d]/40 mb-0.5">Income</div>
+          <div className="text-[10px] text-[#183a1d]/40 mb-0.5">{t('income')}</div>
           <div className="text-sm font-bold text-emerald-400">${data.income.total.toLocaleString()}</div>
         </div>
         <div className="rounded-lg border border-[#c8d6c0] px-3 py-3" style={{ background: '#e1eedd' }}>
-          <div className="text-[10px] text-[#183a1d]/40 mb-0.5">Expenditure</div>
+          <div className="text-[10px] text-[#183a1d]/40 mb-0.5">{t('expenditure')}</div>
           <div className="text-sm font-bold text-orange-400">${data.expenditure.total.toLocaleString()}</div>
         </div>
         <div className="rounded-lg border border-[#c8d6c0] px-3 py-3" style={{ background: '#e1eedd' }}>
-          <div className="text-[10px] text-[#183a1d]/40 mb-0.5">Balance</div>
+          <div className="text-[10px] text-[#183a1d]/40 mb-0.5">{t('balance')}</div>
           <div className={`text-sm font-bold ${data.netBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
             ${data.netBalance.toLocaleString()}
           </div>
@@ -536,7 +540,7 @@ function DonorIEStatement({ token }: { token: string }) {
         <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
           {/* Income */}
           <div className="px-4 py-3 border-b border-[#c8d6c0]/50">
-            <div className="text-xs font-medium text-emerald-400 mb-2">INCOME BY SOURCE</div>
+            <div className="text-xs font-medium text-emerald-400 mb-2">{t('incomeBySource')}</div>
             {data.income.bySource.map(s => (
               <div key={s.sourceType} className="flex items-center justify-between py-0.5">
                 <span className="text-xs text-[#183a1d]/60">{s.sourceType}</span>
@@ -587,6 +591,7 @@ function DonorIEStatement({ token }: { token: string }) {
 /* ------------------------------------------------------------------ */
 
 export default function DonorDashboardPage() {
+  const t = useTranslations('donorDashboard')
   const router = useRouter()
   const [user, setUser] = useState<DonorUser | null>(null)
   const [stats, setStats] = useState<DocStats | null>(null)
@@ -673,11 +678,11 @@ export default function DonorDashboardPage() {
   /* ---------------------------------------------------------------- */
 
   const statCards = [
-    { label: 'Total Documents', value: stats?.total ?? 0, icon: FileText, bg: 'rgba(246,196,83,0.10)', iconColor: 'text-[#f6c453]' },
-    { label: 'Blockchain Verified', value: stats?.verified ?? 0, icon: CheckCircle, bg: 'rgba(16,185,129,0.10)', iconColor: 'text-emerald-400' },
-    { label: 'This Month', value: stats?.thisMonth ?? 0, icon: Calendar, bg: 'rgba(139,92,246,0.10)', iconColor: 'text-purple-400' },
+    { label: t('totalDocuments'), value: stats?.total ?? 0, icon: FileText, bg: 'rgba(246,196,83,0.10)', iconColor: 'text-[#f6c453]' },
+    { label: t('blockchainVerified'), value: stats?.verified ?? 0, icon: CheckCircle, bg: 'rgba(16,185,129,0.10)', iconColor: 'text-emerald-400' },
+    { label: t('thisMonth'), value: stats?.thisMonth ?? 0, icon: Calendar, bg: 'rgba(139,92,246,0.10)', iconColor: 'text-purple-400' },
     {
-      label: 'Last Updated',
+      label: t('lastUpdated'),
       value: stats?.lastUpdated ? formatDate(stats.lastUpdated) : '\u2014',
       icon: Clock,
       bg: 'rgba(225,238,221,0.5)',
@@ -708,7 +713,7 @@ export default function DonorDashboardPage() {
               </span>
             </Link>
             <span className="text-[#183a1d]/30 text-sm">|</span>
-            <span className="text-[#183a1d]/60 text-sm font-medium">{user?.donor?.name || 'Donor Portal'}</span>
+            <span className="text-[#183a1d]/60 text-sm font-medium">{user?.donor?.name || t('donorPortal')}</span>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-[#183a1d]/40 text-sm hidden sm:block">
@@ -716,7 +721,7 @@ export default function DonorDashboardPage() {
             </span>
             <button onClick={handleSignOut}
               className="flex items-center gap-2 px-3 py-2 rounded-lg text-[#183a1d]/60 hover:text-red-400 hover:bg-red-400/5 transition-all text-sm">
-              <LogOut size={16} /> Sign out
+              <LogOut size={16} /> {t('signOut')}
             </button>
           </div>
         </div>
@@ -727,12 +732,12 @@ export default function DonorDashboardPage() {
         {/* ── Header ── */}
         <div>
           <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
-            Welcome, {user?.firstName || 'Donor'}
+            {t('welcome', { name: user?.firstName || 'Donor' })}
           </h1>
           <p className="text-[#183a1d]/60 text-sm mt-1">
             {user?.tenantName
-              ? `Viewing verified documents from ${user.tenantName}`
-              : 'View verified documents shared by your NGO partner'}
+              ? t('viewingDocsFrom', { tenant: user.tenantName })
+              : t('viewingDocsGeneric')}
           </p>
         </div>
 
@@ -767,7 +772,7 @@ export default function DonorDashboardPage() {
             {/* ── Funding Agreements ── */}
             {agreements.length > 0 && (
               <div>
-                <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide mb-3">Funding Agreements</h2>
+                <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide mb-3">{t('fundingAgreements')}</h2>
                 <div className="space-y-3">
                   {agreements.map(a => (
                     <AgreementCard key={a.id} agreement={a} documents={documents} token={token} />
@@ -778,14 +783,14 @@ export default function DonorDashboardPage() {
 
             {/* ── Documents Section ── */}
             <div>
-              <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide mb-3">All Shared Documents</h2>
+              <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide mb-3">{t('allSharedDocuments')}</h2>
 
               {/* Search */}
               <div className="relative mb-4">
                 <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#183a1d]/30 pointer-events-none" />
                 <input
                   type="text"
-                  placeholder="Search by document name or project..."
+                  placeholder={t('searchPlaceholder')}
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#c8d6c0] bg-[#e1eedd] text-[#183a1d] text-sm placeholder:text-[#183a1d]/30 focus:outline-none focus:border-emerald-400/30 transition-colors"
@@ -797,22 +802,22 @@ export default function DonorDashboardPage() {
                 <div className="rounded-xl border border-[#c8d6c0] px-5 py-16 text-center" style={{ background: '#e1eedd' }}>
                   <FileText size={32} className="text-[#183a1d]/30 mx-auto mb-3" />
                   <p className="text-[#183a1d]/40 text-sm font-medium">
-                    {search ? 'No documents match your search' : 'No documents shared yet'}
+                    {search ? t('noDocsMatch') : t('noDocsShared')}
                   </p>
                   <p className="text-[#183a1d]/30 text-xs mt-1">
-                    {search ? 'Try a different search term' : 'Documents uploaded by your NGO partner will appear here'}
+                    {search ? t('tryDifferent') : t('docsWillAppear')}
                   </p>
                 </div>
               ) : (
                 <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
                   {/* Table header */}
                   <div className="hidden md:grid grid-cols-[2.5fr_1fr_1fr_1fr_1.5fr_1fr] gap-4 px-5 py-3 border-b border-[#c8d6c0] text-xs text-[#183a1d]/40 uppercase tracking-wide font-medium">
-                    <span>Document</span>
-                    <span>Project</span>
-                    <span>Category</span>
-                    <span>Date Added</span>
-                    <span>Blockchain Status</span>
-                    <span>Actions</span>
+                    <span>{t('document')}</span>
+                    <span>{t('project')}</span>
+                    <span>{t('category')}</span>
+                    <span>{t('dateAdded')}</span>
+                    <span>{t('blockchainStatus')}</span>
+                    <span>{t('actions')}</span>
                   </div>
 
                   {/* Table rows */}
@@ -835,7 +840,7 @@ export default function DonorDashboardPage() {
             &copy; 2026 Tulip DS &middot; Bright Bytes Technology &middot; Dubai, UAE
           </p>
           <Link href="/verify" className="flex items-center gap-1.5 text-[#183a1d]/30 text-xs hover:text-[#183a1d]/60 transition-colors">
-            <Hash size={12} /> Verify a document
+            <Hash size={12} /> {t('verifyADocument')}
           </Link>
         </div>
       </footer>

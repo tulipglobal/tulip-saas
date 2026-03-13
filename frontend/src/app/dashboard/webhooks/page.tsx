@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api'
 import {
   Webhook, Plus, Trash2, Send, Copy, Check, AlertTriangle,
@@ -100,6 +101,7 @@ const ALL_EVENTS = EVENT_GROUPS.flatMap(g => g.events.map(e => e.id))
 /* ------------------------------------------------------------------ */
 
 function DeliveryLogModal({ webhookId, onClose }: { webhookId: string; onClose: () => void }) {
+  const t = useTranslations('webhooksPage')
   const [deliveries, setDeliveries] = useState<Delivery[]>([])
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState<string | null>(null)
@@ -127,15 +129,15 @@ function DeliveryLogModal({ webhookId, onClose }: { webhookId: string; onClose: 
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-none md:rounded-2xl w-full h-full md:h-auto md:max-w-3xl md:max-h-[80vh] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-[#c8d6c0]">
-          <h3 className="text-[#183a1d] font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>Delivery Log</h3>
+          <h3 className="text-[#183a1d] font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>{t('deliveryLog')}</h3>
           <button onClick={onClose} className="text-[#183a1d]/40 hover:text-[#183a1d]/70 transition-colors"><X size={18} /></button>
         </div>
 
         <div className="overflow-y-auto max-h-[calc(80vh-60px)]">
           {loading ? (
-            <div className="p-8 text-center text-[#183a1d]/40 text-sm">Loading deliveries...</div>
+            <div className="p-8 text-center text-[#183a1d]/40 text-sm">{t('loadingDeliveries')}</div>
           ) : deliveries.length === 0 ? (
-            <div className="p-8 text-center text-[#183a1d]/40 text-sm">No delivery attempts yet</div>
+            <div className="p-8 text-center text-[#183a1d]/40 text-sm">{t('noDeliveries')}</div>
           ) : (
             <div className="divide-y divide-[#c8d6c0]">
               {deliveries.map(d => (
@@ -155,15 +157,15 @@ function DeliveryLogModal({ webhookId, onClose }: { webhookId: string; onClose: 
                     <div>
                       {d.status === 'success' ? (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">
-                          <CheckCircle size={10} /> OK
+                          <CheckCircle size={10} /> {t('ok')}
                         </span>
                       ) : d.status === 'failed' ? (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-400/10 text-red-400 border border-red-400/20">
-                          <XCircle size={10} /> Failed
+                          <XCircle size={10} /> {t('failed')}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-yellow-400/10 text-yellow-400 border border-yellow-400/20">
-                          <Clock size={10} /> Pending
+                          <Clock size={10} /> {t('pending')}
                         </span>
                       )}
                     </div>
@@ -172,14 +174,14 @@ function DeliveryLogModal({ webhookId, onClose }: { webhookId: string; onClose: 
                   {expanded === d.id && (
                     <div className="px-6 pb-4 space-y-2">
                       <div>
-                        <p className="text-[#183a1d]/40 text-[10px] uppercase tracking-wider mb-1">Payload</p>
+                        <p className="text-[#183a1d]/40 text-[10px] uppercase tracking-wider mb-1">{t('payload')}</p>
                         <pre className="text-xs text-[#183a1d]/60 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg p-3 overflow-x-auto max-h-48">
                           {JSON.stringify(d.payload, null, 2)}
                         </pre>
                       </div>
                       {d.responseBody && (
                         <div>
-                          <p className="text-[#183a1d]/40 text-[10px] uppercase tracking-wider mb-1">Response</p>
+                          <p className="text-[#183a1d]/40 text-[10px] uppercase tracking-wider mb-1">{t('response')}</p>
                           <pre className="text-xs text-[#183a1d]/40 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg p-3 overflow-x-auto max-h-32">
                             {d.responseBody}
                           </pre>
@@ -192,7 +194,7 @@ function DeliveryLogModal({ webhookId, onClose }: { webhookId: string; onClose: 
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[#183a1d] bg-[#f6c453]/20 hover:bg-[#f6c453]/30 border border-[#f6c453]/30 transition-colors disabled:opacity-40"
                         >
                           <RotateCcw size={12} className={resending === d.id ? 'animate-spin' : ''} />
-                          {resending === d.id ? 'Resending...' : 'Resend'}
+                          {resending === d.id ? t('resending') : t('resend')}
                         </button>
                       )}
                     </div>
@@ -216,6 +218,7 @@ function WebhookFormModal({ webhook, onClose, onSaved }: {
   onClose: () => void
   onSaved: (secret?: string) => void
 }) {
+  const t = useTranslations('webhooksPage')
   const isEdit = !!webhook
   const [url, setUrl] = useState(webhook?.url || '')
   const [description, setDescription] = useState(webhook?.description || '')
@@ -231,12 +234,12 @@ function WebhookFormModal({ webhook, onClose, onSaved }: {
   const deselectAll = () => setSelectedEvents([])
 
   const handleSave = async () => {
-    if (!url.trim()) { setError('URL is required'); return }
-    if (selectedEvents.length === 0) { setError('Select at least one event'); return }
+    if (!url.trim()) { setError(t('urlRequired')); return }
+    if (selectedEvents.length === 0) { setError(t('selectOneEvent')); return }
     try {
       new URL(url.trim())
     } catch {
-      setError('Invalid URL format'); return
+      setError(t('invalidUrl')); return
     }
 
     setSaving(true)
@@ -264,7 +267,7 @@ function WebhookFormModal({ webhook, onClose, onSaved }: {
       <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-none md:rounded-2xl w-full h-full md:h-auto md:max-w-lg md:max-h-[85vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-[#c8d6c0]">
           <h3 className="text-[#183a1d] font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
-            {isEdit ? 'Edit Webhook' : 'Add Webhook'}
+            {isEdit ? t('editWebhook') : t('addWebhookModal')}
           </h3>
           <button onClick={onClose} className="text-[#183a1d]/40 hover:text-[#183a1d]/70 transition-colors"><X size={18} /></button>
         </div>
@@ -276,7 +279,7 @@ function WebhookFormModal({ webhook, onClose, onSaved }: {
 
           {/* URL */}
           <div>
-            <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-1.5 block">Endpoint URL</label>
+            <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-1.5 block">{t('endpointUrl')}</label>
             <input
               value={url} onChange={e => setUrl(e.target.value)}
               placeholder="https://your-server.com/webhook"
@@ -286,7 +289,7 @@ function WebhookFormModal({ webhook, onClose, onSaved }: {
 
           {/* Description */}
           <div>
-            <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-1.5 block">Description (optional)</label>
+            <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-1.5 block">{t('descriptionOptional')}</label>
             <input
               value={description} onChange={e => setDescription(e.target.value)}
               placeholder="e.g., Slack notifications, Zapier integration"
@@ -297,10 +300,10 @@ function WebhookFormModal({ webhook, onClose, onSaved }: {
           {/* Events */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider">Events</label>
+              <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider">{t('events')}</label>
               <div className="flex gap-2">
-                <button onClick={selectAll} className="text-[10px] text-[#183a1d] hover:underline">Select All</button>
-                <button onClick={deselectAll} className="text-[10px] text-[#183a1d]/40 hover:underline">Deselect All</button>
+                <button onClick={selectAll} className="text-[10px] text-[#183a1d] hover:underline">{t('selectAll')}</button>
+                <button onClick={deselectAll} className="text-[10px] text-[#183a1d]/40 hover:underline">{t('deselectAll')}</button>
               </div>
             </div>
             <div className="space-y-3">
@@ -326,10 +329,10 @@ function WebhookFormModal({ webhook, onClose, onSaved }: {
         </div>
 
         <div className="px-6 py-4 border-t border-[#c8d6c0] flex items-center justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d]/70 transition-colors">Cancel</button>
+          <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d]/70 transition-colors">{t('cancel')}</button>
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 rounded-lg text-sm font-medium text-[#183a1d] disabled:opacity-40 bg-[#f6c453] hover:bg-[#f0a04b]">
-            {saving ? 'Saving...' : isEdit ? 'Update' : 'Create Webhook'}
+            {saving ? t('saving') : isEdit ? t('update') : t('createWebhook')}
           </button>
         </div>
       </div>
@@ -342,6 +345,7 @@ function WebhookFormModal({ webhook, onClose, onSaved }: {
 /* ------------------------------------------------------------------ */
 
 export default function WebhooksPage() {
+  const t = useTranslations('webhooksPage')
   const [webhooks, setWebhooks] = useState<WebhookEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -361,7 +365,7 @@ export default function WebhooksPage() {
   const load = () => {
     apiGet('/api/webhooks?limit=50')
       .then(r => {
-        if (!r.ok) throw new Error(r.status === 403 ? 'Requires webhooks:read permission' : 'Failed to load')
+        if (!r.ok) throw new Error(r.status === 403 ? t('requiresPermission') : 'Failed to load')
         return r.json()
       })
       .then(d => { setWebhooks(d.data ?? d.items ?? []); setLoading(false) })
@@ -371,7 +375,7 @@ export default function WebhooksPage() {
   useEffect(load, [])
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this webhook? This cannot be undone.')) return
+    if (!confirm(t('deleteConfirm'))) return
     await apiDelete(`/api/webhooks/${id}`)
     load()
   }
@@ -387,7 +391,7 @@ export default function WebhooksPage() {
     try {
       const res = await apiPost(`/api/webhooks/${id}/test`, {})
       if (res.ok) {
-        setTestResult({ id, success: true, message: 'Test event dispatched successfully' })
+        setTestResult({ id, success: true, message: t('testSuccess') })
       } else {
         const d = await res.json()
         setTestResult({ id, success: false, message: d.error || 'Test failed' })
@@ -411,14 +415,14 @@ export default function WebhooksPage() {
 
   if (loading) return (
     <div className="p-6 animate-fade-up">
-      <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Webhooks</h1>
-      <p className="text-[#183a1d]/40 text-sm mt-4">Loading...</p>
+      <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('title')}</h1>
+      <p className="text-[#183a1d]/40 text-sm mt-4">{t('loading')}</p>
     </div>
   )
 
   if (error && webhooks.length === 0) return (
     <div className="p-6 animate-fade-up">
-      <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Webhooks</h1>
+      <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('title')}</h1>
       <div className="mt-6 rounded-xl border border-red-400/20 bg-red-400/5 px-5 py-4">
         <p className="text-red-400 text-sm">{error}</p>
       </div>
@@ -431,12 +435,12 @@ export default function WebhooksPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Webhooks</h1>
-          <p className="text-[#183a1d]/60 text-sm mt-1">Receive real-time notifications via HMAC-signed HTTP callbacks</p>
+          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('title')}</h1>
+          <p className="text-[#183a1d]/60 text-sm mt-1">{t('subtitle')}</p>
         </div>
         <button onClick={() => setFormModal({ open: true, webhook: null })}
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] self-start bg-[#f6c453] hover:bg-[#f0a04b]">
-          <Plus size={16} /> Add Webhook
+          <Plus size={16} /> {t('addWebhook')}
         </button>
       </div>
 
@@ -445,7 +449,7 @@ export default function WebhooksPage() {
         <div className="rounded-xl border border-yellow-400/20 bg-yellow-400/5 px-5 py-4 space-y-2">
           <div className="flex items-center gap-2 text-yellow-400 text-sm font-medium">
             <AlertTriangle size={14} />
-            Signing secret — copy now, it will not be shown again
+            {t('signingSecret')}
           </div>
           <div className="flex items-center gap-2">
             <code className="text-xs text-[#183a1d] bg-[#e1eedd] px-3 py-2 rounded-lg flex-1 overflow-x-auto font-mono">{revealedSecret}</code>
@@ -453,7 +457,7 @@ export default function WebhooksPage() {
               {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} className="text-[#183a1d]/60" />}
             </button>
           </div>
-          <button onClick={() => setRevealedSecret(null)} className="text-xs text-[#183a1d]/40 hover:text-[#183a1d]/60">Dismiss</button>
+          <button onClick={() => setRevealedSecret(null)} className="text-xs text-[#183a1d]/40 hover:text-[#183a1d]/60">{t('dismiss')}</button>
         </div>
       )}
 
@@ -461,11 +465,11 @@ export default function WebhooksPage() {
       {webhooks.length === 0 ? (
         <div className="rounded-xl border border-[#c8d6c0] px-5 py-16 text-center bg-[#e1eedd]">
           <Webhook size={36} className="text-[#183a1d]/30 mx-auto mb-3" />
-          <p className="text-[#183a1d]/40 text-sm font-medium">No webhooks configured</p>
-          <p className="text-[#183a1d]/30 text-xs mt-1 mb-4">Add your first webhook to start receiving real-time event notifications</p>
+          <p className="text-[#183a1d]/40 text-sm font-medium">{t('noWebhooks')}</p>
+          <p className="text-[#183a1d]/30 text-xs mt-1 mb-4">{t('noWebhooksDesc')}</p>
           <button onClick={() => setFormModal({ open: true, webhook: null })}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] bg-[#f6c453] hover:bg-[#f0a04b]">
-            <Plus size={14} /> Add Webhook
+            <Plus size={14} /> {t('addWebhook')}
           </button>
         </div>
       ) : (
@@ -479,7 +483,7 @@ export default function WebhooksPage() {
                     <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${
                       wh.active ? 'bg-emerald-400/10 text-emerald-400' : 'bg-[#e1eedd] text-[#183a1d]/40'
                     }`}>
-                      {wh.active ? 'Active' : 'Inactive'}
+                      {wh.active ? t('active') : t('inactive')}
                     </span>
                   </div>
                   {wh.description && <p className="text-[#183a1d]/40 text-xs">{wh.description}</p>}
@@ -533,12 +537,10 @@ export default function WebhooksPage() {
       <div className="rounded-xl border border-[#c8d6c0] p-5 bg-[#e1eedd]">
         <div className="flex items-center gap-2 mb-3">
           <Code size={16} className="text-[#183a1d]/40" />
-          <h3 className="text-[#183a1d]/70 text-sm font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>How to verify webhooks</h3>
+          <h3 className="text-[#183a1d]/70 text-sm font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>{t('howToVerify')}</h3>
         </div>
         <p className="text-[#183a1d]/40 text-xs mb-3 leading-relaxed">
-          Each delivery includes a <code className="text-[#183a1d]/60 bg-[#e1eedd] px-1 rounded">Tulip-Signature</code> header
-          in the format <code className="text-[#183a1d]/60 bg-[#e1eedd] px-1 rounded">t=TIMESTAMP,v1=SIGNATURE</code>.
-          Verify it like this:
+          {t('howToVerifyDesc')}
         </p>
         <pre className="text-xs text-[#183a1d]/80 bg-[#0c1a2e] border border-[#c8d6c0] rounded-lg p-4 overflow-x-auto leading-relaxed">
 {`const crypto = require('crypto')

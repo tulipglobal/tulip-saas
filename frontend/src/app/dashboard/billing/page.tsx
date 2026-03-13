@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { apiGet, apiPost } from '@/lib/api'
 import {
   CreditCard, Users, FileCheck, Sparkles, ExternalLink,
@@ -112,6 +113,7 @@ function UsageBar({ used, max, label }: { used: number; max: number; label: stri
 }
 
 export default function BillingPage() {
+  const t = useTranslations('billingPage')
   const [data, setData] = useState<SubscriptionData | null>(null)
   const [loading, setLoading] = useState(true)
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
@@ -171,9 +173,9 @@ export default function BillingPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
-          Billing
+          {t('title')}
         </h1>
-        <p className="text-[#183a1d]/60 text-sm mt-1">Manage your subscription, usage, and payment history</p>
+        <p className="text-[#183a1d]/60 text-sm mt-1">{t('subtitle')}</p>
       </div>
 
       {/* Trial banner */}
@@ -183,10 +185,10 @@ export default function BillingPage() {
           <Sparkles size={20} className="text-[#f6c453] shrink-0" />
           <div className="flex-1">
             <div className="text-sm font-medium text-[#183a1d]">
-              {data.trialDaysLeft} day{data.trialDaysLeft !== 1 ? 's' : ''} left in your free trial
+              {t('trialDaysLeft', { days: data.trialDaysLeft })}
             </div>
             <div className="text-xs text-[#183a1d]/60 mt-0.5">
-              Choose a plan below to continue using Tulip DS after your trial ends
+              {t('trialChoosePlan')}
             </div>
           </div>
         </div>
@@ -198,9 +200,9 @@ export default function BillingPage() {
           style={{ background: 'rgba(239,68,68,0.06)', borderColor: 'rgba(239,68,68,0.2)' }}>
           <AlertTriangle size={20} className="text-red-400 shrink-0" />
           <div className="flex-1">
-            <div className="text-sm font-medium text-[#183a1d]">Your free trial has expired</div>
+            <div className="text-sm font-medium text-[#183a1d]">{t('trialExpired')}</div>
             <div className="text-xs text-[#183a1d]/60 mt-0.5">
-              You are limited to 5 documents. Upgrade below to unlock full access.
+              {t('trialExpiredDesc')}
             </div>
           </div>
         </div>
@@ -210,7 +212,7 @@ export default function BillingPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Current plan card */}
         <div className="rounded-xl border border-[#c8d6c0] p-5" style={{ background: '#e1eedd' }}>
-          <div className="text-xs text-[#183a1d]/60 uppercase tracking-wider font-medium mb-3">Current Plan</div>
+          <div className="text-xs text-[#183a1d]/60 uppercase tracking-wider font-medium mb-3">{t('currentPlan')}</div>
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-lg flex items-center justify-center"
               style={{ background: PLANS.find(p => p.id === currentPlan)?.colorDim || 'rgba(100,116,139,0.12)' }}>
@@ -221,12 +223,12 @@ export default function BillingPage() {
                 {PLANS.find(p => p.id === currentPlan)?.name || 'Free'}
               </div>
               <div className="text-xs text-[#183a1d]/60">
-                {data?.planStatus === 'cancelling' ? 'Cancels at period end' :
-                 data?.planStatus === 'past_due' ? 'Payment overdue' :
-                 data?.subscription ? `Renews ${new Date(data.subscription.currentPeriodEnd * 1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` :
-                 data?.trialActive ? `Trial ends ${new Date(data.trialEndsAt!).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` :
-                 currentPlan !== 'FREE' && data?.planStatus === 'active' ? 'Active' :
-                 'No active subscription'}
+                {data?.planStatus === 'cancelling' ? t('cancelsAtPeriod') :
+                 data?.planStatus === 'past_due' ? t('paymentOverdue') :
+                 data?.subscription ? t('renews', { date: new Date(data.subscription.currentPeriodEnd * 1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) }) :
+                 data?.trialActive ? t('trialEnds', { date: new Date(data.trialEndsAt!).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) }) :
+                 currentPlan !== 'FREE' && data?.planStatus === 'active' ? t('active') :
+                 t('noSubscription')}
               </div>
             </div>
           </div>
@@ -234,31 +236,31 @@ export default function BillingPage() {
             <button onClick={handlePortal} disabled={portalLoading}
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border border-[#c8d6c0] text-[#183a1d] hover:text-[#183a1d] hover:bg-[#e1eedd]/50 transition-all disabled:opacity-40">
               {portalLoading ? <Loader2 size={14} className="animate-spin" /> : <ExternalLink size={14} />}
-              Manage Subscription
+              {t('manageSubscription')}
             </button>
           )}
         </div>
 
         {/* Usage cards */}
         <div className="rounded-xl border border-[#c8d6c0] p-5" style={{ background: '#e1eedd' }}>
-          <div className="text-xs text-[#183a1d]/60 uppercase tracking-wider font-medium mb-4">Usage</div>
+          <div className="text-xs text-[#183a1d]/60 uppercase tracking-wider font-medium mb-4">{t('usage')}</div>
           <div className="space-y-4">
             <UsageBar
               used={data?.usage.documents || 0}
               max={data?.limits.maxDocuments || 5}
-              label="Documents"
+              label={t('documents')}
             />
             <UsageBar
               used={data?.usage.users || 0}
               max={data?.limits.maxUsers || 3}
-              label="Team Members"
+              label={t('teamMembers')}
             />
           </div>
         </div>
 
         {/* Quick stats */}
         <div className="rounded-xl border border-[#c8d6c0] p-5" style={{ background: '#e1eedd' }}>
-          <div className="text-xs text-[#183a1d]/60 uppercase tracking-wider font-medium mb-4">Plan Includes</div>
+          <div className="text-xs text-[#183a1d]/60 uppercase tracking-wider font-medium mb-4">{t('planIncludes')}</div>
           <div className="space-y-2.5">
             {(PLANS.find(p => p.id === currentPlan)?.features || []).slice(0, 5).map(f => (
               <div key={f} className="flex items-center gap-2.5">
@@ -273,7 +275,7 @@ export default function BillingPage() {
       {/* Plans grid */}
       <div>
         <h2 className="text-lg font-bold text-[#183a1d] mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
-          {currentPlan === 'FREE' ? 'Choose a Plan' : 'Available Plans'}
+          {currentPlan === 'FREE' ? t('choosePlan') : t('availablePlans')}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {PLANS.map(plan => {
@@ -289,7 +291,7 @@ export default function BillingPage() {
                 {plan.popular && (
                   <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-xs font-bold"
                     style={{ background: plan.color, color: '#111827' }}>
-                    Most Popular
+                    {t('mostPopular')}
                   </div>
                 )}
                 <div className="flex items-center gap-3 mb-3">
@@ -320,12 +322,12 @@ export default function BillingPage() {
                 {isCurrent ? (
                   <div className="px-4 py-2.5 rounded-lg text-sm font-medium text-center border"
                     style={{ borderColor: plan.colorBorder, color: plan.color }}>
-                    Current Plan
+                    {t('currentPlanLabel')}
                   </div>
                 ) : plan.id === 'FREE' ? null : plan.id === 'ENTERPRISE' ? (
                   <a href="mailto:hello@tulipds.com"
                     className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border border-[#c8d6c0] text-[#183a1d] hover:text-[#183a1d] hover:bg-[#e1eedd]/50 transition-all">
-                    Contact Sales <ArrowUpRight size={14} />
+                    {t('contactSales')} <ArrowUpRight size={14} />
                   </a>
                 ) : (
                   <button
@@ -336,7 +338,7 @@ export default function BillingPage() {
                     {checkoutLoading === plan.id ? (
                       <Loader2 size={14} className="animate-spin" />
                     ) : (
-                      <>{currentPlan !== 'FREE' ? 'Switch Plan' : 'Get Started'}<ArrowUpRight size={14} /></>
+                      <>{currentPlan !== 'FREE' ? t('switchPlan') : t('getStarted')}<ArrowUpRight size={14} /></>
                     )}
                   </button>
                 )}
@@ -351,11 +353,11 @@ export default function BillingPage() {
         <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
           <div className="flex items-center justify-between px-5 py-4 border-b border-[#c8d6c0]">
             <h2 className="font-semibold text-[#183a1d] text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
-              Payment History
+              {t('paymentHistory')}
             </h2>
             {data.subscription && (
               <button onClick={handlePortal} className="text-xs text-[#183a1d] hover:underline">
-                View all in Stripe
+                {t('viewAllStripe')}
               </button>
             )}
           </div>

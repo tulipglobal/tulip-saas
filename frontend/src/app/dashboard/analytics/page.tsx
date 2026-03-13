@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { apiGet } from '@/lib/api'
 import {
   Shield, FileText, Banknote, Receipt, Download,
@@ -47,9 +48,9 @@ interface ReportAgreement {
 
 const DONUT_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16']
 const RANGES = [
-  { label: '30d', value: 30 },
-  { label: '90d', value: 90 },
-  { label: '12m', value: 365 },
+  { key: 'range30d', value: 30 },
+  { key: 'range90d', value: 90 },
+  { key: 'range12m', value: 365 },
 ]
 
 /* ------------------------------------------------------------------ */
@@ -339,6 +340,7 @@ interface IEData {
 /* ------------------------------------------------------------------ */
 
 function IEStatement() {
+  const t = useTranslations()
   const [data, setData] = useState<IEData | null>(null)
   const [loading, setLoading] = useState(false)
   const [dateFrom, setDateFrom] = useState('')
@@ -486,45 +488,45 @@ function IEStatement() {
       {/* Date range picker */}
       <div className="flex flex-wrap items-end gap-3">
         <div>
-          <label className="block text-xs text-[#183a1d]/40 mb-1">From</label>
+          <label className="block text-xs text-[#183a1d]/40 mb-1">{t('analytics.from')}</label>
           <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className={inputCls} />
         </div>
         <div>
-          <label className="block text-xs text-[#183a1d]/40 mb-1">To</label>
+          <label className="block text-xs text-[#183a1d]/40 mb-1">{t('analytics.to')}</label>
           <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className={inputCls} />
         </div>
         <button onClick={handleFilter}
           className="px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] bg-[#f6c453] hover:bg-[#f0a04b]">
-          Apply
+          {t('analytics.apply')}
         </button>
         <button onClick={exportPDF} disabled={exporting || !data}
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d]/70 border border-[#c8d6c0] hover:border-[#c8d6c0] disabled:opacity-40 transition-all">
-          <Download size={14} /> {exporting ? 'Exporting...' : 'Export PDF'}
+          <Download size={14} /> {exporting ? t('analytics.exporting') : t('analytics.exportPdf')}
         </button>
       </div>
 
       {loading ? (
-        <div className="py-16 text-center text-[#183a1d]/40 text-sm">Loading...</div>
+        <div className="py-16 text-center text-[#183a1d]/40 text-sm">{t('analytics.loading')}</div>
       ) : !data ? (
-        <div className="py-16 text-center text-[#183a1d]/40 text-sm">Failed to load data</div>
+        <div className="py-16 text-center text-[#183a1d]/40 text-sm">{t('analytics.failedToLoad')}</div>
       ) : (
         <>
           {/* Summary cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="rounded-xl border border-[#c8d6c0] px-5 py-4" style={{ background: '#e1eedd' }}>
-              <div className="text-xs text-[#183a1d]/60 mb-1">Total Income</div>
+              <div className="text-xs text-[#183a1d]/60 mb-1">{t('analytics.totalIncome')}</div>
               <div className="text-xl font-bold text-emerald-400" style={{ fontFamily: 'Inter, sans-serif' }}>
                 ${data.income.total.toLocaleString()}
               </div>
             </div>
             <div className="rounded-xl border border-[#c8d6c0] px-5 py-4" style={{ background: '#e1eedd' }}>
-              <div className="text-xs text-[#183a1d]/60 mb-1">Total Expenditure</div>
+              <div className="text-xs text-[#183a1d]/60 mb-1">{t('analytics.totalExpenditure')}</div>
               <div className="text-xl font-bold text-orange-400" style={{ fontFamily: 'Inter, sans-serif' }}>
                 ${data.expenditure.total.toLocaleString()}
               </div>
             </div>
             <div className="rounded-xl border border-[#c8d6c0] px-5 py-4" style={{ background: '#e1eedd' }}>
-              <div className="text-xs text-[#183a1d]/60 mb-1">Net Balance</div>
+              <div className="text-xs text-[#183a1d]/60 mb-1">{t('analytics.netBalance')}</div>
               <div className={`text-xl font-bold ${data.netBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}
                 style={{ fontFamily: 'Inter, sans-serif' }}>
                 ${data.netBalance.toLocaleString()}
@@ -535,10 +537,10 @@ function IEStatement() {
           {/* Income Section */}
           <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
             <div className="px-5 py-3 border-b border-[#c8d6c0]">
-              <h3 className="text-sm font-semibold text-emerald-400" style={{ fontFamily: 'Inter, sans-serif' }}>INCOME</h3>
+              <h3 className="text-sm font-semibold text-emerald-400" style={{ fontFamily: 'Inter, sans-serif' }}>{t('analytics.income')}</h3>
             </div>
             {data.income.bySource.length === 0 ? (
-              <div className="px-5 py-8 text-center text-[#183a1d]/30 text-sm">No income recorded in this period</div>
+              <div className="px-5 py-8 text-center text-[#183a1d]/30 text-sm">{t('analytics.noIncome')}</div>
             ) : (
               <div className="divide-y divide-[#c8d6c0]">
                 {data.income.bySource.map(source => (
@@ -557,7 +559,7 @@ function IEStatement() {
                 ))}
                 <div className="px-5 py-3 bg-emerald-400/5">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-emerald-400">Total Income</span>
+                    <span className="text-sm font-bold text-emerald-400">{t('analytics.totalIncome')}</span>
                     <span className="text-sm font-bold text-emerald-400">${data.income.total.toLocaleString()}</span>
                   </div>
                 </div>
@@ -568,14 +570,14 @@ function IEStatement() {
           {/* Expenditure Section */}
           <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
             <div className="px-5 py-3 border-b border-[#c8d6c0]">
-              <h3 className="text-sm font-semibold text-orange-400" style={{ fontFamily: 'Inter, sans-serif' }}>EXPENDITURE</h3>
+              <h3 className="text-sm font-semibold text-orange-400" style={{ fontFamily: 'Inter, sans-serif' }}>{t('analytics.expenditure')}</h3>
             </div>
             <div className="divide-y divide-[#c8d6c0]">
               {/* CapEx */}
               {data.expenditure.capex.total > 0 && (
                 <div className="px-5 py-3">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-purple-400">Capital Expenditure (CapEx)</span>
+                    <span className="text-sm font-medium text-purple-400">{t('analytics.capex')}</span>
                     <span className="text-sm font-bold text-[#183a1d]">${data.expenditure.capex.total.toLocaleString()}</span>
                   </div>
                   {data.expenditure.capex.byCategory.map(cat => (
@@ -591,7 +593,7 @@ function IEStatement() {
               {data.expenditure.opex.total > 0 && (
                 <div className="px-5 py-3">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-cyan-400">Operating Expenditure (OpEx)</span>
+                    <span className="text-sm font-medium text-cyan-400">{t('analytics.opex')}</span>
                     <span className="text-sm font-bold text-[#183a1d]">${data.expenditure.opex.total.toLocaleString()}</span>
                   </div>
                   {data.expenditure.opex.byCategory.map(cat => (
@@ -607,19 +609,19 @@ function IEStatement() {
               {data.expenditure.other.total > 0 && (
                 <div className="px-5 py-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-[#183a1d]/60">Other / Uncategorised</span>
+                    <span className="text-sm font-medium text-[#183a1d]/60">{t('analytics.otherUncategorised')}</span>
                     <span className="text-sm font-bold text-[#183a1d]">${data.expenditure.other.total.toLocaleString()}</span>
                   </div>
                 </div>
               )}
 
               {data.expenditure.total === 0 && (
-                <div className="px-5 py-8 text-center text-[#183a1d]/30 text-sm">No expenditure recorded in this period</div>
+                <div className="px-5 py-8 text-center text-[#183a1d]/30 text-sm">{t('analytics.noExpenditure')}</div>
               )}
 
               <div className="px-5 py-3 bg-orange-400/5">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-orange-400">Total Expenditure</span>
+                  <span className="text-sm font-bold text-orange-400">{t('analytics.totalExpenditure')}</span>
                   <span className="text-sm font-bold text-orange-400">${data.expenditure.total.toLocaleString()}</span>
                 </div>
               </div>
@@ -629,7 +631,7 @@ function IEStatement() {
           {/* Net Balance */}
           <div className={`rounded-xl border px-5 py-4 ${data.netBalance >= 0 ? 'border-emerald-400/20 bg-emerald-400/5' : 'border-red-400/20 bg-red-400/5'}`}>
             <div className="flex items-center justify-between">
-              <span className="text-base font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>NET BALANCE</span>
+              <span className="text-base font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('analytics.netBalance')}</span>
               <span className={`text-xl font-bold ${data.netBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}
                 style={{ fontFamily: 'Inter, sans-serif' }}>
                 ${data.netBalance.toLocaleString()}
@@ -656,6 +658,7 @@ interface FraudData {
 }
 
 function FraudSection() {
+  const t = useTranslations()
   const [data, setData] = useState<FraudData | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -674,24 +677,24 @@ function FraudSection() {
     </div>
   )
 
-  if (!data) return <div className="py-16 text-center text-[#183a1d]/40 text-sm">Failed to load fraud data</div>
+  if (!data) return <div className="py-16 text-center text-[#183a1d]/40 text-sm">{t('analytics.failedLoadFraud')}</div>
 
   return (
     <div className="space-y-6">
       {/* Stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Blocked This Month', value: data.blockedCount, color: 'text-red-500', bg: 'rgba(239,68,68,0.10)' },
-          { label: 'Pending Review', value: data.pendingReviewCount, color: 'text-amber-500', bg: 'rgba(245,158,11,0.10)' },
-          { label: 'Mismatch Rate', value: `${data.mismatchRate}%`, color: 'text-orange-400', bg: 'rgba(249,115,22,0.10)' },
-          { label: 'Duplicate Rate', value: `${data.duplicateRate}%`, color: 'text-purple-400', bg: 'rgba(139,92,246,0.10)' },
-        ].map(({ label, value, color, bg }) => (
-          <div key={label} className="rounded-xl border border-[#c8d6c0] px-4 py-4" style={{ background: '#e1eedd' }}>
+          { labelKey: 'blockedThisMonth', value: data.blockedCount, color: 'text-red-500', bg: 'rgba(239,68,68,0.10)' },
+          { labelKey: 'pendingReview', value: data.pendingReviewCount, color: 'text-amber-500', bg: 'rgba(245,158,11,0.10)' },
+          { labelKey: 'mismatchRate', value: `${data.mismatchRate}%`, color: 'text-orange-400', bg: 'rgba(249,115,22,0.10)' },
+          { labelKey: 'duplicateRate', value: `${data.duplicateRate}%`, color: 'text-purple-400', bg: 'rgba(139,92,246,0.10)' },
+        ].map(({ labelKey, value, color, bg }) => (
+          <div key={labelKey} className="rounded-xl border border-[#c8d6c0] px-4 py-4" style={{ background: '#e1eedd' }}>
             <div className="flex items-center gap-2 mb-2">
               <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: bg }}>
                 <Shield size={14} className={color} />
               </div>
-              <span className="text-[#183a1d]/40 text-xs font-medium">{label}</span>
+              <span className="text-[#183a1d]/40 text-xs font-medium">{t('analytics.' + labelKey)}</span>
             </div>
             <div className="text-lg font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
           </div>
@@ -700,9 +703,9 @@ function FraudSection() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Fraud detections over time */}
-        <ChartCard title="Fraud Detections" subtitle="Last 30 days" fullWidth>
+        <ChartCard title={t('analytics.fraudDetections')} subtitle={t('analytics.last30Days')} fullWidth>
           {data.fraudByDay.every(d => d.high === 0 && d.medium === 0 && d.low === 0) ? (
-            <div className="h-48 flex items-center justify-center text-[#183a1d]/30 text-sm">No fraud detections in the last 30 days</div>
+            <div className="h-48 flex items-center justify-center text-[#183a1d]/30 text-sm">{t('analytics.noFraudDetections')}</div>
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <AreaChart data={data.fraudByDay}>
@@ -711,18 +714,18 @@ function FraudSection() {
                 <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} allowDecimals={false} domain={[0, 'auto']} tickFormatter={formatYAxis} />
                 <Tooltip {...tooltipStyle} labelFormatter={tooltipLabelFormatter} />
                 <Legend wrapperStyle={{ fontSize: 12, color: '#6B7280' }} />
-                <Area type="monotone" dataKey="high" stroke="#ef4444" fill="#ef4444" fillOpacity={0.15} strokeWidth={2} name="HIGH / CRITICAL" />
-                <Area type="monotone" dataKey="medium" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.10} strokeWidth={2} name="MEDIUM" />
-                <Area type="monotone" dataKey="low" stroke="#10b981" fill="#10b981" fillOpacity={0.08} strokeWidth={1.5} name="LOW" />
+                <Area type="monotone" dataKey="high" stroke="#ef4444" fill="#ef4444" fillOpacity={0.15} strokeWidth={2} name={t('analytics.highCritical')} />
+                <Area type="monotone" dataKey="medium" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.10} strokeWidth={2} name={t('analytics.medium')} />
+                <Area type="monotone" dataKey="low" stroke="#10b981" fill="#10b981" fillOpacity={0.08} strokeWidth={1.5} name={t('analytics.low')} />
               </AreaChart>
             </ResponsiveContainer>
           )}
         </ChartCard>
 
         {/* Top risky vendors */}
-        <ChartCard title="Top Risky Vendors" subtitle="By avg fraud score (last 30 days)">
+        <ChartCard title={t('analytics.topRiskyVendors')} subtitle={t('analytics.byAvgFraudScore')}>
           {data.topRiskyVendors.length === 0 ? (
-            <div className="h-48 flex items-center justify-center text-[#183a1d]/30 text-sm">No vendor fraud data yet</div>
+            <div className="h-48 flex items-center justify-center text-[#183a1d]/30 text-sm">{t('analytics.noVendorFraud')}</div>
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={data.topRiskyVendors} layout="vertical" margin={{ left: 10 }}>
@@ -731,8 +734,8 @@ function FraudSection() {
                 <YAxis type="category" dataKey="vendor" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} width={100}
                   tickFormatter={(v: string) => v.length > 14 ? v.slice(0, 14) + '…' : v} />
                 { /* eslint-disable-next-line @typescript-eslint/no-explicit-any */ }
-                <Tooltip {...tooltipStyle} formatter={(value: any, name: any) => [value, name === 'avgScore' ? 'Avg Score' : name]} />
-                <Bar dataKey="avgScore" name="Avg Score" radius={[0, 4, 4, 0]}>
+                <Tooltip {...tooltipStyle} formatter={(value: any, name: any) => [value, name === 'avgScore' ? t('analytics.avgScore') : name]} />
+                <Bar dataKey="avgScore" name={t('analytics.avgScore')} radius={[0, 4, 4, 0]}>
                   {data.topRiskyVendors.map((entry, i) => (
                     <Cell key={i} fill={entry.avgScore >= 51 ? '#ef4444' : entry.avgScore >= 21 ? '#f59e0b' : '#10b981'} />
                   ))}
@@ -747,6 +750,7 @@ function FraudSection() {
 }
 
 export default function AnalyticsPage() {
+  const t = useTranslations()
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [range, setRange] = useState(30)
@@ -767,12 +771,12 @@ export default function AnalyticsPage() {
     finally { setGenerating(false) }
   }
 
-  const rangeLabel = range === 365 ? 'Last 12 months' : `Last ${range} days`
+  const rangeLabel = range === 365 ? t('analytics.last12Months') : t('analytics.lastNDays', { range })
 
   const TABS = [
-    { id: 'charts' as const, label: 'Charts' },
-    { id: 'fraud' as const, label: 'Fraud & Risk' },
-    { id: 'ie' as const, label: 'I&E Statement' },
+    { id: 'charts' as const, labelKey: 'charts' },
+    { id: 'fraud' as const, labelKey: 'fraudRisk' },
+    { id: 'ie' as const, labelKey: 'ieStatement' },
   ]
 
   return (
@@ -781,8 +785,8 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Analytics</h1>
-          <p className="text-[#183a1d]/60 text-sm mt-1">Charts, trends, and performance metrics</p>
+          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('analytics.title')}</h1>
+          <p className="text-[#183a1d]/60 text-sm mt-1">{t('analytics.chartsSubtitle')}</p>
         </div>
         <div className="flex items-center gap-3">
           {activeTab === 'charts' && (
@@ -795,14 +799,14 @@ export default function AnalyticsPage() {
                         ? 'bg-indigo-500/20 text-indigo-400 border-indigo-400/30'
                         : 'text-[#183a1d]/60 hover:text-[#183a1d]/70 hover:bg-[#e1eedd]/50'
                     }`}>
-                    {r.label}
+                    {t('analytics.' + r.key)}
                   </button>
                 ))}
               </div>
               <button onClick={handleGenerateReport} disabled={generating}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] hover:opacity-90 transition-opacity disabled:opacity-50 bg-[#f6c453] hover:bg-[#f0a04b]">
                 {generating ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Download size={14} />}
-                <span className="hidden sm:inline">{generating ? 'Generating...' : 'Impact Report'}</span>
+                <span className="hidden sm:inline">{generating ? t('analytics.generating') : t('analytics.impactReport')}</span>
               </button>
             </>
           )}
@@ -818,7 +822,7 @@ export default function AnalyticsPage() {
                 ? 'bg-[#e1eedd] text-[#183a1d]'
                 : 'text-[#183a1d]/60 hover:text-[#183a1d]/70'
             }`}>
-            {tab.label}
+            {t('analytics.' + tab.labelKey)}
           </button>
         ))}
       </div>
@@ -844,17 +848,17 @@ export default function AnalyticsPage() {
       ) : data && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: 'Total Documents', value: data.totals.totalDocuments, icon: FileText, color: 'text-indigo-400', bg: 'rgba(99,102,241,0.10)' },
-            { label: 'Verified', value: data.totals.totalVerified, icon: Shield, color: 'text-emerald-400', bg: 'rgba(16,185,129,0.10)' },
-            { label: 'Funding Received', value: `$${data.totals.totalFundingReceived.toLocaleString()}`, icon: Banknote, color: 'text-[#183a1d]', bg: 'rgba(59,130,246,0.10)' },
-            { label: 'Expenses', value: `$${data.totals.totalExpenses.toLocaleString()}`, icon: Receipt, color: 'text-orange-400', bg: 'rgba(249,115,22,0.10)' },
-          ].map(({ label, value, icon: Icon, color, bg }) => (
-            <div key={label} className="rounded-xl border border-[#c8d6c0] px-4 py-4" style={{ background: '#e1eedd' }}>
+            { labelKey: 'totalDocuments', value: data.totals.totalDocuments, icon: FileText, color: 'text-indigo-400', bg: 'rgba(99,102,241,0.10)' },
+            { labelKey: 'verified', value: data.totals.totalVerified, icon: Shield, color: 'text-emerald-400', bg: 'rgba(16,185,129,0.10)' },
+            { labelKey: 'fundingReceived', value: `$${data.totals.totalFundingReceived.toLocaleString()}`, icon: Banknote, color: 'text-[#183a1d]', bg: 'rgba(59,130,246,0.10)' },
+            { labelKey: 'expensesLabel', value: `$${data.totals.totalExpenses.toLocaleString()}`, icon: Receipt, color: 'text-orange-400', bg: 'rgba(249,115,22,0.10)' },
+          ].map(({ labelKey, value, icon: Icon, color, bg }) => (
+            <div key={labelKey} className="rounded-xl border border-[#c8d6c0] px-4 py-4" style={{ background: '#e1eedd' }}>
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: bg }}>
                   <Icon size={14} className={color} />
                 </div>
-                <span className="text-[#183a1d]/40 text-xs font-medium">{label}</span>
+                <span className="text-[#183a1d]/40 text-xs font-medium">{t('analytics.' + labelKey)}</span>
               </div>
               <div className="text-lg font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
             </div>
@@ -878,9 +882,9 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
           {/* Chart 1 — Documents Uploaded (full width) */}
-          <ChartCard title="Documents Uploaded" subtitle={rangeLabel} fullWidth>
+          <ChartCard title={t('analytics.documentsUploaded')} subtitle={rangeLabel} fullWidth>
             {data.documentsOverTime.length === 0 ? (
-              <div className="h-48 flex items-center justify-center text-[#183a1d]/30 text-sm">No documents uploaded in this period</div>
+              <div className="h-48 flex items-center justify-center text-[#183a1d]/30 text-sm">{t('analytics.noDocsUploaded')}</div>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={data.documentsOverTime}>
@@ -895,9 +899,9 @@ export default function AnalyticsPage() {
           </ChartCard>
 
           {/* Chart 2 — Blockchain Verifications */}
-          <ChartCard title="Blockchain Verifications" subtitle="Documents anchored to Polygon">
+          <ChartCard title={t('analytics.blockchainVerifications')} subtitle={t('analytics.anchoredToPolygon')}>
             {data.blockchainVerifications.length === 0 ? (
-              <div className="h-48 flex items-center justify-center text-[#183a1d]/30 text-sm">No verifications in this period</div>
+              <div className="h-48 flex items-center justify-center text-[#183a1d]/30 text-sm">{t('analytics.noVerifications')}</div>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={data.blockchainVerifications}>
@@ -912,9 +916,9 @@ export default function AnalyticsPage() {
           </ChartCard>
 
           {/* Chart 3 — Funding Received vs Spent */}
-          <ChartCard title="Funding Overview" subtitle="Last 6 months">
+          <ChartCard title={t('analytics.fundingOverview')} subtitle={t('analytics.last6Months')}>
             {data.fundingVsSpent.every(m => m.received === 0 && m.spent === 0) ? (
-              <div className="h-48 flex items-center justify-center text-[#183a1d]/30 text-sm">No funding data yet</div>
+              <div className="h-48 flex items-center justify-center text-[#183a1d]/30 text-sm">{t('analytics.noFundingData')}</div>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={data.fundingVsSpent}>
@@ -923,17 +927,17 @@ export default function AnalyticsPage() {
                   <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} allowDecimals={false} domain={[0, 'auto']} tickFormatter={formatYAxis} />
                   <Tooltip {...tooltipStyle} />
                   <Legend wrapperStyle={{ fontSize: 12, color: '#6B7280' }} />
-                  <Bar dataKey="received" fill="#3b82f6" name="Received" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="spent" fill="#f97316" name="Spent" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="received" fill="#3b82f6" name={t('analytics.received')} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="spent" fill="#f97316" name={t('analytics.spent')} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
           </ChartCard>
 
           {/* Chart 4 — Expenses by Category (donut) */}
-          <ChartCard title="Expenses by Project" subtitle="All time">
+          <ChartCard title={t('analytics.expensesByProject')} subtitle={t('analytics.allTime')}>
             {data.expensesByCategory.length === 0 ? (
-              <div className="h-48 flex items-center justify-center text-[#183a1d]/30 text-sm">No expenses recorded yet</div>
+              <div className="h-48 flex items-center justify-center text-[#183a1d]/30 text-sm">{t('analytics.noExpensesRecorded')}</div>
             ) : (
               <div className="flex flex-col sm:flex-row items-center gap-4">
                 <ResponsiveContainer width="100%" height={220}>
@@ -970,13 +974,13 @@ export default function AnalyticsPage() {
           </ChartCard>
 
           {/* Chart 5 — Donor Engagement (full width) */}
-          <ChartCard title="Donor Engagement" subtitle="Donor portal activity" fullWidth>
+          <ChartCard title={t('analytics.donorEngagement')} subtitle={t('analytics.donorPortalActivity')} fullWidth>
             {data.donorEngagement.length === 0 ? (
               <div className="h-48 flex items-center justify-center">
                 <div className="text-center">
                   <UsersIcon size={24} className="text-[#183a1d]/30 mx-auto mb-2" />
-                  <p className="text-[#183a1d]/30 text-sm">No donor activity yet</p>
-                  <p className="text-[#183a1d]/30 text-xs mt-1">Donor portal logins and document views will appear here</p>
+                  <p className="text-[#183a1d]/30 text-sm">{t('analytics.noDonorActivity')}</p>
+                  <p className="text-[#183a1d]/30 text-xs mt-1">{t('analytics.donorPortalDesc')}</p>
                 </div>
               </div>
             ) : (
@@ -987,8 +991,8 @@ export default function AnalyticsPage() {
                   <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} allowDecimals={false} domain={[0, 'auto']} tickFormatter={formatYAxis} />
                   <Tooltip {...tooltipStyle} labelFormatter={tooltipLabelFormatter} />
                   <Legend wrapperStyle={{ fontSize: 12, color: '#6B7280' }} />
-                  <Line type="monotone" dataKey="logins" stroke="#8b5cf6" strokeWidth={2} dot={false} name="Logins" />
-                  <Line type="monotone" dataKey="views" stroke="#06b6d4" strokeWidth={2} dot={false} name="Doc Views" />
+                  <Line type="monotone" dataKey="logins" stroke="#8b5cf6" strokeWidth={2} dot={false} name={t('analytics.logins')} />
+                  <Line type="monotone" dataKey="views" stroke="#06b6d4" strokeWidth={2} dot={false} name={t('analytics.docViews')} />
                 </LineChart>
               </ResponsiveContainer>
             )}

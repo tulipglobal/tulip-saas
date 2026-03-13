@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { Users, Plus, Shield, Trash2, Check, AlertCircle, X } from 'lucide-react'
 import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/api'
 
@@ -37,6 +38,7 @@ const roleBadgeColors: Record<string, string> = {
 const INVITE_ROLES = ['member', 'admin']
 
 export default function TeamPage() {
+  const t = useTranslations('teamPage')
   const [members, setMembers] = useState<Member[]>([])
   const [roles, setRoles] = useState<RoleOption[]>([])
   const [loading, setLoading] = useState(true)
@@ -85,17 +87,17 @@ export default function TeamPage() {
       const sentTo = inviteEmail
       const res = await apiPost('/api/team/invite', { email: inviteEmail, roleName: inviteRole })
       if (res.ok) {
-        setToast({ message: `Invitation sent to ${sentTo}`, type: 'success' })
+        setToast({ message: t('inviteSent', { email: sentTo }), type: 'success' })
         setInviteEmail('')
         setInviteRole('member')
         setShowInvite(false)
         fetchTeam()
       } else {
         const err = await res.json()
-        setToast({ message: err.error || 'Failed to invite', type: 'error' })
+        setToast({ message: err.error || t('failedInvite'), type: 'error' })
       }
     } catch {
-      setToast({ message: 'Failed to invite team member', type: 'error' })
+      setToast({ message: t('failedInvite'), type: 'error' })
     }
     setInviting(false)
   }
@@ -104,14 +106,14 @@ export default function TeamPage() {
     try {
       const res = await apiPatch(`/api/team/${userId}/role`, { roleName })
       if (res.ok) {
-        setToast({ message: 'Role updated', type: 'success' })
+        setToast({ message: t('roleUpdated'), type: 'success' })
         fetchTeam()
       } else {
         const err = await res.json()
-        setToast({ message: err.error || 'Failed to change role', type: 'error' })
+        setToast({ message: err.error || t('failedRoleChange'), type: 'error' })
       }
     } catch {
-      setToast({ message: 'Failed to change role', type: 'error' })
+      setToast({ message: t('failedRoleChange'), type: 'error' })
     }
   }
 
@@ -121,15 +123,15 @@ export default function TeamPage() {
     try {
       const res = await apiDelete(`/api/team/${removeTarget.id}`)
       if (res.ok) {
-        setToast({ message: `${removeTarget.name || removeTarget.email} removed`, type: 'success' })
+        setToast({ message: t('removed', { name: removeTarget.name || removeTarget.email }), type: 'success' })
         setRemoveTarget(null)
         fetchTeam()
       } else {
         const err = await res.json()
-        setToast({ message: err.error || 'Failed to remove', type: 'error' })
+        setToast({ message: err.error || t('failedRemove'), type: 'error' })
       }
     } catch {
-      setToast({ message: 'Failed to remove member', type: 'error' })
+      setToast({ message: t('failedRemove'), type: 'error' })
     }
     setRemoving(false)
   }
@@ -138,8 +140,8 @@ export default function TeamPage() {
 
   if (loading) return (
     <div className="p-6 animate-fade-up">
-      <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Team</h1>
-      <p className="text-[#183a1d]/40 text-sm mt-4">Loading...</p>
+      <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('title')}</h1>
+      <p className="text-[#183a1d]/40 text-sm mt-4">{t('loading')}</p>
     </div>
   )
 
@@ -149,13 +151,13 @@ export default function TeamPage() {
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Team</h1>
+          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('title')}</h1>
           <p className="text-[#183a1d]/60 text-sm mt-1">{members.length} member{members.length !== 1 ? 's' : ''}</p>
         </div>
         <button onClick={() => setShowInvite(true)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] transition-all self-start">
           <Plus size={16} />
-          Invite Member
+          {t('inviteMember')}
         </button>
       </div>
 
@@ -165,10 +167,10 @@ export default function TeamPage() {
         <table className="w-full hidden md:table">
           <thead>
             <tr className="border-b border-[#c8d6c0]">
-              <th className="text-left text-xs font-medium text-[#183a1d]/40 uppercase tracking-wide px-5 py-3">Member</th>
-              <th className="text-left text-xs font-medium text-[#183a1d]/40 uppercase tracking-wide px-5 py-3">Role</th>
-              <th className="text-left text-xs font-medium text-[#183a1d]/40 uppercase tracking-wide px-5 py-3">Joined</th>
-              <th className="text-right text-xs font-medium text-[#183a1d]/40 uppercase tracking-wide px-5 py-3">Actions</th>
+              <th className="text-left text-xs font-medium text-[#183a1d]/40 uppercase tracking-wide px-5 py-3">{t('member')}</th>
+              <th className="text-left text-xs font-medium text-[#183a1d]/40 uppercase tracking-wide px-5 py-3">{t('role')}</th>
+              <th className="text-left text-xs font-medium text-[#183a1d]/40 uppercase tracking-wide px-5 py-3">{t('joined')}</th>
+              <th className="text-right text-xs font-medium text-[#183a1d]/40 uppercase tracking-wide px-5 py-3">{t('actions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -185,7 +187,7 @@ export default function TeamPage() {
                         {m.name?.charAt(0)?.toUpperCase() || m.email.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-[#183a1d]">{m.name}{isCurrentUser && <span className="text-[#183a1d]/40 ml-2 text-xs">(you)</span>}</div>
+                        <div className="text-sm font-medium text-[#183a1d]">{m.name}{isCurrentUser && <span className="text-[#183a1d]/40 ml-2 text-xs">{t('you')}</span>}</div>
                         <div className="text-xs text-[#183a1d]/60">{m.email}</div>
                       </div>
                     </div>
@@ -222,7 +224,7 @@ export default function TeamPage() {
               )
             })}
             {members.length === 0 && (
-              <tr><td colSpan={4} className="px-5 py-8 text-center text-[#183a1d]/40 text-sm">No team members yet</td></tr>
+              <tr><td colSpan={4} className="px-5 py-8 text-center text-[#183a1d]/40 text-sm">{t('noMembers')}</td></tr>
             )}
           </tbody>
         </table>
@@ -241,7 +243,7 @@ export default function TeamPage() {
                     {m.name?.charAt(0)?.toUpperCase() || m.email.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-[#183a1d] truncate">{m.name}{isCurrentUser && <span className="text-[#183a1d]/40 ml-2 text-xs">(you)</span>}</div>
+                    <div className="text-sm font-medium text-[#183a1d] truncate">{m.name}{isCurrentUser && <span className="text-[#183a1d]/40 ml-2 text-xs">{t('you')}</span>}</div>
                     <div className="text-xs text-[#183a1d]/60 truncate">{m.email}</div>
                   </div>
                   {!isCurrentUser && (
@@ -275,7 +277,7 @@ export default function TeamPage() {
             )
           })}
           {members.length === 0 && (
-            <div className="px-4 py-8 text-center text-[#183a1d]/40 text-sm">No team members yet</div>
+            <div className="px-4 py-8 text-center text-[#183a1d]/40 text-sm">{t('noMembers')}</div>
           )}
         </div>
       </div>
@@ -285,11 +287,11 @@ export default function TeamPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowInvite(false)}>
           <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-none md:rounded-xl p-6 w-full h-full md:h-auto md:max-w-md space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-[#183a1d]">Invite Team Member</h3>
+              <h3 className="text-lg font-semibold text-[#183a1d]">{t('inviteTeamMember')}</h3>
               <button onClick={() => setShowInvite(false)} className="text-[#183a1d]/40 hover:text-[#183a1d]/70"><X size={18} /></button>
             </div>
             <div>
-              <label className="text-xs text-[#183a1d]/40 block mb-1">Email Address</label>
+              <label className="text-xs text-[#183a1d]/40 block mb-1">{t('emailAddress')}</label>
               <input
                 className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453]"
                 type="email" placeholder="colleague@example.com" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
@@ -297,7 +299,7 @@ export default function TeamPage() {
               />
             </div>
             <div>
-              <label className="text-xs text-[#183a1d]/40 block mb-1">Role</label>
+              <label className="text-xs text-[#183a1d]/40 block mb-1">{t('roleLabel')}</label>
               <select
                 className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] outline-none focus:border-[#f6c453]"
                 value={inviteRole} onChange={e => setInviteRole(e.target.value)}
@@ -307,16 +309,16 @@ export default function TeamPage() {
                 ))}
               </select>
             </div>
-            <p className="text-xs text-[#183a1d]/40">An email with temporary credentials will be sent. The user should change their password after logging in.</p>
+            <p className="text-xs text-[#183a1d]/40">{t('emailHint')}</p>
             <div className="flex justify-end gap-3 pt-2">
               <button onClick={() => setShowInvite(false)}
                 className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] border border-[#c8d6c0] hover:bg-[#e1eedd]/50 transition-all">
-                Cancel
+                {t('cancel')}
               </button>
               <button onClick={handleInvite} disabled={inviting || !inviteEmail}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50 transition-all">
                 <Plus size={14} />
-                {inviting ? 'Sending...' : 'Send Invite'}
+                {inviting ? t('sending') : t('sendInvite')}
               </button>
             </div>
           </div>
@@ -327,19 +329,19 @@ export default function TeamPage() {
       {removeTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setRemoveTarget(null)}>
           <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-none md:rounded-xl p-6 w-full h-full md:h-auto md:max-w-sm space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold text-[#183a1d]">Remove Member</h3>
+            <h3 className="text-lg font-semibold text-[#183a1d]">{t('removeMember')}</h3>
             <p className="text-sm text-[#183a1d]/70">
-              Are you sure you want to remove <strong className="text-[#183a1d]">{removeTarget.name || removeTarget.email}</strong> from your team? They will lose access immediately.
+              {t('removeConfirm', { name: removeTarget.name || removeTarget.email })}
             </p>
             <div className="flex justify-end gap-3 pt-2">
               <button onClick={() => setRemoveTarget(null)}
                 className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] border border-[#c8d6c0] hover:bg-[#e1eedd]/50 transition-all">
-                Cancel
+                {t('cancel')}
               </button>
               <button onClick={handleRemove} disabled={removing}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 disabled:opacity-50 transition-all">
                 <Trash2 size={14} />
-                {removing ? 'Removing...' : 'Remove'}
+                {removing ? t('removing') : t('remove')}
               </button>
             </div>
           </div>

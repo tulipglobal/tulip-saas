@@ -6,9 +6,11 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save, CheckCircle } from 'lucide-react'
 import DocumentUploadSection from '@/components/DocumentUploadSection'
+import { useTranslations } from 'next-intl'
 
 export default function NewProjectPage() {
   const router = useRouter()
+  const t = useTranslations()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [savedProjectId, setSavedProjectId] = useState<string | null>(null)
@@ -20,7 +22,7 @@ export default function NewProjectPage() {
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
 
   const submit = async () => {
-    if (!form.name.trim()) { setError('Project name is required'); return }
+    if (!form.name.trim()) { setError(t('projects.nameRequired')); return }
     setSaving(true); setError('')
     try {
       const res = await apiPost('/api/projects', {
@@ -51,8 +53,8 @@ export default function NewProjectPage() {
           <ArrowLeft size={18} />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>New Project</h1>
-          <p className="text-[#183a1d]/60 text-sm">All project data will be blockchain anchored automatically</p>
+          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('projects.newProject')}</h1>
+          <p className="text-[#183a1d]/60 text-sm">{t('projects.projectAnchored')}</p>
         </div>
       </div>
 
@@ -62,20 +64,20 @@ export default function NewProjectPage() {
             style={{ background: '#e1eedd' }}>
 
             <div>
-              <label className={labelCls}>Project Name *</label>
+              <label className={labelCls}>{t('projects.projectName')}</label>
               <input value={form.name} onChange={e => set('name', e.target.value)}
                 placeholder="e.g. Clean Water Initiative 2026" className={inputCls} />
             </div>
 
             <div>
-              <label className={labelCls}>Description</label>
+              <label className={labelCls}>{t('projects.description')}</label>
               <textarea value={form.description} onChange={e => set('description', e.target.value)}
                 placeholder="Brief description of the project..." rows={3}
                 className={inputCls + ' resize-none'} />
             </div>
 
             <div>
-              <label className={labelCls}>Status</label>
+              <label className={labelCls}>{t('projects.status')}</label>
               <select value={form.status} onChange={e => set('status', e.target.value)} className={inputCls}>
                 <option value="active">Active</option>
                 <option value="draft">Draft</option>
@@ -86,11 +88,11 @@ export default function NewProjectPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className={labelCls}>Start Date</label>
+                <label className={labelCls}>{t('projects.startDate')}</label>
                 <input type="date" value={form.startDate} onChange={e => set('startDate', e.target.value)} className={inputCls} />
               </div>
               <div>
-                <label className={labelCls}>End Date</label>
+                <label className={labelCls}>{t('projects.endDate')}</label>
                 <input type="date" value={form.endDate} onChange={e => set('endDate', e.target.value)} className={inputCls} />
               </div>
             </div>
@@ -103,17 +105,17 @@ export default function NewProjectPage() {
               <button onClick={submit} disabled={saving}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-[#183a1d] disabled:opacity-50 transition-all bg-[#f6c453] hover:bg-[#f0a04b]">
                 <Save size={15} />
-                {saving ? 'Creating…' : 'Create Project'}
+                {saving ? t('common.creating') : t('projects.createProject')}
               </button>
               <Link href="/dashboard/projects" className="px-5 py-2.5 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">
-                Cancel
+                {t('common.cancel')}
               </Link>
             </div>
           </div>
         ) : (
           <div className="rounded-xl border border-green-500/20 bg-green-500/5 px-5 py-4 flex items-center gap-3">
             <CheckCircle size={16} className="text-green-400" />
-            <p className="text-sm text-green-400 font-medium">Project created and anchored to blockchain ✓</p>
+            <p className="text-sm text-green-400 font-medium">{t('projects.createdAnchored')}</p>
           </div>
         )}
 
@@ -123,11 +125,11 @@ export default function NewProjectPage() {
             <div className="flex items-center gap-3">
               <button onClick={() => router.push(`/dashboard/projects/${savedProjectId}`)}
                 className="px-5 py-2.5 rounded-lg text-sm font-medium text-[#183a1d] bg-[#f6c453] hover:bg-[#f0a04b]">
-                View Project
+                {t('projects.viewProject')}
               </button>
               <button onClick={() => router.push('/dashboard/projects/new')}
                 className="px-5 py-2.5 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">
-                Create Another
+                {t('projects.createAnother')}
               </button>
             </div>
           </>

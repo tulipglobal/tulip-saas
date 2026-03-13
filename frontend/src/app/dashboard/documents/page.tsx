@@ -264,7 +264,7 @@ export default function DocumentsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('documents.title')}</h1>
-          <p className="text-[#183a1d]/60 text-sm mt-1">{docs.length} document{docs.length !== 1 ? 's' : ''} — SHA-256 fingerprinted</p>
+          <p className="text-[#183a1d]/60 text-sm mt-1">{docs.length} document{docs.length !== 1 ? 's' : ''} — {t('documents.sha256Fingerprinted')}</p>
         </div>
         <Link href="/dashboard/documents/new"
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] self-start bg-[#f6c453] hover:bg-[#f0a04b]">
@@ -276,7 +276,7 @@ export default function DocumentsPage() {
         <div className="rounded-xl border p-3.5 flex items-center gap-3"
           style={{ background: 'rgba(251,191,36,0.08)', borderColor: 'rgba(251,191,36,0.2)' }}>
           <WifiOff size={16} className="text-amber-400 shrink-0" />
-          <p className="text-[#183a1d]/60 text-xs">You are offline — showing cached documents. Some actions may be unavailable.</p>
+          <p className="text-[#183a1d]/60 text-xs">{t('documents.offlineShowCached')}</p>
         </div>
       )}
 
@@ -284,29 +284,29 @@ export default function DocumentsPage() {
       <div className="rounded-xl border p-3.5 flex items-center gap-3"
         style={{ background: 'rgba(16,185,129,0.05)', borderColor: 'rgba(16,185,129,0.15)' }}>
         <Users size={16} className="text-emerald-400 shrink-0" />
-        <p className="text-[#183a1d]/60 text-xs">All documents are automatically visible to your linked donors via the Donor Portal</p>
+        <p className="text-[#183a1d]/60 text-xs">{t('documents.donorSharing')}</p>
       </div>
 
       <div className="flex items-center gap-3 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 max-w-sm">
         <Search size={15} className="text-[#183a1d]/40" />
         <input value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="Search documents..." className="bg-transparent text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none w-full" />
+          placeholder={t('documents.searchDocuments')} className="bg-transparent text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none w-full" />
       </div>
 
       <div className="rounded-xl border border-[#c8d6c0] overflow-hidden"
         style={{ background: '#e1eedd' }}>
         {/* Desktop table header */}
         <div className="hidden lg:grid grid-cols-[2fr_70px_80px_70px_1fr_80px_1fr_80px_40px] gap-3 px-5 py-3 border-b border-[#c8d6c0] text-xs text-[#183a1d]/40 uppercase tracking-wide font-medium">
-          <span>Document</span><span>Type</span><span>Category</span><span>Expiry</span><span>Hash</span><span>Seal</span><span>Project</span><span>Date</span><span></span>
+          <span>{t('documents.document')}</span><span>{t('documents.type')}</span><span>{t('documents.category')}</span><span>{t('documents.expiry')}</span><span>{t('documents.hash')}</span><span>{t('documents.seal')}</span><span>{t('documents.project')}</span><span>{t('common.date')}</span><span></span>
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-[#183a1d]/40 text-sm">Loading…</div>
+          <div className="p-8 text-center text-[#183a1d]/40 text-sm">{t('common.loading')}</div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center py-16 gap-3">
             <FileCheck size={32} className="text-[#183a1d]/30" />
-            <p className="text-[#183a1d]/40 text-sm">No documents yet</p>
-            <Link href="/dashboard/documents/new" className="text-[#183a1d] text-sm hover:underline">Add your first document</Link>
+            <p className="text-[#183a1d]/40 text-sm">{t('documents.noDocuments')}</p>
+            <Link href="/dashboard/documents/new" className="text-[#183a1d] text-sm hover:underline">{t('documents.addFirst')}</Link>
           </div>
         ) : (
           <div className="divide-y divide-[#c8d6c0]">

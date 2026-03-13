@@ -44,16 +44,17 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function EmptyState() {
+  const t = useTranslations()
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
       <div className="w-16 h-16 rounded-2xl bg-[#f6c453]/10 flex items-center justify-center mb-4">
         <FolderOpen size={28} className="text-[#183a1d]" />
       </div>
-      <h3 className="text-[#183a1d] font-semibold text-lg mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>No projects yet</h3>
-      <p className="text-[#183a1d]/60 text-sm mb-6 max-w-xs">Create your first project to start tracking expenses and documents with blockchain verification.</p>
+      <h3 className="text-[#183a1d] font-semibold text-lg mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>{t('projects.noProjectsYet')}</h3>
+      <p className="text-[#183a1d]/60 text-sm mb-6 max-w-xs">{t('projects.noProjectsDesc')}</p>
       <Link href="/dashboard/projects/new"
         className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] bg-[#f6c453] hover:bg-[#f0a04b]">
-        <Plus size={16} /> New Project
+        <Plus size={16} /> {t('projects.new')}
       </Link>
     </div>
   )
@@ -97,7 +98,7 @@ export default function ProjectsPage() {
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Search projects..."
+          placeholder={t('projects.searchProjects')}
           className="bg-transparent text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none w-full"
         />
       </div>
@@ -140,17 +141,17 @@ export default function ProjectsPage() {
               <div className="flex items-center gap-4 pt-2 border-t border-[#c8d6c0]">
                 <div className="flex items-center gap-1.5 text-xs text-[#183a1d]/40">
                   <CheckCircle size={12} className="text-green-400" />
-                  {project._count?.documents ?? 0} docs
+                  {project._count?.documents ?? 0} {t('projects.docs')}
                 </div>
                 <div className="flex items-center gap-1.5 text-xs text-[#183a1d]/40">
                   <Clock size={12} className="text-[#183a1d]" />
-                  {project._count?.expenses ?? 0} expenses
+                  {project._count?.expenses ?? 0} {t('projects.expenses')}
                 </div>
               </div>
               {project.budgetSummary && project.budgetSummary.budgetTotal > 0 && (
                 <div className="pt-2 border-t border-[#c8d6c0] space-y-0.5">
                   <div className="flex justify-between text-[10px]">
-                    <span className="text-[#183a1d]/40">Budget</span>
+                    <span className="text-[#183a1d]/40">{t('budgets.budget')}</span>
                     <span className="text-[#183a1d]/60">
                       CapEx ${project.budgetSummary.budgetCapex.toLocaleString()} | OpEx ${project.budgetSummary.budgetOpex.toLocaleString()} | Total ${project.budgetSummary.budgetTotal.toLocaleString()}
                     </span>

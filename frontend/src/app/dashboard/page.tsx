@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { apiGet } from '@/lib/api'
 import {
   Shield, FolderOpen, DollarSign, Link2, FileText, Users,
@@ -39,11 +40,11 @@ interface OverviewData {
 }
 
 // ── Greeting helper ───────────────────────────────────────────
-function getGreeting() {
+function getGreeting(t: (key: string) => string) {
   const h = new Date().getHours()
-  if (h < 12) return 'Good morning'
-  if (h < 17) return 'Good afternoon'
-  return 'Good evening'
+  if (h < 12) return t('dashboard.greetingMorning')
+  if (h < 17) return t('dashboard.greetingAfternoon')
+  return t('dashboard.greetingEvening')
 }
 
 // ── Animated counter hook ─────────────────────────────────────
@@ -77,26 +78,28 @@ function formatAmount(amount: number, currency: string) {
 }
 
 // ── Time ago ──────────────────────────────────────────────────
-function timeAgo(dateStr: string) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function timeAgo(dateStr: string, t: any) {
   const diff = Date.now() - new Date(dateStr).getTime()
   const mins = Math.floor(diff / 60000)
-  if (mins < 1) return 'just now'
-  if (mins < 60) return `${mins}m ago`
+  if (mins < 1) return t('dashboard.justNow')
+  if (mins < 60) return t('dashboard.minutesAgo', { mins })
   const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `${hrs}h ago`
+  if (hrs < 24) return t('dashboard.hoursAgo', { hrs })
   const days = Math.floor(hrs / 24)
-  return `${days}d ago`
+  return t('dashboard.daysAgo', { days })
 }
 
 // ── Action description ────────────────────────────────────────
-function actionLabel(action: string, entityType: string) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function actionLabel(action: string, entityType: string, t: any) {
   const map: Record<string, string> = {
-    DOCUMENT_UPLOADED: 'uploaded a document',
-    EXPENSE_CREATED: 'logged an expense',
-    BATCH_ANCHORED: 'anchored records',
-    WORKFLOW_TASK_CREATED: 'submitted for review',
-    WORKFLOW_TASK_APPROVED: 'approved a task',
-    WORKFLOW_TASK_REJECTED: 'rejected a task',
+    DOCUMENT_UPLOADED: t('dashboard.uploadedDoc'),
+    EXPENSE_CREATED: t('dashboard.loggedExpense'),
+    BATCH_ANCHORED: t('dashboard.anchoredRecords'),
+    WORKFLOW_TASK_CREATED: t('dashboard.submittedReview'),
+    WORKFLOW_TASK_APPROVED: t('dashboard.approvedTask'),
+    WORKFLOW_TASK_REJECTED: t('dashboard.rejectedTask'),
   }
   return map[action] || `${action.toLowerCase().replace(/_/g, ' ')} (${entityType})`
 }
@@ -125,6 +128,7 @@ function tooltipLabelFormatter(label: any) {
 
 // ── Expiry alerts banner ──────────────────────────────────────
 function ExpiryAlertsBanner() {
+  const t = useTranslations()
   const [count, setCount] = useState(0)
   const [urgent, setUrgent] = useState(false)
   const [dismissed, setDismissed] = useState(false)
@@ -148,16 +152,16 @@ function ExpiryAlertsBanner() {
       <AlertTriangle size={20} className={urgent ? 'text-rose-400 shrink-0' : 'text-amber-400 shrink-0'} />
       <div className="flex-1">
         <div className="text-sm font-medium text-[#183a1d]">
-          {count} document{count !== 1 ? 's' : ''} expiring soon
+          {t('dashboard.docsExpiring', { count })}
         </div>
         <div className="text-xs text-[#183a1d]/60 mt-0.5">
-          {urgent ? 'Some expire within 7 days' : 'Expiring within 30 days'}
+          {urgent ? t('dashboard.expireWithin7') : t('dashboard.expireWithin30')}
         </div>
       </div>
       <Link href="/dashboard/documents?filter=expiring"
         className="px-4 py-2 rounded-lg text-sm font-semibold text-[#183a1d] shrink-0"
         style={{ background: urgent ? '#F43F5E' : '#F59E0B' }}>
-        View
+        {t('common.view')}
       </Link>
       <button onClick={() => setDismissed(true)} className="text-[#183a1d]/40 hover:text-[#183a1d] shrink-0"><X size={16} /></button>
     </div>
@@ -166,6 +170,7 @@ function ExpiryAlertsBanner() {
 
 // ── Main page ─────────────────────────────────────────────────
 export default function DashboardPage() {
+  const t = useTranslations()
   const [data, setData] = useState<OverviewData | null>(null)
   const [loading, setLoading] = useState(true)
   const [trial, setTrial] = useState<{ active: boolean; daysLeft: number; plan: string } | null>(null)
@@ -196,16 +201,16 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
-            {getGreeting()}, {data?.user?.name?.split(' ')[0] ?? 'there'} 👋
+            {getGreeting(t)}, {data?.user?.name?.split(' ')[0] ?? 'there'} 👋
           </h1>
           <p className="text-[#183a1d]/60 text-sm mt-1">
-            Here&apos;s your organisation&apos;s impact today — {today}
+            {t('dashboard.subtitle')} — {today}
           </p>
         </div>
         <Link href="/verify" target="_blank"
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-emerald-400 border border-emerald-400/30 hover:bg-emerald-400/10 transition-all self-start">
           <ExternalLink size={14} />
-          Public Verifier
+          {t('dashboard.publicVerifier')}
         </Link>
       </div>
 
@@ -215,10 +220,10 @@ export default function DashboardPage() {
           style={{ background: 'rgba(246,196,83,0.06)', borderColor: 'rgba(246,196,83,0.2)' }}>
           <Sparkles size={20} className="text-[#f6c453] shrink-0" />
           <div className="flex-1">
-            <div className="text-sm font-medium text-[#183a1d]">{trial.daysLeft} day{trial.daysLeft !== 1 ? 's' : ''} left in your free trial</div>
-            <div className="text-xs text-[#183a1d]/60 mt-0.5">Upgrade to unlock more features</div>
+            <div className="text-sm font-medium text-[#183a1d]">{t('dashboard.trialDaysLeft', { days: trial.daysLeft })}</div>
+            <div className="text-xs text-[#183a1d]/60 mt-0.5">{t('dashboard.trialUpgrade')}</div>
           </div>
-          <Link href="/dashboard/billing" className="px-4 py-2 rounded-lg text-sm font-semibold text-[#183a1d] shrink-0 bg-[#f6c453] hover:bg-[#f0a04b]">Upgrade</Link>
+          <Link href="/dashboard/billing" className="px-4 py-2 rounded-lg text-sm font-semibold text-[#183a1d] shrink-0 bg-[#f6c453] hover:bg-[#f0a04b]">{t('dashboard.upgrade')}</Link>
         </div>
       )}
       {trial && !trial.active && trial.plan === 'FREE' && (
@@ -226,10 +231,10 @@ export default function DashboardPage() {
           style={{ background: 'rgba(244,63,94,0.06)', borderColor: 'rgba(244,63,94,0.2)' }}>
           <AlertTriangle size={20} className="text-rose-400 shrink-0" />
           <div className="flex-1">
-            <div className="text-sm font-medium text-[#183a1d]">Your free trial has expired</div>
-            <div className="text-xs text-[#183a1d]/60 mt-0.5">Upgrade to continue using all features</div>
+            <div className="text-sm font-medium text-[#183a1d]">{t('dashboard.trialExpired')}</div>
+            <div className="text-xs text-[#183a1d]/60 mt-0.5">{t('dashboard.trialExpiredDesc')}</div>
           </div>
-          <Link href="/dashboard/billing" className="px-4 py-2 rounded-lg text-sm font-semibold text-[#183a1d] shrink-0 bg-[#f6c453] hover:bg-[#f0a04b]">Upgrade Now</Link>
+          <Link href="/dashboard/billing" className="px-4 py-2 rounded-lg text-sm font-semibold text-[#183a1d] shrink-0 bg-[#f6c453] hover:bg-[#f0a04b]">{t('dashboard.upgradeNow')}</Link>
         </div>
       )}
 
@@ -244,8 +249,8 @@ export default function DashboardPage() {
           </div>
           <div>
             <div className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{loading ? '…' : verifiedCount.toLocaleString()}</div>
-            <div className="text-sm text-[#183a1d]/60 mt-0.5">Blockchain Verified</div>
-            <div className="text-xs text-emerald-400/60 mt-1">+{s?.documentsThisMonth ?? 0} this month</div>
+            <div className="text-sm text-[#183a1d]/60 mt-0.5">{t('dashboard.blockchainVerified')}</div>
+            <div className="text-xs text-emerald-400/60 mt-1">{t('dashboard.thisMonth', { count: s?.documentsThisMonth ?? 0 })}</div>
           </div>
         </div>
 
@@ -258,8 +263,8 @@ export default function DashboardPage() {
             <div className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
               {loading ? '…' : formatAmount(fundingCount, s?.totalFundingCurrency ?? 'USD')}
             </div>
-            <div className="text-sm text-[#183a1d]/60 mt-0.5">Funding Secured</div>
-            <div className="text-xs text-amber-400/60 mt-1">across {s?.fundingAgreementsCount ?? 0} agreements</div>
+            <div className="text-sm text-[#183a1d]/60 mt-0.5">{t('dashboard.fundingSecured')}</div>
+            <div className="text-xs text-amber-400/60 mt-1">{t('dashboard.agreements', { count: s?.fundingAgreementsCount ?? 0 })}</div>
           </div>
         </div>
 
@@ -270,8 +275,8 @@ export default function DashboardPage() {
           </div>
           <div>
             <div className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{loading ? '…' : projectCount}</div>
-            <div className="text-sm text-[#183a1d]/60 mt-0.5">Active Projects</div>
-            <div className="text-xs text-[#183a1d]/40 mt-1">{s?.completedProjects ?? 0} completed</div>
+            <div className="text-sm text-[#183a1d]/60 mt-0.5">{t('dashboard.activeProjects')}</div>
+            <div className="text-xs text-[#183a1d]/40 mt-1">{t('dashboard.completed', { count: s?.completedProjects ?? 0 })}</div>
           </div>
         </div>
 
@@ -284,8 +289,8 @@ export default function DashboardPage() {
           </div>
           <div>
             <div className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{loading ? '…' : blockchainCount.toLocaleString()}</div>
-            <div className="text-sm text-[#183a1d]/60 mt-0.5">Transactions on Polygon</div>
-            <div className="text-xs text-emerald-400/60 mt-1">Immutable records</div>
+            <div className="text-sm text-[#183a1d]/60 mt-0.5">{t('dashboard.transactionsOnPolygon')}</div>
+            <div className="text-xs text-emerald-400/60 mt-1">{t('dashboard.immutableRecords')}</div>
           </div>
         </div>
       </div>
@@ -294,17 +299,17 @@ export default function DashboardPage() {
       <div className="rounded-xl border border-[#c8d6c0] p-5" style={{ background: '#e1eedd' }}>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="font-semibold text-[#183a1d] text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>Organisation Activity</h2>
-            <p className="text-xs text-[#183a1d]/40 mt-0.5">Last 6 months</p>
+            <h2 className="font-semibold text-[#183a1d] text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>{t('dashboard.orgActivity')}</h2>
+            <p className="text-xs text-[#183a1d]/40 mt-0.5">{t('dashboard.last6Months')}</p>
           </div>
           <div className="flex items-center gap-4 text-xs">
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-400" /> Documents</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> Funding</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-400" /> {t('dashboard.documentsLabel')}</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> {t('dashboard.fundingLabel')}</span>
           </div>
         </div>
         {loading || !data?.chartData?.length ? (
           <div className="h-52 flex items-center justify-center text-[#183a1d]/30 text-sm">
-            {loading ? 'Loading chart…' : 'No activity data yet'}
+            {loading ? t('dashboard.loadingChart') : t('dashboard.noActivityData')}
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={220}>
@@ -338,10 +343,10 @@ export default function DashboardPage() {
       {/* ── QUICK ACTIONS ──────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { icon: FileText, label: 'Upload Document', href: '/dashboard/documents/new', color: 'text-emerald-400', bg: 'bg-emerald-500/10', hoverBorder: 'hover:border-emerald-400/30' },
-          { icon: FolderOpen, label: 'New Project', href: '/dashboard/projects/new', color: 'text-[#f6c453]', bg: 'bg-[#f6c453]/10', hoverBorder: 'hover:border-[#f6c453]/30' },
-          { icon: Receipt, label: 'Add Expense', href: '/dashboard/expenses/new', color: 'text-amber-400', bg: 'bg-amber-500/10', hoverBorder: 'hover:border-amber-400/30' },
-          { icon: Users, label: 'Invite Member', href: '/dashboard/team', color: 'text-rose-400', bg: 'bg-rose-500/10', hoverBorder: 'hover:border-rose-400/30' },
+          { icon: FileText, label: t('dashboard.uploadDocument'), href: '/dashboard/documents/new', color: 'text-emerald-400', bg: 'bg-emerald-500/10', hoverBorder: 'hover:border-emerald-400/30' },
+          { icon: FolderOpen, label: t('dashboard.newProject'), href: '/dashboard/projects/new', color: 'text-[#f6c453]', bg: 'bg-[#f6c453]/10', hoverBorder: 'hover:border-[#f6c453]/30' },
+          { icon: Receipt, label: t('dashboard.addExpense'), href: '/dashboard/expenses/new', color: 'text-amber-400', bg: 'bg-amber-500/10', hoverBorder: 'hover:border-amber-400/30' },
+          { icon: Users, label: t('dashboard.inviteMember'), href: '/dashboard/team', color: 'text-rose-400', bg: 'bg-rose-500/10', hoverBorder: 'hover:border-rose-400/30' },
         ].map(({ icon: Icon, label, href, color, bg, hoverBorder }) => (
           <Link key={href} href={href}
             className={`flex flex-col items-center gap-2.5 p-5 rounded-xl border border-[#c8d6c0] ${hoverBorder} hover:bg-[#e1eedd]/50 transition-all group cursor-pointer`}
@@ -360,8 +365,8 @@ export default function DashboardPage() {
         {/* Projects (2/3 width) */}
         <div className="lg:col-span-2 space-y-4">
           <div>
-            <h2 className="font-semibold text-[#183a1d] text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>Project Health</h2>
-            <p className="text-xs text-[#183a1d]/40 mt-0.5">Budget tracking</p>
+            <h2 className="font-semibold text-[#183a1d] text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>{t('dashboard.projectHealth')}</h2>
+            <p className="text-xs text-[#183a1d]/40 mt-0.5">{t('dashboard.budgetTracking')}</p>
           </div>
 
           {loading ? (
@@ -373,8 +378,8 @@ export default function DashboardPage() {
           ) : !data?.projects?.length ? (
             <div className="rounded-xl border border-[#c8d6c0] flex flex-col items-center py-12 gap-3" style={{ background: '#e1eedd' }}>
               <FolderOpen size={32} className="text-[#183a1d]/30" />
-              <p className="text-[#183a1d]/40 text-sm">No active projects yet</p>
-              <Link href="/dashboard/projects/new" className="text-emerald-400 text-sm hover:underline">Create your first project</Link>
+              <p className="text-[#183a1d]/40 text-sm">{t('dashboard.noActiveProjects')}</p>
+              <Link href="/dashboard/projects/new" className="text-emerald-400 text-sm hover:underline">{t('dashboard.createFirstProject')}</Link>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -395,14 +400,14 @@ export default function DashboardPage() {
                           ? 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20'
                           : 'bg-amber-400/10 text-amber-400 border-amber-400/20'
                       }`}>
-                        {project.status === 'active' ? 'Active' : project.status === 'on_hold' ? 'On Hold' : project.status}
+                        {project.status === 'active' ? t('dashboard.active') : project.status === 'on_hold' ? t('dashboard.onHold') : project.status}
                       </span>
                     </div>
 
                     {/* Budget used */}
                     <div className="mb-2">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-[11px] text-[#183a1d]/40 uppercase tracking-wide">Budget Used</span>
+                        <span className="text-[11px] text-[#183a1d]/40 uppercase tracking-wide">{t('dashboard.budgetUsed')}</span>
                         <span className="text-xs text-[#183a1d]/60">{budgetPct}%</span>
                       </div>
                       <div className="h-1.5 rounded-full bg-[#c8d6c0] overflow-hidden">
@@ -415,7 +420,7 @@ export default function DashboardPage() {
 
                     {/* Completion badge */}
                     <div className="flex items-center justify-between pt-2 border-t border-[#c8d6c0]">
-                      <span className="text-[11px] text-[#183a1d]/40">Completion</span>
+                      <span className="text-[11px] text-[#183a1d]/40">{t('dashboard.completion')}</span>
                       <span className="text-sm font-bold" style={{ color: progressColor(completionPct), fontFamily: 'Inter, sans-serif' }}>
                         {completionPct}%
                       </span>
@@ -431,17 +436,17 @@ export default function DashboardPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="font-semibold text-[#183a1d] text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>Recent Activity</h2>
-              <p className="text-xs text-[#183a1d]/40 mt-0.5">Latest events</p>
+              <h2 className="font-semibold text-[#183a1d] text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>{t('dashboard.recentActivity')}</h2>
+              <p className="text-xs text-[#183a1d]/40 mt-0.5">{t('dashboard.latestEvents')}</p>
             </div>
-            <Link href="/dashboard/audit" className="text-xs text-[#183a1d] hover:underline">View all</Link>
+            <Link href="/dashboard/audit" className="text-xs text-[#183a1d] hover:underline">{t('dashboard.viewAll')}</Link>
           </div>
 
           <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
             {loading ? (
-              <div className="p-6 text-center text-[#183a1d]/30 text-sm">Loading…</div>
+              <div className="p-6 text-center text-[#183a1d]/30 text-sm">{t('common.loading')}</div>
             ) : !data?.activityFeed?.length ? (
-              <div className="p-6 text-center text-[#183a1d]/30 text-sm">No activity yet</div>
+              <div className="p-6 text-center text-[#183a1d]/30 text-sm">{t('dashboard.noActivityYet')}</div>
             ) : (
               <div className="divide-y divide-[#c8d6c0]">
                 {data.activityFeed.map(entry => (
@@ -452,9 +457,9 @@ export default function DashboardPage() {
                     <div className="flex-1 min-w-0">
                       <div className="text-xs text-[#183a1d]/70">
                         <span className="font-medium text-[#183a1d]">{entry.userName}</span>{' '}
-                        {actionLabel(entry.action, entry.entityType)}
+                        {actionLabel(entry.action, entry.entityType, t)}
                       </div>
-                      <div className="text-[11px] text-[#183a1d]/40 mt-0.5">{timeAgo(entry.createdAt)}</div>
+                      <div className="text-[11px] text-[#183a1d]/40 mt-0.5">{timeAgo(entry.createdAt, t)}</div>
                     </div>
                   </div>
                 ))}

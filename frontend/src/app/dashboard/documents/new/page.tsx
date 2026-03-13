@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Upload, FileText, CheckCircle, AlertCircle, Building2, FolderOpen, Receipt, X, Loader2 } from 'lucide-react'
 import { apiGet } from '@/lib/api'
+import { useTranslations } from 'next-intl'
 
 interface Project { id: string; name: string }
 interface Expense { id: string; description: string; amount: number; currency: string }
@@ -47,6 +48,7 @@ function formatSize(bytes: number) {
 
 export default function AddDocumentPage() {
   const router = useRouter()
+  const t = useTranslations()
   const fileRef = useRef<HTMLInputElement>(null)
   const [level, setLevel] = useState<'ngo'|'project'|'expense'>('project')
   const [projects, setProjects] = useState<Project[]>([])
@@ -164,20 +166,20 @@ export default function AddDocumentPage() {
   const failedCount = entries.filter(e => e.status === 'failed').length
 
   const levelConfig = {
-    ngo: { icon: Building2, label: 'NGO Document', desc: 'Organisation-level documents', color: '#6366f1' },
-    project: { icon: FolderOpen, label: 'Project Document', desc: 'Project reports, proposals', color: '#0d9488' },
-    expense: { icon: Receipt, label: 'Expense Document', desc: 'Receipts, invoices, payment proof', color: '#f59e0b' },
+    ngo: { icon: Building2, label: t('documents.ngoDocument'), desc: t('documents.ngoDocDesc'), color: '#6366f1' },
+    project: { icon: FolderOpen, label: t('documents.projectDocument'), desc: t('documents.projectDocDesc'), color: '#0d9488' },
+    expense: { icon: Receipt, label: t('documents.expenseDocument'), desc: t('documents.expenseDocDesc'), color: '#f59e0b' },
   }
 
   if (done && failedCount === 0) return (
     <div style={{ minHeight:'100vh', background:'#F9FAFB', display:'flex', alignItems:'center', justifyContent:'center' }}>
       <div style={{ textAlign:'center' }}>
         <CheckCircle size={64} style={{ color:'#34d399', margin:'0 auto 16px' }} />
-        <p style={{ color:'#111827', fontSize:20, fontWeight:600 }}>{sealedCount} of {entries.length} document{entries.length > 1 ? 's' : ''} sealed</p>
-        <p style={{ color:'#64748b', fontSize:14, marginTop:8 }}>SHA-256 hashes generated and queued for blockchain anchoring</p>
+        <p style={{ color:'#111827', fontSize:20, fontWeight:600 }}>{t('documents.sealedCount', { sealed: sealedCount, total: entries.length })}</p>
+        <p style={{ color:'#64748b', fontSize:14, marginTop:8 }}>{t('documents.hashesQueued')}</p>
         <button onClick={() => router.push('/dashboard/documents')}
           style={{ marginTop:24, padding:'10px 24px', borderRadius:8, background:'#0d9488', color:'#fff', border:'none', cursor:'pointer', fontSize:14, fontWeight:500 }}>
-          View Documents
+          {t('documents.viewDocuments')}
         </button>
       </div>
     </div>
@@ -188,14 +190,14 @@ export default function AddDocumentPage() {
       <div style={{ maxWidth:720, margin:'0 auto' }}>
         <div style={{ marginBottom:32 }}>
           <Link href="/dashboard/documents" style={{ display:'inline-flex', alignItems:'center', gap:6, color:'#64748b', fontSize:14, textDecoration:'none', marginBottom:16 }}>
-            <ArrowLeft size={16} /> Back to Documents
+            <ArrowLeft size={16} /> {t('documents.backToDocuments')}
           </Link>
-          <h1 style={{ color:'#111827', fontSize:28, fontWeight:700, margin:0 }}>Add Documents</h1>
-          <p style={{ color:'#64748b', fontSize:14, marginTop:4 }}>Upload up to {MAX_FILES} files — each gets SHA-256 hashed and anchored to blockchain</p>
+          <h1 style={{ color:'#111827', fontSize:28, fontWeight:700, margin:0 }}>{t('documents.addDocuments')}</h1>
+          <p style={{ color:'#64748b', fontSize:14, marginTop:4 }}>{t('documents.addDocsDesc', { count: MAX_FILES })}</p>
         </div>
 
         <div style={{ marginBottom:24 }}>
-          <p style={{ color:'#6B7280', fontSize:12, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:12 }}>Document Level</p>
+          <p style={{ color:'#6B7280', fontSize:12, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:12 }}>{t('documents.documentLevel')}</p>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12 }}>
             {(Object.entries(levelConfig) as any[]).map(([key, cfg]) => {
               const Icon = cfg.icon; const active = level === key
@@ -213,7 +215,7 @@ export default function AddDocumentPage() {
 
         {(level === 'project' || level === 'expense') && (
           <div style={{ marginBottom:16 }}>
-            <label style={{ color:'#6B7280', fontSize:12, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', display:'block', marginBottom:8 }}>Project *</label>
+            <label style={{ color:'#6B7280', fontSize:12, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', display:'block', marginBottom:8 }}>{t('expenses.project')}</label>
             <select value={selectedProject} onChange={e => setSelectedProject(e.target.value)}
               style={{ width:'100%', padding:'10px 14px', borderRadius:8, border:'1px solid #E5E7EB', background:'#F9FAFB', color:'#111827', fontSize:14 }}>
               <option value="">Select a project...</option>
@@ -234,16 +236,16 @@ export default function AddDocumentPage() {
         )}
 
         <div style={{ marginBottom:16 }}>
-          <label style={{ color:'#6B7280', fontSize:12, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', display:'block', marginBottom:8 }}>Document Type</label>
+          <label style={{ color:'#6B7280', fontSize:12, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', display:'block', marginBottom:8 }}>{t('documents.documentType')}</label>
           <select value={documentType} onChange={e => setDocumentType(e.target.value)}
             style={{ width:'100%', padding:'10px 14px', borderRadius:8, border:'1px solid #E5E7EB', background:'#F9FAFB', color:'#111827', fontSize:14 }}>
             <option value="">Select type...</option>
-            {DOCUMENT_TYPES[level].map(t => <option key={t} value={t}>{t}</option>)}
+            {DOCUMENT_TYPES[level].map(dt => <option key={dt} value={dt}>{dt}</option>)}
           </select>
         </div>
 
         <div style={{ marginBottom:16 }}>
-          <label style={{ color:'#6B7280', fontSize:12, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', display:'block', marginBottom:8 }}>Category</label>
+          <label style={{ color:'#6B7280', fontSize:12, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', display:'block', marginBottom:8 }}>{t('common.category')}</label>
           <select value={category} onChange={e => { setCategory(e.target.value); if (!KEY_DOCUMENT_CATEGORIES.includes(e.target.value)) setExpiryDate('') }}
             style={{ width:'100%', padding:'10px 14px', borderRadius:8, border:'1px solid #E5E7EB', background:'#F9FAFB', color:'#111827', fontSize:14 }}>
             {CATEGORY_OPTIONS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
@@ -252,27 +254,27 @@ export default function AddDocumentPage() {
 
         {KEY_DOCUMENT_CATEGORIES.includes(category) && (
           <div style={{ marginBottom:16 }}>
-            <label style={{ color:'#6B7280', fontSize:12, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', display:'block', marginBottom:8 }}>Expiry Date</label>
+            <label style={{ color:'#6B7280', fontSize:12, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', display:'block', marginBottom:8 }}>{t('documents.expiryDate')}</label>
             <input type="date" value={expiryDate} onChange={e => setExpiryDate(e.target.value)}
               style={{ width:'100%', padding:'10px 14px', borderRadius:8, border:'1px solid #E5E7EB', background:'#F9FAFB', color:'#111827', fontSize:14, boxSizing:'border-box' }} />
           </div>
         )}
 
         <div style={{ marginBottom:16 }}>
-          <label style={{ color:'#6B7280', fontSize:12, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', display:'block', marginBottom:8 }}>Description</label>
+          <label style={{ color:'#6B7280', fontSize:12, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', display:'block', marginBottom:8 }}>{t('documents.description')}</label>
           <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} placeholder="Brief description (applies to all files)..."
             style={{ width:'100%', padding:'10px 14px', borderRadius:8, border:'1px solid #E5E7EB', background:'#F9FAFB', color:'#111827', fontSize:14, resize:'vertical', boxSizing:'border-box' }} />
         </div>
 
         {/* File drop zone */}
         <div style={{ marginBottom:24 }}>
-          <label style={{ color:'#6B7280', fontSize:12, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', display:'block', marginBottom:8 }}>Files * <span style={{ fontWeight:400, textTransform:'none' }}>({entries.length}/{MAX_FILES})</span></label>
+          <label style={{ color:'#6B7280', fontSize:12, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', display:'block', marginBottom:8 }}>{t('documents.files')} <span style={{ fontWeight:400, textTransform:'none' }}>({entries.length}/{MAX_FILES})</span></label>
           <div onDragOver={e => { e.preventDefault(); setDragging(true) }} onDragLeave={() => setDragging(false)} onDrop={handleDrop} onClick={() => fileRef.current?.click()}
             style={{ border:`2px dashed ${dragging ? '#0d9488' : '#E5E7EB'}`, borderRadius:12, padding:'32px 24px', textAlign:'center', cursor:'pointer',
               background: dragging ? 'rgba(13,148,136,0.05)' : '#FFFFFF' }}>
             <Upload size={32} style={{ color:'#475569', margin:'0 auto 12px' }} />
-            <p style={{ color:'#6B7280', fontWeight:500, margin:0 }}>Drop files here or click to browse</p>
-            <p style={{ color:'#475569', fontSize:12, marginTop:4 }}>PDF, DOC, DOCX, XLSX, JPG, PNG — max 20MB each, up to {MAX_FILES} files</p>
+            <p style={{ color:'#6B7280', fontWeight:500, margin:0 }}>{t('documents.dropOrClickBrowse')}</p>
+            <p style={{ color:'#475569', fontSize:12, marginTop:4 }}>{t('documents.fileFormats2', { count: MAX_FILES })}</p>
           </div>
           <input ref={fileRef} type="file" multiple style={{ display:'none' }} accept=".pdf,.doc,.docx,.xlsx,.xls,.jpg,.jpeg,.png,.csv"
             onChange={e => { if (e.target.files && e.target.files.length > 0) { addFiles(e.target.files); e.target.value = '' } }} />
@@ -299,8 +301,8 @@ export default function AddDocumentPage() {
                     <p style={{ color: entry.status === 'failed' ? '#ef4444' : '#64748b', fontSize:11, margin:'2px 0 0' }}>
                       {entry.file.name} — {formatSize(entry.file.size)}
                       {entry.status === 'uploading' && ' — uploading...'}
-                      {entry.status === 'sealed' && ' — sealed'}
-                      {entry.status === 'failed' && ` — ${entry.error || 'failed'}`}
+                      {entry.status === 'sealed' && ` — ${t('documents.sealed')}`}
+                      {entry.status === 'failed' && ` — ${entry.error || t('documents.failed')}`}
                     </p>
                   </div>
                   {entry.status === 'queued' && !uploading && (
@@ -325,8 +327,8 @@ export default function AddDocumentPage() {
         <div style={{ padding:'12px 16px', borderRadius:8, background:'rgba(13,148,136,0.08)', border:'1px solid rgba(13,148,136,0.2)', marginBottom:24, display:'flex', gap:10 }}>
           <FileText size={16} style={{ color:'#0d9488', marginTop:2, flexShrink:0 }} />
           <div>
-            <p style={{ color:'#0d9488', fontSize:13, fontWeight:600, margin:0 }}>Blockchain Proof</p>
-            <p style={{ color:'#64748b', fontSize:12, margin:'2px 0 0' }}>SHA-256 fingerprint anchored to Polygon. Donors can verify documents have not been altered.</p>
+            <p style={{ color:'#0d9488', fontSize:13, fontWeight:600, margin:0 }}>{t('documents.blockchainProof')}</p>
+            <p style={{ color:'#64748b', fontSize:12, margin:'2px 0 0' }}>{t('documents.blockchainProofDesc')}</p>
           </div>
         </div>
 
@@ -338,16 +340,16 @@ export default function AddDocumentPage() {
         )}
 
         <div style={{ display:'flex', gap:12 }}>
-          <Link href="/dashboard/documents" style={{ flex:1, padding:'12px', borderRadius:8, border:'1px solid #E5E7EB', color:'#6B7280', fontSize:14, fontWeight:500, textAlign:'center', textDecoration:'none', display:'block' }}>Cancel</Link>
+          <Link href="/dashboard/documents" style={{ flex:1, padding:'12px', borderRadius:8, border:'1px solid #E5E7EB', color:'#6B7280', fontSize:14, fontWeight:500, textAlign:'center', textDecoration:'none', display:'block' }}>{t('common.cancel')}</Link>
           {done && failedCount > 0 ? (
             <button onClick={() => router.push('/dashboard/documents')}
               style={{ flex:2, padding:'12px', borderRadius:8, background:'#0d9488', color:'#fff', fontSize:14, fontWeight:600, border:'none', cursor:'pointer' }}>
-              Done
+              {t('common.done')}
             </button>
           ) : (
             <button onClick={handleSubmit} disabled={uploading || entries.length === 0}
               style={{ flex:2, padding:'12px', borderRadius:8, background: uploading ? '#1e293b' : '#0d9488', color:'#111827', fontSize:14, fontWeight:600, border:'none', cursor: uploading ? 'not-allowed' : 'pointer' }}>
-              {uploading ? `Uploading ${entries.filter(e => e.status === 'sealed').length + 1} of ${entries.length}...` : entries.length > 1 ? `Upload All (${entries.length} files)` : 'Upload Document'}
+              {uploading ? t('documents.uploadingProgress', { current: entries.filter(e => e.status === 'sealed').length + 1, total: entries.length }) : entries.length > 1 ? t('documents.uploadAll', { count: entries.length }) : t('documents.uploadDocument')}
             </button>
           )}
         </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { apiFetch, apiGet } from '@/lib/api'
 import {
   ShieldCheck, Plus, Search, Copy, ExternalLink, X, Download,
@@ -48,6 +49,7 @@ function SourceBadge({ type }: { type: string }) {
 }
 
 export default function TrustSealPage() {
+  const t = useTranslations('trustSealPage')
   const [seals, setSeals] = useState<Seal[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -182,22 +184,22 @@ export default function TrustSealPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Trust Seals</h1>
-          <p className="text-sm text-[#183a1d]/60 mt-1">Every document in the system is automatically sealed and anchored to Polygon</p>
+          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('title')}</h1>
+          <p className="text-sm text-[#183a1d]/60 mt-1">{t('subtitle')}</p>
         </div>
         <button onClick={() => { setShowCreate(true); setCreateError('') }}
           className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-[#183a1d] transition-all hover:opacity-90 bg-[#f6c453] hover:bg-[#f0a04b]">
-          <Plus size={16} /> Issue New Seal
+          <Plus size={16} /> {t('issueNewSeal')}
         </button>
       </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total Seals', value: totalSeals, color: 'text-[#183a1d]' },
-          { label: 'Confirmed', value: confirmed, color: 'text-green-400' },
-          { label: 'Pending', value: pending, color: 'text-yellow-400' },
-          { label: 'This Month', value: thisMonth, color: 'text-cyan-400' },
+          { label: t('totalSeals'), value: totalSeals, color: 'text-[#183a1d]' },
+          { label: t('confirmed'), value: confirmed, color: 'text-green-400' },
+          { label: t('pending'), value: pending, color: 'text-yellow-400' },
+          { label: t('thisMonth'), value: thisMonth, color: 'text-cyan-400' },
         ].map(({ label, value, color }) => (
           <div key={label} className="rounded-xl border border-[#c8d6c0] px-5 py-4" style={{ background: '#e1eedd' }}>
             <div className={`text-xl font-bold ${color}`} style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
@@ -210,21 +212,21 @@ export default function TrustSealPage() {
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 max-w-xs flex-1 min-w-[200px]">
           <Search size={14} className="text-[#183a1d]/40" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search seals..."
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('searchSeals')}
             className="bg-transparent text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none w-full" />
         </div>
         <select value={filterSource} onChange={e => setFilterSource(e.target.value)}
           className={`${inputCls} min-w-[140px] [&>option]:bg-[#e1eedd]`}>
-          <option value="">All Sources</option>
+          <option value="">{t('allSources')}</option>
           {Object.entries(SOURCE_MAP).map(([key, { label }]) => (
             <option key={key} value={key}>{label}</option>
           ))}
         </select>
         <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
           className={`${inputCls} min-w-[130px] [&>option]:bg-[#e1eedd]`}>
-          <option value="">All Status</option>
-          <option value="confirmed">Confirmed</option>
-          <option value="pending">Pending</option>
+          <option value="">{t('allStatus')}</option>
+          <option value="confirmed">{t('confirmed')}</option>
+          <option value="pending">{t('pending')}</option>
         </select>
       </div>
 
@@ -236,13 +238,13 @@ export default function TrustSealPage() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-20">
           <ShieldCheck size={48} className="mx-auto text-[#183a1d]/30 mb-4" />
-          <h3 className="text-lg font-semibold text-[#183a1d]/70">No seals found</h3>
-          <p className="text-sm text-[#183a1d]/40 mt-1">Issue your first trust seal or upload a document</p>
+          <h3 className="text-lg font-semibold text-[#183a1d]/70">{t('noSealsFound')}</h3>
+          <p className="text-sm text-[#183a1d]/40 mt-1">{t('noSealsDesc')}</p>
         </div>
       ) : (
         <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
           <div className="hidden lg:grid grid-cols-[2fr_80px_1fr_1fr_80px_80px_60px] gap-3 px-5 py-3 border-b border-[#c8d6c0] text-xs text-[#183a1d]/40 uppercase tracking-wide font-medium">
-            <span>Document</span><span>Source</span><span>Issued By</span><span>Date</span><span>Seal</span><span>TX</span><span></span>
+            <span>{t('document')}</span><span>{t('source')}</span><span>{t('issuedBy')}</span><span>{t('date')}</span><span>{t('seal')}</span><span>{t('tx')}</span><span></span>
           </div>
           <div className="divide-y divide-[#c8d6c0]">
             {filtered.map(seal => (
@@ -250,7 +252,7 @@ export default function TrustSealPage() {
                 <div>
                   <div className="text-sm font-medium text-[#183a1d] truncate">{seal.documentTitle}</div>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-xs text-[#183a1d]/40">To: {seal.issuedTo}</span>
+                    <span className="text-xs text-[#183a1d]/40">{t('to')}{seal.issuedTo}</span>
                     {/* Mobile meta */}
                     <span className="lg:hidden"><SourceBadge type={seal.documentType} /></span>
                   </div>
@@ -307,7 +309,7 @@ export default function TrustSealPage() {
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
           <div className="relative bg-[#e1eedd] border border-[#c8d6c0] rounded-xl w-full max-w-lg max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 border-b border-[#c8d6c0]">
-              <h3 className="font-semibold text-[#183a1d] text-lg">Issue New Trust Seal</h3>
+              <h3 className="font-semibold text-[#183a1d] text-lg">{t('issueNewTrustSeal')}</h3>
               <button onClick={() => setShowCreate(false)} className="text-[#183a1d]/60 hover:text-[#183a1d]"><X size={18} /></button>
             </div>
             <div className="p-5 space-y-4">
@@ -315,40 +317,40 @@ export default function TrustSealPage() {
                 <div className="p-3 rounded-lg bg-red-400/10 border border-red-400/20 text-red-400 text-sm">{createError}</div>
               )}
               <div>
-                <label className="text-xs font-medium text-[#183a1d]/70 mb-1.5 block">Document Title *</label>
+                <label className="text-xs font-medium text-[#183a1d]/70 mb-1.5 block">{t('documentTitle')}</label>
                 <input value={formTitle} onChange={e => setFormTitle(e.target.value)} placeholder="e.g. Bachelor of Science Degree" className={`w-full ${inputCls}`} />
               </div>
               <div>
-                <label className="text-xs font-medium text-[#183a1d]/70 mb-1.5 block">Document Type</label>
+                <label className="text-xs font-medium text-[#183a1d]/70 mb-1.5 block">{t('documentType')}</label>
                 <select value={formType} onChange={e => setFormType(e.target.value)} className={`w-full ${inputCls} [&>option]:bg-[#e1eedd]`}>
-                  {TYPE_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                  {TYPE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-xs font-medium text-[#183a1d]/70 mb-1.5 block">Issued To *</label>
+                <label className="text-xs font-medium text-[#183a1d]/70 mb-1.5 block">{t('issuedTo')}</label>
                 <input value={formTo} onChange={e => setFormTo(e.target.value)} placeholder="Recipient full name" className={`w-full ${inputCls}`} />
               </div>
               <div>
-                <label className="text-xs font-medium text-[#183a1d]/70 mb-1.5 block">Recipient Email</label>
+                <label className="text-xs font-medium text-[#183a1d]/70 mb-1.5 block">{t('recipientEmail')}</label>
                 <input value={formToEmail} onChange={e => setFormToEmail(e.target.value)} placeholder="recipient@example.com" type="email" className={`w-full ${inputCls}`} />
               </div>
               <div>
-                <label className="text-xs font-medium text-[#183a1d]/70 mb-1.5 block">Issued By (org name)</label>
+                <label className="text-xs font-medium text-[#183a1d]/70 mb-1.5 block">{t('issuedByOrg')}</label>
                 <input value={formBy} onChange={e => setFormBy(e.target.value)} placeholder="Leave blank to use your org name" className={`w-full ${inputCls}`} />
               </div>
               <div>
-                <label className="text-xs font-medium text-[#183a1d]/70 mb-1.5 block">Upload Document (to hash)</label>
+                <label className="text-xs font-medium text-[#183a1d]/70 mb-1.5 block">{t('uploadDocumentToHash')}</label>
                 <div className="border border-dashed border-[#c8d6c0] rounded-lg p-4 text-center">
                   <input type="file" onChange={e => setFormFile(e.target.files?.[0] || null)} className="hidden" id="seal-file" />
                   <label htmlFor="seal-file" className="cursor-pointer">
-                    {formFile ? <div className="text-sm text-[#183a1d]">{formFile.name}</div> : <div className="text-sm text-[#183a1d]/40">Click to select a file</div>}
+                    {formFile ? <div className="text-sm text-[#183a1d]">{formFile.name}</div> : <div className="text-sm text-[#183a1d]/40">{t('clickToSelect')}</div>}
                   </label>
                 </div>
               </div>
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-medium text-[#183a1d]/70">Custom Metadata</label>
-                  <button onClick={addMetadataRow} className="text-[10px] text-[#183a1d] hover:underline">+ Add field</button>
+                  <label className="text-xs font-medium text-[#183a1d]/70">{t('customMetadata')}</label>
+                  <button onClick={addMetadataRow} className="text-[10px] text-[#183a1d] hover:underline">{t('addField')}</button>
                 </div>
                 <div className="space-y-2">
                   {metadataKeys.map((key, idx) => (
@@ -366,11 +368,11 @@ export default function TrustSealPage() {
               </div>
             </div>
             <div className="flex justify-end gap-3 p-5 border-t border-[#c8d6c0]">
-              <button onClick={() => setShowCreate(false)} className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/70 hover:text-[#183a1d] transition-colors">Cancel</button>
+              <button onClick={() => setShowCreate(false)} className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/70 hover:text-[#183a1d] transition-colors">{t('cancel')}</button>
               <button onClick={handleCreate} disabled={creating || !formTitle.trim() || !formTo.trim()}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] disabled:opacity-40 transition-all hover:opacity-90 bg-[#f6c453] hover:bg-[#f0a04b]">
                 {creating && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                {creating ? 'Issuing...' : 'Issue Seal'}
+                {creating ? t('issuing') : t('issueSeal')}
               </button>
             </div>
           </div>
@@ -386,7 +388,7 @@ export default function TrustSealPage() {
               <div className="w-14 h-14 rounded-full bg-green-400/15 flex items-center justify-center mx-auto mb-4">
                 <ShieldCheck size={28} className="text-green-400" />
               </div>
-              <h3 className="text-lg font-bold text-[#183a1d] mb-1">Trust Seal Issued</h3>
+              <h3 className="text-lg font-bold text-[#183a1d] mb-1">{t('trustSealIssued')}</h3>
               <p className="text-sm text-[#183a1d]/60 mb-5">{createdSeal.documentTitle}</p>
               {(createdSeal.qrCode || createdSeal.qrCodeUrl) && (
                 <div className="bg-white rounded-xl p-4 inline-block mb-4">
@@ -397,7 +399,7 @@ export default function TrustSealPage() {
                 <div className="flex items-center gap-2 bg-[#e1eedd] rounded-lg px-3 py-2.5">
                   <code className="text-xs text-[#183a1d]/70 truncate flex-1">{createdSeal.verifyUrl || `https://verify.tulipds.com/seal/${createdSeal.id}`}</code>
                   <button onClick={() => copyUrl(createdSeal.id)} className="text-[#183a1d] hover:underline text-xs shrink-0">
-                    {copied ? 'Copied!' : 'Copy'}
+                    {copied ? t('copied') : t('copy')}
                   </button>
                 </div>
                 <div className="text-xs text-[#183a1d]/40 font-mono break-all">SHA-256: {createdSeal.rawHash}</div>
@@ -406,12 +408,12 @@ export default function TrustSealPage() {
                 {(createdSeal.qrCode || createdSeal.qrCodeUrl) && (
                   <button onClick={() => downloadQR(createdSeal.qrCode || createdSeal.qrCodeUrl!, createdSeal.documentTitle)}
                     className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#e1eedd] text-[#183a1d] hover:bg-[#e1eedd] transition-all text-sm">
-                    <Download size={14} /> Download QR
+                    <Download size={14} /> {t('downloadQr')}
                   </button>
                 )}
                 <button onClick={() => setCreatedSeal(null)}
                   className="px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] transition-all hover:opacity-90 bg-[#f6c453] hover:bg-[#f0a04b]">
-                  Done
+                  {t('done')}
                 </button>
               </div>
             </div>

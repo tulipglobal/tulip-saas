@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { apiFetch, apiGet } from '@/lib/api'
 import {
   Briefcase, Plus, Search, Copy, ExternalLink, ChevronRight, X,
@@ -72,14 +73,16 @@ function riskColor(score: number | null) {
   return 'text-red-400'
 }
 
-function riskLabel(score: number | null) {
-  if (score === null) return 'N/A'
-  if (score >= 80) return 'Low Risk'
-  if (score >= 60) return 'Medium'
-  return 'High Risk'
-}
-
 export default function CasesPage() {
+  const t = useTranslations('casesPage')
+
+  function riskLabel(score: number | null) {
+    if (score === null) return 'N/A'
+    if (score >= 80) return t('lowRisk')
+    if (score >= 60) return t('mediumRisk')
+    return t('highRisk')
+  }
+
   const [cases, setCases] = useState<Case[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -256,13 +259,13 @@ export default function CasesPage() {
       <div className="p-4 md:p-8 space-y-6 max-w-6xl">
         {/* Back + Header */}
         <button onClick={() => setSelectedCase(null)} className="flex items-center gap-2 text-sm text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">
-          <ChevronRight size={14} className="rotate-180" /> Back to Cases
+          <ChevronRight size={14} className="rotate-180" /> {t('backToCases')}
         </button>
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-[#183a1d]">{c.name}</h1>
-            <p className="text-[#183a1d]/60 mt-1">Client: {c.clientName} {c.clientEmail && `(${c.clientEmail})`}</p>
+            <p className="text-[#183a1d]/60 mt-1">{t('client')}: {c.clientName} {c.clientEmail && `(${c.clientEmail})`}</p>
           </div>
           <div className="flex items-center gap-3">
             <span className={`px-3 py-1 rounded-full text-xs font-medium ${TYPE_COLORS[c.caseType] || TYPE_COLORS.OTHER}`}>
@@ -278,28 +281,28 @@ export default function CasesPage() {
         <div className="flex flex-wrap gap-3">
           <button onClick={() => copyShareLink(c.shareToken)}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#f6c453]/10 text-[#183a1d] hover:bg-[#f6c453]/30 transition-all text-sm font-medium">
-            <Copy size={14} /> {copied ? 'Copied!' : 'Copy Share Link'}
+            <Copy size={14} /> {t(copied ? 'copied' : 'copyShareLink')}
           </button>
           <a href={`https://verify.tulipds.com/case/${c.shareToken}`} target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#e1eedd] text-[#183a1d] hover:bg-[#e1eedd] transition-all text-sm font-medium">
-            <ExternalLink size={14} /> Preview Public Page
+            <ExternalLink size={14} /> {t('previewPublicPage')}
           </a>
           {c.status === 'OPEN' && (
             <button onClick={() => updateStatus(c.id, 'COMPLETE')}
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-400/15 text-green-400 hover:bg-green-400/25 transition-all text-sm font-medium">
-              <CheckCircle size={14} /> Mark Complete
+              <CheckCircle size={14} /> {t('markComplete')}
             </button>
           )}
           {c.status === 'COMPLETE' && (
             <button onClick={() => updateStatus(c.id, 'OPEN')}
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-400/15 text-yellow-400 hover:bg-yellow-400/25 transition-all text-sm font-medium">
-              <Clock size={14} /> Reopen
+              <Clock size={14} /> {t('reopen')}
             </button>
           )}
           {c.status !== 'ARCHIVED' && (
             <button onClick={() => archiveCase(c.id)}
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-400/10 text-red-400 hover:bg-red-400/20 transition-all text-sm font-medium">
-              <Archive size={14} /> Archive
+              <Archive size={14} /> {t('archive')}
             </button>
           )}
         </div>
@@ -307,21 +310,21 @@ export default function CasesPage() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl p-4">
-            <div className="text-xs text-[#183a1d]/60 mb-1">Documents</div>
+            <div className="text-xs text-[#183a1d]/60 mb-1">{t('documents')}</div>
             <div className="text-2xl font-bold text-[#183a1d]">{c.ocrJobs?.length || 0}</div>
           </div>
           <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl p-4">
-            <div className="text-xs text-[#183a1d]/60 mb-1">Bundles</div>
+            <div className="text-xs text-[#183a1d]/60 mb-1">{t('bundles')}</div>
             <div className="text-2xl font-bold text-[#183a1d]">{c.bundleJobs?.length || 0}</div>
           </div>
           <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl p-4">
-            <div className="text-xs text-[#183a1d]/60 mb-1">Overall Risk</div>
+            <div className="text-xs text-[#183a1d]/60 mb-1">{t('overallRisk')}</div>
             <div className={`text-2xl font-bold ${riskColor(c.overallRiskScore)}`}>
               {c.overallRiskScore !== null ? `${c.overallRiskScore}/100` : 'N/A'}
             </div>
           </div>
           <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl p-4">
-            <div className="text-xs text-[#183a1d]/60 mb-1">Created</div>
+            <div className="text-xs text-[#183a1d]/60 mb-1">{t('created')}</div>
             <div className="text-sm font-medium text-[#183a1d]">{new Date(c.createdAt).toLocaleDateString()}</div>
           </div>
         </div>
@@ -329,14 +332,14 @@ export default function CasesPage() {
         {/* Documents */}
         <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl">
           <div className="flex items-center justify-between p-4 border-b border-[#c8d6c0]">
-            <h2 className="font-semibold text-[#183a1d] flex items-center gap-2"><FileCheck size={16} /> Documents</h2>
+            <h2 className="font-semibold text-[#183a1d] flex items-center gap-2"><FileCheck size={16} /> {t('documents')}</h2>
             <button onClick={loadAvailableJobs}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#f6c453]/10 text-[#183a1d] hover:bg-[#f6c453]/30 transition-all text-xs font-medium">
-              <Plus size={12} /> Add Document
+              <Plus size={12} /> {t('addDocument')}
             </button>
           </div>
           {(!c.ocrJobs || c.ocrJobs.length === 0) ? (
-            <div className="p-8 text-center text-[#183a1d]/40 text-sm">No documents added yet</div>
+            <div className="p-8 text-center text-[#183a1d]/40 text-sm">{t('noDocuments')}</div>
           ) : (
             <div className="divide-y divide-white/[0.06]">
               {c.ocrJobs.map(job => (
@@ -346,7 +349,7 @@ export default function CasesPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-[#183a1d] truncate">{job.originalFilename}</div>
-                    <div className="text-xs text-[#183a1d]/60 mt-0.5">{job.documentType || 'Unknown type'}</div>
+                    <div className="text-xs text-[#183a1d]/60 mt-0.5">{job.documentType || t('unknown')}</div>
                   </div>
                   <div className="text-right">
                     <div className={`text-sm font-semibold ${riskColor(job.assessmentScore)}`}>
@@ -359,9 +362,9 @@ export default function CasesPage() {
                   )}
                   {job.anchorTxHash ? (
                     <a href={`https://polygonscan.com/tx/${job.anchorTxHash}`} target="_blank" rel="noopener noreferrer"
-                      className="text-xs text-green-400 hover:underline whitespace-nowrap">On-chain</a>
+                      className="text-xs text-green-400 hover:underline whitespace-nowrap">{t('onChain')}</a>
                   ) : (
-                    <span className="text-xs text-yellow-400/60 whitespace-nowrap">Pending</span>
+                    <span className="text-xs text-yellow-400/60 whitespace-nowrap">{t('pendingLabel')}</span>
                   )}
                   <button onClick={() => openDocPreview(job)}
                     className="w-8 h-8 rounded-lg bg-[#e1eedd] flex items-center justify-center text-[#183a1d]/40 hover:text-[#183a1d] hover:bg-[#e1eedd] transition-all shrink-0"
@@ -377,14 +380,14 @@ export default function CasesPage() {
         {/* Bundles */}
         <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl">
           <div className="flex items-center justify-between p-4 border-b border-[#c8d6c0]">
-            <h2 className="font-semibold text-[#183a1d] flex items-center gap-2"><FolderSearch size={16} /> Bundles</h2>
+            <h2 className="font-semibold text-[#183a1d] flex items-center gap-2"><FolderSearch size={16} /> {t('bundles')}</h2>
             <button onClick={loadAvailableBundles}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#f6c453]/10 text-[#183a1d] hover:bg-[#f6c453]/30 transition-all text-xs font-medium">
-              <Plus size={12} /> Add Bundle
+              <Plus size={12} /> {t('addBundle')}
             </button>
           </div>
           {(!c.bundleJobs || c.bundleJobs.length === 0) ? (
-            <div className="p-8 text-center text-[#183a1d]/40 text-sm">No bundles added yet</div>
+            <div className="p-8 text-center text-[#183a1d]/40 text-sm">{t('noBundles')}</div>
           ) : (
             <div className="divide-y divide-white/[0.06]">
               {c.bundleJobs.map(bundle => (
@@ -395,7 +398,7 @@ export default function CasesPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-[#183a1d]">{bundle.name}</div>
-                      <div className="text-xs text-[#183a1d]/60 mt-0.5">{bundle.fileCount} files</div>
+                      <div className="text-xs text-[#183a1d]/60 mt-0.5">{bundle.fileCount} {t('files')}</div>
                     </div>
                     <div className="text-right">
                       <div className={`text-sm font-semibold ${riskColor(bundle.overallRiskScore)}`}>
@@ -405,9 +408,9 @@ export default function CasesPage() {
                     </div>
                     {bundle.anchorTxHash ? (
                       <a href={`https://polygonscan.com/tx/${bundle.anchorTxHash}`} target="_blank" rel="noopener noreferrer"
-                        className="text-xs text-green-400 hover:underline whitespace-nowrap">On-chain</a>
+                        className="text-xs text-green-400 hover:underline whitespace-nowrap">{t('onChain')}</a>
                     ) : (
-                      <span className="text-xs text-yellow-400/60 whitespace-nowrap">Pending</span>
+                      <span className="text-xs text-yellow-400/60 whitespace-nowrap">{t('pendingLabel')}</span>
                     )}
                   </div>
                   {bundle.crossAnalysisJson && (() => {
@@ -425,13 +428,13 @@ export default function CasesPage() {
                       <div className="mt-3 ml-14 space-y-3">
                         {analysis.summary && (
                           <div className="p-3 rounded-lg bg-[#e1eedd] border border-[#c8d6c0]">
-                            <div className="text-xs font-medium text-[#183a1d]/70 mb-1.5">Summary</div>
+                            <div className="text-xs font-medium text-[#183a1d]/70 mb-1.5">{t('summary')}</div>
                             <div className="text-sm text-[#183a1d] leading-relaxed">{analysis.summary}</div>
                           </div>
                         )}
                         {analysis.findings && Array.isArray(analysis.findings) && analysis.findings.length > 0 && (
                           <div className="p-3 rounded-lg bg-[#e1eedd] border border-[#c8d6c0]">
-                            <div className="text-xs font-medium text-[#183a1d]/70 mb-2">Findings</div>
+                            <div className="text-xs font-medium text-[#183a1d]/70 mb-2">{t('findings')}</div>
                             <div className="space-y-2">
                               {analysis.findings.map((f: any, idx: number) => (
                                 <div key={idx} className="flex items-start gap-2">
@@ -446,7 +449,7 @@ export default function CasesPage() {
                         )}
                         {analysis.inconsistencies && Array.isArray(analysis.inconsistencies) && analysis.inconsistencies.length > 0 && (
                           <div className="p-3 rounded-lg bg-red-400/5 border border-red-400/10">
-                            <div className="text-xs font-medium text-red-400/80 mb-2">Inconsistencies Detected</div>
+                            <div className="text-xs font-medium text-red-400/80 mb-2">{t('inconsistencies')}</div>
                             <div className="space-y-1.5">
                               {analysis.inconsistencies.map((inc: any, idx: number) => (
                                 <div key={idx} className="flex items-start gap-2 text-xs text-red-400/60">
@@ -459,7 +462,7 @@ export default function CasesPage() {
                         )}
                         {analysis.missingDocuments && Array.isArray(analysis.missingDocuments) && analysis.missingDocuments.length > 0 && (
                           <div className="p-3 rounded-lg bg-yellow-400/5 border border-yellow-400/10">
-                            <div className="text-xs font-medium text-yellow-400/80 mb-2">Missing Documents</div>
+                            <div className="text-xs font-medium text-yellow-400/80 mb-2">{t('missingDocuments')}</div>
                             <div className="space-y-1 text-xs text-yellow-400/60">
                               {analysis.missingDocuments.map((doc: any, idx: number) => (
                                 <div key={idx}>&#x2022; {typeof doc === 'string' ? doc : doc.name || doc.type || JSON.stringify(doc)}</div>
@@ -469,7 +472,7 @@ export default function CasesPage() {
                         )}
                         {!analysis.summary && !analysis.findings && !analysis.inconsistencies && (
                           <div className="p-3 rounded-lg bg-[#e1eedd] border border-[#c8d6c0]">
-                            <div className="text-xs font-medium text-[#183a1d]/70 mb-1">Cross-Analysis</div>
+                            <div className="text-xs font-medium text-[#183a1d]/70 mb-1">{t('crossAnalysis')}</div>
                             <div className="text-xs text-[#183a1d]/60 whitespace-pre-wrap">{JSON.stringify(analysis, null, 2)}</div>
                           </div>
                         )}
@@ -496,7 +499,7 @@ export default function CasesPage() {
                 {previewLoading ? (
                   <div className="flex items-center justify-center py-16 bg-[#e1eedd] rounded-xl border border-[#c8d6c0]">
                     <div className="w-6 h-6 border-2 border-[#f6c453] border-t-transparent rounded-full animate-spin" />
-                    <span className="ml-3 text-sm text-[#183a1d]/60">Loading document...</span>
+                    <span className="ml-3 text-sm text-[#183a1d]/60">{t('loadingDocument')}</span>
                   </div>
                 ) : previewUrl ? (
                   <div className="rounded-xl overflow-hidden border border-[#c8d6c0] bg-[#e1eedd]">
@@ -508,18 +511,18 @@ export default function CasesPage() {
                   </div>
                 ) : (
                   <div className="flex items-center justify-center py-12 bg-[#e1eedd] rounded-xl border border-[#c8d6c0]">
-                    <span className="text-sm text-[#183a1d]/40">Document preview not available</span>
+                    <span className="text-sm text-[#183a1d]/40">{t('previewNotAvailable')}</span>
                   </div>
                 )}
 
                 {/* Details */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-lg p-3">
-                    <div className="text-[10px] text-[#183a1d]/60 uppercase font-medium mb-1">Document Type</div>
-                    <div className="text-sm text-[#183a1d]">{previewDoc.documentType || 'Unknown'}</div>
+                    <div className="text-[10px] text-[#183a1d]/60 uppercase font-medium mb-1">{t('documentType')}</div>
+                    <div className="text-sm text-[#183a1d]">{previewDoc.documentType || t('unknown')}</div>
                   </div>
                   <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-lg p-3">
-                    <div className="text-[10px] text-[#183a1d]/60 uppercase font-medium mb-1">Risk Score</div>
+                    <div className="text-[10px] text-[#183a1d]/60 uppercase font-medium mb-1">{t('riskScore')}</div>
                     <div className={`text-sm font-semibold ${riskColor(previewDoc.assessmentScore)}`}>
                       {previewDoc.assessmentScore !== null ? `${previewDoc.assessmentScore}/100` : 'N/A'}
                     </div>
@@ -528,18 +531,18 @@ export default function CasesPage() {
                     )}
                   </div>
                   <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-lg p-3">
-                    <div className="text-[10px] text-[#183a1d]/60 uppercase font-medium mb-1">Blockchain</div>
+                    <div className="text-[10px] text-[#183a1d]/60 uppercase font-medium mb-1">{t('blockchain')}</div>
                     {previewDoc.anchorTxHash ? (
                       <a href={`https://polygonscan.com/tx/${previewDoc.anchorTxHash}`} target="_blank" rel="noopener noreferrer"
                         className="text-xs text-green-400 hover:underline flex items-center gap-1">
-                        <CheckCircle size={12} /> Anchored
+                        <CheckCircle size={12} /> {t('anchored')}
                       </a>
                     ) : (
-                      <span className="text-xs text-yellow-400 flex items-center gap-1"><Clock size={12} /> Pending</span>
+                      <span className="text-xs text-yellow-400 flex items-center gap-1"><Clock size={12} /> {t('pendingLabel')}</span>
                     )}
                   </div>
                   <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-lg p-3">
-                    <div className="text-[10px] text-[#183a1d]/60 uppercase font-medium mb-1">Processed</div>
+                    <div className="text-[10px] text-[#183a1d]/60 uppercase font-medium mb-1">{t('processed')}</div>
                     <div className="text-sm text-[#183a1d]">{new Date(previewDoc.createdAt).toLocaleDateString()}</div>
                   </div>
                 </div>
@@ -547,7 +550,7 @@ export default function CasesPage() {
                 {/* Hash */}
                 {previewDoc.hashValue && (
                   <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-lg p-3">
-                    <div className="text-[10px] text-[#183a1d]/60 uppercase font-medium mb-1">SHA-256 Hash</div>
+                    <div className="text-[10px] text-[#183a1d]/60 uppercase font-medium mb-1">{t('sha256Hash')}</div>
                     <code className="text-xs text-[#183a1d]/70 font-mono break-all">{previewDoc.hashValue}</code>
                   </div>
                 )}
@@ -555,7 +558,7 @@ export default function CasesPage() {
                 {/* Polygon TX */}
                 {previewDoc.anchorTxHash && (
                   <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-lg p-3">
-                    <div className="text-[10px] text-[#183a1d]/60 uppercase font-medium mb-1">Polygon Transaction</div>
+                    <div className="text-[10px] text-[#183a1d]/60 uppercase font-medium mb-1">{t('polygonTransaction')}</div>
                     <a href={`https://polygonscan.com/tx/${previewDoc.anchorTxHash}`} target="_blank" rel="noopener noreferrer"
                       className="text-xs text-[#183a1d] hover:underline font-mono break-all">
                       {previewDoc.anchorTxHash}
@@ -567,12 +570,12 @@ export default function CasesPage() {
                 {previewUrl && (
                   <a href={previewUrl} target="_blank" rel="noopener noreferrer"
                     className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#e1eedd] text-[#183a1d] hover:bg-[#e1eedd] transition-all text-sm">
-                    <Download size={14} /> Download
+                    <Download size={14} /> {t('download')}
                   </a>
                 )}
                 <button onClick={() => setPreviewDoc(null)}
                   className="px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] transition-all hover:opacity-90 bg-[#f6c453] hover:bg-[#f0a04b]">
-                  Close
+                  {t('close')}
                 </button>
               </div>
             </div>
@@ -585,11 +588,11 @@ export default function CasesPage() {
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
             <div className="relative bg-[#e1eedd] border border-[#c8d6c0] rounded-xl w-full max-w-lg max-h-[70vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between p-4 border-b border-[#c8d6c0]">
-                <h3 className="font-semibold text-[#183a1d]">Add Document to Case</h3>
+                <h3 className="font-semibold text-[#183a1d]">{t('addDocToCase')}</h3>
                 <button onClick={() => setShowAddDoc(false)} className="text-[#183a1d]/60 hover:text-[#183a1d]"><X size={16} /></button>
               </div>
               {availableJobs.length === 0 ? (
-                <div className="p-8 text-center text-[#183a1d]/40 text-sm">No completed OCR jobs available. Process documents in the OCR Engine first.</div>
+                <div className="p-8 text-center text-[#183a1d]/40 text-sm">{t('noOcrJobs')}</div>
               ) : (
                 <div className="divide-y divide-white/[0.06]">
                   {availableJobs.map(job => (
@@ -615,11 +618,11 @@ export default function CasesPage() {
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
             <div className="relative bg-[#e1eedd] border border-[#c8d6c0] rounded-xl w-full max-w-lg max-h-[70vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between p-4 border-b border-[#c8d6c0]">
-                <h3 className="font-semibold text-[#183a1d]">Add Bundle to Case</h3>
+                <h3 className="font-semibold text-[#183a1d]">{t('addBundleToCase')}</h3>
                 <button onClick={() => setShowAddBundle(false)} className="text-[#183a1d]/60 hover:text-[#183a1d]"><X size={16} /></button>
               </div>
               {availableBundles.length === 0 ? (
-                <div className="p-8 text-center text-[#183a1d]/40 text-sm">No completed bundles available. Create a bundle in Bundle Verify first.</div>
+                <div className="p-8 text-center text-[#183a1d]/40 text-sm">{t('noBundlesAvailable')}</div>
               ) : (
                 <div className="divide-y divide-white/[0.06]">
                   {availableBundles.map(b => (
@@ -628,7 +631,7 @@ export default function CasesPage() {
                       <FolderSearch size={16} className="text-purple-400 shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="text-sm text-[#183a1d] truncate">{b.name}</div>
-                        <div className="text-xs text-[#183a1d]/60">{b.fileCount} files {b.overallRiskScore !== null ? `— ${b.overallRiskScore}/100` : ''}</div>
+                        <div className="text-xs text-[#183a1d]/60">{b.fileCount} {t('files')} {b.overallRiskScore !== null ? `— ${b.overallRiskScore}/100` : ''}</div>
                       </div>
                       <Plus size={14} className="text-[#183a1d]/40" />
                     </button>
@@ -648,12 +651,12 @@ export default function CasesPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#183a1d]">Cases</h1>
-          <p className="text-sm text-[#183a1d]/60 mt-1">Organise documents into client cases and share verification links</p>
+          <h1 className="text-2xl font-bold text-[#183a1d]">{t('title')}</h1>
+          <p className="text-sm text-[#183a1d]/60 mt-1">{t('subtitle')}</p>
         </div>
         <button onClick={() => setShowCreate(true)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-[#183a1d] transition-all hover:opacity-90 bg-[#f6c453] hover:bg-[#f0a04b]">
-          <Plus size={16} /> New Case
+          <Plus size={16} /> {t('newCase')}
         </button>
       </div>
 
@@ -661,12 +664,12 @@ export default function CasesPage() {
       <div className="flex flex-wrap gap-3">
         <div className="flex items-center gap-2 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 flex-1 min-w-[200px] max-w-md">
           <Search size={14} className="text-[#183a1d]/40" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search cases..."
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('searchCases')}
             className="bg-transparent text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none w-full" />
         </div>
         <select value={filterType} onChange={e => setFilterType(e.target.value)}
           className="bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] outline-none">
-          <option value="">All Types</option>
+          <option value="">{t('allTypes')}</option>
           <option value="MORTGAGE">Mortgage</option>
           <option value="INSURANCE">Insurance</option>
           <option value="REAL_ESTATE">Real Estate</option>
@@ -675,7 +678,7 @@ export default function CasesPage() {
         </select>
         <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
           className="bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] outline-none">
-          <option value="">All Statuses</option>
+          <option value="">{t('allStatuses')}</option>
           <option value="OPEN">Open</option>
           <option value="COMPLETE">Complete</option>
           <option value="ARCHIVED">Archived</option>
@@ -690,8 +693,8 @@ export default function CasesPage() {
       ) : cases.length === 0 ? (
         <div className="text-center py-20">
           <Briefcase size={48} className="mx-auto text-[#183a1d]/30 mb-4" />
-          <h3 className="text-lg font-semibold text-[#183a1d]/70">No cases yet</h3>
-          <p className="text-sm text-[#183a1d]/40 mt-1">Create your first case to start organising documents</p>
+          <h3 className="text-lg font-semibold text-[#183a1d]/70">{t('noCases')}</h3>
+          <p className="text-sm text-[#183a1d]/40 mt-1">{t('noCasesDesc')}</p>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -736,27 +739,27 @@ export default function CasesPage() {
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
           <div className="relative bg-[#e1eedd] border border-[#c8d6c0] rounded-xl w-full max-w-md" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 border-b border-[#c8d6c0]">
-              <h3 className="font-semibold text-[#183a1d] text-lg">Create New Case</h3>
+              <h3 className="font-semibold text-[#183a1d] text-lg">{t('createNewCase')}</h3>
               <button onClick={() => setShowCreate(false)} className="text-[#183a1d]/60 hover:text-[#183a1d]"><X size={18} /></button>
             </div>
             <div className="p-5 space-y-4">
               <div>
-                <label className="text-xs font-medium text-[#183a1d]/70 mb-1.5 block">Case Name *</label>
+                <label className="text-xs font-medium text-[#183a1d]/70 mb-1.5 block">{t('caseName')} *</label>
                 <input value={createName} onChange={e => setCreateName(e.target.value)} placeholder="e.g. Smith Mortgage Application"
                   className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453]" />
               </div>
               <div>
-                <label className="text-xs font-medium text-[#183a1d]/70 mb-1.5 block">Client Name *</label>
+                <label className="text-xs font-medium text-[#183a1d]/70 mb-1.5 block">{t('clientName')} *</label>
                 <input value={createClient} onChange={e => setCreateClient(e.target.value)} placeholder="e.g. John Smith"
                   className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453]" />
               </div>
               <div>
-                <label className="text-xs font-medium text-[#183a1d]/70 mb-1.5 block">Client Email</label>
+                <label className="text-xs font-medium text-[#183a1d]/70 mb-1.5 block">{t('clientEmail')}</label>
                 <input value={createEmail} onChange={e => setCreateEmail(e.target.value)} placeholder="john@example.com" type="email"
                   className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453]" />
               </div>
               <div>
-                <label className="text-xs font-medium text-[#183a1d]/70 mb-1.5 block">Case Type</label>
+                <label className="text-xs font-medium text-[#183a1d]/70 mb-1.5 block">{t('caseType')}</label>
                 <select value={createType} onChange={e => setCreateType(e.target.value)}
                   className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2.5 text-sm text-[#183a1d] outline-none focus:border-[#f6c453]">
                   <option value="MORTGAGE">Mortgage</option>
@@ -769,10 +772,10 @@ export default function CasesPage() {
             </div>
             <div className="flex justify-end gap-3 p-5 border-t border-[#c8d6c0]">
               <button onClick={() => setShowCreate(false)}
-                className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/70 hover:text-[#183a1d] transition-colors">Cancel</button>
+                className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/70 hover:text-[#183a1d] transition-colors">{t('cancel')}</button>
               <button onClick={handleCreate} disabled={creating || !createName.trim() || !createClient.trim()}
                 className="px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] disabled:opacity-40 transition-all hover:opacity-90 bg-[#f6c453] hover:bg-[#f0a04b]">
-                {creating ? 'Creating...' : 'Create Case'}
+                {creating ? t('creating') : t('createCase')}
               </button>
             </div>
           </div>

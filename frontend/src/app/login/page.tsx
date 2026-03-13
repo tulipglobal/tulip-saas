@@ -1,9 +1,11 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { Shield, Eye, EyeOff, ArrowRight } from 'lucide-react'
 
 export default function LoginPage() {
+  const t = useTranslations()
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({ email: '', password: '' })
@@ -24,10 +26,10 @@ export default function LoginPage() {
         localStorage.setItem('tulip_user', JSON.stringify(data.user))
         window.location.href = '/dashboard'
       } else {
-        alert(data.message || 'Login failed')
+        alert(data.message || t('auth.loginFailed'))
       }
     } catch {
-      alert('Cannot connect to server. Is the backend running on port 5050?')
+      alert(t('auth.cannotConnect'))
     } finally {
       setLoading(false)
     }
@@ -48,21 +50,16 @@ export default function LoginPage() {
 
         <div>
           <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '40px', color: '#183a1d', lineHeight: 1.2, letterSpacing: '-0.02em' }}>
-            Tamper-proof.<br />
-            <span style={{ color: '#f6c453' }}>Verifiable.</span><br />
-            Trusted.
+            {t('auth.tagline1')}<br />
+            <span style={{ color: '#f6c453' }}>{t('auth.tagline2')}</span><br />
+            {t('auth.tagline3')}
           </h2>
           <p style={{ color: '#183a1d', opacity: 0.6, fontSize: '16px', marginTop: '16px', lineHeight: 1.7 }}>
-            Every record you create is automatically anchored to blockchain and timestamped with RFC 3161.
+            {t('auth.taglineDesc')}
           </p>
 
           <div className="mt-10 space-y-3">
-            {[
-              '✓ Blockchain anchored via Polygon',
-              '✓ RFC 3161 trusted timestamps',
-              '✓ GDPR compliant multi-tenant',
-              '✓ Shareable verification links',
-            ].map(feat => (
+            {[t('auth.feat1'), t('auth.feat2'), t('auth.feat3'), t('auth.feat4')].map(feat => (
               <p key={feat} style={{ color: '#183a1d', fontSize: '14px', opacity: 0.7 }}>{feat}</p>
             ))}
           </div>
@@ -88,17 +85,17 @@ export default function LoginPage() {
 
           <div className="animate-fade-up">
             <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '30px', letterSpacing: '-0.02em', color: '#183a1d' }}>
-              Sign in
+              {t('auth.signin')}
             </h1>
             <p style={{ color: '#183a1d', opacity: 0.6, fontSize: '15px', marginTop: '6px' }}>
-              Welcome back. Enter your credentials to continue.
+              {t('auth.welcomeBack')}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5 animate-fade-up-delay-1">
             <div>
               <label style={{ fontSize: '13px', fontWeight: 500, color: '#183a1d' }} className="block mb-1.5">
-                Email address
+                {t('auth.email')}
               </label>
               <input
                 type="email"
@@ -113,10 +110,10 @@ export default function LoginPage() {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label style={{ fontSize: '13px', fontWeight: 500, color: '#183a1d' }}>
-                  Password
+                  {t('auth.password')}
                 </label>
                 <a href="#" style={{ fontSize: '13px', color: '#183a1d' }} className="hover:underline">
-                  Forgot password?
+                  {t('auth.forgotPassword')}
                 </a>
               </div>
               <div className="relative">
@@ -147,25 +144,25 @@ export default function LoginPage() {
               {loading ? (
                 <div className="w-4 h-4 border-2 border-[#183a1d]/30 border-t-[#183a1d] rounded-full animate-spin" />
               ) : (
-                <>Sign in <ArrowRight className="w-4 h-4" /></>
+                <>{t('auth.signin')} <ArrowRight className="w-4 h-4" /></>
               )}
             </button>
           </form>
 
           <div className="mt-6 text-center animate-fade-up-delay-2">
             <p style={{ color: '#183a1d', opacity: 0.6, fontSize: '14px' }}>
-              Don't have an account?{' '}
+              {t('auth.noAccount')}{' '}
               <a href="/register" style={{ color: '#183a1d', fontWeight: 500 }} className="hover:underline">
-                Register here
+                {t('auth.registerHere')}
               </a>
             </p>
           </div>
 
           <div className="mt-8 pt-6 border-t border-[#c8d6c0] animate-fade-up-delay-3">
             <p style={{ color: '#183a1d', opacity: 0.7, fontSize: '12px', textAlign: 'center', lineHeight: 1.6 }}>
-              Or try without logging in →{' '}
+              {t('auth.verifyPublicly')}{' '}
               <Link href="/verify" style={{ color: '#183a1d' }} className="hover:underline">
-                Verify a hash publicly
+                {t('auth.verifyHash')}
               </Link>
             </p>
           </div>

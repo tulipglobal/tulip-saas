@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { X, Copy, Check, ExternalLink, Shield, Download, FileText, Image as ImageIcon, CheckCircle, Clock, AlertTriangle } from 'lucide-react'
 import QRCode from 'qrcode'
 
@@ -46,6 +47,7 @@ interface TrustSealCardProps {
 }
 
 export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: TrustSealCardProps) {
+  const t = useTranslations()
   const [seal, setSeal] = useState<SealData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -67,7 +69,7 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
     fetch(`${api}/api/trust-seal/${sealId}`, { headers })
       .then(r => r.ok ? r.json() : null)
       .then(data => {
-        if (!data) { setError('Seal not found'); setLoading(false); return }
+        if (!data) { setError(t('seal.sealNotFound')); setLoading(false); return }
         setSeal(data)
         setLoading(false)
 
@@ -89,7 +91,7 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
             .catch((err) => { console.error('[TrustSealCard] preview fetch error:', err); setDocLoading(false); setDocError(true) })
         }
       })
-      .catch(() => { setError('Failed to load seal'); setLoading(false) })
+      .catch(() => { setError(t('seal.failedToLoad')); setLoading(false) })
 
     // Generate QR code
     QRCode.toDataURL(verifyUrl, { width: 140, margin: 1, color: { dark: '#183a1d', light: '#fefbe9' } })
@@ -169,7 +171,7 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
               {docLoading ? (
                 <div className="flex flex-col items-center gap-3">
                   <div className="w-8 h-8 border-2 border-[#f6c453] border-t-transparent rounded-full animate-spin" />
-                  <p className="text-xs text-[#183a1d]/40">Loading preview…</p>
+                  <p className="text-xs text-[#183a1d]/40">{t('seal.loadingPreview')}</p>
                 </div>
               ) : docUrl && isPdf ? (
                 <iframe src={docUrl} className="w-full h-[500px] rounded-lg border border-[#c8d6c0]" title={seal.documentTitle} />
@@ -187,13 +189,13 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
                   <p className="text-xs text-[#183a1d]/40 uppercase">{seal.fileType || seal.documentType}</p>
                   <a href={docUrl} target="_blank" rel="noopener noreferrer"
                     className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#f6c453] text-[#183a1d] text-sm font-medium hover:bg-[#f0a04b] transition-colors">
-                    <Download size={14} /> Download
+                    <Download size={14} /> {t('common.download')}
                   </a>
                 </div>
               ) : docError ? (
                 <div className="flex flex-col items-center gap-3 text-[#183a1d]/40">
                   <FileText size={56} className="text-[#183a1d]/30" />
-                  <p className="text-sm font-medium text-[#183a1d]/60">Unable to preview</p>
+                  <p className="text-sm font-medium text-[#183a1d]/60">{t('seal.unableToPreview')}</p>
                   <p className="text-xs text-[#183a1d]/40">{seal.documentTitle}</p>
                 </div>
               ) : (
@@ -221,17 +223,17 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
               {/* Issuer / Recipient */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-[10px] text-[#183a1d]/40 uppercase tracking-wide mb-0.5">Issued by</p>
+                  <p className="text-[10px] text-[#183a1d]/40 uppercase tracking-wide mb-0.5">{t('seal.issuedBy')}</p>
                   <p className="text-sm font-medium text-[#183a1d]">{seal.issuedBy}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-[#183a1d]/40 uppercase tracking-wide mb-0.5">Issued to</p>
+                  <p className="text-[10px] text-[#183a1d]/40 uppercase tracking-wide mb-0.5">{t('seal.issuedTo')}</p>
                   <p className="text-sm font-medium text-[#183a1d]">{seal.issuedTo}</p>
                 </div>
               </div>
 
               <div>
-                <p className="text-[10px] text-[#183a1d]/40 uppercase tracking-wide mb-0.5">Issue date</p>
+                <p className="text-[10px] text-[#183a1d]/40 uppercase tracking-wide mb-0.5">{t('seal.issueDate')}</p>
                 <p className="text-sm text-[#183a1d]">{new Date(seal.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
               </div>
 
@@ -240,18 +242,18 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
                 <div className="flex items-center gap-2">
                   {isAnchored ? (
                     <span className="flex items-center gap-1.5 text-sm font-medium text-green-600">
-                      <CheckCircle size={15} /> Confirmed on Polygon
+                      <CheckCircle size={15} /> {t('seal.confirmedOnPolygon')}
                     </span>
                   ) : (
                     <span className="flex items-center gap-1.5 text-sm font-medium text-[#f0a04b]">
-                      <Clock size={15} /> Pending Anchor
+                      <Clock size={15} /> {t('seal.pendingAnchor')}
                     </span>
                   )}
                 </div>
 
                 {/* SHA-256 */}
                 <div>
-                  <p className="text-[10px] text-[#183a1d]/40 uppercase tracking-wide mb-1">SHA-256 Hash</p>
+                  <p className="text-[10px] text-[#183a1d]/40 uppercase tracking-wide mb-1">{t('seal.sha256Hash')}</p>
                   <div className="flex items-center gap-2">
                     <code className="text-[11px] text-[#183a1d] bg-[#fefbe9] px-2 py-1 rounded border border-[#c8d6c0] break-all flex-1 font-mono">
                       {seal.rawHash}
@@ -265,7 +267,7 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
                 {/* TX hash */}
                 {seal.anchorTxHash && (
                   <div>
-                    <p className="text-[10px] text-[#183a1d]/40 uppercase tracking-wide mb-1">Transaction</p>
+                    <p className="text-[10px] text-[#183a1d]/40 uppercase tracking-wide mb-1">{t('seal.transaction')}</p>
                     <a href={`https://polygonscan.com/tx/${seal.anchorTxHash}`} target="_blank" rel="noopener noreferrer"
                       className="flex items-center gap-1.5 text-[11px] text-[#183a1d] hover:text-[#f0a04b] font-mono">
                       {seal.anchorTxHash.slice(0, 16)}...{seal.anchorTxHash.slice(-8)}
@@ -276,7 +278,7 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
 
                 {seal.anchoredAt && (
                   <div>
-                    <p className="text-[10px] text-[#183a1d]/40 uppercase tracking-wide mb-0.5">Anchored at</p>
+                    <p className="text-[10px] text-[#183a1d]/40 uppercase tracking-wide mb-0.5">{t('seal.anchoredAt')}</p>
                     <p className="text-xs text-[#183a1d]/60">{new Date(seal.anchoredAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                   </div>
                 )}
@@ -287,7 +289,7 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
                 <div className="rounded-xl border border-orange-300 p-4 space-y-2 bg-orange-50">
                   <div className="flex items-center gap-2">
                     <span className="flex items-center gap-1.5 text-sm font-medium text-orange-600">
-                      <AlertTriangle size={15} /> OCR Mismatch
+                      <AlertTriangle size={15} /> {t('seal.ocrMismatch')}
                     </span>
                   </div>
                   <div className="space-y-1.5 text-xs text-orange-700">
@@ -319,7 +321,7 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
                       fraudRisk.fraudRiskLevel === 'MEDIUM' ? 'text-yellow-700' :
                       'text-gray-700'
                     }`}>
-                      <AlertTriangle size={15} /> Fraud Risk: {fraudRisk.fraudRiskLevel}
+                      <AlertTriangle size={15} /> {t('seal.fraudRisk')} {fraudRisk.fraudRiskLevel}
                     </span>
                     <span className={`text-lg font-bold ${
                       fraudRisk.fraudRiskLevel === 'CRITICAL' ? 'text-red-700' :
@@ -361,13 +363,13 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
                 ) : (
                   <Download size={15} />
                 )}
-                {downloading ? 'Generating...' : 'Download Seal PDF'}
+                {downloading ? t('seal.generating') : t('seal.downloadSealPdf')}
               </button>
 
               {/* Footer */}
               <div className="border-t border-[#c8d6c0] pt-3 flex items-center justify-center gap-2 text-xs text-[#183a1d]/40">
                 <Shield size={12} className="text-[#183a1d]" />
-                <span>Verified by <strong className="text-[#183a1d]">Tulip DS</strong></span>
+                <span>{t('seal.verifiedByTulip')} <strong className="text-[#183a1d]">{t('seal.tulipDs')}</strong></span>
               </div>
             </div>
           </>

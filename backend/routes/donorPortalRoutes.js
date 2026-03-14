@@ -337,6 +337,35 @@ router.get('/projects', donorAuth, async (req, res) => {
       for (const ft of fundingTotals) fundingMap[ft.projectId] = ft.totalFunded
     } catch { /* ProjectFunding may not exist */ }
 
+    // Get fraud prevented value (sum of HIGH/CRITICAL blocked expenses)
+    let fraudPrevented = 0
+    try {
+      const blocked = await prisma.$queryRawUnsafe(
+        `SELECT COALESCE(SUM(e.amount), 0)::float as total
+         FROM "Expense" e
+         WHERE e."projectId" = ANY($1::text[])
+           AND e."fraudRiskLevel" IN ('HIGH', 'CRITICAL')
+           AND e."approvalStatus" = 'REJECTED'`,
+        projectIds
+      )
+      fraudPrevented = blocked[0]?.total || 0
+    } catch { /* may fail */ }
+
+    // Also count blocked expenses that were never saved (audit log approach)
+    try {
+      const blockedAudit = await prisma.$queryRawUnsafe(
+        `SELECT COUNT(*)::int as count
+         FROM "AuditLog" al
+         WHERE al."tenantId" = ANY($1::text[])
+           AND al.action = 'EXPENSE_BLOCKED_FRAUD'`,
+        tenantIds
+      )
+      // If we got audit counts but no rejected amounts, estimate
+      if (fraudPrevented === 0 && blockedAudit[0]?.count > 0) {
+        fraudPrevented = 0 // We can't recover amounts from audit logs alone
+      }
+    } catch { /* may fail */ }
+
     // Group by NGO
     const ngoMap = {}
     for (const p of projects) {
@@ -364,7 +393,7 @@ router.get('/projects', donorAuth, async (req, res) => {
       })
     }
 
-    res.json({ ngos: Object.values(ngoMap) })
+    res.json({ ngos: Object.values(ngoMap), fraudPrevented })
   } catch (err) {
     console.error('Donor projects error:', err)
     res.status(500).json({ error: 'Failed to fetch projects' })
@@ -487,6 +516,375 @@ router.get('/projects/:projectId', donorAuth, async (req, res) => {
   } catch (err) {
     console.error('Donor project detail error:', err)
     res.status(500).json({ error: 'Failed to fetch project' })
+  }
+})
+
+// ── GET /api/donor/projects/:projectId/expenses/:expenseId ────
+router.get('/projects/:projectId/expenses/:expenseId', donorAuth, async (req, res) => {
+  try {
+    const { donorOrgId } = req.donor
+    const { projectId, expenseId } = req.params
+
+    // Verify access
+    const access = await prisma.$queryRawUnsafe(
+      `SELECT id FROM "DonorProjectAccess"
+       WHERE "donorOrgId" = $1 AND "projectId" = $2 AND "revokedAt" IS NULL`,
+      donorOrgId, projectId
+    )
+    if (!access.length) return res.status(403).json({ error: 'No access to this project' })
+
+    // Fetch expense with full detail
+    const expense = await prisma.expense.findUnique({
+      where: { id: expenseId },
+      include: {
+        project: { select: { id: true, name: true } },
+      }
+    })
+    if (!expense || expense.projectId !== projectId) {
+      return res.status(404).json({ error: 'Expense not found' })
+    }
+
+    // Get seal data
+    let seal = null
+    if (expense.receiptSealId) {
+      try {
+        seal = await prisma.trustSeal.findUnique({
+          where: { id: expense.receiptSealId },
+          select: {
+            id: true, status: true, rawHash: true, anchorTxHash: true,
+            anchoredAt: true, blockNumber: true,
+          }
+        })
+      } catch { /* trustSeal may not exist */ }
+    }
+
+    // Generate presigned URL for receipt
+    let receiptUrl = null
+    if (expense.receiptFileKey) {
+      try {
+        const { getPresignedUrlFromKey } = require('../lib/s3Upload')
+        receiptUrl = await getPresignedUrlFromKey(expense.receiptFileKey, 3600)
+      } catch { /* S3 may fail */ }
+    }
+
+    // Build OCR comparison table
+    const ocrComparison = [
+      {
+        field: 'Amount',
+        ocr: expense.ocrAmount != null ? expense.ocrAmount : null,
+        submitted: expense.amount,
+        match: !expense.amountMismatch,
+      },
+      {
+        field: 'Vendor',
+        ocr: expense.ocrVendor || null,
+        submitted: expense.vendor || expense.description,
+        match: !expense.vendorMismatch,
+      },
+      {
+        field: 'Date',
+        ocr: expense.ocrDate || null,
+        submitted: expense.createdAt,
+        match: !expense.dateMismatch,
+      },
+    ]
+
+    // Build fraud flags
+    const fraudFlags = []
+    if (expense.amountMismatch) fraudFlags.push({ type: 'AMOUNT_MISMATCH', level: 'MEDIUM', message: `OCR amount (${expense.ocrAmount}) differs from submitted (${expense.amount})` })
+    if (expense.vendorMismatch) fraudFlags.push({ type: 'VENDOR_MISMATCH', level: 'MEDIUM', message: `OCR vendor (${expense.ocrVendor}) differs from submitted (${expense.vendor || expense.description})` })
+    if (expense.dateMismatch) fraudFlags.push({ type: 'DATE_MISMATCH', level: 'MEDIUM', message: `OCR date (${expense.ocrDate}) differs from submitted date` })
+
+    // Parse fraudSignals JSON for additional flags
+    if (expense.fraudSignals) {
+      try {
+        const signals = typeof expense.fraudSignals === 'string' ? JSON.parse(expense.fraudSignals) : expense.fraudSignals
+        if (Array.isArray(signals)) {
+          for (const sig of signals) {
+            fraudFlags.push({ type: sig.type || sig.name || 'FRAUD_SIGNAL', level: expense.fraudRiskLevel || 'MEDIUM', message: sig.message || sig.description || sig.name || JSON.stringify(sig) })
+          }
+        }
+      } catch { /* ignore parse errors */ }
+    }
+
+    res.json({
+      expense: {
+        id: expense.id,
+        date: expense.ocrDate || expense.createdAt,
+        createdAt: expense.createdAt,
+        vendor: expense.vendor || expense.description,
+        description: expense.description,
+        amount: expense.amount,
+        currency: expense.currency,
+        category: expense.category || expense.expenseType || 'Other',
+        subCategory: expense.subCategory || null,
+        projectName: expense.project?.name || '',
+        fraudRiskScore: expense.fraudRiskScore || 0,
+        fraudRiskLevel: expense.fraudRiskLevel || 'LOW',
+        approvalStatus: expense.approvalStatus,
+      },
+      ocrComparison,
+      fraudFlags,
+      seal: seal ? {
+        id: seal.id,
+        hash: seal.rawHash,
+        status: seal.status,
+        anchorTxHash: seal.anchorTxHash,
+        anchoredAt: seal.anchoredAt,
+        blockNumber: seal.blockNumber,
+      } : null,
+      receiptUrl,
+    })
+  } catch (err) {
+    console.error('Donor expense detail error:', err)
+    res.status(500).json({ error: 'Failed to fetch expense detail' })
+  }
+})
+
+// ── GET /api/donor/projects/:projectId/budget ─────────────────
+router.get('/projects/:projectId/budget', donorAuth, async (req, res) => {
+  try {
+    const { donorOrgId } = req.donor
+    const { projectId } = req.params
+
+    // Verify access
+    const access = await prisma.$queryRawUnsafe(
+      `SELECT id FROM "DonorProjectAccess"
+       WHERE "donorOrgId" = $1 AND "projectId" = $2 AND "revokedAt" IS NULL`,
+      donorOrgId, projectId
+    )
+    if (!access.length) return res.status(403).json({ error: 'No access to this project' })
+
+    // Budget lines grouped by category
+    let budgetLines = []
+    try {
+      budgetLines = await prisma.$queryRawUnsafe(
+        `SELECT bl.id, bl.category, bl."subCategory", bl."expenseType",
+                bl."approvedAmount"::float as budget, bl.currency
+         FROM "BudgetLine" bl
+         JOIN "Budget" b ON bl."budgetId" = b.id
+         WHERE b."projectId" = $1
+         ORDER BY bl.category`,
+        projectId
+      )
+    } catch { /* tables may not exist */ }
+
+    // Actual spend per category from expenses
+    let spendByCategory = []
+    try {
+      spendByCategory = await prisma.$queryRawUnsafe(
+        `SELECT COALESCE(e.category, e."expenseType", 'Other') as category,
+                SUM(e.amount)::float as spent,
+                COUNT(*)::int as count
+         FROM "Expense" e
+         WHERE e."projectId" = $1
+           AND e."approvalStatus" IN ('APPROVED', 'AUTO_APPROVED')
+         GROUP BY COALESCE(e.category, e."expenseType", 'Other')`,
+        projectId
+      )
+    } catch { /* may fail */ }
+
+    const spendMap = {}
+    for (const s of spendByCategory) spendMap[s.category] = s.spent
+
+    // Merge budget lines with spend
+    const categories = budgetLines.map(bl => {
+      const spent = spendMap[bl.category] || 0
+      const remaining = bl.budget - spent
+      const pctUsed = bl.budget > 0 ? Math.round((spent / bl.budget) * 100) : 0
+      return {
+        id: bl.id,
+        category: bl.category,
+        subCategory: bl.subCategory,
+        expenseType: bl.expenseType,
+        budget: bl.budget,
+        spent,
+        remaining,
+        pctUsed,
+        currency: bl.currency,
+      }
+    })
+
+    // If no budget lines, show spend by category as unbudgeted
+    if (!budgetLines.length && spendByCategory.length) {
+      for (const s of spendByCategory) {
+        categories.push({
+          id: null,
+          category: s.category,
+          subCategory: null,
+          expenseType: null,
+          budget: 0,
+          spent: s.spent,
+          remaining: -s.spent,
+          pctUsed: 100,
+          currency: 'USD',
+        })
+      }
+    }
+
+    // Monthly spend for last 6 months
+    let monthlySpend = []
+    try {
+      monthlySpend = await prisma.$queryRawUnsafe(
+        `SELECT TO_CHAR(DATE_TRUNC('month', e."createdAt"), 'YYYY-MM') as month,
+                SUM(e.amount)::float as spent
+         FROM "Expense" e
+         WHERE e."projectId" = $1
+           AND e."approvalStatus" IN ('APPROVED', 'AUTO_APPROVED')
+           AND e."createdAt" >= NOW() - INTERVAL '6 months'
+         GROUP BY DATE_TRUNC('month', e."createdAt")
+         ORDER BY DATE_TRUNC('month', e."createdAt")`,
+        projectId
+      )
+    } catch { /* may fail */ }
+
+    // Compute total budget and total spent for overrun projection
+    const totalBudget = categories.reduce((s, c) => s + (c.budget || 0), 0)
+    const totalSpent = categories.reduce((s, c) => s + (c.spent || 0), 0)
+
+    // Project overrun: calculate months of data, average burn
+    let projectedOverrunDate = null
+    if (monthlySpend.length >= 2 && totalBudget > 0) {
+      const avgMonthlyBurn = monthlySpend.reduce((s, m) => s + m.spent, 0) / monthlySpend.length
+      if (avgMonthlyBurn > 0) {
+        const remainingBudget = totalBudget - totalSpent
+        if (remainingBudget > 0) {
+          const monthsLeft = remainingBudget / avgMonthlyBurn
+          const overrunDate = new Date()
+          overrunDate.setMonth(overrunDate.getMonth() + Math.floor(monthsLeft))
+          projectedOverrunDate = overrunDate.toISOString()
+        } else {
+          projectedOverrunDate = new Date().toISOString() // already overrun
+        }
+      }
+    }
+
+    res.json({
+      categories,
+      monthlySpend,
+      totalBudget,
+      totalSpent,
+      remaining: totalBudget - totalSpent,
+      projectedOverrunDate,
+    })
+  } catch (err) {
+    console.error('Donor budget error:', err)
+    res.status(500).json({ error: 'Failed to fetch budget data' })
+  }
+})
+
+// ── GET /api/donor/activity ──────────────────────────────────
+router.get('/activity', donorAuth, async (req, res) => {
+  try {
+    const { donorOrgId } = req.donor
+
+    // Get all project IDs and their tenant IDs this donor can access
+    const accessRows = await prisma.$queryRawUnsafe(
+      `SELECT "projectId", "tenantId" FROM "DonorProjectAccess"
+       WHERE "donorOrgId" = $1 AND "revokedAt" IS NULL`,
+      donorOrgId
+    )
+
+    if (!accessRows.length) return res.json({ events: [] })
+
+    const projectIds = accessRows.map(r => r.projectId)
+    const tenantIds = [...new Set(accessRows.map(r => r.tenantId))]
+
+    // Get recent audit logs for these projects
+    const logs = await prisma.$queryRawUnsafe(
+      `SELECT al.id, al.action, al."entityType", al."entityId",
+              al."createdAt", al."tenantId"
+       FROM "AuditLog" al
+       WHERE al."tenantId" = ANY($1::text[])
+         AND al."entityType" IN ('Expense', 'Document')
+         AND al."entityId" IN (
+           SELECT e.id FROM "Expense" e WHERE e."projectId" = ANY($2::text[])
+           UNION ALL
+           SELECT d.id FROM "Document" d WHERE d."projectId" = ANY($2::text[])
+         )
+       ORDER BY al."createdAt" DESC
+       LIMIT 20`,
+      tenantIds, projectIds
+    )
+
+    // Enrich with expense/document data
+    const expenseIds = logs.filter(l => l.entityType === 'Expense').map(l => l.entityId)
+    const documentIds = logs.filter(l => l.entityType === 'Document').map(l => l.entityId)
+
+    let expenseMap = {}
+    if (expenseIds.length) {
+      const expenses = await prisma.expense.findMany({
+        where: { id: { in: expenseIds } },
+        select: { id: true, vendor: true, description: true, amount: true, currency: true, projectId: true, fraudRiskLevel: true }
+      })
+      for (const e of expenses) expenseMap[e.id] = e
+    }
+
+    let documentMap = {}
+    if (documentIds.length) {
+      const docs = await prisma.document.findMany({
+        where: { id: { in: documentIds } },
+        select: { id: true, title: true, projectId: true }
+      })
+      for (const d of docs) documentMap[d.id] = d
+    }
+
+    // Get project names
+    const projectMap = {}
+    if (projectIds.length) {
+      const projects = await prisma.project.findMany({
+        where: { id: { in: projectIds } },
+        select: { id: true, name: true }
+      })
+      for (const p of projects) projectMap[p.id] = p.name
+    }
+
+    const events = logs.map(log => {
+      const expense = expenseMap[log.entityId]
+      const document = documentMap[log.entityId]
+      const pId = expense?.projectId || document?.projectId || null
+      const projectName = pId ? (projectMap[pId] || 'Unknown') : 'Unknown'
+
+      let icon = 'activity'
+      let description = log.action
+
+      if (log.action === 'EXPENSE_CREATED') {
+        icon = 'expense'
+        description = `Expense submitted: ${expense?.vendor || expense?.description || 'Unknown'} — ${expense?.currency || '$'} ${(expense?.amount || 0).toLocaleString()}`
+      } else if (log.action === 'EXPENSE_APPROVED' || log.action === 'AUTO_APPROVED') {
+        icon = 'approved'
+        description = `Expense approved: ${expense?.vendor || expense?.description || 'Unknown'} — ${expense?.currency || '$'} ${(expense?.amount || 0).toLocaleString()}`
+      } else if (log.action === 'DOCUMENT_UPLOADED') {
+        icon = 'document'
+        description = `Document uploaded: ${document?.title || 'Untitled'}`
+      } else if (log.action === 'FRAUD_RISK_SCORED') {
+        icon = 'fraud'
+        description = `Fraud flag: ${expense?.vendor || expense?.description || 'Unknown'} — ${expense?.currency || '$'} ${(expense?.amount || 0).toLocaleString()} (${expense?.fraudRiskLevel || 'MEDIUM'})`
+      } else if (log.action === 'EXPENSE_BLOCKED_FRAUD') {
+        icon = 'blocked'
+        description = `Expense blocked: ${expense?.vendor || expense?.description || 'Unknown'} — ${expense?.currency || '$'} ${(expense?.amount || 0).toLocaleString()}`
+      } else if (log.action === 'SEAL_ANCHORED' || log.action === 'TRUST_SEAL_ISSUED') {
+        icon = 'seal'
+        description = `Seal anchored for ${log.entityType === 'Expense' ? 'expense' : 'document'}`
+      }
+
+      return {
+        id: log.id,
+        action: log.action,
+        icon,
+        description,
+        projectId: pId,
+        projectName,
+        entityType: log.entityType,
+        entityId: log.entityId,
+        createdAt: log.createdAt,
+      }
+    })
+
+    res.json({ events })
+  } catch (err) {
+    console.error('Donor activity error:', err)
+    res.status(500).json({ error: 'Failed to fetch activity' })
   }
 })
 

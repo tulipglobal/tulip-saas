@@ -21,6 +21,54 @@ const { sendEmail } = require('../services/emailService')
 const JWT_SECRET = process.env.JWT_SECRET
 const JWT_EXPIRES = '7d'
 
+// ── Completion % helper ──────────────────────────────────────
+function calcCompletion(project, totalSpent, totalFunded) {
+  const now = new Date()
+  const startDate = project.startDate ? new Date(project.startDate) : null
+  const endDate = project.endDate ? new Date(project.endDate) : null
+  const isClosed = (project.status || '').toUpperCase() === 'CLOSED' || (project.status || '').toUpperCase() === 'COMPLETED'
+  const hasEndDate = !!endDate
+  const isOverdue = hasEndDate && now > endDate && !isClosed
+
+  // Time %
+  let timePercent = null
+  if (startDate && endDate) {
+    const totalDuration = endDate.getTime() - startDate.getTime()
+    const elapsed = now.getTime() - startDate.getTime()
+    if (totalDuration > 0) {
+      timePercent = Math.min(Math.max((elapsed / totalDuration) * 100, 0), 100)
+    }
+  }
+
+  // Financial %
+  let financialPercent = null
+  if (totalFunded > 0) {
+    financialPercent = Math.min(Math.max((totalSpent / totalFunded) * 100, 0), 100)
+  }
+
+  // Combined
+  let completionPercent = 0
+  if (timePercent !== null && financialPercent !== null) {
+    completionPercent = (timePercent + financialPercent) / 2
+  } else if (timePercent !== null) {
+    completionPercent = timePercent
+  } else if (financialPercent !== null) {
+    completionPercent = financialPercent
+  }
+  completionPercent = Math.min(Math.max(completionPercent, 0), 100)
+
+  return {
+    timePercent: timePercent !== null ? Math.round(timePercent * 10) / 10 : null,
+    financialPercent: financialPercent !== null ? Math.round(financialPercent * 10) / 10 : null,
+    completionPercent: Math.round(completionPercent * 10) / 10,
+    isOverdue,
+    isClosed,
+    hasEndDate,
+    startDate: project.startDate,
+    endDate: project.endDate,
+  }
+}
+
 // ── Donor JWT middleware ──────────────────────────────────────
 function donorAuth(req, res, next) {
   const authHeader = req.headers['authorization']
@@ -255,6 +303,7 @@ router.get('/projects', donorAuth, async (req, res) => {
       where: { id: { in: projectIds } },
       select: {
         id: true, name: true, description: true, budget: true, status: true,
+        startDate: true, endDate: true,
         tenantId: true,
         _count: { select: { expenses: true, documents: true } }
       }
@@ -378,6 +427,8 @@ router.get('/projects', donorAuth, async (req, res) => {
       }
       const realBudget = budgetMap[p.id] || p.budget || 0
       const realFunded = fundingMap[p.id] || 0
+      const spent = expenseMap[p.id]?.spent || 0
+      const completion = calcCompletion(p, spent, realFunded)
       ngoMap[p.tenantId].projects.push({
         id: p.id,
         name: p.name,
@@ -386,14 +437,26 @@ router.get('/projects', donorAuth, async (req, res) => {
         funded: realFunded,
         status: p.status,
         expenseCount: expenseMap[p.id]?.count || 0,
-        spent: expenseMap[p.id]?.spent || 0,
+        spent,
         sealCount: sealMap[p.id] || 0,
         flagCount: flagMap[p.id] || 0,
-        documentCount: p._count.documents
+        documentCount: p._count.documents,
+        ...completion,
       })
     }
 
-    res.json({ ngos: Object.values(ngoMap), fraudPrevented })
+    // Calculate NGO completion averages
+    const ngoList = Object.values(ngoMap)
+    for (const ngo of ngoList) {
+      const active = ngo.projects.filter(p => !p.isClosed)
+      if (active.length > 0) {
+        ngo.ngoCompletionPercent = Math.round((active.reduce((s, p) => s + p.completionPercent, 0) / active.length) * 10) / 10
+      } else {
+        ngo.ngoCompletionPercent = 0
+      }
+    }
+
+    res.json({ ngos: ngoList, fraudPrevented })
   } catch (err) {
     console.error('Donor projects error:', err)
     res.status(500).json({ error: 'Failed to fetch projects' })
@@ -499,6 +562,8 @@ router.get('/projects/:projectId', donorAuth, async (req, res) => {
       anchorTxHash: e.receiptSealId ? (sealMap[e.receiptSealId]?.anchorTxHash || null) : null,
     }))
 
+    const completion = calcCompletion(project, totalSpent, totalFunded)
+
     res.json({
       project: {
         id: project.id,
@@ -509,6 +574,7 @@ router.get('/projects/:projectId', donorAuth, async (req, res) => {
         funded: totalFunded,
         spent: totalSpent,
         remaining: totalBudget - totalSpent,
+        ...completion,
       },
       fundingSources,
       expenses,

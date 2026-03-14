@@ -33,7 +33,7 @@ router.get('/', async (req, res) => {
 
     if (!projectIds.length) return res.json({ investments: [] })
 
-    const placeholders = projectIds.map((_, i) => `$${i + 1}`).join(', ')
+    const placeholders = projectIds.map((_, i) => `$${i + 1}::uuid`).join(', ')
     const investments = await prisma.$queryRawUnsafe(
       `SELECT ii.*, dorg.name as "donorOrgName"
        FROM "ImpactInvestment" ii
@@ -49,7 +49,7 @@ router.get('/', async (req, res) => {
       // Repayment summary
       const schedule = await prisma.$queryRawUnsafe(
         `SELECT * FROM "RepaymentSchedule"
-         WHERE "investmentId" = $1
+         WHERE "investmentId" = $1::uuid
          ORDER BY "instalmentNumber" ASC`,
         inv.id
       )
@@ -65,7 +65,7 @@ router.get('/', async (req, res) => {
       // Covenant status
       const covenants = await prisma.$queryRawUnsafe(
         `SELECT * FROM "Covenant"
-         WHERE "investmentId" = $1
+         WHERE "investmentId" = $1::uuid
          ORDER BY "createdAt" ASC`,
         inv.id
       )
@@ -75,7 +75,7 @@ router.get('/', async (req, res) => {
       // Drawdowns
       inv.drawdowns = await prisma.$queryRawUnsafe(
         `SELECT * FROM "Drawdown"
-         WHERE "investmentId" = $1
+         WHERE "investmentId" = $1::uuid
          ORDER BY "createdAt" DESC`,
         inv.id
       )
@@ -104,7 +104,7 @@ router.post('/:investmentId/drawdowns', async (req, res) => {
       `SELECT ii.id, ii."projectId", ii."donorOrgId"
        FROM "ImpactInvestment" ii
        JOIN "Project" p ON p.id = ii."projectId"
-       WHERE ii.id = $1 AND p."tenantId" = $2`,
+       WHERE ii.id = $1::uuid AND p."tenantId" = $2::uuid`,
       investmentId, tenantId
     )
     if (!inv.length) return res.status(404).json({ error: 'Investment not found' })
@@ -114,7 +114,7 @@ router.post('/:investmentId/drawdowns', async (req, res) => {
     const rows = await prisma.$queryRawUnsafe(
       `INSERT INTO "Drawdown" (
         "investmentId", amount, currency, purpose, status, "requestedBy", "requestDate"
-      ) VALUES ($1, $2, $3, $4, 'REQUESTED', $5, NOW())
+      ) VALUES ($1::uuid, $2, $3, $4, 'REQUESTED', $5::uuid, NOW())
       RETURNING *`,
       investmentId, parseFloat(amount), currency, purpose || null, req.user.userId
     )
@@ -130,7 +130,7 @@ router.post('/:investmentId/drawdowns', async (req, res) => {
     // Send email to donor members
     const donorMembers = await prisma.$queryRawUnsafe(
       `SELECT email, name FROM "DonorMember"
-       WHERE "donorOrgId" = $1 AND status = 'ACTIVE'`,
+       WHERE "donorOrgId" = $1::uuid AND status = 'ACTIVE'`,
       investment.donorOrgId
     )
 
@@ -181,7 +181,7 @@ router.post('/drawdowns/:drawdownId/utilisation', async (req, res) => {
        FROM "Drawdown" d
        JOIN "ImpactInvestment" ii ON ii.id = d."investmentId"
        JOIN "Project" p ON p.id = ii."projectId"
-       WHERE d.id = $1 AND p."tenantId" = $2`,
+       WHERE d.id = $1::uuid AND p."tenantId" = $2::uuid`,
       drawdownId, tenantId
     )
     if (!dd.length) return res.status(404).json({ error: 'Drawdown not found' })
@@ -189,7 +189,7 @@ router.post('/drawdowns/:drawdownId/utilisation', async (req, res) => {
     const updated = await prisma.$queryRawUnsafe(
       `UPDATE "Drawdown"
        SET "utilisationAmount" = $1, "updatedAt" = NOW()
-       WHERE id = $2
+       WHERE id = $2::uuid
        RETURNING *`,
       parseFloat(utilisationAmount), drawdownId
     )
@@ -211,14 +211,14 @@ router.get('/:investmentId/covenants', async (req, res) => {
     const inv = await prisma.$queryRawUnsafe(
       `SELECT ii.id FROM "ImpactInvestment" ii
        JOIN "Project" p ON p.id = ii."projectId"
-       WHERE ii.id = $1 AND p."tenantId" = $2`,
+       WHERE ii.id = $1::uuid AND p."tenantId" = $2::uuid`,
       investmentId, tenantId
     )
     if (!inv.length) return res.status(404).json({ error: 'Investment not found' })
 
     const covenants = await prisma.$queryRawUnsafe(
       `SELECT * FROM "Covenant"
-       WHERE "investmentId" = $1
+       WHERE "investmentId" = $1::uuid
        ORDER BY "createdAt" ASC`,
       investmentId
     )
@@ -247,7 +247,7 @@ router.put('/covenants/:covenantId/status', async (req, res) => {
        FROM "Covenant" c
        JOIN "ImpactInvestment" ii ON ii.id = c."investmentId"
        JOIN "Project" p ON p.id = ii."projectId"
-       WHERE c.id = $1 AND p."tenantId" = $2`,
+       WHERE c.id = $1::uuid AND p."tenantId" = $2::uuid`,
       covenantId, tenantId
     )
     if (!cov.length) return res.status(404).json({ error: 'Covenant not found' })
@@ -257,7 +257,7 @@ router.put('/covenants/:covenantId/status', async (req, res) => {
     const updated = await prisma.$queryRawUnsafe(
       `UPDATE "Covenant"
        SET status = $1, notes = $2, "lastCheckedAt" = NOW(), "updatedAt" = NOW()
-       WHERE id = $3
+       WHERE id = $3::uuid
        RETURNING *`,
       status, notes || null, covenantId
     )

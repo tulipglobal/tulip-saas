@@ -2567,7 +2567,7 @@ router.get('/projects/:projectId/milestones', donorAuth, async (req, res) => {
 
     // Verify donor access
     const access = await prisma.$queryRawUnsafe(
-      `SELECT id FROM "DonorProjectAccess" WHERE "donorOrgId" = $1 AND "projectId" = $2 AND "revokedAt" IS NULL`,
+      `SELECT id FROM "DonorProjectAccess" WHERE "donorOrgId" = $1::uuid AND "projectId" = $2::uuid AND "revokedAt" IS NULL`,
       donorOrgId, projectId
     )
     if (!access.length) return res.status(403).json({ error: 'No access to this project' })
@@ -2589,7 +2589,7 @@ router.get('/projects/:projectId/milestones', donorAuth, async (req, res) => {
                 ) upd
               ), '[]'::json) as updates
        FROM "ImpactMilestone" im
-       WHERE im."projectId" = $1
+       WHERE im."projectId" = $1::uuid
        ORDER BY im."createdAt" ASC`,
       projectId
     )

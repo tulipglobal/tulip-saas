@@ -38,7 +38,7 @@ router.get('/projects/:projectId/funding-breakdown', donorAuth, async (req, res)
        FROM "ProjectFunding" pf
        JOIN "FundingAgreement" fa ON fa.id = pf."fundingAgreementId"
        LEFT JOIN "DonorOrganisation" dorg ON dorg.id = fa."donorOrgId"
-       WHERE pf."projectId" = $1
+       WHERE pf."projectId" = $1::uuid
          AND fa."funderType" = 'PORTAL'
          AND fa."donorOrgId" IS NOT NULL
        ORDER BY fa."createdAt" DESC`,
@@ -74,13 +74,13 @@ router.get('/projects/:projectId/investments', donorAuth, async (req, res) => {
     // Show investments belonging to this donor org, OR created by NGO without
     // a donor org assigned (but donor has project access via DonorProjectAccess)
     const hasAccess = await prisma.$queryRawUnsafe(
-      `SELECT 1 FROM "DonorProjectAccess" WHERE "donorOrgId" = $1 AND "projectId" = $2 AND "revokedAt" IS NULL LIMIT 1`,
+      `SELECT 1 FROM "DonorProjectAccess" WHERE "donorOrgId" = $1::uuid AND "projectId" = $2::uuid AND "revokedAt" IS NULL LIMIT 1`,
       donorOrgId, projectId
     )
 
     const investments = await prisma.$queryRawUnsafe(
       `SELECT * FROM "ImpactInvestment"
-       WHERE "projectId" = $1 AND ("donorOrgId" = $2${hasAccess.length > 0 ? ' OR "donorOrgId" IS NULL' : ''})
+       WHERE "projectId" = $1::uuid AND ("donorOrgId" = $2::uuid${hasAccess.length > 0 ? ' OR "donorOrgId" IS NULL' : ''})
        ORDER BY "createdAt" DESC`,
       projectId, donorOrgId
     )
@@ -89,7 +89,7 @@ router.get('/projects/:projectId/investments', donorAuth, async (req, res) => {
       // Repayment schedule
       inv.schedule = await prisma.$queryRawUnsafe(
         `SELECT * FROM "RepaymentSchedule"
-         WHERE "investmentId" = $1
+         WHERE "investmentId" = $1::uuid
          ORDER BY "instalmentNumber" ASC`,
         inv.id
       )
@@ -97,7 +97,7 @@ router.get('/projects/:projectId/investments', donorAuth, async (req, res) => {
       // Drawdowns
       inv.drawdowns = await prisma.$queryRawUnsafe(
         `SELECT * FROM "Drawdown"
-         WHERE "investmentId" = $1
+         WHERE "investmentId" = $1::uuid
          ORDER BY "createdAt" DESC`,
         inv.id
       )
@@ -105,7 +105,7 @@ router.get('/projects/:projectId/investments', donorAuth, async (req, res) => {
       // Covenants
       inv.covenants = await prisma.$queryRawUnsafe(
         `SELECT * FROM "Covenant"
-         WHERE "investmentId" = $1
+         WHERE "investmentId" = $1::uuid
          ORDER BY "createdAt" ASC`,
         inv.id
       )
@@ -167,7 +167,7 @@ router.post('/projects/:projectId/investments', donorAuth, async (req, res) => {
         "projectId", "donorOrgId", "createdBy", "investmentType",
         "totalFacility", currency, "interestRate", "termMonths",
         "gracePeriodMonths", "startDate", notes, status
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'ACTIVE')
+      ) VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5, $6, $7, $8, $9, $10, $11, 'ACTIVE')
       RETURNING *`,
       projectId, donorOrgId, donorMemberId, instrumentType,
       parseFloat(totalFacility), currency, parseFloat(interestRate) || 0,
@@ -201,7 +201,7 @@ router.post('/projects/:projectId/investments', donorAuth, async (req, res) => {
           `INSERT INTO "RepaymentSchedule" (
             "investmentId", "instalmentNumber", "dueDate",
             "principalDue", "interestDue", "totalDue", status
-          ) VALUES ($1, $2, $3, $4, $5, $6, 'PENDING')
+          ) VALUES ($1::uuid, $2, $3, $4, $5, $6, 'PENDING')
           RETURNING *`,
           investment.id, i, dueDate,
           Math.round(principalDue * 100) / 100,
@@ -228,14 +228,14 @@ router.get('/investments/:investmentId/schedule', donorAuth, async (req, res) =>
 
     // Verify ownership
     const inv = await prisma.$queryRawUnsafe(
-      `SELECT id FROM "ImpactInvestment" WHERE id = $1 AND "donorOrgId" = $2`,
+      `SELECT id FROM "ImpactInvestment" WHERE id = $1::uuid AND "donorOrgId" = $2::uuid`,
       investmentId, donorOrgId
     )
     if (!inv.length) return res.status(404).json({ error: 'Investment not found' })
 
     const schedule = await prisma.$queryRawUnsafe(
       `SELECT * FROM "RepaymentSchedule"
-       WHERE "investmentId" = $1
+       WHERE "investmentId" = $1::uuid
        ORDER BY "instalmentNumber" ASC`,
       investmentId
     )
@@ -260,14 +260,14 @@ router.post('/investments/:investmentId/record-payment', donorAuth, async (req, 
 
     // Verify ownership
     const inv = await prisma.$queryRawUnsafe(
-      `SELECT id FROM "ImpactInvestment" WHERE id = $1 AND "donorOrgId" = $2`,
+      `SELECT id FROM "ImpactInvestment" WHERE id = $1::uuid AND "donorOrgId" = $2::uuid`,
       investmentId, donorOrgId
     )
     if (!inv.length) return res.status(404).json({ error: 'Investment not found' })
 
     // Get instalment
     const instalments = await prisma.$queryRawUnsafe(
-      `SELECT * FROM "RepaymentSchedule" WHERE id = $1 AND "investmentId" = $2`,
+      `SELECT * FROM "RepaymentSchedule" WHERE id = $1::uuid AND "investmentId" = $2::uuid`,
       instalmentId, investmentId
     )
     if (!instalments.length) return res.status(404).json({ error: 'Instalment not found' })
@@ -280,7 +280,7 @@ router.post('/investments/:investmentId/record-payment', donorAuth, async (req, 
     const updated = await prisma.$queryRawUnsafe(
       `UPDATE "RepaymentSchedule"
        SET "paidAmount" = $1, "paidDate" = $2, status = $3, "updatedAt" = NOW()
-       WHERE id = $4
+       WHERE id = $4::uuid
        RETURNING *`,
       paid, paidDate ? new Date(paidDate) : new Date(), newStatus, instalmentId
     )
@@ -300,14 +300,14 @@ router.get('/investments/:investmentId/drawdowns', donorAuth, async (req, res) =
 
     // Verify ownership
     const inv = await prisma.$queryRawUnsafe(
-      `SELECT id FROM "ImpactInvestment" WHERE id = $1 AND "donorOrgId" = $2`,
+      `SELECT id FROM "ImpactInvestment" WHERE id = $1::uuid AND "donorOrgId" = $2::uuid`,
       investmentId, donorOrgId
     )
     if (!inv.length) return res.status(404).json({ error: 'Investment not found' })
 
     const drawdowns = await prisma.$queryRawUnsafe(
       `SELECT * FROM "Drawdown"
-       WHERE "investmentId" = $1
+       WHERE "investmentId" = $1::uuid
        ORDER BY "createdAt" DESC`,
       investmentId
     )
@@ -328,15 +328,15 @@ router.post('/investments/:investmentId/drawdowns/:id/approve', donorAuth, async
     // Verify ownership
     const inv = await prisma.$queryRawUnsafe(
       `SELECT ii.id, ii."projectId" FROM "ImpactInvestment" ii
-       WHERE ii.id = $1 AND ii."donorOrgId" = $2`,
+       WHERE ii.id = $1::uuid AND ii."donorOrgId" = $2::uuid`,
       investmentId, donorOrgId
     )
     if (!inv.length) return res.status(404).json({ error: 'Investment not found' })
 
     const updated = await prisma.$queryRawUnsafe(
       `UPDATE "Drawdown"
-       SET status = 'APPROVED', "approvedDate" = NOW(), "approvedBy" = $1, "updatedAt" = NOW()
-       WHERE id = $2 AND "investmentId" = $3
+       SET status = 'APPROVED', "approvedDate" = NOW(), "approvedBy" = $1::uuid, "updatedAt" = NOW()
+       WHERE id = $2::uuid AND "investmentId" = $3::uuid
        RETURNING *`,
       donorMemberId, id, investmentId
     )
@@ -396,7 +396,7 @@ router.post('/investments/:investmentId/drawdowns/:id/reject', donorAuth, async 
     // Verify ownership
     const inv = await prisma.$queryRawUnsafe(
       `SELECT ii.id, ii."projectId" FROM "ImpactInvestment" ii
-       WHERE ii.id = $1 AND ii."donorOrgId" = $2`,
+       WHERE ii.id = $1::uuid AND ii."donorOrgId" = $2::uuid`,
       investmentId, donorOrgId
     )
     if (!inv.length) return res.status(404).json({ error: 'Investment not found' })
@@ -404,7 +404,7 @@ router.post('/investments/:investmentId/drawdowns/:id/reject', donorAuth, async 
     const updated = await prisma.$queryRawUnsafe(
       `UPDATE "Drawdown"
        SET status = 'REJECTED', "rejectionReason" = $1, "updatedAt" = NOW()
-       WHERE id = $2 AND "investmentId" = $3
+       WHERE id = $2::uuid AND "investmentId" = $3::uuid
        RETURNING *`,
       reason || null, id, investmentId
     )
@@ -450,19 +450,19 @@ router.get('/investments', donorAuth, async (req, res) => {
     // Include investments assigned to this donor org, plus any unassigned ones
     // on projects this donor has access to
     const accessibleProjects = await prisma.$queryRawUnsafe(
-      `SELECT "projectId" FROM "DonorProjectAccess" WHERE "donorOrgId" = $1 AND "revokedAt" IS NULL`,
+      `SELECT "projectId" FROM "DonorProjectAccess" WHERE "donorOrgId" = $1::uuid AND "revokedAt" IS NULL`,
       donorOrgId
     )
     const accessibleProjectIds = accessibleProjects.map(r => r.projectId)
 
     let investments
     if (accessibleProjectIds.length > 0) {
-      const placeholders = accessibleProjectIds.map((_, i) => `$${i + 2}`).join(', ')
+      const placeholders = accessibleProjectIds.map((_, i) => `$${i + 2}::uuid`).join(', ')
       investments = await prisma.$queryRawUnsafe(
         `SELECT ii.*, p.name as "projectName"
          FROM "ImpactInvestment" ii
          LEFT JOIN "Project" p ON p.id = ii."projectId"
-         WHERE ii."donorOrgId" = $1 OR (ii."donorOrgId" IS NULL AND ii."projectId" IN (${placeholders}))
+         WHERE ii."donorOrgId" = $1::uuid OR (ii."donorOrgId" IS NULL AND ii."projectId" IN (${placeholders}))
          ORDER BY ii."createdAt" DESC`,
         donorOrgId, ...accessibleProjectIds
       )
@@ -471,7 +471,7 @@ router.get('/investments', donorAuth, async (req, res) => {
         `SELECT ii.*, p.name as "projectName"
          FROM "ImpactInvestment" ii
          LEFT JOIN "Project" p ON p.id = ii."projectId"
-         WHERE ii."donorOrgId" = $1
+         WHERE ii."donorOrgId" = $1::uuid
          ORDER BY ii."createdAt" DESC`,
         donorOrgId
       )
@@ -481,7 +481,7 @@ router.get('/investments', donorAuth, async (req, res) => {
       // Get schedule summary
       const schedule = await prisma.$queryRawUnsafe(
         `SELECT * FROM "RepaymentSchedule"
-         WHERE "investmentId" = $1
+         WHERE "investmentId" = $1::uuid
          ORDER BY "instalmentNumber" ASC`,
         inv.id
       )

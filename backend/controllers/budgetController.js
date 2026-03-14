@@ -199,7 +199,7 @@ exports.create = async (req, res) => {
       try {
         const dpaRows = await prisma.$queryRawUnsafe(
           `SELECT dpa."donorOrgId" FROM "DonorProjectAccess" dpa
-           WHERE dpa."projectId" = $1 AND dpa."revokedAt" IS NULL
+           WHERE dpa."projectId" = $1::uuid AND dpa."revokedAt" IS NULL
            LIMIT 1`,
           projectId
         )
@@ -225,7 +225,7 @@ exports.create = async (req, res) => {
                 "projectId", "tenantId", "donorOrgId", "investmentType",
                 "totalFacility", currency, "interestRate", "interestType",
                 "termMonths", "gracePeriodMonths", "startDate", notes, status
-              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'ACTIVE')
+              ) VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'ACTIVE')
               RETURNING *`,
               projectId,
               req.user.tenantId,
@@ -260,7 +260,7 @@ exports.create = async (req, res) => {
                     `INSERT INTO "RepaymentSchedule" (
                       "investmentId", "instalmentNumber", "dueDate",
                       "principalDue", "interestDue", "totalDue", status
-                    ) VALUES ($1, $2, $3, $4, $5, $6, 'PENDING')`,
+                    ) VALUES ($1::uuid, $2, $3, $4, $5, $6, 'PENDING')`,
                     investment.id, i, dueDate,
                     Math.round(principalDue * 100) / 100,
                     interestDue, totalDue
@@ -428,7 +428,7 @@ exports.addFundingSource = async (req, res) => {
         let donorOrgId = null
         const dpaRows = await prisma.$queryRawUnsafe(
           `SELECT dpa."donorOrgId" FROM "DonorProjectAccess" dpa
-           WHERE dpa."projectId" = $1 AND dpa."revokedAt" IS NULL
+           WHERE dpa."projectId" = $1::uuid AND dpa."revokedAt" IS NULL
            LIMIT 1`,
           budget.projectId
         )
@@ -445,7 +445,7 @@ exports.addFundingSource = async (req, res) => {
             "projectId", "tenantId", "donorOrgId", "investmentType",
             "totalFacility", currency, "interestRate", "interestType",
             "termMonths", "gracePeriodMonths", "startDate", notes, status
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'ACTIVE')
+          ) VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'ACTIVE')
           RETURNING *`,
           budget.projectId,
           req.user.tenantId,
@@ -480,7 +480,7 @@ exports.addFundingSource = async (req, res) => {
                 `INSERT INTO "RepaymentSchedule" (
                   "investmentId", "instalmentNumber", "dueDate",
                   "principalDue", "interestDue", "totalDue", status
-                ) VALUES ($1, $2, $3, $4, $5, $6, 'PENDING')`,
+                ) VALUES ($1::uuid, $2, $3, $4, $5, $6, 'PENDING')`,
                 investment.id, i, dueDate,
                 Math.round(principalDue * 100) / 100,
                 interestDue, totalDue

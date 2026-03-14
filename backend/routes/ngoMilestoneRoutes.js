@@ -30,7 +30,7 @@ router.get('/projects/:projectId', async (req, res) => {
 
     const milestones = await prisma.$queryRawUnsafe(
       `SELECT im.* FROM "ImpactMilestone" im
-       WHERE im."projectId" = $1
+       WHERE im."projectId" = $1::uuid
        ORDER BY im."createdAt" ASC`,
       projectId
     )
@@ -38,7 +38,7 @@ router.get('/projects/:projectId', async (req, res) => {
     // Attach updates for each milestone
     for (const m of milestones) {
       const updates = await prisma.$queryRawUnsafe(
-        `SELECT * FROM "ImpactMilestoneUpdate" WHERE "milestoneId" = $1 ORDER BY "reportedAt" DESC`,
+        `SELECT * FROM "ImpactMilestoneUpdate" WHERE "milestoneId" = $1::uuid ORDER BY "reportedAt" DESC`,
         m.id
       )
       m.updates = updates
@@ -76,7 +76,7 @@ router.post('/projects/:projectId', async (req, res) => {
 
     const milestone = await prisma.$queryRawUnsafe(
       `INSERT INTO "ImpactMilestone" ("projectId", "tenantId", title, description, category, "targetValue", "targetUnit", "targetDate", status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'NOT_STARTED') RETURNING *`,
+       VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7, $8, 'NOT_STARTED') RETURNING *`,
       projectId, tenantId, title, description || null, cat, parseFloat(targetValue),
       u || null, targetDate ? new Date(targetDate) : null
     )
@@ -111,7 +111,7 @@ router.put('/:milestoneId', async (req, res) => {
 
     // Get milestone and verify tenant ownership
     const milestones = await prisma.$queryRawUnsafe(
-      `SELECT * FROM "ImpactMilestone" WHERE id = $1`, milestoneId
+      `SELECT * FROM "ImpactMilestone" WHERE id = $1::uuid`, milestoneId
     )
     if (!milestones.length) return res.status(404).json({ error: 'Milestone not found' })
     const milestone = milestones[0]
@@ -125,7 +125,7 @@ router.put('/:milestoneId', async (req, res) => {
 
     // Check if any updates exist — if so, milestone definition is locked
     const existingUpdates = await prisma.$queryRawUnsafe(
-      `SELECT COUNT(*)::int as count FROM "ImpactMilestoneUpdate" WHERE "milestoneId" = $1`, milestoneId
+      `SELECT COUNT(*)::int as count FROM "ImpactMilestoneUpdate" WHERE "milestoneId" = $1::uuid`, milestoneId
     )
     if (existingUpdates[0]?.count > 0) {
       return res.status(400).json({ error: 'Cannot edit milestone definition after progress updates have been recorded' })
@@ -149,11 +149,11 @@ router.put('/:milestoneId', async (req, res) => {
     values.push(milestoneId)
 
     await prisma.$executeRawUnsafe(
-      `UPDATE "ImpactMilestone" SET ${sets.join(', ')} WHERE id = $${idx}`,
+      `UPDATE "ImpactMilestone" SET ${sets.join(', ')} WHERE id = $${idx}::uuid`,
       ...values
     )
 
-    const updated = await prisma.$queryRawUnsafe(`SELECT * FROM "ImpactMilestone" WHERE id = $1`, milestoneId)
+    const updated = await prisma.$queryRawUnsafe(`SELECT * FROM "ImpactMilestone" WHERE id = $1::uuid`, milestoneId)
     res.json({ milestone: updated[0] })
   } catch (err) {
     console.error('NGO update milestone error:', err)
@@ -174,7 +174,7 @@ router.post('/:milestoneId/update', async (req, res) => {
 
     // Get milestone and verify tenant ownership
     const milestones = await prisma.$queryRawUnsafe(
-      `SELECT * FROM "ImpactMilestone" WHERE id = $1`, milestoneId
+      `SELECT * FROM "ImpactMilestone" WHERE id = $1::uuid`, milestoneId
     )
     if (!milestones.length) return res.status(404).json({ error: 'Milestone not found' })
     const milestone = milestones[0]
@@ -189,7 +189,7 @@ router.post('/:milestoneId/update', async (req, res) => {
     // Create the update record
     const update = await prisma.$queryRawUnsafe(
       `INSERT INTO "ImpactMilestoneUpdate" ("milestoneId", "reportedBy", "newValue", note, "evidenceDocumentIds")
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+       VALUES ($1::uuid, $2::uuid, $3, $4, $5) RETURNING *`,
       milestoneId,
       req.user.userId,
       parseFloat(val),
@@ -208,7 +208,7 @@ router.post('/:milestoneId/update', async (req, res) => {
     }
 
     await prisma.$executeRawUnsafe(
-      `UPDATE "ImpactMilestone" SET status = $2, "currentValue" = $3, "updatedAt" = NOW() WHERE id = $1`,
+      `UPDATE "ImpactMilestone" SET status = $2, "currentValue" = $3, "updatedAt" = NOW() WHERE id = $1::uuid`,
       milestoneId, newStatus, parsedCurrent
     )
 
@@ -235,7 +235,7 @@ router.post('/:milestoneId/update', async (req, res) => {
       } catch (err) { console.error('Milestone update notification error:', err.message) }
     })()
 
-    const updated = await prisma.$queryRawUnsafe(`SELECT * FROM "ImpactMilestone" WHERE id = $1`, milestoneId)
+    const updated = await prisma.$queryRawUnsafe(`SELECT * FROM "ImpactMilestone" WHERE id = $1::uuid`, milestoneId)
     res.json({ milestone: updated[0], update: update[0] })
   } catch (err) {
     console.error('NGO milestone update error:', err)

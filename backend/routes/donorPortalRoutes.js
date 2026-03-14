@@ -18,6 +18,12 @@ const authenticate = require('../middleware/authenticate')
 const tenantScope = require('../middleware/tenantScope')
 const { sendEmail } = require('../services/emailService')
 const { createNotification, ensureDefaultPrefs, ALERT_TYPES } = require('../services/donorNotificationService')
+const multer = require('multer')
+const { uploadToS3, getPresignedUrl } = require('../lib/s3Upload')
+const uploadMiddleware = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 20 * 1024 * 1024 },
+}).single('file')
 
 const JWT_SECRET = process.env.JWT_SECRET
 const JWT_EXPIRES = '7d'
@@ -2314,12 +2320,26 @@ router.put('/notifications/preferences', donorAuth, async (req, res) => {
 
 // ── Sprint 4: Deliverable Request Routes ──────────────────────
 
+// POST /api/donor/upload — Upload a file attachment for deliverable requests
+router.post('/upload', donorAuth, uploadMiddleware, async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No file provided' })
+    const { donorOrgId } = req.donor
+    const { fileUrl, key } = await uploadToS3(req.file.buffer, req.file.originalname, `donor-${donorOrgId}`, 'deliverable-attachments')
+    const viewUrl = await getPresignedUrl(fileUrl)
+    res.json({ name: req.file.originalname, url: fileUrl, viewUrl, size: req.file.size })
+  } catch (err) {
+    console.error('Donor upload error:', err)
+    res.status(500).json({ error: 'Upload failed' })
+  }
+})
+
 // POST /api/donor/projects/:projectId/requests
 router.post('/projects/:projectId/requests', donorAuth, async (req, res) => {
   try {
     const { donorOrgId, donorMemberId } = req.donor
     const { projectId } = req.params
-    const { title, description, requestType, deadline } = req.body
+    const { title, description, requestType, deadline, attachments } = req.body
     if (!title || !deadline) return res.status(400).json({ error: 'Title and deadline required' })
 
     // Verify donor access
@@ -2333,9 +2353,10 @@ router.post('/projects/:projectId/requests', donorAuth, async (req, res) => {
     if (!project) return res.status(404).json({ error: 'Project not found' })
 
     const request = await prisma.$queryRawUnsafe(
-      `INSERT INTO "DeliverableRequest" ("projectId", "tenantId", "donorOrgId", "donorMemberId", title, description, "requestType", deadline)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-      projectId, project.tenantId, donorOrgId, donorMemberId, title, description || null, requestType || 'REPORT', new Date(deadline)
+      `INSERT INTO "DeliverableRequest" ("projectId", "tenantId", "donorOrgId", "donorMemberId", title, description, "requestType", deadline, attachments)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+      projectId, project.tenantId, donorOrgId, donorMemberId, title, description || null, requestType || 'REPORT', new Date(deadline),
+      attachments ? JSON.stringify(attachments) : null
     )
 
     // Email NGO admins (non-blocking)
@@ -2385,13 +2406,16 @@ router.get('/projects/:projectId/requests', donorAuth, async (req, res) => {
       projectId, donorOrgId
     )
 
-    // Attach submissions for each request
+    // Attach submissions and parse attachments for each request
     for (const req_ of requests) {
       const submissions = await prisma.$queryRawUnsafe(
         `SELECT * FROM "DeliverableSubmission" WHERE "requestId" = $1 ORDER BY "submittedAt" DESC`,
         req_.id
       )
       req_.submissions = submissions
+      if (req_.attachments && typeof req_.attachments === 'string') {
+        try { req_.attachments = JSON.parse(req_.attachments) } catch { req_.attachments = null }
+      }
     }
 
     res.json({ requests })

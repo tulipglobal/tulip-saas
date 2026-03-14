@@ -53,7 +53,14 @@ router.get('/', async (req, res) => {
        FROM "DeliverableRequest" WHERE "projectId" IN (${countPlaceholders})`,
       ...projectIds
     )
-    const counts = countRows[0] || { open: 0, rework: 0, overdue: 0 }
+    const raw = countRows[0] || { open: 0, rework: 0, overdue: 0 }
+    const counts = { ...raw, confirmed: 0, all: requests.length }
+    // Count confirmed from full set
+    const confirmedRows = await prisma.$queryRawUnsafe(
+      `SELECT COUNT(*)::int as confirmed FROM "DeliverableRequest" WHERE "projectId" IN (${countPlaceholders}) AND status = 'CONFIRMED'`,
+      ...projectIds
+    )
+    counts.confirmed = confirmedRows[0]?.confirmed || 0
 
     // Apply status filter
     if (statusFilter) {
@@ -64,6 +71,10 @@ router.get('/', async (req, res) => {
     // Attach submissions and project name for each request
     for (const r of requests) {
       r.project = { id: r.projectId, name: projectMap[r.projectId] || 'Unknown' }
+      r.projectName = projectMap[r.projectId] || 'Unknown'
+      if (r.attachments && typeof r.attachments === 'string') {
+        try { r.attachments = JSON.parse(r.attachments) } catch { r.attachments = null }
+      }
       const submissions = await prisma.$queryRawUnsafe(
         `SELECT * FROM "DeliverableSubmission" WHERE "requestId" = $1 ORDER BY "submittedAt" DESC`,
         r.id
@@ -139,7 +150,7 @@ router.post('/:requestId/submit', async (req, res) => {
       requestId,
       req.user.userId,
       note || null,
-      documentIds ? JSON.stringify(documentIds) : null
+      documentIds && documentIds.length > 0 ? `{${documentIds.join(',')}}` : null
     )
 
     // Determine new status: RESUBMITTED if was REWORK, else SUBMITTED

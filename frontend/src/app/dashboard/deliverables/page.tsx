@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { apiGet, apiPost } from '@/lib/api'
-import { FileCheck, X, AlertTriangle, Clock, CheckCircle2, Send, Loader2 } from 'lucide-react'
+import { FileCheck, X, AlertTriangle, Clock, CheckCircle2, Send, Loader2, Upload, Paperclip, Trash2 } from 'lucide-react'
 
 interface DeliverableRequest {
   id: string
@@ -13,7 +13,9 @@ interface DeliverableRequest {
   status: string
   donorOrgName: string
   projectName: string
+  projectId: string
   reworkNote?: string
+  attachments?: { name: string; url: string }[]
 }
 
 interface DeliverableCounts {
@@ -22,6 +24,13 @@ interface DeliverableCounts {
   rework: number
   overdue: number
   confirmed: number
+}
+
+interface UploadedFile {
+  id: string
+  name: string
+  uploading: boolean
+  error?: string
 }
 
 const TABS = ['All', 'Open', 'Rework', 'Overdue', 'Confirmed'] as const
@@ -41,6 +50,7 @@ const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   OVERDUE:   { bg: '#fee2e2', text: '#991b1b' },
   CONFIRMED: { bg: '#d1fae5', text: '#065f46' },
   SUBMITTED: { bg: '#dbeafe', text: '#1e40af' },
+  RESUBMITTED: { bg: '#f3e8ff', text: '#6b21a8' },
 }
 
 function deadlineColor(deadline: string, status: string): string {
@@ -53,6 +63,8 @@ function deadlineColor(deadline: string, status: string): string {
   return '#183a1d'
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL
+
 export default function DeliverablesPage() {
   const [requests, setRequests] = useState<DeliverableRequest[]>([])
   const [counts, setCounts] = useState<DeliverableCounts>({ all: 0, open: 0, rework: 0, overdue: 0, confirmed: 0 })
@@ -60,9 +72,10 @@ export default function DeliverablesPage() {
   const [loading, setLoading] = useState(true)
   const [submitModal, setSubmitModal] = useState<DeliverableRequest | null>(null)
   const [submitNote, setSubmitNote] = useState('')
-  const [submitDocIds, setSubmitDocIds] = useState('')
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [toast, setToast] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const fetchData = useCallback(async () => {
     try {
@@ -90,17 +103,57 @@ export default function DeliverablesPage() {
   const openSubmitModal = (req: DeliverableRequest) => {
     setSubmitModal(req)
     setSubmitNote('')
-    setSubmitDocIds('')
+    setUploadedFiles([])
+  }
+
+  const handleFileSelect = async (files: FileList | null) => {
+    if (!files || !submitModal) return
+    const token = typeof window !== 'undefined' ? localStorage.getItem('tulip_token') : null
+    if (!token) return
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      const tempId = `temp-${Date.now()}-${i}`
+      setUploadedFiles(prev => [...prev, { id: tempId, name: file.name, uploading: true }])
+
+      try {
+        const fd = new FormData()
+        fd.append('file', file)
+        fd.append('name', file.name)
+        fd.append('documentType', 'Other')
+        fd.append('documentLevel', 'project')
+        fd.append('projectId', submitModal.projectId)
+
+        const res = await fetch(`${API_URL}/api/documents`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: fd,
+        })
+        if (res.ok) {
+          const data = await res.json()
+          const docId = data.document?.id || data.id
+          setUploadedFiles(prev => prev.map(f => f.id === tempId ? { id: docId, name: file.name, uploading: false } : f))
+        } else {
+          setUploadedFiles(prev => prev.map(f => f.id === tempId ? { ...f, uploading: false, error: 'Upload failed' } : f))
+        }
+      } catch {
+        setUploadedFiles(prev => prev.map(f => f.id === tempId ? { ...f, uploading: false, error: 'Upload failed' } : f))
+      }
+    }
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const removeFile = (id: string) => {
+    setUploadedFiles(prev => prev.filter(f => f.id !== id))
   }
 
   const handleSubmit = async () => {
     if (!submitModal) return
     setSubmitting(true)
     try {
-      const documentIds = submitDocIds
-        .split(',')
-        .map(s => s.trim())
-        .filter(Boolean)
+      const documentIds = uploadedFiles
+        .filter(f => !f.uploading && !f.error)
+        .map(f => f.id)
       const res = await apiPost(`/api/ngo/deliverables/${submitModal.id}/submit`, {
         note: submitNote,
         documentIds,
@@ -197,7 +250,14 @@ export default function DeliverablesPage() {
                   return (
                     <tr key={req.id} className="border-t" style={{ borderColor: '#c8d6c0' }}>
                       <td className="px-4 py-3 font-medium" style={{ color: '#183a1d' }}>{req.projectName}</td>
-                      <td className="px-4 py-3" style={{ color: '#183a1d' }}>{req.title}</td>
+                      <td className="px-4 py-3" style={{ color: '#183a1d' }}>
+                        {req.title}
+                        {req.attachments && req.attachments.length > 0 && (
+                          <span className="ml-2 text-xs" style={{ color: '#183a1d', opacity: 0.5 }}>
+                            <Paperclip size={10} className="inline" /> {req.attachments.length}
+                          </span>
+                        )}
+                      </td>
                       <td className="px-4 py-3">
                         <span
                           className="px-2 py-1 rounded-full text-xs font-medium"
@@ -252,7 +312,7 @@ export default function DeliverablesPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setSubmitModal(null)}>
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
           <div
-            className="relative w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+            className="relative w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
             style={{ background: '#fefbe9', border: '1px solid #c8d6c0' }}
             onClick={e => e.stopPropagation()}
           >
@@ -278,6 +338,18 @@ export default function DeliverablesPage() {
                     From: {submitModal.donorOrgName}
                   </span>
                 </div>
+                {/* Show donor attachments if any */}
+                {submitModal.attachments && submitModal.attachments.length > 0 && (
+                  <div className="pt-2 space-y-1">
+                    <p className="text-xs font-medium" style={{ color: '#183a1d', opacity: 0.5 }}>Reference files from donor:</p>
+                    {submitModal.attachments.map((att, i) => (
+                      <a key={i} href={att.url} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 text-xs hover:underline" style={{ color: '#1e40af' }}>
+                        <Paperclip size={12} /> {att.name}
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Rework Note */}
@@ -304,18 +376,50 @@ export default function DeliverablesPage() {
                 />
               </div>
 
-              {/* Document IDs */}
+              {/* File Upload */}
               <div>
-                <label className="block text-sm font-medium mb-1.5" style={{ color: '#183a1d' }}>Document IDs</label>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: '#183a1d' }}>Attach Files</label>
                 <input
-                  type="text"
-                  value={submitDocIds}
-                  onChange={e => setSubmitDocIds(e.target.value)}
-                  placeholder="Comma-separated UUIDs, e.g. abc-123, def-456"
-                  className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                  style={{ background: '#e1eedd', border: '1px solid #c8d6c0', color: '#183a1d' }}
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  className="hidden"
+                  accept=".pdf,.doc,.docx,.xlsx,.xls,.jpg,.jpeg,.png,.csv"
+                  onChange={e => handleFileSelect(e.target.files)}
                 />
-                <p className="text-xs mt-1" style={{ color: '#183a1d', opacity: 0.4 }}>Enter document IDs to attach to this submission</p>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full rounded-xl border-2 border-dashed px-4 py-6 flex flex-col items-center gap-2 transition-all hover:border-[#183a1d]"
+                  style={{ borderColor: '#c8d6c0', background: '#e1eedd' }}
+                >
+                  <Upload size={20} style={{ color: '#183a1d', opacity: 0.4 }} />
+                  <span className="text-sm" style={{ color: '#183a1d', opacity: 0.6 }}>Click to browse files</span>
+                  <span className="text-xs" style={{ color: '#183a1d', opacity: 0.3 }}>PDF, Word, Excel, Images (max 20MB each)</span>
+                </button>
+
+                {/* Uploaded files list */}
+                {uploadedFiles.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {uploadedFiles.map(f => (
+                      <div key={f.id} className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: '#e1eedd', border: '1px solid #c8d6c0' }}>
+                        {f.uploading ? (
+                          <Loader2 size={14} className="animate-spin" style={{ color: '#183a1d' }} />
+                        ) : f.error ? (
+                          <X size={14} style={{ color: '#dc2626' }} />
+                        ) : (
+                          <CheckCircle2 size={14} style={{ color: '#16a34a' }} />
+                        )}
+                        <span className="flex-1 text-sm truncate" style={{ color: f.error ? '#dc2626' : '#183a1d' }}>{f.name}</span>
+                        {!f.uploading && (
+                          <button onClick={() => removeFile(f.id)} className="p-0.5 rounded hover:bg-[#c8d6c0] transition-colors">
+                            <Trash2 size={12} style={{ color: '#183a1d', opacity: 0.5 }} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -330,7 +434,7 @@ export default function DeliverablesPage() {
               </button>
               <button
                 onClick={handleSubmit}
-                disabled={submitting}
+                disabled={submitting || uploadedFiles.some(f => f.uploading)}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all hover:opacity-80 disabled:opacity-50"
                 style={{ background: '#f6c453', color: '#183a1d' }}
               >

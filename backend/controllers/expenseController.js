@@ -1,4 +1,5 @@
 const { createAuditLog } = require('../services/auditService')
+const { notifyDonorOrgsForProject } = require('../services/donorNotificationService')
 const { notifyExpenseAdded, notifyFraudAlert, notifyDuplicateAlert, notifyMismatchAlert, notifyVoidAlert } = require('../services/emailNotificationService')
 const { dispatch: webhookDispatch } = require('../services/webhookService')
 const { checkMismatches } = require('../lib/mismatchChecker')
@@ -104,7 +105,7 @@ exports.createExpense = async (req, res) => {
         )
       : { amountMismatch: false, vendorMismatch: false, dateMismatch: false, mismatchNote: null }
 
-    // ── Score fraud risk (informational only — never blocks submission) ──
+    // ── Score fraud risk (highlight only — never blocks submission) ──
     let fraudRiskScore = null
     let fraudRiskLevel = null
     let fraudSignals = null
@@ -147,9 +148,23 @@ exports.createExpense = async (req, res) => {
           console.log(`[fraud-score] Expense fraud scored: score=${risk.score} level=${risk.level}`)
           if (risk.level === 'HIGH' || risk.level === 'CRITICAL') {
             notifyFraudAlert({ tenantId: req.user.tenantId, description: expenseTitle, amount: parseFloat(amount), currency: currency || 'USD', vendor: vendor || null, fraudScore: risk.score, fraudLevel: risk.level, reasons: risk.breakdown.signals }).catch(() => {})
+            // Donor notification for high risk expense
+            if (projectId) {
+              notifyDonorOrgsForProject(projectId, 'expense.high_risk',
+                `High risk expense — ${vendor || expenseTitle}`,
+                `${vendor || expenseTitle} — ${currency || 'USD'} ${parseFloat(amount)} has been flagged as ${risk.level} risk (score: ${risk.score}). Signals: ${risk.breakdown.signals.join(', ')}.`,
+                'expense', receiptSealId).catch(err => console.error('Donor notification error (fraud):', err.message))
+            }
           }
           if (seal.duplicateConfidence === 'HIGH' || seal.crossTenantDuplicate) {
             notifyDuplicateAlert({ tenantId: req.user.tenantId, description: expenseTitle, amount: parseFloat(amount), currency: currency || 'USD', vendor: vendor || null, duplicateExpenseId: seal.duplicateOfId || null }).catch(() => {})
+            // Donor notification for duplicate
+            if (projectId) {
+              notifyDonorOrgsForProject(projectId, 'expense.duplicate',
+                `Duplicate document detected — ${vendor || expenseTitle}`,
+                `${vendor || expenseTitle} — ${currency || 'USD'} ${parseFloat(amount)} has been flagged as a potential duplicate${seal.crossTenantDuplicate ? ' (cross-tenant)' : ''}.`,
+                'expense', receiptSealId).catch(err => console.error('Donor notification error (duplicate):', err.message))
+            }
           }
         }
       }
@@ -202,6 +217,14 @@ exports.createExpense = async (req, res) => {
         tenantId: req.user.tenantId,
       }).catch(() => {})
       notifyMismatchAlert({ tenantId: req.user.tenantId, description: expenseTitle, amount: parseFloat(amount), currency: currency || 'USD', vendor: vendor || null, ocrAmount: ocrAmount != null ? parseFloat(ocrAmount) : null, ocrVendor: ocrVendor || null, ocrDate: ocrDate || null, amountMismatch: mismatch.amountMismatch, vendorMismatch: mismatch.vendorMismatch, dateMismatch: mismatch.dateMismatch }).catch(() => {})
+      // Donor notification for OCR mismatch
+      if (projectId) {
+        const mismatchFields = [mismatch.amountMismatch && 'amount', mismatch.vendorMismatch && 'vendor', mismatch.dateMismatch && 'date'].filter(Boolean).join(', ')
+        notifyDonorOrgsForProject(projectId, 'expense.mismatch',
+          `OCR mismatch — ${vendor || expenseTitle}`,
+          `${vendor || expenseTitle} — ${currency || 'USD'} ${parseFloat(amount)} has OCR mismatches in: ${mismatchFields}. The receipt data does not match the submitted expense values.`,
+          'expense', null).catch(err => console.error('Donor notification error (mismatch):', err.message))
+      }
     }
 
     // Create workflow task for expenses that need approval (HIGH/MEDIUM risk)
@@ -239,6 +262,20 @@ exports.createExpense = async (req, res) => {
     webhookDispatch(req.user.tenantId, 'expense.created', {
       id: expense.id, description: expenseTitle, amount: parseFloat(amount), currency: currency || 'USD',
     }).catch(() => {})
+
+    // Donor notification for auto-approved expenses
+    if (approvalStatus === 'AUTO_APPROVED' && expense.projectId) {
+      ;(async () => {
+        try {
+          const proj = await prisma.project.findUnique({ where: { id: expense.projectId }, select: { name: true } })
+          const projectName = proj?.name || 'Unknown Project'
+          await notifyDonorOrgsForProject(expense.projectId, 'expense.approved',
+            `Expense approved — ${vendor || expenseTitle}`,
+            `${vendor || expenseTitle} — ${currency || 'USD'} ${parseFloat(amount)} on ${projectName} has been approved and verified.`,
+            'expense', expense.id)
+        } catch (err) { console.error('Donor notification error (auto-approve):', err.message) }
+      })()
+    }
 
     res.status(201).json({ ...expense, requiresApproval: needsApproval })
   } catch (err) {
@@ -445,6 +482,16 @@ exports.uploadReceipt = async (req, res) => {
             dataHash: JSON.stringify({ reason: 'DUPLICATE_DETECTED', confidence: dupResult.confidence, crossTenant: !!dupResult.crossTenant }),
           }).catch(() => {})
           notifyDuplicateAlert({ tenantId: req.user.tenantId, description: docTitle, amount: null, currency: null, vendor: null, duplicateExpenseId: dupResult.matchedDocumentId || null }).catch(() => {})
+          // Donor notification for duplicate detected during receipt upload
+          if (req.body.expenseId) {
+            const dupExpense = await db.expense.findFirst({ where: { id: req.body.expenseId }, select: { projectId: true } }).catch(() => null)
+            if (dupExpense?.projectId) {
+              notifyDonorOrgsForProject(dupExpense.projectId, 'expense.duplicate',
+                `Duplicate document detected — ${docTitle}`,
+                `A receipt uploaded for "${docTitle}" has been flagged as a potential duplicate${dupResult.crossTenant ? ' (cross-tenant)' : ''}.`,
+                'expense', req.body.expenseId).catch(err => console.error('Donor notification error (dup-upload):', err.message))
+            }
+          }
         }
 
         // Build update data — only update fields that OCR found AND that are empty/default on the expense
@@ -513,6 +560,14 @@ exports.uploadReceipt = async (req, res) => {
               tenantId: req.user.tenantId,
                   }).catch(() => {})
             notifyMismatchAlert({ tenantId: req.user.tenantId, description: existing.description, amount: existing.amount, currency: existing.currency, vendor: existing.vendor || updateData.vendor || null, ocrAmount: fields.amount, ocrVendor: fields.vendor, ocrDate: fields.date, amountMismatch: mismatch.amountMismatch, vendorMismatch: mismatch.vendorMismatch, dateMismatch: mismatch.dateMismatch }).catch(() => {})
+            // Donor notification for OCR mismatch during receipt upload
+            if (existing.projectId) {
+              const mismatchFields = [mismatch.amountMismatch && 'amount', mismatch.vendorMismatch && 'vendor', mismatch.dateMismatch && 'date'].filter(Boolean).join(', ')
+              notifyDonorOrgsForProject(existing.projectId, 'expense.mismatch',
+                `OCR mismatch — ${existing.vendor || existing.description}`,
+                `${existing.vendor || existing.description} — ${existing.currency} ${existing.amount} has OCR mismatches in: ${mismatchFields}. The receipt data does not match the submitted expense values.`,
+                'expense', req.body.expenseId).catch(err => console.error('Donor notification error (mismatch-upload):', err.message))
+            }
 
             // Mismatch detected → hold for approval
             webhookDispatch(req.user.tenantId, 'expense.flagged', {
@@ -570,6 +625,13 @@ exports.uploadReceipt = async (req, res) => {
               // HIGH/CRITICAL risk — notify but never block
               if (risk.level === 'HIGH' || risk.level === 'CRITICAL') {
                 notifyFraudAlert({ tenantId: req.user.tenantId, description: freshExpense.description, amount: freshExpense.amount, currency: freshExpense.currency, vendor: freshExpense.vendor, fraudScore: risk.score, fraudLevel: risk.level, reasons: risk.breakdown.signals }).catch(() => {})
+                // Donor notification for high risk during receipt upload
+                if (freshExpense.projectId) {
+                  notifyDonorOrgsForProject(freshExpense.projectId, 'expense.high_risk',
+                    `High risk expense — ${freshExpense.vendor || freshExpense.description}`,
+                    `${freshExpense.vendor || freshExpense.description} — ${freshExpense.currency} ${freshExpense.amount} has been flagged as ${risk.level} risk (score: ${risk.score}). Signals: ${risk.breakdown.signals.join(', ')}.`,
+                    'expense', req.body.expenseId).catch(err => console.error('Donor notification error (fraud-upload):', err.message))
+                }
               }
             }
           }
@@ -715,6 +777,20 @@ exports.approveExpense = async (req, res) => {
     webhookDispatch(req.user.tenantId, 'expense.approved', {
       id: req.params.id, description: existing.description, amount: existing.amount, currency: existing.currency,
     }).catch(() => {})
+
+    // Notify donor orgs watching this project (non-blocking)
+    if (existing.projectId) {
+      ;(async () => {
+        try {
+          const proj = await prisma.project.findUnique({ where: { id: existing.projectId }, select: { name: true } })
+          const projectName = proj?.name || 'Unknown Project'
+          await notifyDonorOrgsForProject(existing.projectId, 'expense.approved',
+            `Expense approved — ${existing.vendor || existing.description}`,
+            `${existing.vendor || existing.description} — ${existing.currency} ${existing.amount} on ${projectName} has been approved and verified.`,
+            'expense', req.params.id)
+        } catch (err) { console.error('Donor notification error (approve):', err.message) }
+      })()
+    }
 
     res.json(updated)
   } catch (err) {

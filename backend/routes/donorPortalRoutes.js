@@ -17,6 +17,7 @@ const prisma = require('../lib/client')
 const authenticate = require('../middleware/authenticate')
 const tenantScope = require('../middleware/tenantScope')
 const { sendEmail } = require('../services/emailService')
+const { createNotification, ensureDefaultPrefs, ALERT_TYPES } = require('../services/donorNotificationService')
 
 const JWT_SECRET = process.env.JWT_SECRET
 const JWT_EXPIRES = '7d'
@@ -224,6 +225,18 @@ async function checkBudgetAlerts(projectId, totalBudget, totalSpent) {
             console.error(`Budget alert email failed for ${member.email}:`, emailErr.message)
           }
         }
+
+        // In-app notification via donor notification service
+        const alertType = `budget.threshold_${threshold}`
+        createNotification({
+          donorOrgId: access.donorOrgId,
+          alertType,
+          title: `${project.name} is ${Math.round(utilisation)}% utilised`,
+          body: `${project.name} has utilised ${Math.round(utilisation)}% of its total budget ($${totalBudget.toLocaleString()} budget, $${totalSpent.toLocaleString()} spent, $${remaining.toLocaleString()} remaining).`,
+          entityType: 'project',
+          entityId: projectId,
+          projectId,
+        }).catch(err => console.error('Budget notification error:', err.message))
 
         // Record alert sent
         try {
@@ -2090,6 +2103,138 @@ router.get('/challenges', donorAuth, async (req, res) => {
   } catch (err) {
     console.error('Get all challenges error:', err)
     res.status(500).json({ error: 'Failed to fetch challenges' })
+  }
+})
+
+// ── Notification Routes ──────────────────────────────────────
+
+// GET /api/donor/notifications
+router.get('/notifications', donorAuth, async (req, res) => {
+  try {
+    const { donorMemberId } = req.donor
+    const unreadOnly = req.query.unread === 'true'
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100)
+    const offset = parseInt(req.query.offset) || 0
+
+    let whereClause = `WHERE "donorMemberId" = $1`
+    const params = [donorMemberId]
+    if (unreadOnly) {
+      whereClause += ` AND "isRead" = false`
+    }
+
+    const notifications = await prisma.$queryRawUnsafe(
+      `SELECT * FROM "DonorNotification" ${whereClause} ORDER BY "createdAt" DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+      ...params, limit, offset
+    )
+
+    // Enrich with project name
+    for (const n of notifications) {
+      if (n.projectId) {
+        try {
+          const project = await prisma.project.findUnique({ where: { id: n.projectId }, select: { name: true } })
+          n.project = project ? { name: project.name } : null
+        } catch { n.project = null }
+      }
+    }
+
+    const countResult = await prisma.$queryRawUnsafe(
+      `SELECT COUNT(*)::int as total FROM "DonorNotification" WHERE "donorMemberId" = $1`, donorMemberId
+    )
+    const unreadResult = await prisma.$queryRawUnsafe(
+      `SELECT COUNT(*)::int as count FROM "DonorNotification" WHERE "donorMemberId" = $1 AND "isRead" = false`, donorMemberId
+    )
+
+    res.json({
+      notifications,
+      unreadCount: unreadResult[0]?.count || 0,
+      total: countResult[0]?.total || 0
+    })
+  } catch (err) {
+    console.error('Get notifications error:', err)
+    res.status(500).json({ error: 'Failed to fetch notifications' })
+  }
+})
+
+// GET /api/donor/notifications/unread-count
+router.get('/notifications/unread-count', donorAuth, async (req, res) => {
+  try {
+    const { donorMemberId } = req.donor
+    const result = await prisma.$queryRawUnsafe(
+      `SELECT COUNT(*)::int as count FROM "DonorNotification" WHERE "donorMemberId" = $1 AND "isRead" = false`, donorMemberId
+    )
+    res.json({ count: result[0]?.count || 0 })
+  } catch (err) {
+    console.error('Unread count error:', err)
+    res.status(500).json({ error: 'Failed to fetch count' })
+  }
+})
+
+// POST /api/donor/notifications/mark-read
+router.post('/notifications/mark-read', donorAuth, async (req, res) => {
+  try {
+    const { donorMemberId } = req.donor
+    const { notificationIds, all } = req.body
+
+    let marked = 0
+    if (all) {
+      const result = await prisma.$queryRawUnsafe(
+        `UPDATE "DonorNotification" SET "isRead" = true, "readAt" = NOW() WHERE "donorMemberId" = $1 AND "isRead" = false RETURNING id`, donorMemberId
+      )
+      marked = result.length
+    } else if (notificationIds && Array.isArray(notificationIds) && notificationIds.length > 0) {
+      const placeholders = notificationIds.map((_, i) => `$${i + 2}`).join(', ')
+      const result = await prisma.$queryRawUnsafe(
+        `UPDATE "DonorNotification" SET "isRead" = true, "readAt" = NOW() WHERE "donorMemberId" = $1 AND id IN (${placeholders}) AND "isRead" = false RETURNING id`,
+        donorMemberId, ...notificationIds
+      )
+      marked = result.length
+    }
+
+    res.json({ marked })
+  } catch (err) {
+    console.error('Mark read error:', err)
+    res.status(500).json({ error: 'Failed to mark as read' })
+  }
+})
+
+// GET /api/donor/notifications/preferences
+router.get('/notifications/preferences', donorAuth, async (req, res) => {
+  try {
+    const { donorMemberId } = req.donor
+    await ensureDefaultPrefs(donorMemberId)
+    const prefs = await prisma.$queryRawUnsafe(
+      `SELECT "alertType", "emailEnabled", "inAppEnabled" FROM "DonorNotificationPref" WHERE "donorMemberId" = $1 ORDER BY "alertType"`, donorMemberId
+    )
+    res.json({ preferences: prefs })
+  } catch (err) {
+    console.error('Get preferences error:', err)
+    res.status(500).json({ error: 'Failed to fetch preferences' })
+  }
+})
+
+// PUT /api/donor/notifications/preferences
+router.put('/notifications/preferences', donorAuth, async (req, res) => {
+  try {
+    const { donorMemberId } = req.donor
+    const { preferences } = req.body
+    if (!Array.isArray(preferences)) return res.status(400).json({ error: 'preferences must be an array' })
+
+    let updated = 0
+    for (const pref of preferences) {
+      if (!pref.alertType || !ALERT_TYPES[pref.alertType]) continue
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO "DonorNotificationPref" ("donorMemberId", "alertType", "emailEnabled", "inAppEnabled", "updatedAt")
+         VALUES ($1, $2, $3, $4, NOW())
+         ON CONFLICT ("donorMemberId", "alertType") DO UPDATE SET "emailEnabled" = $3, "inAppEnabled" = $4, "updatedAt" = NOW()`,
+        donorMemberId, pref.alertType, pref.emailEnabled ?? true, pref.inAppEnabled ?? true
+      )
+      updated++
+    }
+
+    res.json({ updated })
+  } catch (err) {
+    console.error('Update preferences error:', err)
+    res.status(500).json({ error: 'Failed to update preferences' })
   }
 })
 

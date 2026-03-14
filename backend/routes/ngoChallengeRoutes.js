@@ -4,6 +4,7 @@ const prisma = require('../lib/client')
 const authenticate = require('../middleware/authenticate')
 const tenantScope = require('../middleware/tenantScope')
 const { sendEmail } = require('../services/emailService')
+const { createNotification } = require('../services/donorNotificationService')
 
 // GET /api/ngo/donor-challenges
 router.get('/', authenticate, tenantScope, async (req, res) => {
@@ -141,6 +142,28 @@ router.post('/:challengeId/respond', authenticate, tenantScope, async (req, res)
     await prisma.$executeRawUnsafe(
       `UPDATE "ExpenseChallenge" SET status = 'RESPONDED', "updatedAt" = NOW() WHERE id = $1`, challengeId
     )
+
+    // In-app notification for challenge response
+    ;(async () => {
+      try {
+        const expense = await prisma.expense.findUnique({
+          where: { id: challenge.expenseId },
+          select: { vendor: true, description: true, amount: true, currency: true }
+        })
+        const vendor = expense?.vendor || expense?.description || 'Unknown'
+        const amount = `${expense?.currency || 'USD'} ${(expense?.amount || 0).toLocaleString()}`
+        const actionLabel = action === 'EXPLAIN' ? 'provided an explanation' : 'offered to void the expense'
+        await createNotification({
+          donorOrgId: challenge.donorOrgId,
+          alertType: 'expense.challenge_response',
+          title: `NGO responded to your flag — ${vendor}`,
+          body: `The NGO has ${actionLabel} for ${vendor} — ${amount} on ${project.name}. Log in to review their response.`,
+          entityType: 'expense',
+          entityId: challenge.expenseId,
+          projectId: challenge.projectId,
+        })
+      } catch (err) { console.error('Challenge response notification error:', err.message) }
+    })()
 
     // If VOID_REQUESTED, log to audit
     if (action === 'VOID_REQUESTED') {

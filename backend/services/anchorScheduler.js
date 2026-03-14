@@ -15,6 +15,8 @@ const { checkDocumentExpiry }   = require('../jobs/expiryAlerts')
 const { runEngagementEmails }  = require('./engagementEmailService')
 const { retryFailedAnchors }   = require('./anchorRetryService')
 const { sendMonthlyReports }  = require('../jobs/monthlyReport')
+const prisma  = require('../lib/client')
+const { notifyDonorOrgsForProject } = require('./donorNotificationService')
 const logger  = require('../lib/logger')
 
 function startAnchorScheduler() {
@@ -102,6 +104,54 @@ function startAnchorScheduler() {
     }
   })
 
+  // Donor document expiry notifications — daily at 02:00 UTC
+  cron.schedule('0 2 * * *', async () => {
+    logger.info('[donor-doc-expiry] Checking for expiring documents...')
+    try {
+      // Find documents expiring within 30 days on projects that have donor access
+      const expiringDocs = await prisma.$queryRawUnsafe(`
+        SELECT d.id, d.name, d."expiryDate", d."projectId", p.name as "projectName"
+        FROM "Document" d
+        JOIN "Project" p ON p.id = d."projectId"
+        WHERE d."expiryDate" IS NOT NULL
+          AND d."expiryDate" > NOW()
+          AND d."expiryDate" <= NOW() + INTERVAL '30 days'
+          AND d."projectId" IN (
+            SELECT DISTINCT "projectId" FROM "DonorProjectAccess" WHERE "revokedAt" IS NULL
+          )
+      `)
+
+      let notified = 0
+      for (const doc of expiringDocs) {
+        // Dedup: don't send if a notification with the same entityId and alertType was created in the last 7 days
+        const recent = await prisma.$queryRawUnsafe(
+          `SELECT id FROM "DonorNotification"
+           WHERE "alertType" = 'document.expiring' AND "entityId" = $1 AND "createdAt" > NOW() - INTERVAL '7 days'
+           LIMIT 1`,
+          doc.id
+        )
+        if (recent.length > 0) continue
+
+        const daysUntil = Math.ceil((new Date(doc.expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+        await notifyDonorOrgsForProject(
+          doc.projectId,
+          'document.expiring',
+          `Document expiring — ${doc.name}`,
+          `"${doc.name}" on ${doc.projectName} expires in ${daysUntil} day${daysUntil === 1 ? '' : 's'} (${new Date(doc.expiryDate).toISOString().split('T')[0]}). Please ensure it is renewed or replaced.`,
+          'document',
+          doc.id
+        )
+        notified++
+      }
+
+      if (notified > 0) {
+        logger.info(`[donor-doc-expiry] Sent ${notified} expiry notifications`)
+      }
+    } catch (err) {
+      logger.error('[donor-doc-expiry] Failed', { error: err.message })
+    }
+  })
+
   logger.info('Blockchain anchor scheduler started (every 5 minutes)')
   logger.info('Anchor retry worker started (every 5 minutes)')
   logger.info('Webhook retry worker started (every 5 minutes)')
@@ -111,6 +161,7 @@ function startAnchorScheduler() {
   logger.info('Document expiry alert check scheduled (daily 4am UTC / 8am UAE)')
   logger.info('Engagement email sequences scheduled (daily 5am UTC / 9am UAE)')
   logger.info('Monthly donor report scheduled (1st of month, 2am UTC)')
+  logger.info('Donor document expiry notifications scheduled (daily 2am UTC)')
 }
 
 module.exports = { startAnchorScheduler }

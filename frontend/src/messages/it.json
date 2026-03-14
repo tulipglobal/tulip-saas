@@ -28,7 +28,9 @@
     "donors": "Donatori",
     "donorFlags": "Segnalazioni donatori",
     "deliverables": "Consegnabili",
-    "impact": "Impatto"
+    "impact": "Impatto",
+    "investments": "Investimenti",
+    "drawdowns": "Prelievi"
   },
   "common": {
     "save": "Salva",

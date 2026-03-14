@@ -61,6 +61,7 @@ router.get('/', async (req, res) => {
       const nextRepayment = schedule.find(s => s.status === 'PENDING' || s.status === 'OVERDUE') || null
 
       inv.repaymentSummary = { totalPaid, totalDue, overdueCount, nextRepayment, instalmentCount: schedule.length }
+      inv.schedule = schedule
 
       // Covenant status
       const covenants = await prisma.$queryRawUnsafe(

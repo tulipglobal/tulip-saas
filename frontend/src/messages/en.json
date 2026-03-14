@@ -28,6 +28,8 @@
     "donorFlags": "Donor Flags",
     "deliverables": "Deliverables",
     "impact": "Impact",
+    "investments": "Investments",
+    "drawdowns": "Drawdowns",
     "searchPlaceholder": "Search projects, documents..."
   },
   "common": {

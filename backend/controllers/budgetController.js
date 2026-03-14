@@ -194,8 +194,8 @@ exports.create = async (req, res) => {
 
     // Create ImpactInvestment records for Impact Investment funding sources
     if (fundingSources && fundingSources.length > 0) {
-      // Look up donorOrgId from DonorProjectAccess
-      let donorOrgId = null
+      // Default donorOrgId from DonorProjectAccess (used when not explicitly provided)
+      let defaultDonorOrgId = null
       try {
         const dpaRows = await prisma.$queryRawUnsafe(
           `SELECT dpa."donorOrgId" FROM "DonorProjectAccess" dpa
@@ -203,7 +203,7 @@ exports.create = async (req, res) => {
            LIMIT 1`,
           projectId
         )
-        if (dpaRows.length > 0) donorOrgId = dpaRows[0].donorOrgId
+        if (dpaRows.length > 0) defaultDonorOrgId = dpaRows[0].donorOrgId
       } catch {}
 
       for (const f of fundingSources) {
@@ -213,6 +213,8 @@ exports.create = async (req, res) => {
             const instrumentType = subType.includes('EQUITY') ? 'EQUITY'
               : subType.includes('OUTCOME') ? 'OUTCOME_BASED'
               : subType.includes('REVENUE') ? 'REVENUE_SHARE' : 'LOAN'
+            // Use explicit donorOrgId from request if provided
+            const donorOrgId = f.donorOrgId || defaultDonorOrgId
 
             const facility = Number(f.amount) || 0
             const rate = Number(f.interestRate) || 0
@@ -389,7 +391,8 @@ exports.addFundingSource = async (req, res) => {
     if (!budget) return res.status(404).json({ error: 'Budget not found' })
 
     const { sourceType, sourceSubType, donorName, amount, currency, agreementFileKey, agreementHash,
-            interestRate, interestType, gracePeriodMonths, termMonths, autoGenerateSchedule } = req.body
+            interestRate, interestType, gracePeriodMonths, termMonths, autoGenerateSchedule,
+            donorOrgId: reqDonorOrgId } = req.body
     if (!sourceType || !donorName || !amount) {
       return res.status(400).json({ error: 'sourceType, donorName, and amount are required' })
     }
@@ -424,15 +427,17 @@ exports.addFundingSource = async (req, res) => {
           : subType.includes('OUTCOME') ? 'OUTCOME_BASED'
           : subType.includes('REVENUE') ? 'REVENUE_SHARE' : 'LOAN'
 
-        // Look up donorOrgId from DonorProjectAccess for this project
-        let donorOrgId = null
-        const dpaRows = await prisma.$queryRawUnsafe(
-          `SELECT dpa."donorOrgId" FROM "DonorProjectAccess" dpa
-           WHERE dpa."projectId" = $1 AND dpa."revokedAt" IS NULL
-           LIMIT 1`,
-          budget.projectId
-        )
-        if (dpaRows.length > 0) donorOrgId = dpaRows[0].donorOrgId
+        // Use explicit donorOrgId from request if provided, otherwise look up from DonorProjectAccess
+        let donorOrgId = reqDonorOrgId || null
+        if (!donorOrgId) {
+          const dpaRows = await prisma.$queryRawUnsafe(
+            `SELECT dpa."donorOrgId" FROM "DonorProjectAccess" dpa
+             WHERE dpa."projectId" = $1 AND dpa."revokedAt" IS NULL
+             LIMIT 1`,
+            budget.projectId
+          )
+          if (dpaRows.length > 0) donorOrgId = dpaRows[0].donorOrgId
+        }
 
         const facility = Number(amount) || 0
         const rate = Number(interestRate) || 0

@@ -404,7 +404,7 @@ export default function InvestmentsPage() {
                 >
                   {expandedSchedule.has(inv.id) ? 'Hide Schedule' : 'View Full Schedule'}
                 </button>
-                {expandedSchedule.has(inv.id) && inv.schedule.length > 0 && (
+                {expandedSchedule.has(inv.id) && (inv.schedule || []).length > 0 && (
                   <div className="mt-3 rounded-lg border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
                     <table className="w-full text-sm">
                       <thead>
@@ -415,7 +415,7 @@ export default function InvestmentsPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#c8d6c0]">
-                        {inv.schedule.map(row => (
+                        {(inv.schedule || []).map(row => (
                           <tr key={row.id}>
                             <td className="px-4 py-2 text-[#183a1d]">{fmtDate(row.dueDate)}</td>
                             <td className="px-4 py-2 text-[#183a1d] font-medium">{fmtCurrency(row.amount, row.currency)}</td>
@@ -434,7 +434,7 @@ export default function InvestmentsPage() {
                     </table>
                   </div>
                 )}
-                {expandedSchedule.has(inv.id) && inv.schedule.length === 0 && (
+                {expandedSchedule.has(inv.id) && (inv.schedule || []).length === 0 && (
                   <p className="mt-2 text-xs text-[#183a1d]/40">No schedule entries</p>
                 )}
               </div>

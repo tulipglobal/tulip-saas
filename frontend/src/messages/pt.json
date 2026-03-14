@@ -28,7 +28,9 @@
     "donors": "Doadores",
     "donorFlags": "Alertas de doadores",
     "deliverables": "Entregas",
-    "impact": "Impacto"
+    "impact": "Impacto",
+    "investments": "Investimentos",
+    "drawdowns": "Saques"
   },
   "common": {
     "save": "Guardar",

@@ -31,6 +31,8 @@ interface FundingSourceForm {
   termMonths: string
   gracePeriodMonths: string
   autoGenerateSchedule: boolean
+  donorOrgId: string
+  donorMode: 'existing' | 'external'
 }
 
 interface ProjectOption {
@@ -45,7 +47,7 @@ function emptyLine(): BudgetLineForm {
 }
 
 function emptyFunding(): FundingSourceForm {
-  return { key: crypto.randomUUID(), sourceType: '', sourceSubType: '', donorName: '', amount: '', currency: 'USD', interestRate: '', interestType: 'FIXED', termMonths: '', gracePeriodMonths: '', autoGenerateSchedule: true }
+  return { key: crypto.randomUUID(), sourceType: '', sourceSubType: '', donorName: '', amount: '', currency: 'USD', interestRate: '', interestType: 'FIXED', termMonths: '', gracePeriodMonths: '', autoGenerateSchedule: true, donorOrgId: '', donorMode: 'existing' }
 }
 
 const inputCls = "w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all [color-scheme:light]"
@@ -68,6 +70,7 @@ function NewBudgetInner() {
   const [projects, setProjects] = useState<ProjectOption[]>([])
   const [loadingProjects, setLoadingProjects] = useState(true)
 
+  const [donorOrgs, setDonorOrgs] = useState<{ id: string; name: string }[]>([])
   const [projectId, setProjectId] = useState(preselectedProjectId)
   const [name, setName] = useState('')
   const [periodFrom, setPeriodFrom] = useState('')
@@ -75,6 +78,12 @@ function NewBudgetInner() {
   const [notes, setNotes] = useState('')
   const [lines, setLines] = useState<BudgetLineForm[]>([emptyLine()])
   const [fundingSources, setFundingSources] = useState<FundingSourceForm[]>([emptyFunding()])
+
+  useEffect(() => {
+    apiGet('/api/donor/organisations').then(r => r.ok ? r.json() : null).then(d => {
+      if (d?.data) setDonorOrgs(d.data)
+    }).catch(() => {})
+  }, [])
 
   useEffect(() => {
     apiGet('/api/projects?limit=100')
@@ -146,7 +155,11 @@ function NewBudgetInner() {
     const validLines = lines.filter(l => l.category && Number(l.approvedAmount) > 0)
     if (validLines.length === 0) return setError('At least one budget line with category and amount is required')
 
-    const validFunding = fundingSources.filter(f => f.sourceType && f.donorName && Number(f.amount) > 0)
+    const validFunding = fundingSources.filter(f => {
+      if (!f.sourceType || !Number(f.amount)) return false
+      if (f.sourceType === 'Impact Investment') return f.donorMode === 'existing' ? !!f.donorOrgId : !!f.donorName
+      return !!f.donorName
+    })
 
     setSaving(true)
     try {
@@ -167,7 +180,7 @@ function NewBudgetInner() {
         fundingSources: validFunding.map(f => ({
           sourceType: f.sourceType,
           sourceSubType: f.sourceSubType || null,
-          donorName: f.donorName.trim(),
+          donorName: f.donorMode === 'existing' ? (donorOrgs.find(o => o.id === f.donorOrgId)?.name || '') : f.donorName.trim(),
           amount: Number(f.amount),
           currency: f.currency,
           ...(f.sourceType === 'Impact Investment' && {
@@ -176,6 +189,7 @@ function NewBudgetInner() {
             termMonths: f.termMonths ? Number(f.termMonths) : null,
             gracePeriodMonths: f.gracePeriodMonths ? Number(f.gracePeriodMonths) : null,
             autoGenerateSchedule: f.autoGenerateSchedule,
+            donorOrgId: f.donorMode === 'existing' ? f.donorOrgId : null,
           }),
         }))
       })
@@ -368,10 +382,38 @@ function NewBudgetInner() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs text-[#183a1d]/60 mb-1 block">Donor Name *</label>
-                    <input value={fs.donorName} onChange={e => updateFunding(fs.key, 'donorName', e.target.value)}
-                      placeholder="e.g. USAID, Gates Foundation"
-                      className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all" />
+                    {fs.sourceType === 'Impact Investment' ? (
+                      <>
+                        <label className="text-xs text-[#183a1d]/60 mb-1 block">Investor *</label>
+                        <div className="flex rounded-lg overflow-hidden border border-[#c8d6c0] mb-2">
+                          {(['existing', 'external'] as const).map(m => (
+                            <button key={m} type="button" onClick={() => { updateFunding(fs.key, 'donorMode', m); updateFunding(fs.key, 'donorOrgId', ''); updateFunding(fs.key, 'donorName', '') }}
+                              className="flex-1 px-3 py-1.5 text-[11px] font-medium transition-all"
+                              style={{ background: fs.donorMode === m ? '#183a1d' : '#e1eedd', color: fs.donorMode === m ? '#fefbe9' : '#183a1d' }}>
+                              {m === 'existing' ? 'Existing Donor' : 'External Investor'}
+                            </button>
+                          ))}
+                        </div>
+                        {fs.donorMode === 'existing' ? (
+                          <select value={fs.donorOrgId} onChange={e => { updateFunding(fs.key, 'donorOrgId', e.target.value); const org = donorOrgs.find(o => o.id === e.target.value); updateFunding(fs.key, 'donorName', org?.name || '') }}
+                            className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] outline-none focus:border-[#f6c453] transition-all">
+                            <option value="">Select donor org...</option>
+                            {donorOrgs.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
+                          </select>
+                        ) : (
+                          <input value={fs.donorName} onChange={e => updateFunding(fs.key, 'donorName', e.target.value)}
+                            placeholder="Investor name (no portal access)"
+                            className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all" />
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <label className="text-xs text-[#183a1d]/60 mb-1 block">Donor Name *</label>
+                        <input value={fs.donorName} onChange={e => updateFunding(fs.key, 'donorName', e.target.value)}
+                          placeholder="e.g. USAID, Gates Foundation"
+                          className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all" />
+                      </>
+                    )}
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">

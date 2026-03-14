@@ -104,32 +104,15 @@ exports.createExpense = async (req, res) => {
         )
       : { amountMismatch: false, vendorMismatch: false, dateMismatch: false, mismatchNote: null }
 
-    // ── Block HIGH/CRITICAL fraud risk before saving ──
+    // ── Score fraud risk (informational only — never blocks submission) ──
+    let fraudRiskScore = null
+    let fraudRiskLevel = null
+    let fraudSignals = null
+    let sealFraudRisk = null
+
     if (receiptSealId) {
       const seal = await prisma.trustSeal.findUnique({ where: { id: receiptSealId } })
       if (seal) {
-        // Check duplicate HIGH confidence first
-        if (seal.duplicateConfidence === 'HIGH' || seal.crossTenantDuplicate) {
-          createAuditLog({
-            action: 'EXPENSE_BLOCKED_FRAUD',
-            entityType: 'Expense',
-            entityId: receiptSealId,
-            userId: req.user.userId,
-            tenantId: req.user.tenantId,
-            dataHash: JSON.stringify({ reason: 'DUPLICATE_HIGH_CONFIDENCE', duplicateConfidence: seal.duplicateConfidence, crossTenant: !!seal.crossTenantDuplicate }),
-          }).catch(() => {})
-          notifyDuplicateAlert({ tenantId: req.user.tenantId, description: expenseTitle, amount: parseFloat(amount), currency: currency || 'USD', vendor: vendor || null, duplicateExpenseId: seal.duplicateOfId || null }).catch(() => {})
-          webhookDispatch(req.user.tenantId, 'expense.blocked', {
-            reason: 'DUPLICATE_HIGH_CONFIDENCE', duplicateConfidence: seal.duplicateConfidence,
-          }).catch(() => {})
-          return res.status(422).json({
-            error: 'DUPLICATE_HIGH_CONFIDENCE',
-            message: 'Upload blocked: This receipt appears to be a duplicate.',
-            duplicateExpenseId: seal.duplicateOfId || null,
-          })
-        }
-
-        // Score fraud risk using expense data + seal duplicate/mismatch data
         const fraudRecord = {
           amount: parseFloat(amount),
           vendor: vendor || null,
@@ -147,44 +130,34 @@ exports.createExpense = async (req, res) => {
           anchorTxHash: seal.anchorTxHash,
         }
         const risk = scoreFraudRisk(fraudRecord)
-        if (risk.level === 'HIGH' || risk.level === 'CRITICAL') {
+        fraudRiskScore = risk.score
+        fraudRiskLevel = risk.level
+        fraudSignals = risk.breakdown.signals
+        sealFraudRisk = { fraudRiskScore: risk.score, fraudRiskLevel: risk.level, duplicateConfidence: seal.duplicateConfidence }
+
+        if (risk.score > 0) {
           createAuditLog({
-            action: 'EXPENSE_BLOCKED_FRAUD',
+            action: 'FRAUD_RISK_SCORED',
             entityType: 'Expense',
             entityId: receiptSealId,
             userId: req.user.userId,
             tenantId: req.user.tenantId,
             dataHash: JSON.stringify({ score: risk.score, level: risk.level, signals: risk.breakdown.signals }),
           }).catch(() => {})
-          console.log(`[fraud-block] Expense blocked: score=${risk.score} level=${risk.level}`)
-          notifyFraudAlert({ tenantId: req.user.tenantId, description: expenseTitle, amount: parseFloat(amount), currency: currency || 'USD', vendor: vendor || null, fraudScore: risk.score, fraudLevel: risk.level, reasons: risk.breakdown.signals }).catch(() => {})
-          return res.status(422).json({
-            error: 'FRAUD_RISK_HIGH',
-            message: 'Upload blocked: HIGH fraud risk detected. OCR found significant discrepancies.',
-            fraudScore: risk.score,
-            fraudLevel: risk.level,
-            reasons: risk.breakdown.signals,
-          })
+          console.log(`[fraud-score] Expense fraud scored: score=${risk.score} level=${risk.level}`)
+          if (risk.level === 'HIGH' || risk.level === 'CRITICAL') {
+            notifyFraudAlert({ tenantId: req.user.tenantId, description: expenseTitle, amount: parseFloat(amount), currency: currency || 'USD', vendor: vendor || null, fraudScore: risk.score, fraudLevel: risk.level, reasons: risk.breakdown.signals }).catch(() => {})
+          }
+          if (seal.duplicateConfidence === 'HIGH' || seal.crossTenantDuplicate) {
+            notifyDuplicateAlert({ tenantId: req.user.tenantId, description: expenseTitle, amount: parseFloat(amount), currency: currency || 'USD', vendor: vendor || null, duplicateExpenseId: seal.duplicateOfId || null }).catch(() => {})
+          }
         }
       }
     }
 
-    // Determine if expense needs approval
-    const hasMismatch = mismatch.amountMismatch || mismatch.vendorMismatch || mismatch.dateMismatch
-    let needsApproval = hasMismatch
-    let sealFraudRisk = null
-
-    // Check MEDIUM fraud risk from seal if available
-    if (receiptSealId) {
-      const seal = await prisma.trustSeal.findUnique({ where: { id: receiptSealId }, select: { fraudRiskScore: true, fraudRiskLevel: true, duplicateConfidence: true } }).catch(() => null)
-      if (seal) {
-        if (seal.fraudRiskLevel === 'MEDIUM') needsApproval = true
-        if (seal.duplicateConfidence === 'MEDIUM') needsApproval = true
-        sealFraudRisk = seal
-      }
-    }
-
-    const approvalStatus = needsApproval ? 'pending_review' : 'approved'
+    // Determine approval status: HIGH/MEDIUM → PENDING, LOW/null → AUTO_APPROVED
+    const needsApproval = fraudRiskLevel === 'HIGH' || fraudRiskLevel === 'CRITICAL' || fraudRiskLevel === 'MEDIUM'
+    const approvalStatus = needsApproval ? 'PENDING' : 'AUTO_APPROVED'
 
     const expense = await db.expense.create({
       data: {
@@ -211,11 +184,15 @@ exports.createExpense = async (req, res) => {
         vendorMismatch:     mismatch.vendorMismatch,
         dateMismatch:       mismatch.dateMismatch,
         mismatchNote:       mismatch.mismatchNote,
+        fraudRiskScore:     fraudRiskScore,
+        fraudRiskLevel:     fraudRiskLevel,
+        fraudSignals:       fraudSignals,
       }
     })
     await createAuditLog({ action: 'EXPENSE_CREATED', entityType: 'Expense', entityId: expense.id, userId: req.user.userId, tenantId: req.user.tenantId }).catch(() => {})
 
     // Log mismatch in audit log if any flag is set
+    const hasMismatch = mismatch.amountMismatch || mismatch.vendorMismatch || mismatch.dateMismatch
     if (hasMismatch) {
       createAuditLog({
         action: 'EXPENSE_MISMATCH_FLAGGED',
@@ -227,10 +204,10 @@ exports.createExpense = async (req, res) => {
       notifyMismatchAlert({ tenantId: req.user.tenantId, description: expenseTitle, amount: parseFloat(amount), currency: currency || 'USD', vendor: vendor || null, ocrAmount: ocrAmount != null ? parseFloat(ocrAmount) : null, ocrVendor: ocrVendor || null, ocrDate: ocrDate || null, amountMismatch: mismatch.amountMismatch, vendorMismatch: mismatch.vendorMismatch, dateMismatch: mismatch.dateMismatch }).catch(() => {})
     }
 
-    // Only create workflow task for flagged expenses that need approval
+    // Create workflow task for expenses that need approval (HIGH/MEDIUM risk)
     if (needsApproval) {
       webhookDispatch(req.user.tenantId, 'expense.flagged', {
-        id: expense.id, description: expenseTitle, amount: parseFloat(amount), currency: currency || 'USD', approvalStatus: 'pending_review',
+        id: expense.id, description: expenseTitle, amount: parseFloat(amount), currency: currency || 'USD', approvalStatus: 'PENDING',
       }).catch(() => {})
       // Hold the seal until approved
       if (receiptSealId) {
@@ -241,7 +218,7 @@ exports.createExpense = async (req, res) => {
           tenantId: req.user.tenantId,
           type: 'expense_approval',
           title: `Expense approval: ${expenseTitle}`,
-          description: `${currency || 'USD'} ${parseFloat(amount).toLocaleString()} requires review.${hasMismatch ? ' OCR mismatch detected.' : ''}${sealFraudRisk?.fraudRiskLevel === 'MEDIUM' ? ` Fraud risk: MEDIUM (${sealFraudRisk.fraudRiskScore}).` : ''}${sealFraudRisk?.duplicateConfidence === 'MEDIUM' ? ' Duplicate: MEDIUM confidence.' : ''}`,
+          description: `${currency || 'USD'} ${parseFloat(amount).toLocaleString()} requires review. Fraud risk: ${fraudRiskLevel} (${fraudRiskScore}).${hasMismatch ? ' OCR mismatch detected.' : ''}${sealFraudRisk?.duplicateConfidence ? ` Duplicate confidence: ${sealFraudRisk.duplicateConfidence}.` : ''}`,
           entityId: expense.id,
           entityType: 'expense',
           submittedBy: req.user.userId,
@@ -457,45 +434,17 @@ exports.uploadReceipt = async (req, res) => {
         ocrFields.duplicateConfidence = dupResult.confidence
         ocrFields.duplicateMethod = dupResult.method
 
-        // Block duplicate HIGH confidence or cross-tenant
+        // Log duplicate detection (informational — never blocks upload)
         if (dupResult.confidence === 'HIGH' || dupResult.crossTenant) {
-          if (req.body.expenseId) {
-            await db.expense.update({
-              where: { id: req.body.expenseId },
-              data: { voided: true, voidedAt: new Date(), voidedReason: `Blocked: duplicate receipt (${dupResult.crossTenant ? 'cross-org' : 'HIGH confidence'})`, voidedBy: req.user.userId },
-            }).catch(err => console.error('[dup-block] void failed:', err.message))
-          }
           createAuditLog({
-            action: 'EXPENSE_BLOCKED_FRAUD',
+            action: 'DUPLICATE_DETECTED',
             entityType: 'Expense',
             entityId: req.body.expenseId || seal.id,
             userId: req.user.userId,
             tenantId: req.user.tenantId,
-            dataHash: JSON.stringify({ reason: 'DUPLICATE_HIGH_CONFIDENCE', confidence: dupResult.confidence, crossTenant: !!dupResult.crossTenant }),
+            dataHash: JSON.stringify({ reason: 'DUPLICATE_DETECTED', confidence: dupResult.confidence, crossTenant: !!dupResult.crossTenant }),
           }).catch(() => {})
           notifyDuplicateAlert({ tenantId: req.user.tenantId, description: docTitle, amount: null, currency: null, vendor: null, duplicateExpenseId: dupResult.matchedDocumentId || null }).catch(() => {})
-          webhookDispatch(req.user.tenantId, 'expense.blocked', {
-            reason: 'DUPLICATE_HIGH_CONFIDENCE', confidence: dupResult.confidence, crossTenant: !!dupResult.crossTenant,
-          }).catch(() => {})
-          return res.status(422).json({
-            error: 'DUPLICATE_HIGH_CONFIDENCE',
-            message: 'Upload blocked: This receipt appears to be a duplicate.',
-            duplicateExpenseId: dupResult.matchedDocumentId || null,
-          })
-        }
-
-        // MEDIUM duplicate confidence → hold for approval
-        if (dupResult.confidence === 'MEDIUM' && req.body.expenseId) {
-          await db.expense.update({ where: { id: req.body.expenseId }, data: { approvalStatus: 'pending_review' } }).catch(() => {})
-          await prisma.trustSeal.update({ where: { id: seal.id }, data: { status: 'held' } }).catch(() => {})
-          prisma.workflowTask.create({
-            data: {
-              tenantId: req.user.tenantId, type: 'expense_approval',
-              title: `Expense approval: ${docTitle}`,
-              description: `Duplicate: MEDIUM confidence (${dupResult.method || 'unknown method'}). Review receipt before sealing.`,
-              entityId: req.body.expenseId, entityType: 'expense', submittedBy: req.user.userId,
-            },
-          }).catch(err => console.error('[workflow] auto-create failed:', err.message))
         }
 
         // Build update data — only update fields that OCR found AND that are empty/default on the expense
@@ -617,55 +566,9 @@ exports.uploadReceipt = async (req, res) => {
               }).catch(() => {})
               console.log(`[fraud-risk] expense=${req.body.expenseId} score=${risk.score} level=${risk.level}`)
 
-              // MEDIUM risk — hold for approval, don't block
-              if (risk.level === 'MEDIUM') {
-                webhookDispatch(req.user.tenantId, 'expense.flagged', {
-                  id: req.body.expenseId, reason: 'MEDIUM_FRAUD_RISK', fraudScore: risk.score, signals: risk.breakdown.signals,
-                }).catch(() => {})
-                await db.expense.update({
-                  where: { id: req.body.expenseId },
-                  data: { approvalStatus: 'pending_review' },
-                })
-                await prisma.trustSeal.update({ where: { id: seal.id }, data: { status: 'held' } }).catch(() => {})
-                prisma.workflowTask.create({
-                  data: {
-                    tenantId: req.user.tenantId,
-                    type: 'expense_approval',
-                    title: `Expense approval: ${freshExpense.description}`,
-                    description: `${freshExpense.currency} ${freshExpense.amount.toLocaleString()} — MEDIUM fraud risk (score ${risk.score}). ${risk.breakdown.signals.join(', ')}`,
-                    entityId: req.body.expenseId,
-                    entityType: 'expense',
-                    submittedBy: req.user.userId,
-                  },
-                }).catch(err => console.error('[workflow] auto-create failed:', err.message))
-              }
-
-              // Block HIGH/CRITICAL — void the expense and return 422
+              // HIGH/CRITICAL risk — notify but never block
               if (risk.level === 'HIGH' || risk.level === 'CRITICAL') {
-                await db.expense.update({
-                  where: { id: req.body.expenseId },
-                  data: { voided: true, voidedAt: new Date(), voidedReason: `Blocked: ${risk.level} fraud risk (score ${risk.score})`, voidedBy: req.user.userId },
-                })
-                createAuditLog({
-                  action: 'EXPENSE_BLOCKED_FRAUD',
-                  entityType: 'Expense',
-                  entityId: req.body.expenseId,
-                  userId: req.user.userId,
-                  tenantId: req.user.tenantId,
-                  dataHash: JSON.stringify({ score: risk.score, level: risk.level, signals: risk.breakdown.signals }),
-                }).catch(() => {})
-                console.log(`[fraud-block] Expense ${req.body.expenseId} voided: score=${risk.score} level=${risk.level}`)
                 notifyFraudAlert({ tenantId: req.user.tenantId, description: freshExpense.description, amount: freshExpense.amount, currency: freshExpense.currency, vendor: freshExpense.vendor, fraudScore: risk.score, fraudLevel: risk.level, reasons: risk.breakdown.signals }).catch(() => {})
-                webhookDispatch(req.user.tenantId, 'expense.blocked', {
-                  id: req.body.expenseId, reason: 'FRAUD_RISK_HIGH', fraudScore: risk.score, fraudLevel: risk.level, signals: risk.breakdown.signals,
-                }).catch(() => {})
-                return res.status(422).json({
-                  error: 'FRAUD_RISK_HIGH',
-                  message: 'Upload blocked: HIGH fraud risk detected. OCR found significant discrepancies.',
-                  fraudScore: risk.score,
-                  fraudLevel: risk.level,
-                  reasons: risk.breakdown.signals,
-                })
               }
             }
           }
@@ -747,7 +650,7 @@ exports.getPendingReview = async (req, res) => {
   try {
     const db = tenantClient(req.user.tenantId)
     const expenses = await db.expense.findMany({
-      where: { approvalStatus: 'pending_review', voided: false },
+      where: { approvalStatus: { in: ['pending_review', 'PENDING'] }, voided: false },
       include: {
         project: { select: { id: true, name: true } },
         fundingAgreement: { select: { id: true, title: true, donor: { select: { name: true } } } },

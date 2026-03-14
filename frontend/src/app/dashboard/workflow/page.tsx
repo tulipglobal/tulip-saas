@@ -79,6 +79,9 @@ interface ExpenseDetail {
   amount: number
   currency: string
   vendor: string | null
+  category: string | null
+  notes: string | null
+  expenseDate: string | null
   createdAt: string
   fraudRiskScore: number | null
   fraudRiskLevel: string | null
@@ -91,6 +94,8 @@ interface ExpenseDetail {
   ocrVendor: string | null
   ocrDate: string | null
   receiptUrl: string | null
+  receiptFileKey: string | null
+  approvalStatus: string | null
   project?: { id: string; name: string } | null
 }
 
@@ -192,10 +197,12 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
 
           {/* Expense details panel */}
           {task.entityType === 'expense' && expense && (
-            <div className="rounded-lg border border-[#c8d6c0] p-4 space-y-3 bg-[#fefbe9]/50">
+            <div className="rounded-lg border border-[#c8d6c0] p-4 space-y-4 bg-[#fefbe9]/50">
               <div className="flex items-center gap-2 text-xs text-[#183a1d]/40 uppercase tracking-wide font-medium">
                 <DollarSign size={12} /> Expense Details
               </div>
+
+              {/* Full expense details */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div>
                   <div className="text-[10px] text-[#183a1d]/40 uppercase">Amount</div>
@@ -209,7 +216,7 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
                 )}
                 <div>
                   <div className="text-[10px] text-[#183a1d]/40 uppercase">Date</div>
-                  <div className="text-sm text-[#183a1d]">{new Date(expense.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                  <div className="text-sm text-[#183a1d]">{new Date(expense.expenseDate || expense.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
                 </div>
                 {expense.project && (
                   <div>
@@ -217,47 +224,115 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
                     <div className="text-sm text-[#183a1d]">{expense.project.name}</div>
                   </div>
                 )}
+                {expense.category && (
+                  <div>
+                    <div className="text-[10px] text-[#183a1d]/40 uppercase">Category</div>
+                    <div className="text-sm text-[#183a1d]">{expense.category}</div>
+                  </div>
+                )}
+                {expense.notes && (
+                  <div className="col-span-2 sm:col-span-3">
+                    <div className="text-[10px] text-[#183a1d]/40 uppercase">Notes</div>
+                    <div className="text-sm text-[#183a1d]">{expense.notes}</div>
+                  </div>
+                )}
               </div>
 
-              {/* Fraud risk */}
-              {expense.fraudRiskScore != null && expense.fraudRiskLevel && expense.fraudRiskLevel !== 'LOW' && (
-                <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-3 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle size={14} className="text-yellow-600" />
-                    <span className="text-sm font-bold text-yellow-700">Fraud Risk: {expense.fraudRiskLevel} ({expense.fraudRiskScore}/100)</span>
+              {/* OCR vs Submitted comparison */}
+              {(expense.ocrAmount != null || expense.ocrVendor || expense.ocrDate) && (
+                <div className="rounded-lg border border-[#c8d6c0] overflow-hidden">
+                  <div className="text-[10px] text-[#183a1d]/40 uppercase tracking-wide font-medium px-3 py-2 bg-[#e1eedd]/50">OCR Extracted vs Submitted</div>
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-[#c8d6c0]">
+                        <th className="text-left px-3 py-1.5 text-[#183a1d]/40 font-normal">Field</th>
+                        <th className="text-left px-3 py-1.5 text-[#183a1d]/40 font-normal">OCR Read</th>
+                        <th className="text-left px-3 py-1.5 text-[#183a1d]/40 font-normal">Submitted</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {expense.ocrAmount != null && (
+                        <tr className={`border-b border-[#c8d6c0] ${expense.amountMismatch ? 'bg-amber-50' : ''}`}>
+                          <td className="px-3 py-1.5 text-[#183a1d]/60">Amount</td>
+                          <td className="px-3 py-1.5 text-[#183a1d]">{expense.ocrAmount.toLocaleString()}</td>
+                          <td className={`px-3 py-1.5 ${expense.amountMismatch ? 'text-amber-700 font-bold' : 'text-[#183a1d]'}`}>{expense.amount.toLocaleString()}</td>
+                        </tr>
+                      )}
+                      {expense.ocrVendor && (
+                        <tr className={`border-b border-[#c8d6c0] ${expense.vendorMismatch ? 'bg-amber-50' : ''}`}>
+                          <td className="px-3 py-1.5 text-[#183a1d]/60">Vendor</td>
+                          <td className="px-3 py-1.5 text-[#183a1d]">{expense.ocrVendor}</td>
+                          <td className={`px-3 py-1.5 ${expense.vendorMismatch ? 'text-amber-700 font-bold' : 'text-[#183a1d]'}`}>{expense.vendor || '—'}</td>
+                        </tr>
+                      )}
+                      {expense.ocrDate && (
+                        <tr className={`${expense.dateMismatch ? 'bg-amber-50' : ''}`}>
+                          <td className="px-3 py-1.5 text-[#183a1d]/60">Date</td>
+                          <td className="px-3 py-1.5 text-[#183a1d]">{expense.ocrDate}</td>
+                          <td className={`px-3 py-1.5 ${expense.dateMismatch ? 'text-amber-700 font-bold' : 'text-[#183a1d]'}`}>{expense.expenseDate || new Date(expense.createdAt).toISOString().split('T')[0]}</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Fraud flags as individual banners */}
+              {expense.fraudSignals && expense.fraudSignals.length > 0 && expense.fraudSignals.map((signal, i) => (
+                <div key={i} className={`rounded-lg px-4 py-3 text-sm flex items-start gap-2 border-l-4 ${
+                  expense.fraudRiskLevel === 'HIGH' || expense.fraudRiskLevel === 'CRITICAL'
+                    ? 'bg-red-50 border-red-500 text-red-800'
+                    : expense.fraudRiskLevel === 'MEDIUM'
+                    ? 'bg-amber-50 border-amber-500 text-amber-800'
+                    : 'bg-blue-50 border-blue-500 text-blue-800'
+                }`}>
+                  <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-medium">{expense.fraudRiskLevel === 'HIGH' || expense.fraudRiskLevel === 'CRITICAL' ? 'High Risk' : expense.fraudRiskLevel === 'MEDIUM' ? 'Medium Risk' : 'Info'}:</span>{' '}
+                    {signal}
                   </div>
-                  {expense.fraudSignals && expense.fraudSignals.length > 0 && (
-                    <ul className="text-xs text-yellow-600 list-disc list-inside space-y-0.5">
-                      {expense.fraudSignals.map((s, i) => <li key={i}>{s}</li>)}
-                    </ul>
+                </div>
+              ))}
+
+              {/* Mismatch flags as individual banners */}
+              {expense.amountMismatch && (
+                <div className="rounded-lg px-4 py-3 text-sm flex items-start gap-2 border-l-4 bg-amber-50 border-amber-500 text-amber-800">
+                  <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                  <div><span className="font-medium">Medium Risk:</span> Amount mismatch — OCR read <strong>{expense.ocrAmount?.toLocaleString()}</strong>, submitted as <strong>{expense.amount.toLocaleString()}</strong></div>
+                </div>
+              )}
+              {expense.vendorMismatch && (
+                <div className="rounded-lg px-4 py-3 text-sm flex items-start gap-2 border-l-4 bg-blue-50 border-blue-500 text-blue-800">
+                  <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                  <div><span className="font-medium">Info:</span> Vendor name differs — OCR read &quot;{expense.ocrVendor}&quot;, submitted as &quot;{expense.vendor}&quot;</div>
+                </div>
+              )}
+              {expense.dateMismatch && (
+                <div className="rounded-lg px-4 py-3 text-sm flex items-start gap-2 border-l-4 bg-amber-50 border-amber-500 text-amber-800">
+                  <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                  <div><span className="font-medium">Medium Risk:</span> Date mismatch — OCR read {expense.ocrDate}</div>
+                </div>
+              )}
+
+              {/* Invoice preview */}
+              {expense.receiptUrl && (
+                <div>
+                  <div className="text-[10px] text-[#183a1d]/40 uppercase mb-2">Invoice / Receipt</div>
+                  {expense.receiptFileKey?.match(/\.(jpg|jpeg|png)$/i) ? (
+                    <a href={expense.receiptUrl} target="_blank" rel="noopener noreferrer" className="block">
+                      <img src={expense.receiptUrl} alt="Receipt" className="max-w-xs max-h-48 rounded-lg border border-[#c8d6c0] hover:shadow-lg transition-shadow cursor-pointer" />
+                    </a>
+                  ) : (
+                    <a href={expense.receiptUrl} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-[#e1eedd] border border-[#c8d6c0] text-[#183a1d] hover:bg-[#e1eedd]/70 transition-colors">
+                      <Shield size={14} /> View Invoice (PDF)
+                    </a>
                   )}
                 </div>
               )}
 
-              {/* Mismatch warnings */}
-              {(expense.amountMismatch || expense.vendorMismatch || expense.dateMismatch) && (
-                <div className="rounded-lg bg-red-50 border border-red-200 p-3 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle size={14} className="text-red-600" />
-                    <span className="text-sm font-bold text-red-700">OCR Mismatch</span>
-                  </div>
-                  <div className="text-xs text-red-600 space-y-0.5">
-                    {expense.amountMismatch && <div>Amount: OCR read <strong>{expense.ocrAmount?.toLocaleString()}</strong>, logged as <strong>{expense.amount.toLocaleString()}</strong></div>}
-                    {expense.vendorMismatch && <div>Vendor: OCR read &quot;{expense.ocrVendor}&quot;, logged as &quot;{expense.vendor}&quot;</div>}
-                    {expense.dateMismatch && <div>Date: OCR read {expense.ocrDate}, differs by 30+ days</div>}
-                  </div>
-                </div>
-              )}
-
-              {/* Receipt image */}
-              {expense.receiptUrl && (
-                <div>
-                  <div className="text-[10px] text-[#183a1d]/40 uppercase mb-1">Receipt</div>
-                  <a href={expense.receiptUrl} target="_blank" rel="noopener noreferrer"
-                    className="text-xs text-[#0d9488] hover:underline flex items-center gap-1">
-                    <Shield size={11} /> View Receipt
-                  </a>
-                </div>
+              {expense.fraudRiskScore != null && (
+                <div className="text-[10px] text-[#183a1d]/30">Fraud score: {expense.fraudRiskScore}/100 ({expense.fraudRiskLevel})</div>
               )}
             </div>
           )}
@@ -309,12 +384,13 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
           {canAct && (
             <div className="flex items-center gap-2 pt-1">
               <button onClick={() => handleStatus('approved')} disabled={submitting}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-green-400/10 text-green-400 border border-green-400/20 hover:bg-green-400/20 transition-all disabled:opacity-50">
-                <CheckCircle2 size={13} /> Approve{task.entityType === 'expense' ? ' & Seal' : ''}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-all disabled:opacity-50">
+                <CheckCircle2 size={14} /> Approve{task.entityType === 'expense' ? ' & Seal' : ''}
               </button>
-              <button onClick={() => handleStatus('rejected')} disabled={submitting}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-400/10 text-red-400 border border-red-400/20 hover:bg-red-400/20 transition-all disabled:opacity-50">
-                <XCircle size={13} /> Reject
+              <button onClick={() => handleStatus('rejected')} disabled={submitting || !comment.trim()}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition-all disabled:opacity-50"
+                title={!comment.trim() ? 'Add a rejection reason in the comment field first' : ''}>
+                <XCircle size={14} /> Reject
               </button>
               {task.status === 'pending' && (
                 <button onClick={() => handleStatus('in_review')} disabled={submitting}

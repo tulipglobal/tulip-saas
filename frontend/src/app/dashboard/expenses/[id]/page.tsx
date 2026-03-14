@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { apiGet } from '@/lib/api'
 import {
   ArrowLeft, DollarSign, FileText, FolderOpen, Upload,
-  CheckCircle, Clock, XCircle, ExternalLink, Calendar, Hash, Copy, Check
+  CheckCircle, Clock, XCircle, ExternalLink, Calendar, Hash, Copy, Check, AlertTriangle
 } from 'lucide-react'
 
 interface Expense {
@@ -27,6 +27,17 @@ interface Expense {
   voidedReason?: string
   voidedBy?: string
   documents?: Doc[]
+  fraudRiskScore?: number | null
+  fraudRiskLevel?: string | null
+  fraudSignals?: string[] | null
+  amountMismatch?: boolean
+  vendorMismatch?: boolean
+  dateMismatch?: boolean
+  mismatchNote?: string | null
+  ocrAmount?: number | null
+  ocrVendor?: string | null
+  ocrDate?: string | null
+  approvalStatus?: string | null
 }
 
 interface Doc {
@@ -239,6 +250,42 @@ export default function ExpenseDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Fraud flags */}
+      {(() => {
+        const flags: { type: 'HIGH' | 'MEDIUM' | 'LOW'; reason: string }[] = []
+        if (expense.fraudSignals && expense.fraudSignals.length > 0) {
+          expense.fraudSignals.forEach(s => {
+            flags.push({ type: (expense.fraudRiskLevel === 'HIGH' || expense.fraudRiskLevel === 'CRITICAL') ? 'HIGH' : expense.fraudRiskLevel === 'MEDIUM' ? 'MEDIUM' : 'LOW', reason: s })
+          })
+        }
+        if (expense.amountMismatch) flags.push({ type: 'MEDIUM', reason: `Amount mismatch: OCR read ${expense.ocrAmount?.toLocaleString()}, logged as ${expense.amount.toLocaleString()}` })
+        if (expense.vendorMismatch) flags.push({ type: 'LOW', reason: `Vendor mismatch: OCR read "${expense.ocrVendor}", logged as "${expense.description}"` })
+        if (expense.dateMismatch) flags.push({ type: 'MEDIUM', reason: `Date mismatch: OCR read ${expense.ocrDate}` })
+        if (flags.length === 0) return null
+        return (
+          <div className="space-y-2 mb-8">
+            <p className="text-xs text-[#183a1d]/50">
+              These are automated checks. They do not block any actions.
+            </p>
+            {flags.map((flag, i) => (
+              <div key={i} className={`rounded-lg px-4 py-3 text-sm flex items-start gap-2 border-l-4 ${
+                flag.type === 'HIGH'
+                  ? 'bg-red-50 border-red-500 text-red-800'
+                  : flag.type === 'MEDIUM'
+                  ? 'bg-amber-50 border-amber-500 text-amber-800'
+                  : 'bg-blue-50 border-blue-500 text-blue-800'
+              }`}>
+                <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-medium">{flag.type === 'HIGH' ? 'High Risk' : flag.type === 'MEDIUM' ? 'Medium Risk' : 'Info'}:</span>{' '}
+                  {flag.reason}
+                </div>
+              </div>
+            ))}
+          </div>
+        )
+      })()}
 
       {/* Documents section */}
       <div className="mb-4 flex items-center justify-between">

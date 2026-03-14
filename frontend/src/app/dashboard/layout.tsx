@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { apiGet } from '@/lib/api'
@@ -13,6 +13,46 @@ import {
 import { clsx } from 'clsx'
 import { useTranslations } from 'next-intl'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
+
+interface AuditEntry {
+  id: string
+  action: string
+  entityType: string
+  entityId: string
+  projectName?: string | null
+  createdAt: string
+}
+
+function formatRelativeTime(dateStr: string): string {
+  const now = Date.now()
+  const then = new Date(dateStr).getTime()
+  const diffMs = now - then
+  const diffMin = Math.floor(diffMs / 60000)
+  if (diffMin < 1) return 'just now'
+  if (diffMin < 60) return `${diffMin}m ago`
+  const diffHr = Math.floor(diffMin / 60)
+  if (diffHr < 24) return `${diffHr}h ago`
+  const diffDays = Math.floor(diffHr / 24)
+  if (diffDays < 7) return `${diffDays}d ago`
+  return new Date(dateStr).toLocaleDateString()
+}
+
+function actionLabel(action: string): string {
+  return action
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/^\w/, c => c.toUpperCase())
+}
+
+function entityRoute(entityType: string): string | null {
+  switch (entityType) {
+    case 'Expense': return '/dashboard/expenses'
+    case 'Document': return '/dashboard/documents'
+    case 'Project': return '/dashboard/projects'
+    case 'FundingSource': return '/dashboard/funding'
+    default: return null
+  }
+}
 
 const navItems = [
   { key: 'dashboard',  href: '/dashboard',           icon: LayoutDashboard, fallback: 'Overview' },
@@ -45,6 +85,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [pendingCount, setPendingCount] = useState(0)
   const [donorFlagCount, setDonorFlagCount] = useState(0)
   const [isSuperadmin, setIsSuperadmin] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
+  const [notifications, setNotifications] = useState<AuditEntry[]>([])
+  const [notifLoading, setNotifLoading] = useState(false)
+  const [hasRecent, setHasRecent] = useState(false)
+  const notifPanelRef = useRef<HTMLDivElement>(null)
+  const notifBtnRef = useRef<HTMLButtonElement>(null)
   const pathname = usePathname()
   const router = useRouter()
   const t = useTranslations('nav')
@@ -80,10 +126,73 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   // Close mobile sidebar on escape key
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMobileOpen(false) }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMobileOpen(false)
+        setShowNotifications(false)
+      }
+    }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [])
+
+  // Click outside to close notification panel
+  useEffect(() => {
+    if (!showNotifications) return
+    const handleClick = (e: MouseEvent) => {
+      if (
+        notifPanelRef.current && !notifPanelRef.current.contains(e.target as Node) &&
+        notifBtnRef.current && !notifBtnRef.current.contains(e.target as Node)
+      ) {
+        setShowNotifications(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [showNotifications])
+
+  // Fetch notifications (audit logs)
+  const fetchNotifications = useCallback(async () => {
+    setNotifLoading(true)
+    try {
+      let res = await apiGet('/api/audit?limit=10')
+      if (!res.ok) {
+        res = await apiGet('/api/audit-logs?limit=10')
+      }
+      if (res.ok) {
+        const json = await res.json()
+        const entries: AuditEntry[] = json.data || json.logs || json || []
+        setNotifications(Array.isArray(entries) ? entries.slice(0, 10) : [])
+        // Check if any entry is within last 24h
+        const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000
+        setHasRecent(entries.some((e: AuditEntry) => new Date(e.createdAt).getTime() > oneDayAgo))
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setNotifLoading(false)
+    }
+  }, [])
+
+  // Fetch on mount to determine badge, and periodically
+  useEffect(() => {
+    fetchNotifications()
+    const interval = setInterval(fetchNotifications, 120000) // every 2 min
+    return () => clearInterval(interval)
+  }, [fetchNotifications])
+
+  const toggleNotifications = () => {
+    setShowNotifications(prev => {
+      if (!prev) fetchNotifications() // refresh when opening
+      return !prev
+    })
+  }
+
+  const handleNotifClick = (entry: AuditEntry) => {
+    const route = entityRoute(entry.entityType)
+    setShowNotifications(false)
+    if (route) router.push(route)
+  }
 
   const handleSignOut = async () => {
     try {
@@ -266,10 +375,94 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {/* Right: language + bell + avatar */}
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
-            <button className="relative w-9 h-9 rounded-lg bg-[#e1eedd] border border-[#c8d6c0] flex items-center justify-center hover:bg-[#c8d6c0] transition-all">
-              <Bell size={16} className="text-[#183a1d]" />
-              <div className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#f6c453]" />
-            </button>
+            <div className="relative">
+              <button
+                ref={notifBtnRef}
+                onClick={toggleNotifications}
+                className="relative w-9 h-9 rounded-lg bg-[#e1eedd] border border-[#c8d6c0] flex items-center justify-center hover:bg-[#c8d6c0] transition-all"
+              >
+                <Bell size={16} className="text-[#183a1d]" />
+                {hasRecent && (
+                  <div className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#f6c453]" />
+                )}
+              </button>
+
+              {/* Notification panel */}
+              {showNotifications && (
+                <div
+                  ref={notifPanelRef}
+                  className="absolute right-0 top-11 w-80 sm:w-96 max-h-[28rem] bg-[#fefbe9] border border-[#c8d6c0] rounded-xl shadow-xl z-50 flex flex-col overflow-hidden"
+                  style={{ animation: 'slideInRight 0.2s ease-out' }}
+                >
+                  {/* Header */}
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-[#c8d6c0] bg-[#e1eedd]">
+                    <h3 className="text-sm font-semibold text-[#183a1d]">Notifications</h3>
+                    <button
+                      onClick={() => setShowNotifications(false)}
+                      className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-[#c8d6c0] transition-colors"
+                    >
+                      <X size={14} className="text-[#183a1d]" />
+                    </button>
+                  </div>
+
+                  {/* Body */}
+                  <div className="flex-1 overflow-y-auto">
+                    {notifLoading && notifications.length === 0 ? (
+                      <div className="flex items-center justify-center py-10 text-sm text-[#183a1d]/50">
+                        Loading...
+                      </div>
+                    ) : notifications.length === 0 ? (
+                      <div className="flex items-center justify-center py-10 text-sm text-[#183a1d]/50">
+                        No recent activity
+                      </div>
+                    ) : (
+                      notifications.map((entry) => {
+                        const route = entityRoute(entry.entityType)
+                        return (
+                          <button
+                            key={entry.id}
+                            onClick={() => handleNotifClick(entry)}
+                            className="w-full text-left px-4 py-3 border-b border-[#c8d6c0]/50 hover:bg-[#e1eedd] transition-colors group"
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className="mt-0.5 w-7 h-7 rounded-lg bg-[#f6c453]/20 flex items-center justify-center shrink-0">
+                                <Shield size={13} className="text-[#183a1d]" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-[#183a1d] truncate">
+                                  {actionLabel(entry.action)}
+                                </p>
+                                <p className="text-xs text-[#183a1d]/60 mt-0.5 truncate">
+                                  {entry.entityType}
+                                  {entry.projectName ? ` — ${entry.projectName}` : ''}
+                                </p>
+                              </div>
+                              <span className="text-[10px] text-[#183a1d]/40 whitespace-nowrap mt-0.5">
+                                {formatRelativeTime(entry.createdAt)}
+                              </span>
+                            </div>
+                            {route && (
+                              <p className="text-[10px] text-[#183a1d]/30 mt-1 ml-10 group-hover:text-[#183a1d]/50">
+                                View {entry.entityType.toLowerCase()}s
+                              </p>
+                            )}
+                          </button>
+                        )
+                      })
+                    )}
+                  </div>
+
+                  {/* Footer */}
+                  <Link
+                    href="/dashboard/audit"
+                    onClick={() => setShowNotifications(false)}
+                    className="block text-center text-xs font-medium text-[#183a1d]/60 hover:text-[#183a1d] py-2.5 border-t border-[#c8d6c0] bg-[#e1eedd]/50 transition-colors"
+                  >
+                    View all audit logs
+                  </Link>
+                </div>
+              )}
+            </div>
             <div className="flex items-center gap-2.5 pl-3 border-l border-[#c8d6c0]">
               <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-[#183a1d] bg-[#f6c453]">
                 N

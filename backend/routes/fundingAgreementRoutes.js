@@ -17,4 +17,7 @@ router.put('/:id/repayments/:repaymentId',     can('projects:write'), ctrl.updat
 router.post('/:id/projects',                   can('projects:write'), ctrl.linkProject)
 router.delete('/:id/projects/:projectId',      can('projects:write'), ctrl.unlinkProject)
 
+// Link donor organisation
+router.post('/:id/link-donor',                 can('projects:write'), ctrl.linkDonor)
+
 module.exports = router

@@ -107,6 +107,15 @@ router.get('/:id', async (req, res) => {
   }
 })
 
+// Map raw extension to proper MIME type (fileType may be stored as just the extension)
+function toMimeType(ft) {
+  if (!ft) return undefined
+  const l = ft.toLowerCase().replace(/^\./, '')
+  const map = { pdf: 'application/pdf', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp', tiff: 'image/tiff', tif: 'image/tiff', svg: 'image/svg+xml', doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
+  if (l.includes('/')) return l // already a MIME type
+  return map[l] || undefined
+}
+
 // GET /api/public/seal/:id/document — presigned URL for seal file
 router.get('/:id/document', async (req, res) => {
   try {
@@ -116,9 +125,8 @@ router.get('/:id/document', async (req, res) => {
     })
     if (!seal || !seal.s3Key) return res.status(404).json({ error: 'Document not found' })
 
-    const url = await getPresignedUrlFromKey(seal.s3Key, 3600, {
-      contentType: seal.fileType || 'application/octet-stream',
-    })
+    const mime = toMimeType(seal.fileType)
+    const url = await getPresignedUrlFromKey(seal.s3Key, 3600, mime ? { contentType: mime } : {})
     if (!url) return res.status(500).json({ error: 'Could not generate URL' })
 
     res.json({ url, fileType: seal.fileType, name: seal.documentTitle, expiresIn: 3600 })

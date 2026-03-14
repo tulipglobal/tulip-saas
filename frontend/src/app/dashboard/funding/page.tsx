@@ -13,6 +13,10 @@ interface FundingSource {
   sourceType: string
   sourceSubType: string | null
   donorName: string
+  funderName: string | null
+  funderType: string | null
+  donorOrgId: string | null
+  fundingAgreementId: string | null
   amount: number
   currency: string
   agreementHash: string | null
@@ -60,11 +64,12 @@ export default function FundingPage() {
       .catch(() => setLoading(false))
   }, [])
 
-  const filtered = sources.filter(s =>
-    s.donorName.toLowerCase().includes(search.toLowerCase()) ||
-    s.sourceType.toLowerCase().includes(search.toLowerCase()) ||
-    (s.budget?.name ?? '').toLowerCase().includes(search.toLowerCase())
-  )
+  const filtered = sources.filter(s => {
+    const q = search.toLowerCase()
+    return (s.funderName || s.donorName || '').toLowerCase().includes(q) ||
+      (s.sourceType || '').toLowerCase().includes(q) ||
+      (s.budget?.name ?? '').toLowerCase().includes(q)
+  })
 
   const totalFunding = filtered.reduce((s, f) => s + f.amount, 0)
 
@@ -110,9 +115,10 @@ export default function FundingPage() {
         ) : (
           <div className="divide-y divide-[#c8d6c0]">
             {filtered.map(s => (
-              <div key={s.id} className="px-5 py-3.5 lg:grid lg:grid-cols-[1.5fr_1.5fr_1fr_1fr_80px_1fr] lg:gap-4 lg:items-center">
+              <div key={s.id}>
+              <div className="px-5 py-3.5 lg:grid lg:grid-cols-[1.5fr_1.5fr_1fr_1fr_80px_1fr] lg:gap-4 lg:items-center">
                 <div>
-                  <div className="text-sm text-[#183a1d]">{s.donorName}</div>
+                  <div className="text-sm text-[#183a1d]">{s.funderName || s.donorName}</div>
                   {/* Mobile meta */}
                   <div className="flex flex-wrap items-center gap-2 mt-1 lg:hidden text-xs text-[#183a1d]/60">
                     {s.budget && <Link href={`/dashboard/budgets/${s.budget.id}`} className="text-cyan-400/60 hover:text-cyan-400">{s.budget.name}</Link>}
@@ -150,9 +156,19 @@ export default function FundingPage() {
                     <BlockchainStatusPill onClick={() => {}} />
                   )}
                 </div>
-                <div className="hidden lg:block">
-                  {s.budget ? <StatusBadge status={s.budget.status} /> : <span className="text-xs text-[#183a1d]/40">—</span>}
+                <div className="hidden lg:block space-y-1">
+                  {s.budget && <StatusBadge status={s.budget.status} />}
+                  {s.funderType === 'PORTAL' && s.donorOrgId ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 border border-green-200">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500" />Portal linked
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-600 border border-amber-200">
+                      External
+                    </span>
+                  )}
                 </div>
+              </div>
               </div>
             ))}
           </div>

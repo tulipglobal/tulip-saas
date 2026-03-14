@@ -43,7 +43,7 @@ function log(n, label, result, detail) {
   console.log(`[${String(n).padStart(2)}] ${tag.padEnd(6)} ${label}${d}`);
 }
 
-const TOTAL = 81;
+const TOTAL = 84;
 
 (async () => {
   console.log(`=== REGRESSION CHECKLIST (${TOTAL} items) ===\n`);
@@ -224,20 +224,20 @@ const TOTAL = 81;
   log(35, "Void expense modal in expenses page", expPage.includes("VoidModal") ? "PASS" : "FAIL");
 
   // ═══════════════════════════════════════════════════════════
-  //  SECTION 9: #29 BLOCK HIGH FRAUD (36-39)
+  //  SECTION 9: #29 FRAUD RISK HIGHLIGHT (36-39)
   // ═══════════════════════════════════════════════════════════
-  console.log("\n\u2500\u2500\u2500 #29 BLOCK HIGH FRAUD \u2500\u2500\u2500");
+  console.log("\n\u2500\u2500\u2500 #29 FRAUD RISK HIGHLIGHT \u2500\u2500\u2500");
 
   const expCtrl = fs.readFileSync("/home/ubuntu/tulip-saas/backend/controllers/expenseController.js", "utf8");
-  log(36, "EXPENSE_BLOCKED_FRAUD audit action in code", expCtrl.includes("EXPENSE_BLOCKED_FRAUD") ? "PASS" : "FAIL");
+  log(36, "FRAUD_RISK_SCORED audit action in code", expCtrl.includes("FRAUD_RISK_SCORED") ? "PASS" : "FAIL");
 
   try {
     const { scoreFraudRisk } = require("./lib/fraudRiskScorer");
     log(37, "scoreFraudRisk function exists", typeof scoreFraudRisk === "function" ? "PASS" : "FAIL");
   } catch(e) { log(37, "scoreFraudRisk function", "FAIL", e.message); }
 
-  log(38, "Voided expense with 422 block code path", (expCtrl.includes("voided: true") && expCtrl.includes("status(422)")) ? "PASS" : "FAIL");
-  log(39, "422 FRAUD_RISK_HIGH response in controller", expCtrl.includes("FRAUD_RISK_HIGH") ? "PASS" : "FAIL");
+  log(38, "Fraud score stored on expense record", expCtrl.includes("fraudRiskScore") && expCtrl.includes("fraudRiskLevel") && expCtrl.includes("fraudSignals") ? "PASS" : "FAIL");
+  log(39, "High fraud triggers email alert", expCtrl.includes("notifyFraudAlert") ? "PASS" : "FAIL");
 
   // ═══════════════════════════════════════════════════════════
   //  SECTION 10: #22 API RATE LIMITING (40-43)
@@ -374,7 +374,7 @@ const TOTAL = 81;
   const anchorSvc = fs.readFileSync("/home/ubuntu/tulip-saas/backend/services/batchAnchorService.js", "utf8");
   log(64, "seal.anchored webhook in batchAnchorService", anchorSvc.includes("seal.anchored") ? "PASS" : "FAIL");
 
-  log(65, "expense.blocked webhook in expenseController", expCtrl.includes("expense.blocked") ? "PASS" : "FAIL");
+  log(65, "expense.flagged webhook in expenseController", expCtrl.includes("expense.flagged") ? "PASS" : "FAIL");
 
   // ═══════════════════════════════════════════════════════════
   //  SECTION 16: #17 BULK DOCUMENT UPLOAD (66-69)
@@ -472,6 +472,25 @@ const TOTAL = 81;
     log(81, "Settings page has baseCurrency", settings.includes("baseCurrency") ? "PASS" : "FAIL");
   } else {
     log(81, "Settings page exists", "FAIL", "file not found");
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  //  SECTION 19: AWS S3 CREDENTIALS & PRESIGNED URLS (82-84)
+  // ═══════════════════════════════════════════════════════════
+  console.log("\n\u2500\u2500\u2500 AWS S3 CREDENTIALS & PRESIGNED URLS \u2500\u2500\u2500");
+
+  log(82, "AWS_ACCESS_KEY_ID is set", !!process.env.AWS_ACCESS_KEY_ID ? "PASS" : "FAIL", process.env.AWS_ACCESS_KEY_ID ? "present" : "MISSING — S3 presigned URLs will fail");
+  log(83, "AWS_SECRET_ACCESS_KEY is set", !!process.env.AWS_SECRET_ACCESS_KEY ? "PASS" : "FAIL", process.env.AWS_SECRET_ACCESS_KEY ? "present" : "MISSING — S3 presigned URLs will fail");
+
+  // Test actual presigned URL generation with a real seal that has an s3Key
+  const sealWithFile = await prisma.trustSeal.findFirst({ where: { s3Key: { not: null } }, select: { id: true, s3Key: true } });
+  if (sealWithFile) {
+    const docResp = await httpReq("GET", "/api/public/seal/" + sealWithFile.id + "/document");
+    const docData = JSON.parse(docResp.body);
+    log(84, "S3 presigned URL generation works", docResp.status === 200 && !!docData.url ? "PASS" : "FAIL",
+      docResp.status === 200 ? "URL generated" : "status=" + docResp.status + " " + (docData.error || ""));
+  } else {
+    log(84, "S3 presigned URL generation", "SKIP", "no seal with s3Key found");
   }
 
   // ═══════════════════════════════════════════════════════════

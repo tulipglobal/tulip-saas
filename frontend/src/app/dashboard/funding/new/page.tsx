@@ -3,12 +3,13 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Save, UserPlus } from 'lucide-react'
+import { ArrowLeft, Save, UserPlus, Building2, Globe, Mail } from 'lucide-react'
 import { apiGet, apiPost } from '@/lib/api'
 import { FUNDING_SOURCE_TYPES, FUNDING_SOURCE_TYPE_KEYS } from '@/lib/ngo-categories'
 import CurrencySelect from '@/components/CurrencySelect'
 
 interface Donor { id: string; name: string; type: string }
+interface DonorOrg { id: string; name: string; type: string; country: string | null; website: string | null }
 interface BudgetOption { id: string; name: string; status: string; totalApproved: number }
 
 export default function NewFundingPage() {
@@ -16,13 +17,14 @@ export default function NewFundingPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [donors, setDonors] = useState<Donor[]>([])
+  const [donorOrgs, setDonorOrgs] = useState<DonorOrg[]>([])
   const [budgets, setBudgets] = useState<BudgetOption[]>([])
-  const [showNewDonor, setShowNewDonor] = useState(false)
-  const [newDonor, setNewDonor] = useState({ name: '', email: '', type: 'FOUNDATION', organisationName: '' })
+  const [funderOption, setFunderOption] = useState<'portal' | 'invite' | 'external'>('external')
+  const [inviteForm, setInviteForm] = useState({ orgName: '', email: '' })
   const [form, setForm] = useState({
     title: '', type: 'GRANT', totalAmount: '', currency: 'USD',
-    donorId: '', budgetId: '', startDate: '', endDate: '', repayable: false,
-    interestRate: '', notes: '',
+    donorId: '', donorOrgId: '', budgetId: '', startDate: '', endDate: '', repayable: false,
+    interestRate: '', notes: '', funderName: '',
     sourceType: '', sourceSubType: '',
     grantorName: '', grantRef: '', grantFrom: '', grantTo: '',
     restricted: false, capexBudget: '', opexBudget: '',
@@ -32,6 +34,10 @@ export default function NewFundingPage() {
     apiGet('/api/donors')
       .then(r => r.ok ? r.json() : { data: [] })
       .then(d => setDonors(d.data ?? []))
+      .catch(() => {})
+    apiGet('/api/donor/organisations')
+      .then(r => r.ok ? r.json() : { data: [] })
+      .then(d => setDonorOrgs(d.data ?? []))
       .catch(() => {})
     apiGet('/api/budgets?limit=100')
       .then(r => r.ok ? r.json() : { data: [] })
@@ -52,31 +58,41 @@ export default function NewFundingPage() {
     return capex + opex
   }, [form.capexBudget, form.opexBudget])
 
-  const createDonor = async () => {
-    if (!newDonor.name.trim()) return
-    try {
-      const res = await apiPost('/api/donors', {
-        name: newDonor.name.trim(),
-        email: newDonor.email || null,
-        type: newDonor.type,
-        organisationName: newDonor.organisationName || newDonor.name.trim(),
-      })
-      if (res.ok) {
-        const d = await res.json()
-        setDonors(prev => [d, ...prev])
-        setForm(f => ({ ...f, donorId: d.id }))
-        setShowNewDonor(false)
-        setNewDonor({ name: '', email: '', type: 'FOUNDATION', organisationName: '' })
-      }
-    } catch {}
-  }
-
   const submit = async () => {
     if (!form.title.trim()) { setError('Title is required'); return }
     const total = parseFloat(form.totalAmount) || totalBudget
     if (!total) { setError('Valid amount is required (enter total or CapEx/OpEx split)'); return }
+
+    // Validate funder selection
+    if (funderOption === 'portal' && !form.donorOrgId) { setError('Please select a donor organisation'); return }
+    if (funderOption === 'invite' && (!inviteForm.orgName.trim() || !inviteForm.email.trim())) { setError('Organisation name and email are required for invite'); return }
+    if (funderOption === 'external' && !form.funderName.trim()) { setError('Funder name is required for external funders'); return }
+
     setSaving(true); setError('')
     try {
+      // For invite option, send the invite first
+      let linkedDonorOrgId: string | null = null
+      if (funderOption === 'invite') {
+        const inviteRes = await apiPost('/api/donor-invite', {
+          email: inviteForm.email.trim(),
+          donorName: inviteForm.orgName.trim(),
+          inviteType: 'NGO_INVITES_DONOR',
+        })
+        if (!inviteRes.ok) {
+          const d = await inviteRes.json()
+          setError(d.error ?? 'Failed to send donor invite')
+          setSaving(false)
+          return
+        }
+      }
+
+      const funderType = funderOption === 'external' ? 'EXTERNAL' : 'PORTAL'
+      const funderName = funderOption === 'external'
+        ? form.funderName.trim()
+        : funderOption === 'portal'
+          ? donorOrgs.find(o => o.id === form.donorOrgId)?.name || ''
+          : inviteForm.orgName.trim()
+
       const res = await apiPost('/api/funding-agreements', {
         title: form.title.trim(),
         type: form.type,
@@ -98,6 +114,9 @@ export default function NewFundingPage() {
         restricted: form.restricted,
         capexBudget: parseFloat(form.capexBudget) || 0,
         opexBudget: parseFloat(form.opexBudget) || 0,
+        funderType,
+        funderName,
+        donorOrgId: funderOption === 'portal' ? form.donorOrgId : (linkedDonorOrgId || null),
       })
       if (res.ok) { router.push('/dashboard/funding') }
       else { const d = await res.json(); setError(d.error ?? 'Failed to create agreement') }
@@ -107,6 +126,12 @@ export default function NewFundingPage() {
 
   const inputCls = "w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all"
   const labelCls = "block text-xs font-medium text-[#183a1d]/60 mb-1.5 uppercase tracking-wide"
+  const optionBtnCls = (active: boolean) =>
+    `flex-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-all border ${
+      active
+        ? 'bg-[#f6c453] border-[#f0a04b] text-[#183a1d]'
+        : 'bg-[#e1eedd] border-[#c8d6c0] text-[#183a1d]/50 hover:border-[#f6c453]/50'
+    }`
 
   return (
     <div className="p-6 max-w-2xl animate-fade-up">
@@ -209,40 +234,41 @@ export default function NewFundingPage() {
             placeholder="0.00" className={inputCls} />
         </div>
 
-        {/* Donor selection */}
+        {/* Funder Selection — 3-option selector */}
         <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <label className={labelCls + ' mb-0'}>Donor</label>
-            <button onClick={() => setShowNewDonor(!showNewDonor)}
-              className="text-xs text-[#183a1d] hover:text-cyan-300 flex items-center gap-1">
-              <UserPlus size={12} /> {showNewDonor ? 'Select existing' : 'Add new donor'}
+          <label className={labelCls}>Funder *</label>
+          <div className="flex gap-2 mb-3">
+            <button onClick={() => setFunderOption('portal')} className={optionBtnCls(funderOption === 'portal')}>
+              <Building2 size={13} className="inline mr-1.5 -mt-0.5" />Existing Donor
+            </button>
+            <button onClick={() => setFunderOption('invite')} className={optionBtnCls(funderOption === 'invite')}>
+              <Mail size={13} className="inline mr-1.5 -mt-0.5" />Invite New
+            </button>
+            <button onClick={() => setFunderOption('external')} className={optionBtnCls(funderOption === 'external')}>
+              <Globe size={13} className="inline mr-1.5 -mt-0.5" />External
             </button>
           </div>
-          {showNewDonor ? (
-            <div className="space-y-3 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg p-4">
-              <input value={newDonor.name} onChange={e => setNewDonor(d => ({ ...d, name: e.target.value }))}
-                placeholder="Donor name *" className={inputCls} />
-              <div className="grid grid-cols-2 gap-3">
-                <input value={newDonor.email} onChange={e => setNewDonor(d => ({ ...d, email: e.target.value }))}
-                  placeholder="Email (optional)" className={inputCls} />
-                <select value={newDonor.type} onChange={e => setNewDonor(d => ({ ...d, type: e.target.value }))} className={inputCls}>
-                  <option value="FOUNDATION">Foundation</option>
-                  <option value="GOVERNMENT">Government</option>
-                  <option value="CORPORATE">Corporate</option>
-                  <option value="INDIVIDUAL">Individual</option>
-                  <option value="MULTILATERAL">Multilateral</option>
-                </select>
-              </div>
-              <button onClick={createDonor}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] bg-[#f6c453] hover:bg-[#f0a04b] transition-all">
-                Create Donor
-              </button>
-            </div>
-          ) : (
-            <select value={form.donorId} onChange={e => set('donorId', e.target.value)} className={inputCls}>
-              <option value="">No donor selected</option>
-              {donors.map(d => <option key={d.id} value={d.id}>{d.name} ({d.type})</option>)}
+
+          {funderOption === 'portal' && (
+            <select value={form.donorOrgId} onChange={e => set('donorOrgId', e.target.value)} className={inputCls}>
+              <option value="">Select donor organisation</option>
+              {donorOrgs.map(o => <option key={o.id} value={o.id}>{o.name}{o.type ? ` (${o.type})` : ''}</option>)}
             </select>
+          )}
+
+          {funderOption === 'invite' && (
+            <div className="space-y-3 border border-[#c8d6c0] rounded-lg p-4 bg-[#e1eedd]">
+              <p className="text-xs text-[#183a1d]/50">The donor will receive an email invite to join the portal and view this project&apos;s records.</p>
+              <input value={inviteForm.orgName} onChange={e => setInviteForm(f => ({ ...f, orgName: e.target.value }))}
+                placeholder="Organisation name *" className={inputCls} />
+              <input value={inviteForm.email} onChange={e => setInviteForm(f => ({ ...f, email: e.target.value }))}
+                placeholder="Contact email *" type="email" className={inputCls} />
+            </div>
+          )}
+
+          {funderOption === 'external' && (
+            <input value={form.funderName} onChange={e => set('funderName', e.target.value)}
+              placeholder="e.g. World Bank, USAID, EU Commission" className={inputCls} />
           )}
         </div>
 

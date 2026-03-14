@@ -265,6 +265,9 @@ model FundingSource {
   currency    String
   projectId   String
   tenantId    String
+  donorOrgId  String?
+  funderName  String?
+  funderType  String?   @default("EXTERNAL")
   createdAt   DateTime  @default(now())
   expenses    Expense[]
   project     Project   @relation(fields: [projectId], references: [id])
@@ -273,6 +276,7 @@ model FundingSource {
   @@index([tenantId])
   @@index([projectId])
   @@index([fundingType])
+  @@index([donorOrgId])
 }
 
 model Expense {
@@ -471,6 +475,9 @@ model FundingAgreement {
   restricted     Boolean             @default(false)
   capexBudget    Float               @default(0)
   opexBudget     Float               @default(0)
+  donorOrgId     String?
+  funderName     String?
+  funderType     String?             @default("EXTERNAL") // PORTAL or EXTERNAL
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
   donor          Donor?              @relation(fields: [donorId], references: [id])
@@ -486,6 +493,8 @@ model FundingAgreement {
   @@index([status])
   @@index([type])
   @@index([sourceType])
+  @@index([donorOrgId])
+  @@index([funderType])
 }
 
 model RepaymentSchedule {
@@ -801,17 +810,22 @@ model BudgetLine {
 }
 
 model BudgetFundingSource {
-  id               String   @id @default(uuid())
-  budgetId         String
-  sourceType       String
-  sourceSubType    String?
-  donorName        String
-  amount           Float
-  currency         String   @default("USD")
-  agreementFileKey String?
-  agreementHash    String?
-  createdAt        DateTime @default(now())
-  budget           Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  id                 String   @id @default(uuid())
+  budgetId           String
+  sourceType         String
+  sourceSubType      String?
+  donorName          String
+  amount             Float
+  currency           String   @default("USD")
+  agreementFileKey   String?
+  agreementHash      String?
+  fundingAgreementId String?
+  donorOrgId         String?
+  funderName         String?
+  funderType         String?  @default("EXTERNAL")
+  createdAt          DateTime @default(now())
+  budget             Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
 
   @@index([budgetId])
+  @@index([donorOrgId])
 }

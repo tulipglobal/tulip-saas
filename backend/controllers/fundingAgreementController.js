@@ -82,8 +82,13 @@ exports.create = async (req, res) => {
   try {
     const db = tenantClient(req.user.tenantId)
     const { title, type, totalAmount, currency, donorId, startDate, endDate, interestRate, repayable, notes, status,
-            sourceType, sourceSubType, grantorName, grantRef, grantFrom, grantTo, restricted, capexBudget, opexBudget, budgetId } = req.body
+            sourceType, sourceSubType, grantorName, grantRef, grantFrom, grantTo, restricted, capexBudget, opexBudget, budgetId,
+            donorOrgId, funderName, funderType } = req.body
     if (!title || !totalAmount) return res.status(400).json({ error: 'title and totalAmount are required' })
+
+    // Validate funder fields
+    if (funderType === 'PORTAL' && !donorOrgId) return res.status(400).json({ error: 'donorOrgId is required when funderType is PORTAL' })
+    if (funderType === 'EXTERNAL' && !funderName) return res.status(400).json({ error: 'funderName is required when funderType is EXTERNAL' })
 
     const agreement = await db.fundingAgreement.create({
       data: {
@@ -108,6 +113,9 @@ exports.create = async (req, res) => {
         restricted: restricted || false,
         capexBudget: capexBudget ? parseFloat(capexBudget) : 0,
         opexBudget: opexBudget ? parseFloat(opexBudget) : 0,
+        donorOrgId: donorOrgId || null,
+        funderName: funderName || null,
+        funderType: funderType || 'EXTERNAL',
       },
       include: { donor: { select: { id: true, name: true } }, budget: { select: { id: true, name: true } } }
     })
@@ -195,7 +203,18 @@ exports.update = async (req, res) => {
     if (!existing) return res.status(404).json({ error: 'Funding agreement not found' })
 
     const { title, type, totalAmount, currency, donorId, startDate, endDate, interestRate, repayable, notes, status,
-            sourceType, sourceSubType, grantorName, grantRef, grantFrom, grantTo, restricted, capexBudget, opexBudget, budgetId } = req.body
+            sourceType, sourceSubType, grantorName, grantRef, grantFrom, grantTo, restricted, capexBudget, opexBudget, budgetId,
+            donorOrgId, funderName, funderType } = req.body
+
+    // Validate funder fields if funderType is being set
+    const effectiveFunderType = funderType !== undefined ? funderType : existing.funderType
+    if (effectiveFunderType === 'PORTAL' && donorOrgId === undefined && !existing.donorOrgId) {
+      return res.status(400).json({ error: 'donorOrgId is required when funderType is PORTAL' })
+    }
+    if (effectiveFunderType === 'EXTERNAL' && funderName === undefined && !existing.funderName) {
+      return res.status(400).json({ error: 'funderName is required when funderType is EXTERNAL' })
+    }
+
     const agreement = await db.fundingAgreement.update({
       where: { id: req.params.id },
       data: {
@@ -220,6 +239,9 @@ exports.update = async (req, res) => {
         ...(restricted !== undefined && { restricted }),
         ...(capexBudget !== undefined && { capexBudget: parseFloat(capexBudget) }),
         ...(opexBudget !== undefined && { opexBudget: parseFloat(opexBudget) }),
+        ...(donorOrgId !== undefined && { donorOrgId: donorOrgId || null }),
+        ...(funderName !== undefined && { funderName }),
+        ...(funderType !== undefined && { funderType }),
       }
     })
     res.json(agreement)
@@ -295,5 +317,42 @@ exports.unlinkProject = async (req, res) => {
     res.json({ deleted: true })
   } catch (err) {
     res.status(500).json({ error: 'Failed to unlink project' })
+  }
+}
+
+// Link an EXTERNAL funding agreement to a DonorOrganisation (upgrade to PORTAL)
+exports.linkDonor = async (req, res) => {
+  try {
+    const db = tenantClient(req.user.tenantId)
+    const { donorOrgId } = req.body
+    if (!donorOrgId) return res.status(400).json({ error: 'donorOrgId is required' })
+
+    const agreement = await db.fundingAgreement.findFirst({ where: { id: req.params.id } })
+    if (!agreement) return res.status(404).json({ error: 'Funding agreement not found' })
+
+    // Verify the DonorOrganisation exists
+    const donorOrg = await prisma.donorOrganisation.findUnique({ where: { id: donorOrgId } })
+    if (!donorOrg) return res.status(404).json({ error: 'Donor organisation not found' })
+
+    const updated = await db.fundingAgreement.update({
+      where: { id: req.params.id },
+      data: { donorOrgId, funderType: 'PORTAL', funderName: donorOrg.name }
+    })
+
+    // Also update any BudgetFundingSource records linked to this agreement
+    try {
+      await prisma.$executeRawUnsafe(
+        `UPDATE "BudgetFundingSource" SET "donorOrgId" = $1, "funderType" = 'PORTAL', "funderName" = $2
+         WHERE "fundingAgreementId" = $3`,
+        donorOrgId, donorOrg.name, req.params.id
+      )
+    } catch { /* BudgetFundingSource may not have these columns yet */ }
+
+    await createAuditLog({ action: 'FUNDING_DONOR_LINKED', entityType: 'FundingAgreement', entityId: agreement.id, userId: req.user.userId || req.user.id, tenantId: req.user.tenantId, metadata: { donorOrgId, donorOrgName: donorOrg.name } }).catch(() => {})
+
+    res.json(updated)
+  } catch (err) {
+    console.error('linkDonor error:', err)
+    res.status(500).json({ error: 'Failed to link donor' })
   }
 }

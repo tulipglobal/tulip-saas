@@ -65,7 +65,7 @@ router.get('/', async (req, res) => {
     for (const r of requests) {
       r.project = { id: r.projectId, name: projectMap[r.projectId] || 'Unknown' }
       const submissions = await prisma.$queryRawUnsafe(
-        `SELECT * FROM "DeliverableSubmission" WHERE "requestId" = $1 ORDER BY "createdAt" DESC`,
+        `SELECT * FROM "DeliverableSubmission" WHERE "requestId" = $1 ORDER BY "submittedAt" DESC`,
         r.id
       )
       r.submissions = submissions
@@ -134,13 +134,12 @@ router.post('/:requestId/submit', async (req, res) => {
 
     // Create submission
     const submission = await prisma.$queryRawUnsafe(
-      `INSERT INTO "DeliverableSubmission" ("requestId", "submittedBy", note, "documentIds", "linkUrl")
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      `INSERT INTO "DeliverableSubmission" ("requestId", "submittedBy", note, "documentIds")
+       VALUES ($1, $2, $3, $4) RETURNING *`,
       requestId,
       req.user.userId,
       note || null,
-      documentIds ? JSON.stringify(documentIds) : null,
-      linkUrl || null
+      documentIds ? JSON.stringify(documentIds) : null
     )
 
     // Determine new status: RESUBMITTED if was REWORK, else SUBMITTED

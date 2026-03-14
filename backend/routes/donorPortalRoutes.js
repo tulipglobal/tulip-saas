@@ -573,15 +573,19 @@ router.get('/projects', donorAuth, async (req, res) => {
       for (const bt of budgetTotals) budgetMap[bt.projectId] = bt.totalBudget
     } catch { /* budget tables may not exist */ }
 
-    // Get real funding totals from FundingAgreement via ProjectFunding
+    // Get real funding totals from FundingAgreement via ProjectFunding (filtered by donor org)
     let fundingMap = {}
     try {
       const fundingTotals = await prisma.$queryRawUnsafe(
         `SELECT pf."projectId", COALESCE(SUM(pf."allocatedAmount"), 0)::float as "totalFunded"
          FROM "ProjectFunding" pf
+         JOIN "FundingAgreement" fa ON fa.id = pf."fundingAgreementId"
          WHERE pf."projectId" = ANY($1::text[])
+           AND fa."donorOrgId" = $2
+           AND fa."funderType" = 'PORTAL'
          GROUP BY pf."projectId"`,
-        projectIds
+        projectIds,
+        donorOrgId
       )
       for (const ft of fundingTotals) fundingMap[ft.projectId] = ft.totalFunded
     } catch { /* ProjectFunding may not exist */ }
@@ -772,19 +776,23 @@ router.get('/projects/:projectId', donorAuth, async (req, res) => {
       totalBudget = budgetResult[0]?.totalBudget || 0
     } catch { /* budget tables may not exist */ }
 
-    // Get real funding total from ProjectFunding table
+    // Get real funding total from ProjectFunding table (filtered by donor org)
     let totalFunded = 0
     try {
       const fundingResult = await prisma.$queryRawUnsafe(
         `SELECT COALESCE(SUM(pf."allocatedAmount"), 0)::float as "totalFunded"
          FROM "ProjectFunding" pf
-         WHERE pf."projectId" = $1`,
-        projectId
+         JOIN "FundingAgreement" fa ON fa.id = pf."fundingAgreementId"
+         WHERE pf."projectId" = $1
+           AND fa."donorOrgId" = $2
+           AND fa."funderType" = 'PORTAL'`,
+        projectId,
+        donorOrgId
       )
       totalFunded = fundingResult[0]?.totalFunded || 0
     } catch { /* ProjectFunding may not exist */ }
 
-    // Get funding sources from FundingAgreement via ProjectFunding
+    // Get funding sources from FundingAgreement via ProjectFunding (this donor only)
     let fundingSources = []
     try {
       fundingSources = await prisma.$queryRawUnsafe(
@@ -792,8 +800,10 @@ router.get('/projects/:projectId', donorAuth, async (req, res) => {
                 fa.currency, fa."agreementType" as type
          FROM "ProjectFunding" pf
          JOIN "FundingAgreement" fa ON fa.id = pf."fundingAgreementId"
-         WHERE pf."projectId" = $1`,
-        projectId
+         WHERE pf."projectId" = $1
+           AND fa."donorOrgId" = $2`,
+        projectId,
+        donorOrgId
       )
     } catch { /* tables may not exist */ }
 
@@ -1608,6 +1618,24 @@ router.get('/invite/validate/:token', async (req, res) => {
   }
 })
 
+// ── GET /api/donor/organisations (NGO JWT) — list donor orgs with access ──
+router.get('/organisations', authenticate, tenantScope, async (req, res) => {
+  try {
+    const orgs = await prisma.$queryRawUnsafe(
+      `SELECT DISTINCT o.id, o.name, o.type, o.country, o.website
+       FROM "DonorOrganisation" o
+       JOIN "DonorProjectAccess" a ON a."donorOrgId" = o.id
+       WHERE a."tenantId" = $1 AND a."revokedAt" IS NULL
+       ORDER BY o.name`,
+      req.user.tenantId
+    )
+    res.json({ data: orgs })
+  } catch (err) {
+    console.error('List donor organisations error:', err)
+    res.status(500).json({ error: 'Failed to fetch donor organisations' })
+  }
+})
+
 // ═══════════════════════════════════════════════════════════════
 //  FIX 2: Donor access management endpoints (NGO JWT)
 // ═══════════════════════════════════════════════════════════════
@@ -2360,7 +2388,7 @@ router.get('/projects/:projectId/requests', donorAuth, async (req, res) => {
     // Attach submissions for each request
     for (const req_ of requests) {
       const submissions = await prisma.$queryRawUnsafe(
-        `SELECT * FROM "DeliverableSubmission" WHERE "requestId" = $1 ORDER BY "createdAt" DESC`,
+        `SELECT * FROM "DeliverableSubmission" WHERE "requestId" = $1 ORDER BY "submittedAt" DESC`,
         req_.id
       )
       req_.submissions = submissions
@@ -2493,10 +2521,10 @@ router.get('/projects/:projectId/milestones', donorAuth, async (req, res) => {
     const milestones = await prisma.$queryRawUnsafe(
       `SELECT im.*,
               (SELECT row_to_json(latest) FROM (
-                SELECT imu.id, imu."currentValue", imu.note, imu."evidenceIds", imu."createdAt"
+                SELECT imu.id, imu."newValue", imu.note, imu."evidenceDocumentIds", imu."reportedAt"
                 FROM "ImpactMilestoneUpdate" imu
                 WHERE imu."milestoneId" = im.id
-                ORDER BY imu."createdAt" DESC LIMIT 1
+                ORDER BY imu."reportedAt" DESC LIMIT 1
               ) latest) as "latestUpdate"
        FROM "ImpactMilestone" im
        WHERE im."projectId" = $1
@@ -2538,15 +2566,23 @@ router.get('/projects/:projectId/audit', donorAuth, async (req, res) => {
     const project = await prisma.project.findUnique({ where: { id: projectId }, select: { tenantId: true } })
     if (!project) return res.status(404).json({ error: 'Project not found' })
 
+    // Get project's expense and document IDs to filter audit entries by entityId
+    const expenseIds = (await prisma.expense.findMany({ where: { projectId }, select: { id: true } })).map(e => e.id)
+    const documentIds = (await prisma.document.findMany({ where: { projectId }, select: { id: true } })).map(d => d.id)
+    const entityIds = [...expenseIds, ...documentIds, projectId]
+
+    if (!entityIds.length) return res.json({ entries: [], total: 0 })
+
+    const ph = entityIds.map((_, i) => `$${i + 1}`).join(', ')
     const entries = await prisma.$queryRawUnsafe(
-      `SELECT al.id, al.action, al."entityType", al."entityId", al.hash, al."prevHash",
-              al."createdAt", al."userId", u.name as "userName"
+      `SELECT al.id, al.action, al."entityType", al."entityId", al."dataHash", al."prevHash",
+              al."blockchainTx", al."createdAt", al."userId", u.name as "userName"
        FROM "AuditLog" al
        LEFT JOIN "User" u ON al."userId" = u.id
-       WHERE al."tenantId" = $1
+       WHERE al."tenantId" = $${entityIds.length + 1} AND al."entityId" IN (${ph})
        ORDER BY al."createdAt" DESC
-       LIMIT $2 OFFSET $3`,
-      project.tenantId, limit, offset
+       LIMIT $${entityIds.length + 2} OFFSET $${entityIds.length + 3}`,
+      ...entityIds, project.tenantId, limit, offset
     )
 
     // Enrich expense entries
@@ -2563,8 +2599,8 @@ router.get('/projects/:projectId/audit', donorAuth, async (req, res) => {
     }
 
     const countResult = await prisma.$queryRawUnsafe(
-      `SELECT COUNT(*)::int as total FROM "AuditLog" WHERE "tenantId" = $1`,
-      project.tenantId
+      `SELECT COUNT(*)::int as total FROM "AuditLog" WHERE "tenantId" = $${entityIds.length + 1} AND "entityId" IN (${ph})`,
+      ...entityIds, project.tenantId
     )
 
     res.json({ entries, total: countResult[0]?.total || 0 })

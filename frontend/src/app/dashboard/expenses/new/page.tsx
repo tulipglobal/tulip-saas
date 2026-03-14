@@ -232,28 +232,29 @@ export default function NewExpensePage() {
         // Auto-fill form fields from OCR results
         const filled = new Set<string>()
         if (data.ocrFields) {
+          // Track which fields OCR provided (outside React callback for reliable state)
+          if (data.ocrFields.amount) filled.add('amount')
+          if (data.ocrFields.currency) filled.add('currency')
+          if (data.ocrFields.vendor) filled.add('vendor')
+          if (data.ocrFields.date) filled.add('expenseDate')
+          if (data.ocrFields.extras?.['Invoice Number']) filled.add('invoiceNumber')
+
           setForm(f => {
             const updates: Record<string, string> = {}
             if (data.ocrFields.amount && !f.amount) {
               updates.amount = String(data.ocrFields.amount)
-              filled.add('amount')
             }
             if (data.ocrFields.currency) {
               updates.currency = data.ocrFields.currency
-              filled.add('currency')
             }
             if (data.ocrFields.vendor && !f.vendor) {
               updates.vendor = data.ocrFields.vendor
-              filled.add('vendor')
             }
             if (data.ocrFields.date) {
               updates.expenseDate = data.ocrFields.date
-              filled.add('expenseDate')
             }
-            // Invoice number from extras
             if (data.ocrFields.extras?.['Invoice Number'] && !f.invoiceNumber) {
               updates.invoiceNumber = data.ocrFields.extras['Invoice Number']
-              filled.add('invoiceNumber')
             }
             return { ...f, ...updates }
           })

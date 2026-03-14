@@ -518,7 +518,7 @@ exports.uploadReceipt = async (req, res) => {
             webhookDispatch(req.user.tenantId, 'expense.flagged', {
               id: req.body.expenseId, reason: 'OCR_MISMATCH', mismatchNote: mismatch.mismatchNote,
             }).catch(() => {})
-            await db.expense.update({ where: { id: req.body.expenseId }, data: { approvalStatus: 'pending_review' } }).catch(() => {})
+            await db.expense.update({ where: { id: req.body.expenseId }, data: { approvalStatus: 'PENDING' } }).catch(() => {})
             await prisma.trustSeal.update({ where: { id: seal.id }, data: { status: 'held' } }).catch(() => {})
             prisma.workflowTask.create({
               data: {
@@ -530,13 +530,14 @@ exports.uploadReceipt = async (req, res) => {
             }).catch(err => console.error('[workflow] auto-create failed:', err.message))
           }
 
-          // Fraud risk scoring on expense
+          // Fraud risk scoring on expense — also update approvalStatus based on final risk
           const freshExpense = await db.expense.findFirst({ where: { id: req.body.expenseId } })
           if (freshExpense) {
             const risk = scoreFraudRisk({ ...freshExpense, sealId: seal.id })
+            const riskApprovalStatus = (risk.level === 'HIGH' || risk.level === 'CRITICAL' || risk.level === 'MEDIUM') ? 'PENDING' : 'AUTO_APPROVED'
             await db.expense.update({
               where: { id: req.body.expenseId },
-              data: { fraudRiskScore: risk.score, fraudRiskLevel: risk.level, fraudSignals: risk.breakdown.signals },
+              data: { fraudRiskScore: risk.score, fraudRiskLevel: risk.level, fraudSignals: risk.breakdown.signals, approvalStatus: riskApprovalStatus },
             })
             // Copy fraud risk + OCR/mismatch/duplicate data to the TrustSeal
             await prisma.trustSeal.update({

@@ -2581,7 +2581,7 @@ router.get('/projects/:projectId/milestones', donorAuth, async (req, res) => {
                 ORDER BY imu."reportedAt" DESC LIMIT 1
               ) latest) as "latestUpdate",
               COALESCE((
-                SELECT json_agg(row_to_json(upd) ORDER BY upd."reportedAt" ASC)
+                SELECT json_agg(upd ORDER BY upd.date ASC)
                 FROM (
                   SELECT imu.id, imu."reportedAt" as date, imu."previousValue", imu."newValue", imu.note
                   FROM "ImpactMilestoneUpdate" imu

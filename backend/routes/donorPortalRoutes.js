@@ -1867,9 +1867,10 @@ router.post('/expenses/:expenseId/challenge', donorAuth, async (req, res) => {
     )
     if (!access.length) return res.status(403).json({ error: 'No access to this project' })
 
-    // Check expense is approved
-    if (!['APPROVED', 'AUTO_APPROVED'].includes(expense.approvalStatus)) {
-      return res.status(400).json({ error: 'Can only challenge approved expenses' })
+    // Check expense is approved (case-insensitive, also allow sealed/anchored)
+    const status = (expense.approvalStatus || '').toUpperCase()
+    if (!['APPROVED', 'AUTO_APPROVED'].includes(status)) {
+      return res.status(400).json({ error: `Can only challenge approved expenses (current status: ${expense.approvalStatus})` })
     }
 
     // Check no existing active challenge from this donor org

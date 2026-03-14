@@ -22,9 +22,11 @@ router.get('/', authenticate, tenantScope, async (req, res) => {
 
     if (!projectIds.length) return res.json({ challenges: [], counts: { open: 0, responded: 0, escalated: 0, confirmed: 0 } })
 
+    // Use IN list instead of ANY($1::text[]) for raw query compatibility
+    const placeholders = projectIds.map((_, i) => `$${i + 1}`).join(', ')
     let challenges = await prisma.$queryRawUnsafe(
-      `SELECT c.* FROM "ExpenseChallenge" c WHERE c."projectId" = ANY($1::text[]) ORDER BY c."createdAt" DESC`,
-      projectIds
+      `SELECT c.* FROM "ExpenseChallenge" c WHERE c."projectId" IN (${placeholders}) ORDER BY c."createdAt" DESC`,
+      ...projectIds
     )
 
     // Apply status filter
@@ -34,9 +36,10 @@ router.get('/', authenticate, tenantScope, async (req, res) => {
     }
 
     // Counts (always from full set)
+    const countPlaceholders = projectIds.map((_, i) => `$${i + 1}`).join(', ')
     const allChallenges = await prisma.$queryRawUnsafe(
-      `SELECT status, COUNT(*)::int as count FROM "ExpenseChallenge" WHERE "projectId" = ANY($1::text[]) GROUP BY status`,
-      projectIds
+      `SELECT status, COUNT(*)::int as count FROM "ExpenseChallenge" WHERE "projectId" IN (${countPlaceholders}) GROUP BY status`,
+      ...projectIds
     )
     const counts = { open: 0, responded: 0, escalated: 0, confirmed: 0 }
     for (const row of allChallenges) {
@@ -88,13 +91,14 @@ router.get('/count', authenticate, tenantScope, async (req, res) => {
     const projectIds = projects.map(p => p.id)
     if (!projectIds.length) return res.json({ open: 0, escalated: 0, total: 0 })
 
+    const cntPlaceholders = projectIds.map((_, i) => `$${i + 1}`).join(', ')
     const counts = await prisma.$queryRawUnsafe(
       `SELECT
         COUNT(CASE WHEN status = 'OPEN' THEN 1 END)::int as open,
         COUNT(CASE WHEN status = 'ESCALATED' THEN 1 END)::int as escalated,
         COUNT(CASE WHEN status IN ('OPEN', 'ESCALATED') THEN 1 END)::int as total
-       FROM "ExpenseChallenge" WHERE "projectId" = ANY($1::text[])`,
-      projectIds
+       FROM "ExpenseChallenge" WHERE "projectId" IN (${cntPlaceholders})`,
+      ...projectIds
     )
 
     res.json(counts[0] || { open: 0, escalated: 0, total: 0 })

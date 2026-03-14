@@ -24,7 +24,8 @@
     "bundleVerify": "Verificar pacote",
     "developerApi": "API para programadores",
     "embed": "Incorporar",
-    "searchPlaceholder": "Pesquisar projetos, documentos..."
+    "searchPlaceholder": "Pesquisar projetos, documentos...",
+    "donors": "Doadores"
   },
   "common": {
     "save": "Guardar",

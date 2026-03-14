@@ -310,6 +310,33 @@ router.get('/projects', donorAuth, async (req, res) => {
       for (const f of flagCounts) flagMap[f.projectId] = f._count
     } catch { /* fraudRiskLevel may not exist */ }
 
+    // Get real budget totals from BudgetLine (sum of approvedAmount per project)
+    let budgetMap = {}
+    try {
+      const budgetTotals = await prisma.$queryRawUnsafe(
+        `SELECT b."projectId", COALESCE(SUM(bl."approvedAmount"), 0)::float as "totalBudget"
+         FROM "Budget" b
+         JOIN "BudgetLine" bl ON bl."budgetId" = b.id
+         WHERE b."projectId" = ANY($1::text[])
+         GROUP BY b."projectId"`,
+        projectIds
+      )
+      for (const bt of budgetTotals) budgetMap[bt.projectId] = bt.totalBudget
+    } catch { /* budget tables may not exist */ }
+
+    // Get real funding totals from FundingAgreement via ProjectFunding
+    let fundingMap = {}
+    try {
+      const fundingTotals = await prisma.$queryRawUnsafe(
+        `SELECT pf."projectId", COALESCE(SUM(pf."allocatedAmount"), 0)::float as "totalFunded"
+         FROM "ProjectFunding" pf
+         WHERE pf."projectId" = ANY($1::text[])
+         GROUP BY pf."projectId"`,
+        projectIds
+      )
+      for (const ft of fundingTotals) fundingMap[ft.projectId] = ft.totalFunded
+    } catch { /* ProjectFunding may not exist */ }
+
     // Group by NGO
     const ngoMap = {}
     for (const p of projects) {
@@ -320,11 +347,14 @@ router.get('/projects', donorAuth, async (req, res) => {
           projects: []
         }
       }
+      const realBudget = budgetMap[p.id] || p.budget || 0
+      const realFunded = fundingMap[p.id] || 0
       ngoMap[p.tenantId].projects.push({
         id: p.id,
         name: p.name,
         description: p.description,
-        budget: p.budget,
+        budget: realBudget,
+        funded: realFunded,
         status: p.status,
         expenseCount: expenseMap[p.id]?.count || 0,
         spent: expenseMap[p.id]?.spent || 0,
@@ -359,7 +389,6 @@ router.get('/projects/:projectId', donorAuth, async (req, res) => {
     const project = await prisma.project.findUnique({
       where: { id: projectId },
       include: {
-        fundingSources: true,
         expenses: {
           where: { approvalStatus: { in: ['APPROVED', 'AUTO_APPROVED'] } },
           orderBy: { createdAt: 'desc' },
@@ -388,9 +417,44 @@ router.get('/projects/:projectId', donorAuth, async (req, res) => {
       } catch { /* trustSeal may not exist */ }
     }
 
-    // Compute budget summary
-    const totalBudget = project.budget || 0
-    const totalFunded = project.fundingSources?.reduce((s, f) => s + (f.amount || 0), 0) || 0
+    // Get real budget total from BudgetLine table
+    let totalBudget = 0
+    try {
+      const budgetResult = await prisma.$queryRawUnsafe(
+        `SELECT COALESCE(SUM(bl."approvedAmount"), 0)::float as "totalBudget"
+         FROM "Budget" b
+         JOIN "BudgetLine" bl ON bl."budgetId" = b.id
+         WHERE b."projectId" = $1`,
+        projectId
+      )
+      totalBudget = budgetResult[0]?.totalBudget || 0
+    } catch { /* budget tables may not exist */ }
+
+    // Get real funding total from ProjectFunding table
+    let totalFunded = 0
+    try {
+      const fundingResult = await prisma.$queryRawUnsafe(
+        `SELECT COALESCE(SUM(pf."allocatedAmount"), 0)::float as "totalFunded"
+         FROM "ProjectFunding" pf
+         WHERE pf."projectId" = $1`,
+        projectId
+      )
+      totalFunded = fundingResult[0]?.totalFunded || 0
+    } catch { /* ProjectFunding may not exist */ }
+
+    // Get funding sources from FundingAgreement via ProjectFunding
+    let fundingSources = []
+    try {
+      fundingSources = await prisma.$queryRawUnsafe(
+        `SELECT fa.id, fa."funderName" as name, pf."allocatedAmount" as amount,
+                fa.currency, fa."agreementType" as type
+         FROM "ProjectFunding" pf
+         JOIN "FundingAgreement" fa ON fa.id = pf."fundingAgreementId"
+         WHERE pf."projectId" = $1`,
+        projectId
+      )
+    } catch { /* tables may not exist */ }
+
     const totalSpent = project.expenses.reduce((s, e) => s + (e.amount || 0), 0)
 
     const expenses = project.expenses.map(e => ({
@@ -417,9 +481,7 @@ router.get('/projects/:projectId', donorAuth, async (req, res) => {
         spent: totalSpent,
         remaining: totalBudget - totalSpent,
       },
-      fundingSources: project.fundingSources?.map(f => ({
-        id: f.id, name: f.name, amount: f.amount, currency: f.currency, type: f.type
-      })) || [],
+      fundingSources,
       expenses,
     })
   } catch (err) {

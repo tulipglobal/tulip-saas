@@ -16,7 +16,7 @@ const logger       = require('./lib/logger')
 
 const app = express()
 const cors = require('cors')
-app.use(cors({ origin: ['http://localhost:3000', 'http://localhost:3001', 'https://tulipds.com', 'https://www.tulipds.com', 'https://app.tulipds.com', 'https://donor.tulipds.com', 'https://verify.tulipds.com', 'https://app.sealayer.io', 'https://verify.sealayer.io', 'https://ngo.sealayer.io', 'https://donor.sealayer.io'], credentials: true }))
+app.use(cors({ origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:4000', 'https://tulipds.com', 'https://www.tulipds.com', 'https://app.tulipds.com', 'https://donor.tulipds.com', 'https://verify.tulipds.com', 'https://app.sealayer.io', 'https://verify.sealayer.io', 'https://ngo.sealayer.io', 'https://donor.sealayer.io'], credentials: true }))
 app.set('trust proxy', 1)
 
 const { apiLimiter, authLimiter, uploadLimiter, ocrLimiter, strictLimiter, verifyLimiter } = require('./middleware/rateLimit')
@@ -71,6 +71,7 @@ const budgetRoutes       = require('./routes/budgetRoutes')
 const adminRoutes        = require('./routes/adminRoutes')
 const ocrPublicRoutes    = require('./routes/ocrPublicRoutes')
 const internalSealRoutes = require('./routes/internalSealRoutes')
+const donorPortalRoutes  = require('./routes/donorPortalRoutes')
 
 app.get('/', (req, res) => res.send('Tulip API Running'))
 
@@ -127,6 +128,7 @@ app.use('/api/public/seal',  apiLimiter,  sealPublicRoutes)
 app.use('/api/public/ocr',   apiLimiter, ocrLimiter, ocrPublicRoutes)
 app.use('/api/external',     apiLimiter,  externalAuth, externalApiRoutes)
 app.use('/api/internal/seals', apiLimiter,  internalSealRoutes)
+app.use('/api/donor',          apiLimiter,  donorPortalRoutes)
 
 app.use((err, req, res, next) => {
   logger.error('Unhandled error', { error: err.message, path: req.path })

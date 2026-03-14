@@ -34,6 +34,7 @@ const navItems = [
   { key: 'bundleVerify', href: '/dashboard/api-portal/bundle', icon: FolderSearch },
   { key: 'developerApi', href: '/dashboard/api-portal/developer', icon: Code2 },
   { key: 'embed',       href: '/dashboard/embed',     icon: Code2 },
+  { key: 'donors',     href: '/dashboard/settings/donors', icon: Users, fallback: 'Donors' },
   { key: 'settings',   href: '/dashboard/settings',  icon: Settings },
 ]
 

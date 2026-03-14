@@ -75,6 +75,8 @@ const navItems = [
   { key: 'developerApi', href: '/dashboard/api-portal/developer', icon: Code2 },
   { key: 'embed',       href: '/dashboard/embed',     icon: Code2 },
   { key: 'donorFlags', href: '/dashboard/donor-flags', icon: Flag, fallback: 'Donor Flags' },
+  { key: 'deliverables', href: '/dashboard/deliverables', icon: FileCheck, fallback: 'Deliverables' },
+  { key: 'impact', href: '/dashboard/impact', icon: BarChart3, fallback: 'Impact' },
   { key: 'donors',     href: '/dashboard/settings/donors', icon: Users, fallback: 'Donors' },
   { key: 'settings',   href: '/dashboard/settings',  icon: Settings },
 ]
@@ -84,6 +86,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [mobileOpen, setMobileOpen] = useState(false)
   const [pendingCount, setPendingCount] = useState(0)
   const [donorFlagCount, setDonorFlagCount] = useState(0)
+  const [deliverableCount, setDeliverableCount] = useState(0)
   const [isSuperadmin, setIsSuperadmin] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [notifications, setNotifications] = useState<AuditEntry[]>([])
@@ -118,6 +121,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
     fetchFlagCount()
     const interval = setInterval(fetchFlagCount, 60000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Fetch deliverable count on mount and every 60 seconds
+  useEffect(() => {
+    const fetchDeliverableCount = () => {
+      apiGet('/api/ngo/deliverables/count')
+        .then(r => r.ok ? r.json() : { total: 0 })
+        .then(d => setDeliverableCount((d.open || 0) + (d.rework || 0) + (d.overdue || 0)))
+        .catch(() => {})
+    }
+    fetchDeliverableCount()
+    const interval = setInterval(fetchDeliverableCount, 60000)
     return () => clearInterval(interval)
   }, [])
 
@@ -246,6 +262,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           const label = item.fallback ? t(item.key, { defaultValue: item.fallback }) : t(item.key)
           const isWorkflow = href === '/dashboard/workflow'
           const isDonorFlags = item.key === 'donorFlags'
+          const isDeliverables = item.key === 'deliverables'
           const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
           return (
             <Link key={href} href={href} className={clsx(
@@ -268,7 +285,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {isDonorFlags && donorFlagCount > 0 && collapsed && !mobileOpen && (
                 <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500" />
               )}
-              {active && (!collapsed || mobileOpen) && !isWorkflow && !(isDonorFlags && donorFlagCount > 0) && (
+              {isDeliverables && deliverableCount > 0 && (!collapsed || mobileOpen) && (
+                <span className="ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none" style={{ background: 'rgba(245,158,11,0.2)', color: '#F59E0B' }}>{deliverableCount}</span>
+              )}
+              {isDeliverables && deliverableCount > 0 && collapsed && !mobileOpen && (
+                <div className="absolute top-1 right-1 w-2 h-2 rounded-full" style={{ background: '#F59E0B' }} />
+              )}
+              {active && (!collapsed || mobileOpen) && !isWorkflow && !(isDonorFlags && donorFlagCount > 0) && !(isDeliverables && deliverableCount > 0) && (
                 <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#f6c453]" />
               )}
               {active && (!collapsed || mobileOpen) && isWorkflow && pendingCount === 0 && (

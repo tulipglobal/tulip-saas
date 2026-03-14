@@ -41,7 +41,7 @@ const JWT_EXPIRES = '7d'
 })()
 
 // ── Completion % helper ──────────────────────────────────────
-function calcCompletion(project, totalSpent, totalFunded) {
+function calcCompletion(project, totalSpent, totalFunded, deliverableStats, milestoneStats) {
   const now = new Date()
   const startDate = project.startDate ? new Date(project.startDate) : null
   const endDate = project.endDate ? new Date(project.endDate) : null
@@ -65,20 +65,36 @@ function calcCompletion(project, totalSpent, totalFunded) {
     financialPercent = Math.min(Math.max((totalSpent / totalFunded) * 100, 0), 100)
   }
 
-  // Combined
+  // Deliverables % (CONFIRMED / total)
+  let deliverablesPct = null
+  if (deliverableStats && deliverableStats.total > 0) {
+    deliverablesPct = Math.min(Math.max((deliverableStats.confirmed / deliverableStats.total) * 100, 0), 100)
+  }
+
+  // Impact milestones % (ACHIEVED / total)
+  let impactPct = null
+  if (milestoneStats && milestoneStats.total > 0) {
+    impactPct = Math.min(Math.max((milestoneStats.achieved / milestoneStats.total) * 100, 0), 100)
+  }
+
+  // Combined — average only the components that have data
+  const components = []
+  if (timePercent !== null) components.push(timePercent)
+  if (financialPercent !== null) components.push(financialPercent)
+  if (deliverablesPct !== null) components.push(deliverablesPct)
+  if (impactPct !== null) components.push(impactPct)
+
   let completionPercent = 0
-  if (timePercent !== null && financialPercent !== null) {
-    completionPercent = (timePercent + financialPercent) / 2
-  } else if (timePercent !== null) {
-    completionPercent = timePercent
-  } else if (financialPercent !== null) {
-    completionPercent = financialPercent
+  if (components.length > 0) {
+    completionPercent = components.reduce((sum, v) => sum + v, 0) / components.length
   }
   completionPercent = Math.min(Math.max(completionPercent, 0), 100)
 
   return {
     timePercent: timePercent !== null ? Math.round(timePercent * 10) / 10 : null,
     financialPercent: financialPercent !== null ? Math.round(financialPercent * 10) / 10 : null,
+    deliverablesPct: deliverablesPct !== null ? Math.round(deliverablesPct * 10) / 10 : null,
+    impactPct: impactPct !== null ? Math.round(impactPct * 10) / 10 : null,
     completionPercent: Math.round(completionPercent * 10) / 10,
     isOverdue,
     isClosed,
@@ -640,7 +656,22 @@ router.get('/projects', donorAuth, async (req, res) => {
       const realBudget = budgetMap[p.id] || p.budget || 0
       const realFunded = fundingMap[p.id] || 0
       const spent = expenseMap[p.id]?.spent || 0
-      const completion = calcCompletion(p, spent, realFunded)
+      // Fetch deliverable + milestone stats for completion calc
+      let deliverableStats = null
+      let milestoneStats = null
+      try {
+        const drCounts = await prisma.$queryRawUnsafe(
+          `SELECT COUNT(*)::int as total, COUNT(CASE WHEN status = 'CONFIRMED' THEN 1 END)::int as confirmed FROM "DeliverableRequest" WHERE "projectId" = $1`, p.id
+        )
+        if (drCounts[0]?.total > 0) deliverableStats = drCounts[0]
+      } catch {}
+      try {
+        const imCounts = await prisma.$queryRawUnsafe(
+          `SELECT COUNT(*)::int as total, COUNT(CASE WHEN status = 'ACHIEVED' THEN 1 END)::int as achieved FROM "ImpactMilestone" WHERE "projectId" = $1`, p.id
+        )
+        if (imCounts[0]?.total > 0) milestoneStats = imCounts[0]
+      } catch {}
+      const completion = calcCompletion(p, spent, realFunded, deliverableStats, milestoneStats)
       ngoMap[p.tenantId].projects.push({
         id: p.id,
         name: p.name,
@@ -781,7 +812,22 @@ router.get('/projects/:projectId', donorAuth, async (req, res) => {
       anchorTxHash: e.receiptSealId ? (sealMap[e.receiptSealId]?.anchorTxHash || null) : null,
     }))
 
-    const completion = calcCompletion(project, totalSpent, totalFunded)
+    // Fetch deliverable + milestone stats for completion calc
+    let deliverableStats = null
+    let milestoneStats = null
+    try {
+      const drCounts = await prisma.$queryRawUnsafe(
+        `SELECT COUNT(*)::int as total, COUNT(CASE WHEN status = 'CONFIRMED' THEN 1 END)::int as confirmed FROM "DeliverableRequest" WHERE "projectId" = $1`, projectId
+      )
+      if (drCounts[0]?.total > 0) deliverableStats = drCounts[0]
+    } catch {}
+    try {
+      const imCounts = await prisma.$queryRawUnsafe(
+        `SELECT COUNT(*)::int as total, COUNT(CASE WHEN status = 'ACHIEVED' THEN 1 END)::int as achieved FROM "ImpactMilestone" WHERE "projectId" = $1`, projectId
+      )
+      if (imCounts[0]?.total > 0) milestoneStats = imCounts[0]
+    } catch {}
+    const completion = calcCompletion(project, totalSpent, totalFunded, deliverableStats, milestoneStats)
 
     // Duplicate document hash detection
     let duplicateGroups = []
@@ -2235,6 +2281,296 @@ router.put('/notifications/preferences', donorAuth, async (req, res) => {
   } catch (err) {
     console.error('Update preferences error:', err)
     res.status(500).json({ error: 'Failed to update preferences' })
+  }
+})
+
+// ── Sprint 4: Deliverable Request Routes ──────────────────────
+
+// POST /api/donor/projects/:projectId/requests
+router.post('/projects/:projectId/requests', donorAuth, async (req, res) => {
+  try {
+    const { donorOrgId, donorMemberId } = req.donor
+    const { projectId } = req.params
+    const { title, description, requestType, deadline } = req.body
+    if (!title || !deadline) return res.status(400).json({ error: 'Title and deadline required' })
+
+    // Verify donor access
+    const access = await prisma.$queryRawUnsafe(
+      `SELECT id FROM "DonorProjectAccess" WHERE "donorOrgId" = $1 AND "projectId" = $2 AND "revokedAt" IS NULL`,
+      donorOrgId, projectId
+    )
+    if (!access.length) return res.status(403).json({ error: 'No access to this project' })
+
+    const project = await prisma.project.findUnique({ where: { id: projectId }, select: { name: true, tenantId: true } })
+    if (!project) return res.status(404).json({ error: 'Project not found' })
+
+    const request = await prisma.$queryRawUnsafe(
+      `INSERT INTO "DeliverableRequest" ("projectId", "tenantId", "donorOrgId", "donorMemberId", title, description, "requestType", deadline)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      projectId, project.tenantId, donorOrgId, donorMemberId, title, description || null, requestType || 'REPORT', new Date(deadline)
+    )
+
+    // Email NGO admins (non-blocking)
+    const orgs = await prisma.$queryRawUnsafe(`SELECT name FROM "DonorOrganisation" WHERE id = $1`, donorOrgId)
+    const orgName = orgs[0]?.name || 'A donor'
+    const deadlineFormatted = new Date(deadline).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+    ;(async () => {
+      try {
+        const admins = await prisma.user.findMany({ where: { tenantId: project.tenantId }, select: { email: true } })
+        for (const admin of admins.slice(0, 5)) {
+          await sendEmail({
+            to: admin.email,
+            subject: `New Deliverable Request — ${project.name}`,
+            text: `${orgName} has raised a new deliverable request on ${project.name}:\n\nTitle: ${title}\nDescription: ${description || '—'}\nDeadline: ${deadlineFormatted}\n\nPlease log in to submit: https://app.sealayer.io`,
+            html: `<div style="font-family:'Segoe UI',sans-serif;max-width:560px;margin:0 auto;padding:30px;background:#fff;border-radius:12px"><h1 style="color:#183a1d;font-size:20px">New Deliverable Request</h1><p style="color:#183a1d">${orgName} has raised a new deliverable request on <strong>${project.name}</strong>:</p><div style="background:#fefbe9;border:1px solid #c8d6c0;border-radius:8px;padding:16px;margin:16px 0"><p style="margin:0"><strong>${title}</strong></p>${description ? `<p style="margin:8px 0 0;color:#666">${description}</p>` : ''}<p style="margin:8px 0 0;color:#92400E">Deadline: ${deadlineFormatted}</p></div><div style="text-align:center;margin:24px 0"><a href="https://app.sealayer.io" style="display:inline-block;padding:12px 28px;background:#183a1d;color:#fefbe9;text-decoration:none;border-radius:8px;font-weight:600">Submit Deliverable</a></div></div>`
+          }).catch(() => {})
+        }
+      } catch (err) { console.error('Deliverable request email error:', err.message) }
+    })()
+
+    res.json({ request: request[0] })
+  } catch (err) {
+    console.error('Create deliverable request error:', err)
+    res.status(500).json({ error: 'Failed to create request' })
+  }
+})
+
+// GET /api/donor/projects/:projectId/requests
+router.get('/projects/:projectId/requests', donorAuth, async (req, res) => {
+  try {
+    const { donorOrgId } = req.donor
+    const { projectId } = req.params
+
+    // Verify donor access
+    const access = await prisma.$queryRawUnsafe(
+      `SELECT id FROM "DonorProjectAccess" WHERE "donorOrgId" = $1 AND "projectId" = $2 AND "revokedAt" IS NULL`,
+      donorOrgId, projectId
+    )
+    if (!access.length) return res.status(403).json({ error: 'No access to this project' })
+
+    const requests = await prisma.$queryRawUnsafe(
+      `SELECT dr.*, do.name as "donorOrgName"
+       FROM "DeliverableRequest" dr
+       LEFT JOIN "DonorOrganisation" do ON do.id = dr."donorOrgId"
+       WHERE dr."projectId" = $1 AND dr."donorOrgId" = $2
+       ORDER BY dr."createdAt" DESC`,
+      projectId, donorOrgId
+    )
+
+    // Attach submissions for each request
+    for (const req_ of requests) {
+      const submissions = await prisma.$queryRawUnsafe(
+        `SELECT * FROM "DeliverableSubmission" WHERE "requestId" = $1 ORDER BY "createdAt" DESC`,
+        req_.id
+      )
+      req_.submissions = submissions
+    }
+
+    res.json({ requests })
+  } catch (err) {
+    console.error('Get deliverable requests error:', err)
+    res.status(500).json({ error: 'Failed to fetch requests' })
+  }
+})
+
+// POST /api/donor/requests/:requestId/confirm
+router.post('/requests/:requestId/confirm', donorAuth, async (req, res) => {
+  try {
+    const { donorOrgId, donorMemberId } = req.donor
+    const { requestId } = req.params
+
+    // Get request and verify ownership
+    const requests = await prisma.$queryRawUnsafe(
+      `SELECT * FROM "DeliverableRequest" WHERE id = $1 AND "donorOrgId" = $2`,
+      requestId, donorOrgId
+    )
+    if (!requests.length) return res.status(404).json({ error: 'Request not found' })
+    const request = requests[0]
+
+    if (!['SUBMITTED', 'RESUBMITTED'].includes(request.status)) {
+      return res.status(400).json({ error: 'Request must be in SUBMITTED or RESUBMITTED status to confirm' })
+    }
+
+    await prisma.$executeRawUnsafe(
+      `UPDATE "DeliverableRequest" SET status = 'CONFIRMED', "updatedAt" = NOW() WHERE id = $1`,
+      requestId
+    )
+
+    const project = await prisma.project.findUnique({ where: { id: request.projectId }, select: { name: true, tenantId: true } })
+
+    // Email NGO admins (non-blocking)
+    ;(async () => {
+      try {
+        if (!project) return
+        const admins = await prisma.user.findMany({ where: { tenantId: project.tenantId }, select: { email: true } })
+        const orgs = await prisma.$queryRawUnsafe(`SELECT name FROM "DonorOrganisation" WHERE id = $1`, donorOrgId)
+        const orgName = orgs[0]?.name || 'A donor'
+        for (const admin of admins.slice(0, 5)) {
+          await sendEmail({
+            to: admin.email,
+            subject: `Deliverable Confirmed — ${project.name}`,
+            text: `${orgName} has confirmed the deliverable "${request.title}" on ${project.name}.\n\nNo further action is needed for this request.`,
+            html: `<div style="font-family:'Segoe UI',sans-serif;max-width:560px;margin:0 auto;padding:30px;background:#fff;border-radius:12px"><h1 style="color:#183a1d;font-size:20px">Deliverable Confirmed</h1><p style="color:#183a1d">${orgName} has confirmed the deliverable <strong>"${request.title}"</strong> on <strong>${project.name}</strong>.</p><div style="background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;padding:16px;margin:16px 0"><p style="margin:0;color:#065f46">No further action is needed for this request.</p></div></div>`
+          }).catch(() => {})
+        }
+      } catch (err) { console.error('Deliverable confirm email error:', err.message) }
+    })()
+
+    const updated = await prisma.$queryRawUnsafe(`SELECT * FROM "DeliverableRequest" WHERE id = $1`, requestId)
+    res.json({ request: updated[0] })
+  } catch (err) {
+    console.error('Confirm deliverable error:', err)
+    res.status(500).json({ error: 'Failed to confirm request' })
+  }
+})
+
+// POST /api/donor/requests/:requestId/rework
+router.post('/requests/:requestId/rework', donorAuth, async (req, res) => {
+  try {
+    const { donorOrgId, donorMemberId } = req.donor
+    const { requestId } = req.params
+    const { note } = req.body
+    if (!note) return res.status(400).json({ error: 'Rework note is required' })
+
+    // Get request and verify ownership
+    const requests = await prisma.$queryRawUnsafe(
+      `SELECT * FROM "DeliverableRequest" WHERE id = $1 AND "donorOrgId" = $2`,
+      requestId, donorOrgId
+    )
+    if (!requests.length) return res.status(404).json({ error: 'Request not found' })
+    const request = requests[0]
+
+    if (!['SUBMITTED', 'RESUBMITTED'].includes(request.status)) {
+      return res.status(400).json({ error: 'Request must be in SUBMITTED or RESUBMITTED status to request rework' })
+    }
+
+    await prisma.$executeRawUnsafe(
+      `UPDATE "DeliverableRequest" SET status = 'REWORK', "reworkNote" = $2, "updatedAt" = NOW() WHERE id = $1`,
+      requestId, note
+    )
+
+    const project = await prisma.project.findUnique({ where: { id: request.projectId }, select: { name: true, tenantId: true } })
+
+    // Email NGO admins (non-blocking)
+    ;(async () => {
+      try {
+        if (!project) return
+        const admins = await prisma.user.findMany({ where: { tenantId: project.tenantId }, select: { email: true } })
+        const orgs = await prisma.$queryRawUnsafe(`SELECT name FROM "DonorOrganisation" WHERE id = $1`, donorOrgId)
+        const orgName = orgs[0]?.name || 'A donor'
+        for (const admin of admins.slice(0, 5)) {
+          await sendEmail({
+            to: admin.email,
+            subject: `Rework Requested — ${project.name}`,
+            text: `${orgName} has requested rework on the deliverable "${request.title}" for ${project.name}.\n\nNote: ${note}\n\nPlease log in to resubmit: https://app.sealayer.io`,
+            html: `<div style="font-family:'Segoe UI',sans-serif;max-width:560px;margin:0 auto;padding:30px;background:#fff;border-radius:12px"><h1 style="color:#183a1d;font-size:20px">Rework Requested</h1><p style="color:#183a1d">${orgName} has requested rework on <strong>"${request.title}"</strong> for <strong>${project.name}</strong>.</p><div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:16px;margin:16px 0"><p style="margin:0;color:#92400E"><strong>Feedback:</strong> ${note}</p></div><div style="text-align:center;margin:24px 0"><a href="https://app.sealayer.io" style="display:inline-block;padding:12px 28px;background:#183a1d;color:#fefbe9;text-decoration:none;border-radius:8px;font-weight:600">Resubmit Deliverable</a></div></div>`
+          }).catch(() => {})
+        }
+      } catch (err) { console.error('Deliverable rework email error:', err.message) }
+    })()
+
+    const updated = await prisma.$queryRawUnsafe(`SELECT * FROM "DeliverableRequest" WHERE id = $1`, requestId)
+    res.json({ request: updated[0] })
+  } catch (err) {
+    console.error('Rework deliverable error:', err)
+    res.status(500).json({ error: 'Failed to request rework' })
+  }
+})
+
+// GET /api/donor/projects/:projectId/milestones
+router.get('/projects/:projectId/milestones', donorAuth, async (req, res) => {
+  try {
+    const { donorOrgId } = req.donor
+    const { projectId } = req.params
+
+    // Verify donor access
+    const access = await prisma.$queryRawUnsafe(
+      `SELECT id FROM "DonorProjectAccess" WHERE "donorOrgId" = $1 AND "projectId" = $2 AND "revokedAt" IS NULL`,
+      donorOrgId, projectId
+    )
+    if (!access.length) return res.status(403).json({ error: 'No access to this project' })
+
+    const milestones = await prisma.$queryRawUnsafe(
+      `SELECT im.*,
+              (SELECT row_to_json(latest) FROM (
+                SELECT imu.id, imu."currentValue", imu.note, imu."evidenceIds", imu."createdAt"
+                FROM "ImpactMilestoneUpdate" imu
+                WHERE imu."milestoneId" = im.id
+                ORDER BY imu."createdAt" DESC LIMIT 1
+              ) latest) as "latestUpdate"
+       FROM "ImpactMilestone" im
+       WHERE im."projectId" = $1
+       ORDER BY im."createdAt" ASC`,
+      projectId
+    )
+
+    // Summary counts
+    const total = milestones.length
+    const achieved = milestones.filter(m => m.status === 'ACHIEVED').length
+    const inProgress = milestones.filter(m => m.status === 'IN_PROGRESS').length
+    const notStarted = milestones.filter(m => m.status === 'NOT_STARTED').length
+
+    res.json({
+      milestones,
+      summary: { total, achieved, inProgress, notStarted, percentAchieved: total > 0 ? Math.round((achieved / total) * 100) : 0 }
+    })
+  } catch (err) {
+    console.error('Get milestones error:', err)
+    res.status(500).json({ error: 'Failed to fetch milestones' })
+  }
+})
+
+// GET /api/donor/projects/:projectId/audit
+router.get('/projects/:projectId/audit', donorAuth, async (req, res) => {
+  try {
+    const { donorOrgId } = req.donor
+    const { projectId } = req.params
+    const limit = Math.min(parseInt(req.query.limit) || 50, 200)
+    const offset = parseInt(req.query.offset) || 0
+
+    // Verify access
+    const access = await prisma.$queryRawUnsafe(
+      `SELECT id FROM "DonorProjectAccess" WHERE "donorOrgId" = $1 AND "projectId" = $2 AND "revokedAt" IS NULL`,
+      donorOrgId, projectId
+    )
+    if (!access.length) return res.status(403).json({ error: 'No access' })
+
+    const project = await prisma.project.findUnique({ where: { id: projectId }, select: { tenantId: true } })
+    if (!project) return res.status(404).json({ error: 'Project not found' })
+
+    const entries = await prisma.$queryRawUnsafe(
+      `SELECT al.id, al.action, al."entityType", al."entityId", al.hash, al."prevHash",
+              al."createdAt", al."userId", u.name as "userName"
+       FROM "AuditLog" al
+       LEFT JOIN "User" u ON al."userId" = u.id
+       WHERE al."tenantId" = $1
+       ORDER BY al."createdAt" DESC
+       LIMIT $2 OFFSET $3`,
+      project.tenantId, limit, offset
+    )
+
+    // Enrich expense entries
+    for (const entry of entries) {
+      if (entry.entityType === 'Expense' && entry.entityId) {
+        try {
+          const expense = await prisma.expense.findUnique({
+            where: { id: entry.entityId },
+            select: { vendor: true, description: true, amount: true, currency: true }
+          })
+          if (expense) entry.expense = { vendor: expense.vendor || expense.description, amount: expense.amount, currency: expense.currency }
+        } catch {}
+      }
+    }
+
+    const countResult = await prisma.$queryRawUnsafe(
+      `SELECT COUNT(*)::int as total FROM "AuditLog" WHERE "tenantId" = $1`,
+      project.tenantId
+    )
+
+    res.json({ entries, total: countResult[0]?.total || 0 })
+  } catch (err) {
+    console.error('Donor audit trail error:', err)
+    res.status(500).json({ error: 'Failed to fetch audit trail' })
   }
 })
 

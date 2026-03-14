@@ -26,7 +26,9 @@
     "embed": "Incorpora",
     "searchPlaceholder": "Cerca progetti, documenti...",
     "donors": "Donatori",
-    "donorFlags": "Segnalazioni donatori"
+    "donorFlags": "Segnalazioni donatori",
+    "deliverables": "Consegnabili",
+    "impact": "Impatto"
   },
   "common": {
     "save": "Salva",

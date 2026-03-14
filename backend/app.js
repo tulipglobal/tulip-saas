@@ -73,6 +73,8 @@ const ocrPublicRoutes    = require('./routes/ocrPublicRoutes')
 const internalSealRoutes = require('./routes/internalSealRoutes')
 const donorPortalRoutes  = require('./routes/donorPortalRoutes')
 const ngoChallengeRoutes = require('./routes/ngoChallengeRoutes')
+const ngoDeliverableRoutes = require('./routes/ngoDeliverableRoutes')
+const ngoMilestoneRoutes = require('./routes/ngoMilestoneRoutes')
 
 app.get('/', (req, res) => res.send('Tulip API Running'))
 
@@ -131,6 +133,8 @@ app.use('/api/external',     apiLimiter,  externalAuth, externalApiRoutes)
 app.use('/api/internal/seals', apiLimiter,  internalSealRoutes)
 app.use('/api/donor',          apiLimiter,  donorPortalRoutes)
 app.use('/api/ngo/donor-challenges', apiLimiter, ngoChallengeRoutes)
+app.use('/api/ngo/deliverables', apiLimiter, ngoDeliverableRoutes)
+app.use('/api/ngo/milestones', apiLimiter, ngoMilestoneRoutes)
 
 app.use((err, req, res, next) => {
   logger.error('Unhandled error', { error: err.message, path: req.path })

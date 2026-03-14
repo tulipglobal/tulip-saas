@@ -17,6 +17,7 @@ const { retryFailedAnchors }   = require('./anchorRetryService')
 const { sendMonthlyReports }  = require('../jobs/monthlyReport')
 const prisma  = require('../lib/client')
 const { notifyDonorOrgsForProject } = require('./donorNotificationService')
+const { sendEmail } = require('./emailService')
 const logger  = require('../lib/logger')
 
 function startAnchorScheduler() {
@@ -152,6 +153,85 @@ function startAnchorScheduler() {
     }
   })
 
+  // Deliverable request reminders — daily at 08:00 UTC
+  cron.schedule('0 8 * * *', async () => {
+    logger.info('[deliverable-reminders] Checking for upcoming deadlines...')
+    try {
+      // Find OPEN or REWORK requests with upcoming or past deadlines
+      const requests = await prisma.$queryRawUnsafe(`
+        SELECT dr.id, dr.title, dr.deadline, dr.status, dr."projectId", dr."tenantId", dr."donorOrgId",
+               p.name as "projectName"
+        FROM "DeliverableRequest" dr
+        JOIN "Project" p ON p.id = dr."projectId"
+        WHERE dr.status IN ('OPEN', 'REWORK')
+          AND dr.deadline IS NOT NULL
+      `)
+
+      let reminded = 0
+      let overdueSet = 0
+
+      for (const req of requests) {
+        const now = new Date()
+        const deadline = new Date(req.deadline)
+        const diffMs = deadline.getTime() - now.getTime()
+        const daysUntil = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+
+        // Set OVERDUE if past deadline
+        if (daysUntil < 0) {
+          await prisma.$executeRawUnsafe(
+            `UPDATE "DeliverableRequest" SET status = 'OVERDUE', "updatedAt" = NOW() WHERE id = $1 AND status IN ('OPEN', 'REWORK')`,
+            req.id
+          )
+          overdueSet++
+
+          // Notify donor that request is overdue
+          ;(async () => {
+            try {
+              await notifyDonorOrgsForProject(
+                req.projectId,
+                'deliverable.overdue',
+                `Deliverable overdue — ${req.title}`,
+                `The deliverable "${req.title}" on ${req.projectName} is now past its deadline. The NGO has not yet submitted.`,
+                'deliverable',
+                req.id
+              )
+            } catch (err) { logger.error('[deliverable-reminders] Overdue notification error', { error: err.message }) }
+          })()
+
+          continue
+        }
+
+        // Send reminders at 14, 7, 3 days before deadline
+        if ([14, 7, 3].includes(daysUntil)) {
+          try {
+            const admins = await prisma.user.findMany({
+              where: { tenantId: req.tenantId },
+              select: { email: true }
+            })
+            const deadlineFormatted = deadline.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+            const urgency = daysUntil <= 3 ? 'Urgent: ' : ''
+
+            for (const admin of admins.slice(0, 5)) {
+              await sendEmail({
+                to: admin.email,
+                subject: `${urgency}Deliverable Due in ${daysUntil} Days — ${req.projectName}`,
+                text: `Reminder: The deliverable "${req.title}" on ${req.projectName} is due on ${deadlineFormatted} (${daysUntil} days from now).\n\nPlease log in to submit: https://app.sealayer.io`,
+                html: `<div style="font-family:'Segoe UI',sans-serif;max-width:560px;margin:0 auto;padding:30px;background:#fff;border-radius:12px"><h1 style="color:#183a1d;font-size:20px">${urgency}Deliverable Reminder</h1><p style="color:#183a1d">The deliverable <strong>"${req.title}"</strong> on <strong>${req.projectName}</strong> is due on <strong>${deadlineFormatted}</strong> (${daysUntil} day${daysUntil === 1 ? '' : 's'} from now).</p><div style="background:${daysUntil <= 3 ? '#fef2f2;border:1px solid #fca5a5' : '#fefbe9;border:1px solid #c8d6c0'};border-radius:8px;padding:16px;margin:16px 0"><p style="margin:0;color:${daysUntil <= 3 ? '#991b1b' : '#92400E'}">Status: ${req.status}</p></div><div style="text-align:center;margin:24px 0"><a href="https://app.sealayer.io" style="display:inline-block;padding:12px 28px;background:#183a1d;color:#fefbe9;text-decoration:none;border-radius:8px;font-weight:600">Submit Deliverable</a></div></div>`
+              }).catch(() => {})
+            }
+            reminded++
+          } catch (err) { logger.error('[deliverable-reminders] Email error', { error: err.message }) }
+        }
+      }
+
+      if (reminded > 0 || overdueSet > 0) {
+        logger.info(`[deliverable-reminders] Complete — ${reminded} reminders sent, ${overdueSet} set to overdue`)
+      }
+    } catch (err) {
+      logger.error('[deliverable-reminders] Failed', { error: err.message })
+    }
+  })
+
   logger.info('Blockchain anchor scheduler started (every 5 minutes)')
   logger.info('Anchor retry worker started (every 5 minutes)')
   logger.info('Webhook retry worker started (every 5 minutes)')
@@ -162,6 +242,7 @@ function startAnchorScheduler() {
   logger.info('Engagement email sequences scheduled (daily 5am UTC / 9am UAE)')
   logger.info('Monthly donor report scheduled (1st of month, 2am UTC)')
   logger.info('Donor document expiry notifications scheduled (daily 2am UTC)')
+  logger.info('Deliverable request reminders scheduled (daily 8am UTC)')
 }
 
 module.exports = { startAnchorScheduler }

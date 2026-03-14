@@ -26,7 +26,9 @@
     "embed": "Incrustar",
     "searchPlaceholder": "Buscar proyectos, documentos...",
     "donors": "Donantes",
-    "donorFlags": "Alertas de donantes"
+    "donorFlags": "Alertas de donantes",
+    "deliverables": "Entregables",
+    "impact": "Impacto"
   },
   "common": {
     "save": "Guardar",

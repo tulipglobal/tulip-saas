@@ -2207,8 +2207,9 @@ router.get('/notifications', donorAuth, async (req, res) => {
       ...params, limit, offset
     )
 
-    // Enrich with project name
+    // Enrich with project name + map isRead → read for frontend
     for (const n of notifications) {
+      n.read = n.isRead
       if (n.projectId) {
         try {
           const project = await prisma.project.findUnique({ where: { id: n.projectId }, select: { name: true } })
@@ -2271,6 +2272,35 @@ router.post('/notifications/mark-read', donorAuth, async (req, res) => {
     }
 
     res.json({ marked })
+  } catch (err) {
+    console.error('Mark read error:', err)
+    res.status(500).json({ error: 'Failed to mark as read' })
+  }
+})
+
+// POST /api/donor/notifications/mark-all-read
+router.post('/notifications/mark-all-read', donorAuth, async (req, res) => {
+  try {
+    const { donorMemberId } = req.donor
+    const result = await prisma.$queryRawUnsafe(
+      `UPDATE "DonorNotification" SET "isRead" = true, "readAt" = NOW() WHERE "donorMemberId" = $1 AND "isRead" = false RETURNING id`, donorMemberId
+    )
+    res.json({ marked: result.length })
+  } catch (err) {
+    console.error('Mark all read error:', err)
+    res.status(500).json({ error: 'Failed to mark all as read' })
+  }
+})
+
+// POST /api/donor/notifications/:id/mark-read
+router.post('/notifications/:id/mark-read', donorAuth, async (req, res) => {
+  try {
+    const { donorMemberId } = req.donor
+    const result = await prisma.$queryRawUnsafe(
+      `UPDATE "DonorNotification" SET "isRead" = true, "readAt" = NOW() WHERE id = $1 AND "donorMemberId" = $2 AND "isRead" = false RETURNING id`,
+      req.params.id, donorMemberId
+    )
+    res.json({ marked: result.length })
   } catch (err) {
     console.error('Mark read error:', err)
     res.status(500).json({ error: 'Failed to mark as read' })
@@ -2549,12 +2579,22 @@ router.get('/projects/:projectId/milestones', donorAuth, async (req, res) => {
                 FROM "ImpactMilestoneUpdate" imu
                 WHERE imu."milestoneId" = im.id
                 ORDER BY imu."reportedAt" DESC LIMIT 1
-              ) latest) as "latestUpdate"
+              ) latest) as "latestUpdate",
+              COALESCE((
+                SELECT json_agg(row_to_json(upd) ORDER BY upd."reportedAt" ASC)
+                FROM (
+                  SELECT imu.id, imu."reportedAt" as date, imu."previousValue", imu."newValue", imu.note
+                  FROM "ImpactMilestoneUpdate" imu
+                  WHERE imu."milestoneId" = im.id
+                ) upd
+              ), '[]'::json) as updates
        FROM "ImpactMilestone" im
        WHERE im."projectId" = $1
        ORDER BY im."createdAt" ASC`,
       projectId
     )
+    // Add empty evidence array (evidence is tracked via document links, not a separate table yet)
+    for (const m of milestones) { if (!m.evidence) m.evidence = [] }
 
     // Summary counts
     const total = milestones.length

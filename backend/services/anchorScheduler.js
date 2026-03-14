@@ -232,6 +232,107 @@ function startAnchorScheduler() {
     }
   })
 
+  // Repayment schedule reminders — daily at 09:00 UTC
+  cron.schedule('0 9 * * *', async () => {
+    logger.info('[repayment-reminders] Checking repayment schedule...')
+    try {
+      const instalments = await prisma.$queryRawUnsafe(`
+        SELECT rs.*, ii."projectId", ii."donorOrgId", ii.currency,
+               p.name as "projectName"
+        FROM "RepaymentSchedule" rs
+        JOIN "ImpactInvestment" ii ON ii.id = rs."investmentId"
+        JOIN "Project" p ON p.id::text = ii."projectId"::text
+        WHERE rs.status NOT IN ('PAID')
+      `)
+
+      let reminders = 0, dueSets = 0, overdueSets = 0
+
+      for (const inst of instalments) {
+        const now = new Date()
+        const dueDate = new Date(inst.dueDate)
+        const diffMs = dueDate.getTime() - now.getTime()
+        const daysUntil = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+        const amount = `${inst.currency || 'USD'} ${Number(inst.totalDue || 0).toLocaleString()}`
+
+        // 7-day reminder
+        if (daysUntil === 7) {
+          try {
+            const { createNotification } = require('./donorNotificationService')
+            await createNotification({
+              donorOrgId: inst.donorOrgId,
+              alertType: 'repayment.due_soon',
+              title: `Repayment due in 7 days — ${inst.projectName}`,
+              body: `Instalment #${inst.instalmentNumber} of ${amount} on ${inst.projectName} is due on ${dueDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}.`,
+              entityType: 'repayment',
+              entityId: inst.id,
+              projectId: inst.projectId,
+            })
+            // Email donor members
+            const members = await prisma.$queryRawUnsafe(`SELECT email, name FROM "DonorMember" WHERE "donorOrgId" = $1`, inst.donorOrgId)
+            for (const m of members.slice(0, 10)) {
+              await sendEmail({
+                to: m.email,
+                subject: `Repayment Due in 7 Days — ${inst.projectName}`,
+                text: `Instalment #${inst.instalmentNumber} of ${amount} on ${inst.projectName} is due on ${dueDate.toLocaleDateString('en-GB')}.`,
+                html: `<div style="font-family:'Segoe UI',sans-serif;max-width:560px;margin:0 auto;padding:30px;background:#fff;border-radius:12px"><h1 style="color:#3C3489;font-size:20px">Repayment Reminder</h1><p style="color:#26215C">Instalment <strong>#${inst.instalmentNumber}</strong> of <strong>${amount}</strong> on <strong>${inst.projectName}</strong> is due in 7 days.</p><div style="text-align:center;margin:24px 0"><a href="https://donor.sealayer.io" style="display:inline-block;padding:12px 28px;background:#3C3489;color:#fff;text-decoration:none;border-radius:8px;font-weight:600">View Schedule</a></div></div>`
+              }).catch(() => {})
+            }
+            reminders++
+          } catch (err) { logger.error('[repayment-reminders] 7-day reminder error', { error: err.message }) }
+        }
+
+        // Due today — set status DUE
+        if (daysUntil === 0 && inst.status === 'UPCOMING') {
+          await prisma.$executeRawUnsafe(
+            `UPDATE "RepaymentSchedule" SET status = 'DUE', "updatedAt" = NOW() WHERE id = $1`, inst.id
+          )
+          dueSets++
+        }
+
+        // Overdue — past due date
+        if (daysUntil < 0 && !['PAID', 'PARTIAL'].includes(inst.status)) {
+          if (inst.status !== 'OVERDUE') {
+            await prisma.$executeRawUnsafe(
+              `UPDATE "RepaymentSchedule" SET status = 'OVERDUE', "updatedAt" = NOW() WHERE id = $1`, inst.id
+            )
+            overdueSets++
+          }
+
+          // Send missed repayment alert (dedup: only if status was not already OVERDUE)
+          if (inst.status !== 'OVERDUE') {
+            try {
+              const { createNotification } = require('./donorNotificationService')
+              await createNotification({
+                donorOrgId: inst.donorOrgId,
+                alertType: 'repayment.missed',
+                title: `Missed repayment — ${inst.projectName}`,
+                body: `Instalment #${inst.instalmentNumber} of ${amount} was due on ${dueDate.toLocaleDateString('en-GB')}. Days overdue: ${Math.abs(daysUntil)}.`,
+                entityType: 'repayment',
+                entityId: inst.id,
+                projectId: inst.projectId,
+              })
+              const members = await prisma.$queryRawUnsafe(`SELECT email FROM "DonorMember" WHERE "donorOrgId" = $1`, inst.donorOrgId)
+              for (const m of members.slice(0, 10)) {
+                await sendEmail({
+                  to: m.email,
+                  subject: `Missed Repayment — ${inst.projectName}`,
+                  text: `Instalment #${inst.instalmentNumber} of ${amount} was due on ${dueDate.toLocaleDateString('en-GB')}. Days overdue: ${Math.abs(daysUntil)}.`,
+                  html: `<div style="font-family:'Segoe UI',sans-serif;max-width:560px;margin:0 auto;padding:30px;background:#fff;border-radius:12px"><h1 style="color:#991B1B;font-size:20px">Missed Repayment</h1><p style="color:#26215C">Instalment <strong>#${inst.instalmentNumber}</strong> of <strong>${amount}</strong> on <strong>${inst.projectName}</strong> was due on ${dueDate.toLocaleDateString('en-GB')}.</p><p style="color:#991B1B;font-weight:600">Days overdue: ${Math.abs(daysUntil)}</p><div style="text-align:center;margin:24px 0"><a href="https://donor.sealayer.io" style="display:inline-block;padding:12px 28px;background:#991B1B;color:#fff;text-decoration:none;border-radius:8px;font-weight:600">View Schedule</a></div></div>`
+                }).catch(() => {})
+              }
+            } catch (err) { logger.error('[repayment-reminders] Missed alert error', { error: err.message }) }
+          }
+        }
+      }
+
+      if (reminders > 0 || dueSets > 0 || overdueSets > 0) {
+        logger.info(`[repayment-reminders] Complete — ${reminders} reminders, ${dueSets} set DUE, ${overdueSets} set OVERDUE`)
+      }
+    } catch (err) {
+      logger.error('[repayment-reminders] Failed', { error: err.message })
+    }
+  })
+
   logger.info('Blockchain anchor scheduler started (every 5 minutes)')
   logger.info('Anchor retry worker started (every 5 minutes)')
   logger.info('Webhook retry worker started (every 5 minutes)')
@@ -243,6 +344,7 @@ function startAnchorScheduler() {
   logger.info('Monthly donor report scheduled (1st of month, 2am UTC)')
   logger.info('Donor document expiry notifications scheduled (daily 2am UTC)')
   logger.info('Deliverable request reminders scheduled (daily 8am UTC)')
+  logger.info('Repayment schedule reminders scheduled (daily 9am UTC)')
 }
 
 module.exports = { startAnchorScheduler }

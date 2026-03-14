@@ -75,6 +75,8 @@ const donorPortalRoutes  = require('./routes/donorPortalRoutes')
 const ngoChallengeRoutes = require('./routes/ngoChallengeRoutes')
 const ngoDeliverableRoutes = require('./routes/ngoDeliverableRoutes')
 const ngoMilestoneRoutes = require('./routes/ngoMilestoneRoutes')
+const donorInvestmentRoutes = require('./routes/donorInvestmentRoutes')
+const ngoInvestmentRoutes = require('./routes/ngoInvestmentRoutes')
 
 app.get('/', (req, res) => res.send('Tulip API Running'))
 
@@ -135,6 +137,8 @@ app.use('/api/donor',          apiLimiter,  donorPortalRoutes)
 app.use('/api/ngo/donor-challenges', apiLimiter, ngoChallengeRoutes)
 app.use('/api/ngo/deliverables', apiLimiter, ngoDeliverableRoutes)
 app.use('/api/ngo/milestones', apiLimiter, ngoMilestoneRoutes)
+app.use('/api/donor', apiLimiter, donorInvestmentRoutes)
+app.use('/api/ngo/investments', apiLimiter, ngoInvestmentRoutes)
 
 app.use((err, req, res, next) => {
   logger.error('Unhandled error', { error: err.message, path: req.path })

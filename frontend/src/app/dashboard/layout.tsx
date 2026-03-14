@@ -8,7 +8,7 @@ import { useOfflineSync } from '@/hooks/useOfflineSync'
 import {
   LayoutDashboard, FolderOpen, FileCheck, Receipt, Banknote,
   Key, Webhook, BarChart3, Settings, LogOut, Code2, CreditCard, Users,
-  ChevronLeft, ChevronRight, Shield, Bell, Search, Menu, X, ListChecks, ScanLine, FolderSearch, Briefcase, ShieldCheck, Crown, Flag
+  ChevronLeft, ChevronRight, Shield, Bell, Search, Menu, X, ListChecks, ScanLine, FolderSearch, Briefcase, ShieldCheck, Crown, Flag, DollarSign, ArrowDownUp
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useTranslations } from 'next-intl'
@@ -77,6 +77,8 @@ const navItems = [
   { key: 'donorFlags', href: '/dashboard/donor-flags', icon: Flag, fallback: 'Donor Flags' },
   { key: 'deliverables', href: '/dashboard/deliverables', icon: FileCheck, fallback: 'Deliverables' },
   { key: 'impact', href: '/dashboard/impact', icon: BarChart3, fallback: 'Impact' },
+  { key: 'investments', href: '/dashboard/investments', icon: DollarSign, fallback: 'Investments' },
+  { key: 'drawdowns', href: '/dashboard/drawdowns', icon: ArrowDownUp, fallback: 'Drawdowns' },
   { key: 'donors',     href: '/dashboard/settings/donors', icon: Users, fallback: 'Donors' },
   { key: 'settings',   href: '/dashboard/settings',  icon: Settings },
 ]

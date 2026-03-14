@@ -2377,9 +2377,9 @@ router.get('/projects/:projectId/requests', donorAuth, async (req, res) => {
     if (!access.length) return res.status(403).json({ error: 'No access to this project' })
 
     const requests = await prisma.$queryRawUnsafe(
-      `SELECT dr.*, do.name as "donorOrgName"
+      `SELECT dr.*, dorg.name as "donorOrgName"
        FROM "DeliverableRequest" dr
-       LEFT JOIN "DonorOrganisation" do ON do.id = dr."donorOrgId"
+       LEFT JOIN "DonorOrganisation" dorg ON dorg.id = dr."donorOrgId"
        WHERE dr."projectId" = $1 AND dr."donorOrgId" = $2
        ORDER BY dr."createdAt" DESC`,
       projectId, donorOrgId
@@ -2585,17 +2585,30 @@ router.get('/projects/:projectId/audit', donorAuth, async (req, res) => {
       ...entityIds, project.tenantId, limit, offset
     )
 
-    // Enrich expense entries
+    // Map to frontend-expected shape and enrich expense entries
+    const mapped = []
     for (const entry of entries) {
+      const e = {
+        id: entry.id,
+        action: entry.action,
+        entity: entry.entityType,
+        entityId: entry.entityId,
+        hash: entry.dataHash || '',
+        prevHash: entry.prevHash || null,
+        anchorTxHash: entry.blockchainTx || null,
+        createdAt: entry.createdAt,
+        expenseId: entry.entityType === 'Expense' ? entry.entityId : null,
+      }
       if (entry.entityType === 'Expense' && entry.entityId) {
         try {
           const expense = await prisma.expense.findUnique({
             where: { id: entry.entityId },
             select: { vendor: true, description: true, amount: true, currency: true }
           })
-          if (expense) entry.expense = { vendor: expense.vendor || expense.description, amount: expense.amount, currency: expense.currency }
+          if (expense) e.expense = { vendor: expense.vendor || expense.description, amount: expense.amount, currency: expense.currency }
         } catch {}
       }
+      mapped.push(e)
     }
 
     const countResult = await prisma.$queryRawUnsafe(
@@ -2603,7 +2616,7 @@ router.get('/projects/:projectId/audit', donorAuth, async (req, res) => {
       ...entityIds, project.tenantId
     )
 
-    res.json({ entries, total: countResult[0]?.total || 0 })
+    res.json({ entries: mapped, total: countResult[0]?.total || 0, hasMore: (offset + limit) < (countResult[0]?.total || 0) })
   } catch (err) {
     console.error('Donor audit trail error:', err)
     res.status(500).json({ error: 'Failed to fetch audit trail' })

@@ -35,9 +35,9 @@ router.get('/', async (req, res) => {
 
     const placeholders = projectIds.map((_, i) => `$${i + 1}`).join(', ')
     let requests = await prisma.$queryRawUnsafe(
-      `SELECT dr.*, do.name as "donorOrgName"
+      `SELECT dr.*, dorg.name as "donorOrgName"
        FROM "DeliverableRequest" dr
-       LEFT JOIN "DonorOrganisation" do ON do.id = dr."donorOrgId"
+       LEFT JOIN "DonorOrganisation" dorg ON dorg.id = dr."donorOrgId"
        WHERE dr."projectId" IN (${placeholders})
        ORDER BY dr."createdAt" DESC`,
       ...projectIds

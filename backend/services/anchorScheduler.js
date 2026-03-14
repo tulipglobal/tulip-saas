@@ -14,6 +14,7 @@ const { checkTrialExpirations }  = require('./emailNotificationService')
 const { checkDocumentExpiry }   = require('../jobs/expiryAlerts')
 const { runEngagementEmails }  = require('./engagementEmailService')
 const { retryFailedAnchors }   = require('./anchorRetryService')
+const { sendMonthlyReports }  = require('../jobs/monthlyReport')
 const logger  = require('../lib/logger')
 
 function startAnchorScheduler() {
@@ -90,6 +91,17 @@ function startAnchorScheduler() {
     } catch (err) { logger.error('Anchor retry failed', { error: err.message }) }
   })
 
+  // Monthly donor report — 1st of every month at 02:00 UTC (07:30 IST)
+  cron.schedule('0 2 1 * *', async () => {
+    logger.info('[monthly-report] Generating monthly donor reports...')
+    try {
+      const count = await sendMonthlyReports()
+      logger.info(`[monthly-report] Sent ${count} report emails`)
+    } catch (err) {
+      logger.error('[monthly-report] Failed', { error: err.message })
+    }
+  })
+
   logger.info('Blockchain anchor scheduler started (every 5 minutes)')
   logger.info('Anchor retry worker started (every 5 minutes)')
   logger.info('Webhook retry worker started (every 5 minutes)')
@@ -98,6 +110,7 @@ function startAnchorScheduler() {
   logger.info('Trial expiration check scheduled (daily 9am)')
   logger.info('Document expiry alert check scheduled (daily 4am UTC / 8am UAE)')
   logger.info('Engagement email sequences scheduled (daily 5am UTC / 9am UAE)')
+  logger.info('Monthly donor report scheduled (1st of month, 2am UTC)')
 }
 
 module.exports = { startAnchorScheduler }

@@ -21,6 +21,24 @@ const { sendEmail } = require('../services/emailService')
 const JWT_SECRET = process.env.JWT_SECRET
 const JWT_EXPIRES = '7d'
 
+// Ensure BudgetAlert table exists
+;(async () => {
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "BudgetAlert" (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        "projectId" TEXT NOT NULL,
+        "donorOrgId" TEXT NOT NULL,
+        threshold INTEGER NOT NULL,
+        "sentAt" TIMESTAMP DEFAULT NOW(),
+        UNIQUE("projectId", "donorOrgId", threshold)
+      )
+    `)
+  } catch (err) {
+    console.error('BudgetAlert table creation skipped:', err.message?.slice(0, 100))
+  }
+})()
+
 // ── Completion % helper ──────────────────────────────────────
 function calcCompletion(project, totalSpent, totalFunded) {
   const now = new Date()
@@ -134,6 +152,92 @@ function calcTrustScore(ngoProjectIds, expenseMap, sealMap, flagMap, allExpenses
   else if (trustScore >= 50) trustGrade = 'Fair'
 
   return { trustScore, trustGrade, trustComponents: components }
+}
+
+// ── Budget threshold alert helper ────────────────────────────
+async function checkBudgetAlerts(projectId, totalBudget, totalSpent) {
+  if (!totalBudget || totalBudget <= 0) return
+
+  const utilisation = (totalSpent / totalBudget) * 100
+  const thresholds = [70, 80, 90, 100]
+
+  for (const threshold of thresholds) {
+    if (utilisation < threshold) continue
+
+    // Check if alert already sent
+    try {
+      const existing = await prisma.$queryRawUnsafe(
+        `SELECT id FROM "BudgetAlert" WHERE "projectId" = $1 AND threshold = $2`,
+        projectId, threshold
+      )
+      if (existing.length > 0) continue
+
+      // Get project details
+      const project = await prisma.project.findUnique({
+        where: { id: projectId },
+        select: { name: true, tenantId: true }
+      })
+      if (!project) continue
+
+      // Get all donor orgs with access to this project
+      const donorAccess = await prisma.$queryRawUnsafe(
+        `SELECT DISTINCT a."donorOrgId"
+         FROM "DonorProjectAccess" a
+         WHERE a."projectId" = $1 AND a."revokedAt" IS NULL`,
+        projectId
+      )
+
+      for (const access of donorAccess) {
+        // Get member emails
+        const members = await prisma.$queryRawUnsafe(
+          `SELECT email FROM "DonorMember" WHERE "donorOrgId" = $1`,
+          access.donorOrgId
+        )
+
+        const remaining = totalBudget - totalSpent
+        const levelLabel = threshold >= 100 ? 'Fully Utilised' : threshold >= 90 ? 'Urgent' : threshold >= 80 ? 'Warning' : 'Informational'
+
+        for (const member of members) {
+          try {
+            await sendEmail({
+              to: member.email,
+              subject: `Budget Alert — ${project.name} is ${Math.round(utilisation)}% utilised`,
+              text: `${project.name} has now utilised ${Math.round(utilisation)}% of its total budget.\n\nTotal budget: $${totalBudget.toLocaleString()}\nTotal spent: $${totalSpent.toLocaleString()}\nRemaining: $${remaining.toLocaleString()}\n\nView project: https://donor.sealayer.io/projects/${projectId}\n\nThis is an automated alert from Sealayer.io`,
+              html: `
+                <div style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;max-width:560px;margin:0 auto;padding:30px;background:#ffffff;border-radius:12px">
+                  <h1 style="color:#3C3489;text-align:center;font-size:26px">Sealayer</h1>
+                  <h2 style="color:#26215C;font-size:18px">Budget Alert — ${levelLabel}</h2>
+                  <p style="color:#26215C"><strong>${project.name}</strong> has now utilised <strong>${Math.round(utilisation)}%</strong> of its total budget.</p>
+                  <div style="background:#F4F3FE;border:1px solid #E8E6FD;border-radius:8px;padding:16px;margin:16px 0">
+                    <p style="margin:4px 0;color:#26215C">Total budget: <strong>$${totalBudget.toLocaleString()}</strong></p>
+                    <p style="margin:4px 0;color:#26215C">Total spent: <strong>$${totalSpent.toLocaleString()}</strong></p>
+                    <p style="margin:4px 0;color:${remaining < 0 ? '#DC2626' : '#26215C'}">Remaining: <strong>$${remaining.toLocaleString()}</strong></p>
+                  </div>
+                  <div style="text-align:center;margin:24px 0">
+                    <a href="https://donor.sealayer.io/projects/${projectId}" style="display:inline-block;padding:12px 28px;background:#3C3489;color:#fff;text-decoration:none;border-radius:8px;font-weight:600">View Project</a>
+                  </div>
+                  <p style="color:#7F77DD;font-size:11px;text-align:center">This is an automated alert from Sealayer.io</p>
+                </div>
+              `
+            })
+          } catch (emailErr) {
+            console.error(`Budget alert email failed for ${member.email}:`, emailErr.message)
+          }
+        }
+
+        // Record alert sent
+        try {
+          await prisma.$executeRawUnsafe(
+            `INSERT INTO "BudgetAlert" ("projectId", "donorOrgId", threshold)
+             VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`,
+            projectId, access.donorOrgId, threshold
+          )
+        } catch { /* ignore */ }
+      }
+    } catch (err) {
+      console.error(`Budget alert check failed for threshold ${threshold}:`, err.message)
+    }
+  }
 }
 
 // ── Donor JWT middleware ──────────────────────────────────────
@@ -530,6 +634,7 @@ router.get('/projects', donorAuth, async (req, res) => {
         description: p.description,
         budget: realBudget,
         funded: realFunded,
+        hasFunding: realFunded > 0,
         status: p.status,
         expenseCount: expenseMap[p.id]?.count || 0,
         spent,
@@ -665,6 +770,38 @@ router.get('/projects/:projectId', donorAuth, async (req, res) => {
 
     const completion = calcCompletion(project, totalSpent, totalFunded)
 
+    // Duplicate document hash detection
+    let duplicateGroups = []
+    try {
+      const dupes = await prisma.$queryRawUnsafe(
+        `SELECT e.id, e.description as vendor, e.amount, e.currency,
+                COALESCE(e."ocrDate", e."createdAt") as "expenseDate",
+                ts."rawHash" as hash, ts."anchoredAt", ts.status as "sealStatus"
+         FROM "Expense" e
+         JOIN "TrustSeal" ts ON ts."expenseId" = e.id
+         WHERE e."projectId" = $1
+           AND e."approvalStatus" IN ('APPROVED', 'AUTO_APPROVED')
+           AND ts."rawHash" IN (
+             SELECT ts2."rawHash" FROM "TrustSeal" ts2
+             JOIN "Expense" e2 ON ts2."expenseId" = e2.id
+             WHERE e2."projectId" = $1 AND ts2."rawHash" IS NOT NULL
+             GROUP BY ts2."rawHash" HAVING COUNT(*) > 1
+           )
+         ORDER BY ts."rawHash", e."createdAt"`,
+        projectId
+      )
+      // Group by hash
+      const groupMap = {}
+      for (const d of dupes) {
+        if (!groupMap[d.hash]) groupMap[d.hash] = { hash: d.hash, expenses: [] }
+        groupMap[d.hash].expenses.push({
+          id: d.id, vendor: d.vendor, amount: Number(d.amount), currency: d.currency,
+          date: d.expenseDate, sealStatus: d.sealStatus, anchoredAt: d.anchoredAt
+        })
+      }
+      duplicateGroups = Object.values(groupMap)
+    } catch { /* TrustSeal may not have expenseId */ }
+
     // Get tenant name for breadcrumb
     let tenantName = ''
     try {
@@ -680,6 +817,7 @@ router.get('/projects/:projectId', donorAuth, async (req, res) => {
         status: project.status,
         budget: totalBudget,
         funded: totalFunded,
+        hasFunding: totalFunded > 0,
         spent: totalSpent,
         remaining: totalBudget - totalSpent,
         tenantName,
@@ -687,6 +825,7 @@ router.get('/projects/:projectId', donorAuth, async (req, res) => {
       },
       fundingSources,
       expenses,
+      duplicateGroups,
     })
   } catch (err) {
     console.error('Donor project detail error:', err)
@@ -897,20 +1036,32 @@ router.get('/projects/:projectId/budget', donorAuth, async (req, res) => {
       }
     }
 
-    // Monthly spend for last 6 months
+    // Monthly spend for last 6 months — always return all 6 months
     let monthlySpend = []
     try {
-      monthlySpend = await prisma.$queryRawUnsafe(
+      const now = new Date()
+      const months = []
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+        months.push(d.toISOString().slice(0, 7)) // YYYY-MM
+      }
+
+      const rawSpend = await prisma.$queryRawUnsafe(
         `SELECT TO_CHAR(DATE_TRUNC('month', e."createdAt"), 'YYYY-MM') as month,
                 SUM(e.amount)::float as spent
          FROM "Expense" e
          WHERE e."projectId" = $1
            AND e."approvalStatus" IN ('APPROVED', 'AUTO_APPROVED')
-           AND e."createdAt" >= NOW() - INTERVAL '6 months'
+           AND e."createdAt" >= $2::timestamp
          GROUP BY DATE_TRUNC('month', e."createdAt")
          ORDER BY DATE_TRUNC('month', e."createdAt")`,
-        projectId
+        projectId, new Date(now.getFullYear(), now.getMonth() - 5, 1).toISOString()
       )
+
+      const spendMap = {}
+      for (const r of rawSpend) spendMap[r.month] = r.spent
+
+      monthlySpend = months.map(m => ({ month: m, spent: spendMap[m] || 0 }))
     } catch { /* may fail */ }
 
     // Compute total budget and total spent for overrun projection
@@ -934,6 +1085,11 @@ router.get('/projects/:projectId/budget', donorAuth, async (req, res) => {
       }
     }
 
+    // Trigger budget threshold alerts (non-blocking)
+    checkBudgetAlerts(projectId, totalBudget, totalSpent).catch(err =>
+      console.error('Budget alert check error:', err.message)
+    )
+
     res.json({
       categories,
       monthlySpend,
@@ -945,6 +1101,98 @@ router.get('/projects/:projectId/budget', donorAuth, async (req, res) => {
   } catch (err) {
     console.error('Donor budget error:', err)
     res.status(500).json({ error: 'Failed to fetch budget data' })
+  }
+})
+
+// ── GET /api/donor/projects/:projectId/trust-history ──────────
+router.get('/projects/:projectId/trust-history', donorAuth, async (req, res) => {
+  try {
+    const { donorOrgId } = req.donor
+    const { projectId } = req.params
+
+    // Verify access
+    const access = await prisma.$queryRawUnsafe(
+      `SELECT id, "tenantId" FROM "DonorProjectAccess"
+       WHERE "donorOrgId" = $1 AND "projectId" = $2 AND "revokedAt" IS NULL`,
+      donorOrgId, projectId
+    )
+    if (!access.length) return res.status(403).json({ error: 'No access' })
+
+    const now = new Date()
+    const history = {
+      sealCoverage: [],
+      fraudBlockRate: [],
+      lowRiskRate: [],
+      approvalCompliance: [],
+      ocrMatchRate: [],
+      documentCoverage: [],
+    }
+
+    // Calculate for each of the last 8 weeks (ending Sunday)
+    for (let w = 7; w >= 0; w--) {
+      const weekEnd = new Date(now)
+      weekEnd.setDate(weekEnd.getDate() - (w * 7))
+      const weekEndStr = weekEnd.toISOString()
+
+      // Get expenses up to this week
+      let exps = []
+      try {
+        exps = await prisma.$queryRawUnsafe(
+          `SELECT "approvalStatus", "fraudRiskLevel", "receiptSealId",
+                  "amountMismatch", "vendorMismatch", "dateMismatch"
+           FROM "Expense"
+           WHERE "projectId" = $1 AND "createdAt" <= $2::timestamp`,
+          projectId, weekEndStr
+        )
+      } catch { /* may fail */ }
+
+      const total = exps.length
+      if (total === 0) {
+        history.sealCoverage.push(0)
+        history.fraudBlockRate.push(100)
+        history.lowRiskRate.push(100)
+        history.approvalCompliance.push(100)
+        history.ocrMatchRate.push(100)
+        history.documentCoverage.push(0)
+        continue
+      }
+
+      const sealed = exps.filter(e => e.receiptSealId).length
+      history.sealCoverage.push(Math.round((sealed / total) * 100))
+
+      const flagged = exps.filter(e => e.fraudRiskLevel === 'HIGH' || e.fraudRiskLevel === 'CRITICAL').length
+      history.fraudBlockRate.push(Math.round(100 - ((flagged / total) * 100)))
+
+      const low = exps.filter(e => !e.fraudRiskLevel || e.fraudRiskLevel === 'LOW').length
+      history.lowRiskRate.push(Math.round((low / total) * 100))
+
+      const approved = exps.filter(e => e.approvalStatus === 'APPROVED' || e.approvalStatus === 'AUTO_APPROVED').length
+      history.approvalCompliance.push(Math.round((approved / total) * 100))
+
+      const clean = exps.filter(e => !e.amountMismatch && !e.vendorMismatch && !e.dateMismatch).length
+      history.ocrMatchRate.push(Math.round((clean / total) * 100))
+
+      // Document coverage — need docs count
+      let docTotal = 0, docSealed = 0
+      try {
+        const docResult = await prisma.$queryRawUnsafe(
+          `SELECT COUNT(*)::int as total,
+                  COUNT(CASE WHEN ts.id IS NOT NULL THEN 1 END)::int as sealed
+           FROM "Document" d
+           LEFT JOIN "TrustSeal" ts ON ts."documentId" = d.id
+           WHERE d."projectId" = $1 AND d."createdAt" <= $2::timestamp`,
+          projectId, weekEndStr
+        )
+        docTotal = docResult[0]?.total || 0
+        docSealed = docResult[0]?.sealed || 0
+      } catch { /* may fail */ }
+      history.documentCoverage.push(docTotal > 0 ? Math.round((docSealed / docTotal) * 100) : 0)
+    }
+
+    res.json({ trustHistory: history })
+  } catch (err) {
+    console.error('Trust history error:', err)
+    res.status(500).json({ error: 'Failed to fetch trust history' })
   }
 })
 
@@ -1032,6 +1280,9 @@ router.get('/activity', donorAuth, async (req, res) => {
       } else if (log.action === 'DOCUMENT_UPLOADED') {
         icon = 'document'
         description = `Document uploaded: ${document?.title || 'Untitled'}`
+      } else if (log.action === 'EXPENSE_MISMATCH_FLAGGED') {
+        icon = 'fraud'
+        description = `Mismatch flagged: ${expense?.vendor || expense?.description || 'Unknown'} — ${expense?.currency || '$'} ${(expense?.amount || 0).toLocaleString()}`
       } else if (log.action === 'FRAUD_RISK_SCORED') {
         icon = 'fraud'
         description = `Fraud flag: ${expense?.vendor || expense?.description || 'Unknown'} — ${expense?.currency || '$'} ${(expense?.amount || 0).toLocaleString()} (${expense?.fraudRiskLevel || 'MEDIUM'})`
@@ -1540,6 +1791,55 @@ router.post('/invite/cancel', authenticate, tenantScope, async (req, res) => {
   } catch (err) {
     console.error('Cancel invite error:', err)
     res.status(500).json({ error: 'Failed to cancel invite' })
+  }
+})
+
+// ── POST /api/donor/reports/generate-monthly ─────────────────
+router.post('/reports/generate-monthly', donorAuth, async (req, res) => {
+  try {
+    const { donorOrgId } = req.donor
+    const { month } = req.body // optional, e.g. "2026-02"
+
+    const { generateMonthlyReport } = require('../jobs/monthlyReport')
+    const result = await generateMonthlyReport(donorOrgId, month)
+    if (!result) return res.status(404).json({ error: 'No projects found' })
+
+    // Get member emails
+    const members = await prisma.$queryRawUnsafe(
+      `SELECT email FROM "DonorMember" WHERE "donorOrgId" = $1`, donorOrgId
+    )
+
+    let emailsSent = 0
+    for (const member of members) {
+      try {
+        await sendEmail({
+          to: member.email,
+          subject: `Your Sealayer Monthly Report — ${result.monthLabel}`,
+          text: `Please find your monthly project report attached.`,
+          html: `
+            <div style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;max-width:560px;margin:0 auto;padding:30px">
+              <h1 style="color:#3C3489;text-align:center">Sealayer</h1>
+              <h2 style="color:#26215C">Monthly Report — ${result.monthLabel}</h2>
+              <p style="color:#26215C">Please find your monthly project report attached.</p>
+              <p style="color:#7F77DD;font-size:12px">Powered by Sealayer.io</p>
+            </div>
+          `,
+          attachments: [{
+            filename: `sealayer-report-${month || 'latest'}.pdf`,
+            content: result.pdfBuffer,
+            contentType: 'application/pdf'
+          }]
+        })
+        emailsSent++
+      } catch (emailErr) {
+        console.error(`Failed to send report to ${member.email}:`, emailErr.message)
+      }
+    }
+
+    res.json({ success: true, emailsSent })
+  } catch (err) {
+    console.error('Generate monthly report error:', err)
+    res.status(500).json({ error: 'Failed to generate report' })
   }
 })
 

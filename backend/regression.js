@@ -43,7 +43,7 @@ function log(n, label, result, detail) {
   console.log(`[${String(n).padStart(2)}] ${tag.padEnd(6)} ${label}${d}`);
 }
 
-const TOTAL = 84;
+const TOTAL = 97;
 
 (async () => {
   console.log(`=== REGRESSION CHECKLIST (${TOTAL} items) ===\n`);
@@ -492,6 +492,104 @@ const TOTAL = 84;
   } else {
     log(84, "S3 presigned URL generation", "SKIP", "no seal with s3Key found");
   }
+
+  // ═══════════════════════════════════════════════════════════
+  //  SECTION 20: SPRINT 5 — IMPACT INVESTMENTS & DRAWDOWNS (85-93)
+  // ═══════════════════════════════════════════════════════════
+  console.log("\n───  SPRINT 5 — IMPACT INVESTMENTS & DRAWDOWNS ───");
+
+  // 85-86 — Investment tables exist
+  const invTables = await prisma.$queryRawUnsafe(
+    "SELECT tablename FROM pg_tables WHERE schemaname = $1 AND tablename IN ($2,$3,$4,$5,$6)",
+    "public", "ImpactInvestment", "RepaymentSchedule", "Drawdown", "Covenant", "ImpactMilestone"
+  );
+  log(85, "Sprint 5 tables exist (5 expected)", invTables.length === 5 ? "PASS" : "FAIL", invTables.map(t => t.tablename).join(", "));
+
+  // 86 — ImpactInvestment has donorOrgId column (uuid, links to DonorOrganisation)
+  const invDonorCol = await prisma.$queryRawUnsafe(
+    "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = $1 AND column_name = $2",
+    "ImpactInvestment", "donorOrgId"
+  );
+  log(86, "ImpactInvestment.donorOrgId column", invDonorCol.length === 1 ? "PASS" : "FAIL", invDonorCol.length ? invDonorCol[0].data_type : "missing");
+
+  // 87 — NGO investments route file exists
+  log(87, "ngoInvestmentRoutes.js exists",
+    fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/ngoInvestmentRoutes.js") ? "PASS" : "FAIL");
+
+  // 88 — Donor investments route file exists
+  log(88, "donorInvestmentRoutes.js exists",
+    fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/donorInvestmentRoutes.js") ? "PASS" : "FAIL");
+
+  // 89 — NGO milestones route file exists
+  log(89, "ngoMilestoneRoutes.js exists",
+    fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/ngoMilestoneRoutes.js") ? "PASS" : "FAIL");
+
+  // 90 — Investment Monitoring page exists with schedule null guard
+  const invPage = fs.readFileSync("/home/ubuntu/tulip-saas/frontend/src/app/dashboard/investments/page.tsx", "utf8");
+  log(90, "Investments page has schedule null guard", invPage.includes("inv.schedule || []") ? "PASS" : "FAIL");
+
+  // 91 — Drawdowns page exists
+  log(91, "Drawdowns page exists",
+    fs.existsSync("/home/ubuntu/tulip-saas/frontend/src/app/dashboard/drawdowns/page.tsx") ? "PASS" : "FAIL");
+
+  // 92 — Budget page has donor org selector (donorMode)
+  const budgetDetail = fs.readFileSync("/home/ubuntu/tulip-saas/frontend/src/app/dashboard/budgets/[id]/page.tsx", "utf8");
+  log(92, "Budget detail has donor org selector", budgetDetail.includes("donorMode") && budgetDetail.includes("donorOrgId") ? "PASS" : "FAIL");
+
+  // 93 — Budget new page has donor org selector
+  const budgetNewContent = fs.readFileSync("/home/ubuntu/tulip-saas/frontend/src/app/dashboard/budgets/new/page.tsx", "utf8");
+  log(93, "Budget new has donor org selector", budgetNewContent.includes("donorMode") && budgetNewContent.includes("donorOrgId") ? "PASS" : "FAIL");
+
+  // ═══════════════════════════════════════════════════════════
+  //  SECTION 21: i18n COMPLETENESS (94-97)
+  // ═══════════════════════════════════════════════════════════
+  console.log("\n───  i18n COMPLETENESS ───");
+
+  const i18nDir = "/home/ubuntu/tulip-saas/frontend/src/messages";
+  const langs = ["en", "fr", "es", "pt", "it"];
+  const requiredNavKeys = ["investments", "drawdowns"];
+  const requiredDocKeys = ["document", "type", "category", "expiry", "seal", "project"];
+
+  // 94 — nav.investments + nav.drawdowns in all 5 languages
+  let navKeysOk = true;
+  let navMissing = [];
+  for (const lang of langs) {
+    const msgs = JSON.parse(fs.readFileSync(`${i18nDir}/${lang}.json`, "utf8"));
+    for (const k of requiredNavKeys) {
+      if (!msgs.nav || !msgs.nav[k]) { navKeysOk = false; navMissing.push(`${lang}:nav.${k}`); }
+    }
+  }
+  log(94, "nav.investments/drawdowns in all langs", navKeysOk ? "PASS" : "FAIL", navMissing.length ? navMissing.join(", ") : "all present");
+
+  // 95 — documents table header keys in all 5 languages
+  let docKeysOk = true;
+  let docMissing = [];
+  for (const lang of langs) {
+    const msgs = JSON.parse(fs.readFileSync(`${i18nDir}/${lang}.json`, "utf8"));
+    for (const k of requiredDocKeys) {
+      if (!msgs.documents || !msgs.documents[k]) { docKeysOk = false; docMissing.push(`${lang}:documents.${k}`); }
+    }
+  }
+  log(95, "documents table header keys in all langs", docKeysOk ? "PASS" : "FAIL", docMissing.length ? docMissing.join(", ") : "all present");
+
+  // 96 — All 5 language files exist
+  let allLangs = true;
+  for (const lang of langs) {
+    if (!fs.existsSync(`${i18nDir}/${lang}.json`)) allLangs = false;
+  }
+  log(96, "All 5 i18n files exist (en,fr,es,pt,it)", allLangs ? "PASS" : "FAIL");
+
+  // 97 — No MISSING_MESSAGE in frontend build output (check documents page has all keys)
+  const docPage = fs.readFileSync("/home/ubuntu/tulip-saas/frontend/src/app/dashboard/documents/page.tsx", "utf8");
+  const docI18nCalls = docPage.match(/t\('documents\.(\w+)'\)/g) || [];
+  const enMsgs = JSON.parse(fs.readFileSync(`${i18nDir}/en.json`, "utf8"));
+  let allDocKeysExist = true;
+  let missingDocI18n = [];
+  for (const call of docI18nCalls) {
+    const key = call.match(/documents\.(\w+)/)[1];
+    if (!enMsgs.documents || !enMsgs.documents[key]) { allDocKeysExist = false; missingDocI18n.push(key); }
+  }
+  log(97, "All documents page i18n keys defined", allDocKeysExist ? "PASS" : "FAIL", missingDocI18n.length ? "missing: " + missingDocI18n.join(",") : "all present");
 
   // ═══════════════════════════════════════════════════════════
   //  SUMMARY

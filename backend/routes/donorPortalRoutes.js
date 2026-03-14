@@ -69,6 +69,73 @@ function calcCompletion(project, totalSpent, totalFunded) {
   }
 }
 
+// ── Trust score helper ────────────────────────────────────────
+function calcTrustScore(ngoProjectIds, expenseMap, sealMap, flagMap, allExpenses, allDocuments) {
+  // allExpenses: array of { projectId, approvalStatus, fraudRiskLevel, receiptSealId, amountMismatch, vendorMismatch, dateMismatch }
+  // allDocuments: array of { projectId } with seal info
+
+  const exps = allExpenses.filter(e => ngoProjectIds.includes(e.projectId))
+  const docs = allDocuments.filter(d => ngoProjectIds.includes(d.projectId))
+  const totalExp = exps.length
+  const totalDocs = docs.length
+
+  const components = []
+
+  // 1. Seal coverage
+  if (totalExp > 0) {
+    const sealed = exps.filter(e => e.receiptSealId).length
+    const score = Math.round((sealed / totalExp) * 100)
+    components.push({ name: 'Seal Coverage', score, denominator: totalExp })
+  }
+
+  // 2. Fraud block rate (inverse of flagged %)
+  if (totalExp > 0) {
+    const flagged = exps.filter(e => e.fraudRiskLevel === 'HIGH' || e.fraudRiskLevel === 'CRITICAL').length
+    const score = Math.round(100 - ((flagged / totalExp) * 100))
+    components.push({ name: 'Fraud Block Rate', score, denominator: totalExp })
+  }
+
+  // 3. Low risk rate
+  if (totalExp > 0) {
+    const low = exps.filter(e => !e.fraudRiskLevel || e.fraudRiskLevel === 'LOW').length
+    const score = Math.round((low / totalExp) * 100)
+    components.push({ name: 'Low Risk Rate', score, denominator: totalExp })
+  }
+
+  // 4. Approval compliance
+  if (totalExp > 0) {
+    const approved = exps.filter(e => e.approvalStatus === 'APPROVED' || e.approvalStatus === 'AUTO_APPROVED').length
+    const score = Math.round((approved / totalExp) * 100)
+    components.push({ name: 'Approval Compliance', score, denominator: totalExp })
+  }
+
+  // 5. OCR match rate
+  if (totalExp > 0) {
+    const clean = exps.filter(e => !e.amountMismatch && !e.vendorMismatch && !e.dateMismatch).length
+    const score = Math.round((clean / totalExp) * 100)
+    components.push({ name: 'OCR Match Rate', score, denominator: totalExp })
+  }
+
+  // 6. Document coverage (sealed docs)
+  if (totalDocs > 0) {
+    const sealedDocs = docs.filter(d => d.sealId).length
+    const score = Math.round((sealedDocs / totalDocs) * 100)
+    components.push({ name: 'Document Coverage', score, denominator: totalDocs })
+  }
+
+  if (components.length === 0) {
+    return { trustScore: null, trustGrade: null, trustComponents: [] }
+  }
+
+  const trustScore = Math.round(components.reduce((s, c) => s + c.score, 0) / components.length)
+  let trustGrade = 'Poor'
+  if (trustScore >= 90) trustGrade = 'Excellent'
+  else if (trustScore >= 70) trustGrade = 'Good'
+  else if (trustScore >= 50) trustGrade = 'Fair'
+
+  return { trustScore, trustGrade, trustComponents: components }
+}
+
 // ── Donor JWT middleware ──────────────────────────────────────
 function donorAuth(req, res, next) {
   const authHeader = req.headers['authorization']
@@ -386,6 +453,34 @@ router.get('/projects', donorAuth, async (req, res) => {
       for (const ft of fundingTotals) fundingMap[ft.projectId] = ft.totalFunded
     } catch { /* ProjectFunding may not exist */ }
 
+    // Get all expenses for trust score calculation
+    let allExpensesForTrust = []
+    try {
+      allExpensesForTrust = await prisma.expense.findMany({
+        where: { projectId: { in: projectIds } },
+        select: { projectId: true, approvalStatus: true, fraudRiskLevel: true, receiptSealId: true, amountMismatch: true, vendorMismatch: true, dateMismatch: true }
+      })
+    } catch { /* may fail */ }
+
+    // Get all documents for trust score
+    let allDocsForTrust = []
+    try {
+      allDocsForTrust = await prisma.$queryRawUnsafe(
+        `SELECT d.id, d."projectId", ts.id as "sealId"
+         FROM "Document" d
+         LEFT JOIN "TrustSeal" ts ON ts."documentId" = d.id
+         WHERE d."projectId" = ANY($1::text[])`,
+        projectIds
+      )
+    } catch {
+      try {
+        allDocsForTrust = await prisma.document.findMany({
+          where: { projectId: { in: projectIds } },
+          select: { id: true, projectId: true }
+        })
+      } catch { /* may fail */ }
+    }
+
     // Get fraud prevented value (sum of HIGH/CRITICAL blocked expenses)
     let fraudPrevented = 0
     try {
@@ -445,7 +540,7 @@ router.get('/projects', donorAuth, async (req, res) => {
       })
     }
 
-    // Calculate NGO completion averages
+    // Calculate NGO completion averages + trust scores
     const ngoList = Object.values(ngoMap)
     for (const ngo of ngoList) {
       const active = ngo.projects.filter(p => !p.isClosed)
@@ -454,6 +549,12 @@ router.get('/projects', donorAuth, async (req, res) => {
       } else {
         ngo.ngoCompletionPercent = 0
       }
+      // Trust score
+      const ngoProjectIds = ngo.projects.map(p => p.id)
+      const trust = calcTrustScore(ngoProjectIds, expenseMap, sealMap, flagMap, allExpensesForTrust, allDocsForTrust)
+      ngo.trustScore = trust.trustScore
+      ngo.trustGrade = trust.trustGrade
+      ngo.trustComponents = trust.trustComponents
     }
 
     res.json({ ngos: ngoList, fraudPrevented })
@@ -564,6 +665,13 @@ router.get('/projects/:projectId', donorAuth, async (req, res) => {
 
     const completion = calcCompletion(project, totalSpent, totalFunded)
 
+    // Get tenant name for breadcrumb
+    let tenantName = ''
+    try {
+      const t = await prisma.tenant.findUnique({ where: { id: project.tenantId }, select: { name: true } })
+      tenantName = t?.name || ''
+    } catch { /* may fail */ }
+
     res.json({
       project: {
         id: project.id,
@@ -574,6 +682,7 @@ router.get('/projects/:projectId', donorAuth, async (req, res) => {
         funded: totalFunded,
         spent: totalSpent,
         remaining: totalBudget - totalSpent,
+        tenantName,
         ...completion,
       },
       fundingSources,
@@ -943,6 +1052,7 @@ router.get('/activity', donorAuth, async (req, res) => {
         projectName,
         entityType: log.entityType,
         entityId: log.entityId,
+        expenseId: log.entityType === 'Expense' ? log.entityId : null,
         createdAt: log.createdAt,
       }
     })

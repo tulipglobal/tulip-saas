@@ -1,15 +1,18 @@
 // ─────────────────────────────────────────────────────────────
-//  routes/donorPortalRoutes.js — Donor Portal Sprint 1
+//  routes/donorPortalRoutes.js — Donor Portal Sprint 1 (v2)
 //
 //  Unified donor portal API routes.
 //  Uses raw SQL for DonorOrganisation/DonorMember/DonorProjectAccess
 //  and Prisma client for existing models (Project, Expense, etc.)
+//
+//  v2: Fix duplicate accounts, add access management endpoints
 // ─────────────────────────────────────────────────────────────
 
 const express = require('express')
 const router = express.Router()
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
+const crypto = require('crypto')
 const prisma = require('../lib/client')
 const authenticate = require('../middleware/authenticate')
 const tenantScope = require('../middleware/tenantScope')
@@ -86,6 +89,7 @@ router.post('/auth/login', async (req, res) => {
 })
 
 // ── POST /api/donor/auth/invite/accept ────────────────────────
+// FIX 1: Prevent duplicate accounts — reuse existing DonorMember
 router.post('/auth/invite/accept', async (req, res) => {
   try {
     const { token, name, password } = req.body
@@ -93,25 +97,26 @@ router.post('/auth/invite/accept', async (req, res) => {
       return res.status(400).json({ error: 'token, name, and password are required' })
     }
 
-    // Find invite
-    const invites = await prisma.$queryRawUnsafe(
-      `SELECT * FROM "DonorInvite" WHERE token = $1`,
-      token
-    )
-    if (!invites.length) return res.status(404).json({ error: 'Invite not found' })
-
-    const invite = invites[0]
+    // Find invite (try Prisma table first)
+    const invite = await prisma.donorInvite.findUnique({ where: { token } })
+    if (!invite) return res.status(404).json({ error: 'Invite not found' })
     if (invite.status !== 'PENDING') return res.status(400).json({ error: 'Invite already used' })
-    if (new Date() > new Date(invite.expiresAt)) {
-      await prisma.$executeRawUnsafe(
-        `UPDATE "DonorInvite" SET status = 'EXPIRED' WHERE id = $1`,
-        invite.id
-      )
+    if (new Date() > invite.expiresAt) {
+      await prisma.donorInvite.update({ where: { id: invite.id }, data: { status: 'EXPIRED' } })
       return res.status(400).json({ error: 'Invite has expired' })
     }
 
-    // Get donor org name — use donorOrgName from invite or email from existing invite
-    const donorOrgName = invite.donorOrgName || invite.email
+    // Parse metadata from inviteType JSON
+    let donorOrgName = ''
+    let projectIds = []
+    try {
+      const meta = JSON.parse(invite.inviteType)
+      donorOrgName = meta.donorOrgName || ''
+      projectIds = meta.projectIds || []
+    } catch {
+      donorOrgName = invite.email
+      projectIds = invite.projectId ? [invite.projectId] : []
+    }
 
     // Create or find DonorOrganisation
     let orgRows = await prisma.$queryRawUnsafe(
@@ -129,66 +134,67 @@ router.post('/auth/invite/accept', async (req, res) => {
       orgId = newOrg[0].id
     }
 
-    // Create DonorMember
-    const passwordHash = await bcrypt.hash(password, 10)
+    // FIX 1: Check if DonorMember already exists — reuse if so
     const existingMember = await prisma.$queryRawUnsafe(
-      `SELECT id FROM "DonorMember" WHERE email = $1`,
-      invite.email
+      `SELECT id, "donorOrgId" FROM "DonorMember" WHERE email = $1`,
+      invite.email.toLowerCase().trim()
     )
 
     let memberId
+    let memberOrgId = orgId
     if (existingMember.length) {
+      // Existing account — do NOT overwrite password or org
       memberId = existingMember[0].id
-      await prisma.$executeRawUnsafe(
-        `UPDATE "DonorMember" SET name = $1, "passwordHash" = $2, "donorOrgId" = $3 WHERE id = $4`,
-        name, passwordHash, orgId, memberId
-      )
+      memberOrgId = existingMember[0].donorOrgId
     } else {
+      // New account — create DonorMember
+      const passwordHash = await bcrypt.hash(password, 10)
       const newMember = await prisma.$queryRawUnsafe(
         `INSERT INTO "DonorMember" (email, name, "passwordHash", "donorOrgId")
          VALUES ($1, $2, $3, $4) RETURNING id`,
-        invite.email, name, passwordHash, orgId
+        invite.email.toLowerCase().trim(), name, passwordHash, orgId
       )
       memberId = newMember[0].id
     }
 
-    // Create DonorProjectAccess rows
-    // Check if invite has projectIds array or a single projectId
-    const projectIds = invite.projectIds || (invite.projectId ? [invite.projectId] : [])
+    // Create DonorProjectAccess rows (upsert — restore if previously revoked)
     for (const projectId of projectIds) {
       if (!projectId) continue
       await prisma.$executeRawUnsafe(
         `INSERT INTO "DonorProjectAccess" ("donorOrgId", "projectId", "tenantId", "grantedBy")
          VALUES ($1, $2, $3, $4)
-         ON CONFLICT ("donorOrgId", "projectId") DO NOTHING`,
-        orgId, projectId, invite.tenantId, invite.invitedByUserId || invite.invitedBy || 'system'
+         ON CONFLICT ("donorOrgId", "projectId") DO UPDATE SET "revokedAt" = NULL, "grantedAt" = NOW()`,
+        memberOrgId, projectId, invite.tenantId, invite.invitedByUserId || 'system'
       )
     }
 
     // Mark invite accepted
-    if (invite.donorOrgName !== undefined) {
-      // New-style invite table
-      await prisma.$executeRawUnsafe(
-        `UPDATE "DonorInvite" SET "acceptedAt" = NOW(), status = 'ACCEPTED' WHERE id = $1`,
-        invite.id
-      )
-    } else {
-      // Prisma-managed DonorInvite
-      await prisma.donorInvite.update({
-        where: { id: invite.id },
-        data: { status: 'ACCEPTED' }
-      })
-    }
+    await prisma.donorInvite.update({
+      where: { id: invite.id },
+      data: { status: 'ACCEPTED' }
+    })
 
     const jwtToken = jwt.sign(
-      { donorMemberId: memberId, donorOrgId: orgId, email: invite.email, role: 'DONOR' },
+      { donorMemberId: memberId, donorOrgId: memberOrgId, email: invite.email, role: 'DONOR' },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES }
     )
 
+    // Get org name for response
+    const orgInfo = await prisma.$queryRawUnsafe(
+      `SELECT name FROM "DonorOrganisation" WHERE id = $1`, memberOrgId
+    )
+
     res.json({
       token: jwtToken,
-      user: { id: memberId, email: invite.email, name, donorOrgId: orgId, orgName: donorOrgName }
+      user: {
+        id: memberId,
+        email: invite.email,
+        name: existingMember.length ? undefined : name,
+        donorOrgId: memberOrgId,
+        orgName: orgInfo[0]?.name || donorOrgName,
+        existingAccount: existingMember.length > 0,
+      }
     })
   } catch (err) {
     console.error('Donor invite accept error:', err)
@@ -225,11 +231,12 @@ router.get('/me', donorAuth, async (req, res) => {
 })
 
 // ── GET /api/donor/projects ───────────────────────────────────
+// FIX 4: Query by donorOrgId from JWT — merges all access across invites
 router.get('/projects', donorAuth, async (req, res) => {
   try {
     const { donorOrgId } = req.donor
 
-    // Get all active project access
+    // Get all active project access for this org
     const accessRows = await prisma.$queryRawUnsafe(
       `SELECT "projectId", "tenantId" FROM "DonorProjectAccess"
        WHERE "donorOrgId" = $1 AND "revokedAt" IS NULL`,
@@ -429,7 +436,7 @@ router.post('/invite', authenticate, tenantScope, async (req, res) => {
       return res.status(400).json({ error: 'email, donorOrgName, and projectIds are required' })
     }
 
-    const token = require('crypto').randomBytes(32).toString('hex')
+    const token = crypto.randomBytes(32).toString('hex')
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 
     // Create DonorInvite in the existing Prisma table
@@ -440,13 +447,10 @@ router.post('/invite', authenticate, tenantScope, async (req, res) => {
         invitedByUserId: req.user.userId,
         inviteType: 'NGO_INVITES_DONOR',
         tenantId: req.user.tenantId,
-        projectId: projectIds[0], // Store first project in existing column
+        projectId: projectIds[0],
         expiresAt,
       }
     })
-
-    // Store additional project IDs and donorOrgName in raw SQL columns if they exist
-    // For now, we store the mapping by creating DonorProjectAccess rows on acceptance
 
     // Get tenant name
     const tenant = await prisma.tenant.findUnique({ where: { id: req.user.tenantId }, select: { name: true } })
@@ -495,14 +499,12 @@ router.post('/invite', authenticate, tenantScope, async (req, res) => {
       console.error('Failed to send donor invite email:', emailErr.message)
     }
 
-    // Store extra metadata for the invite — donorOrgName, all projectIds
-    // We store this as a JSON note so the accept handler can use it
+    // Store donorOrgName + all projectIds as JSON in inviteType
     try {
-      await prisma.$executeRawUnsafe(
-        `UPDATE "DonorInvite" SET "inviteType" = $1 WHERE id = $2`,
-        JSON.stringify({ type: 'NGO_INVITES_DONOR', donorOrgName, projectIds }),
-        invite.id
-      )
+      await prisma.donorInvite.update({
+        where: { id: invite.id },
+        data: { inviteType: JSON.stringify({ type: 'NGO_INVITES_DONOR', donorOrgName, projectIds }) }
+      })
     } catch { /* non-critical */ }
 
     res.json({
@@ -520,18 +522,19 @@ router.post('/invite', authenticate, tenantScope, async (req, res) => {
 })
 
 // ── GET /api/donor/invites (NGO JWT) ──────────────────────────
+// Returns invites + active donors with project access for this tenant
 router.get('/invites', authenticate, tenantScope, async (req, res) => {
   try {
+    const tenantId = req.user.tenantId
+
+    // All invites for this tenant
     const invites = await prisma.donorInvite.findMany({
-      where: { tenantId: req.user.tenantId },
+      where: { tenantId },
       orderBy: { createdAt: 'desc' },
-      include: {
-        project: { select: { id: true, name: true } }
-      }
+      include: { project: { select: { id: true, name: true } } }
     })
 
     const data = invites.map(inv => {
-      // Try to parse donorOrgName from inviteType JSON
       let donorOrgName = ''
       let projectIds = []
       try {
@@ -539,11 +542,11 @@ router.get('/invites', authenticate, tenantScope, async (req, res) => {
         donorOrgName = meta.donorOrgName || ''
         projectIds = meta.projectIds || []
       } catch {
-        donorOrgName = inv.inviteType === 'NGO_INVITES_DONOR' ? '' : ''
+        // legacy invite
       }
-
       return {
         id: inv.id,
+        token: inv.token,
         email: inv.email,
         donorOrgName,
         projectIds,
@@ -554,7 +557,44 @@ router.get('/invites', authenticate, tenantScope, async (req, res) => {
       }
     })
 
-    res.json({ data })
+    // Active donors: DonorMembers who have DonorProjectAccess for this tenant
+    const activeDonors = await prisma.$queryRawUnsafe(
+      `SELECT DISTINCT m.id as "memberId", m.email, m.name, o.name as "orgName", o.id as "orgId"
+       FROM "DonorProjectAccess" a
+       JOIN "DonorOrganisation" o ON a."donorOrgId" = o.id
+       JOIN "DonorMember" m ON m."donorOrgId" = o.id
+       WHERE a."tenantId" = $1`,
+      tenantId
+    )
+
+    // For each active donor, get their project access
+    const donors = []
+    for (const d of activeDonors) {
+      const access = await prisma.$queryRawUnsafe(
+        `SELECT a."projectId", a."grantedAt", a."revokedAt", p.name as "projectName"
+         FROM "DonorProjectAccess" a
+         JOIN "Project" p ON a."projectId" = p.id
+         WHERE a."donorOrgId" = $1 AND a."tenantId" = $2
+         ORDER BY a."grantedAt" DESC`,
+        d.orgId, tenantId
+      )
+      donors.push({
+        memberId: d.memberId,
+        email: d.email,
+        name: d.name,
+        orgName: d.orgName,
+        orgId: d.orgId,
+        projects: access.map(a => ({
+          projectId: a.projectId,
+          projectName: a.projectName,
+          grantedAt: a.grantedAt,
+          revokedAt: a.revokedAt,
+          active: !a.revokedAt,
+        }))
+      })
+    }
+
+    res.json({ data, donors })
   } catch (err) {
     console.error('List donor invites error:', err)
     res.status(500).json({ error: 'Failed to fetch invites' })
@@ -600,6 +640,12 @@ router.get('/invite/validate/:token', async (req, res) => {
       projectIds = [invite.project.id]
     }
 
+    // Check if account already exists
+    const existing = await prisma.$queryRawUnsafe(
+      `SELECT id FROM "DonorMember" WHERE email = $1`,
+      invite.email.toLowerCase().trim()
+    )
+
     res.json({
       email: invite.email,
       donorOrgName,
@@ -608,10 +654,256 @@ router.get('/invite/validate/:token', async (req, res) => {
       projectIds,
       projectNames,
       expiresAt: invite.expiresAt,
+      existingAccount: existing.length > 0,
     })
   } catch (err) {
     console.error('Validate invite error:', err)
     res.status(500).json({ error: 'Failed to validate invite' })
+  }
+})
+
+// ═══════════════════════════════════════════════════════════════
+//  FIX 2: Donor access management endpoints (NGO JWT)
+// ═══════════════════════════════════════════════════════════════
+
+// ── POST /api/donor/access/add (NGO JWT) ──────────────────────
+router.post('/access/add', authenticate, tenantScope, async (req, res) => {
+  try {
+    const { donorEmail, projectIds } = req.body
+    if (!donorEmail || !projectIds?.length) {
+      return res.status(400).json({ error: 'donorEmail and projectIds are required' })
+    }
+
+    // Find DonorMember by email
+    const members = await prisma.$queryRawUnsafe(
+      `SELECT m.id, m."donorOrgId", o.name as "orgName"
+       FROM "DonorMember" m
+       LEFT JOIN "DonorOrganisation" o ON m."donorOrgId" = o.id
+       WHERE m.email = $1`,
+      donorEmail.toLowerCase().trim()
+    )
+    if (!members.length) {
+      return res.status(404).json({ error: 'Donor has not yet accepted an invite' })
+    }
+
+    const member = members[0]
+    const tenantId = req.user.tenantId
+
+    // Upsert DonorProjectAccess for each projectId
+    for (const projectId of projectIds) {
+      if (!projectId) continue
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO "DonorProjectAccess" ("donorOrgId", "projectId", "tenantId", "grantedBy")
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT ("donorOrgId", "projectId") DO UPDATE SET "revokedAt" = NULL, "grantedAt" = NOW()`,
+        member.donorOrgId, projectId, tenantId, req.user.userId
+      )
+    }
+
+    // Return updated access list
+    const access = await prisma.$queryRawUnsafe(
+      `SELECT a."projectId", a."grantedAt", a."revokedAt", p.name as "projectName"
+       FROM "DonorProjectAccess" a
+       JOIN "Project" p ON a."projectId" = p.id
+       WHERE a."donorOrgId" = $1 AND a."tenantId" = $2
+       ORDER BY a."grantedAt" DESC`,
+      member.donorOrgId, tenantId
+    )
+
+    res.json({
+      donorEmail,
+      orgName: member.orgName,
+      projects: access.map(a => ({
+        projectId: a.projectId,
+        projectName: a.projectName,
+        grantedAt: a.grantedAt,
+        revokedAt: a.revokedAt,
+        active: !a.revokedAt,
+      }))
+    })
+  } catch (err) {
+    console.error('Add donor access error:', err)
+    res.status(500).json({ error: 'Failed to add donor access' })
+  }
+})
+
+// ── DELETE /api/donor/access/remove (NGO JWT) ─────────────────
+router.delete('/access/remove', authenticate, tenantScope, async (req, res) => {
+  try {
+    const { donorEmail, projectId } = req.body
+    if (!donorEmail || !projectId) {
+      return res.status(400).json({ error: 'donorEmail and projectId are required' })
+    }
+
+    // Find DonorMember
+    const members = await prisma.$queryRawUnsafe(
+      `SELECT m.id, m."donorOrgId" FROM "DonorMember" m WHERE m.email = $1`,
+      donorEmail.toLowerCase().trim()
+    )
+    if (!members.length) {
+      return res.status(404).json({ error: 'Donor not found' })
+    }
+
+    await prisma.$executeRawUnsafe(
+      `UPDATE "DonorProjectAccess" SET "revokedAt" = NOW()
+       WHERE "donorOrgId" = $1 AND "projectId" = $2 AND "tenantId" = $3`,
+      members[0].donorOrgId, projectId, req.user.tenantId
+    )
+
+    res.json({ success: true })
+  } catch (err) {
+    console.error('Remove donor access error:', err)
+    res.status(500).json({ error: 'Failed to remove donor access' })
+  }
+})
+
+// ── GET /api/donor/access/:donorEmail (NGO JWT) ───────────────
+router.get('/access/:donorEmail', authenticate, tenantScope, async (req, res) => {
+  try {
+    const donorEmail = decodeURIComponent(req.params.donorEmail).toLowerCase().trim()
+
+    // Find DonorMember
+    const members = await prisma.$queryRawUnsafe(
+      `SELECT m.id, m."donorOrgId", m.name, o.name as "orgName"
+       FROM "DonorMember" m
+       LEFT JOIN "DonorOrganisation" o ON m."donorOrgId" = o.id
+       WHERE m.email = $1`,
+      donorEmail
+    )
+    if (!members.length) {
+      return res.status(404).json({ error: 'Donor not found' })
+    }
+
+    const member = members[0]
+    const access = await prisma.$queryRawUnsafe(
+      `SELECT a."projectId", a."grantedAt", a."revokedAt", p.name as "projectName"
+       FROM "DonorProjectAccess" a
+       JOIN "Project" p ON a."projectId" = p.id
+       WHERE a."donorOrgId" = $1 AND a."tenantId" = $2
+       ORDER BY a."grantedAt" DESC`,
+      member.donorOrgId, req.user.tenantId
+    )
+
+    res.json({
+      email: donorEmail,
+      name: member.name,
+      orgName: member.orgName,
+      projects: access.map(a => ({
+        projectId: a.projectId,
+        projectName: a.projectName,
+        grantedAt: a.grantedAt,
+        revokedAt: a.revokedAt,
+        active: !a.revokedAt,
+      }))
+    })
+  } catch (err) {
+    console.error('Get donor access error:', err)
+    res.status(500).json({ error: 'Failed to fetch donor access' })
+  }
+})
+
+// ── POST /api/donor/invite/resend (NGO JWT) ───────────────────
+router.post('/invite/resend', authenticate, tenantScope, async (req, res) => {
+  try {
+    const { inviteId } = req.body
+    if (!inviteId) return res.status(400).json({ error: 'inviteId is required' })
+
+    const oldInvite = await prisma.donorInvite.findUnique({ where: { id: inviteId } })
+    if (!oldInvite) return res.status(404).json({ error: 'Invite not found' })
+    if (oldInvite.tenantId !== req.user.tenantId) return res.status(403).json({ error: 'Not your invite' })
+
+    // Expire old invite
+    await prisma.donorInvite.update({ where: { id: inviteId }, data: { status: 'EXPIRED' } })
+
+    // Create new invite with fresh token
+    const newToken = crypto.randomBytes(32).toString('hex')
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+
+    const newInvite = await prisma.donorInvite.create({
+      data: {
+        token: newToken,
+        email: oldInvite.email,
+        invitedByUserId: req.user.userId,
+        inviteType: oldInvite.inviteType,
+        tenantId: req.user.tenantId,
+        projectId: oldInvite.projectId,
+        expiresAt,
+      }
+    })
+
+    // Parse metadata for email
+    let donorOrgName = ''
+    let projectIds = []
+    try {
+      const meta = JSON.parse(oldInvite.inviteType)
+      donorOrgName = meta.donorOrgName || ''
+      projectIds = meta.projectIds || []
+    } catch {}
+
+    const tenant = await prisma.tenant.findUnique({ where: { id: req.user.tenantId }, select: { name: true } })
+    const tenantName = tenant?.name || 'An organisation'
+    const projects = projectIds.length
+      ? await prisma.project.findMany({ where: { id: { in: projectIds } }, select: { name: true } })
+      : []
+    const projectNames = projects.map(p => p.name).join(', ')
+    const inviteUrl = `https://donor.sealayer.io/signup?token=${newToken}`
+
+    try {
+      await sendEmail({
+        to: oldInvite.email,
+        subject: `Reminder: ${tenantName} has shared project access with you on Sealayer`,
+        text: `${tenantName} has shared project access with you on Sealayer.\n\nProjects: ${projectNames}\n\nAccept your invitation: ${inviteUrl}\n\nThis invite expires in 7 days.\nPowered by Sealayer.`,
+        html: `
+          <div style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;max-width:560px;margin:0 auto;padding:30px;background:#ffffff;border-radius:12px">
+            <div style="text-align:center;margin-bottom:30px">
+              <h1 style="color:#3C3489;font-size:26px;margin:0;font-weight:700">Sealayer</h1>
+              <p style="color:#7F77DD;font-size:13px;margin-top:4px">Donor Portal</p>
+            </div>
+            <h2 style="color:#26215C;font-size:20px">Reminder: You've been invited</h2>
+            <p style="color:#26215C;line-height:1.6">
+              <strong>${tenantName}</strong> has shared access to the following projects with you on Sealayer:
+            </p>
+            <div style="background:#F4F3FE;border:1px solid #E8E6FD;border-radius:8px;padding:16px;margin:16px 0">
+              <p style="color:#534AB7;font-weight:600;margin:0">${projectNames}</p>
+            </div>
+            <div style="text-align:center;margin:30px 0">
+              <a href="${inviteUrl}" style="display:inline-block;padding:14px 32px;background-color:#3C3489;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px">
+                Accept Invitation
+              </a>
+            </div>
+            <p style="color:#7F77DD;font-size:13px;text-align:center">This invite expires in 7 days.</p>
+            <hr style="border:none;border-top:1px solid #E8E6FD;margin:24px 0"/>
+            <p style="color:#7F77DD;font-size:11px;text-align:center">Powered by Sealayer</p>
+          </div>
+        `
+      })
+    } catch (emailErr) {
+      console.error('Failed to resend donor invite email:', emailErr.message)
+    }
+
+    res.json({ id: newInvite.id, email: oldInvite.email, status: 'PENDING', expiresAt })
+  } catch (err) {
+    console.error('Resend invite error:', err)
+    res.status(500).json({ error: 'Failed to resend invite' })
+  }
+})
+
+// ── POST /api/donor/invite/cancel (NGO JWT) ───────────────────
+router.post('/invite/cancel', authenticate, tenantScope, async (req, res) => {
+  try {
+    const { inviteId } = req.body
+    if (!inviteId) return res.status(400).json({ error: 'inviteId is required' })
+
+    const invite = await prisma.donorInvite.findUnique({ where: { id: inviteId } })
+    if (!invite) return res.status(404).json({ error: 'Invite not found' })
+    if (invite.tenantId !== req.user.tenantId) return res.status(403).json({ error: 'Not your invite' })
+    if (invite.status !== 'PENDING') return res.status(400).json({ error: 'Invite is not pending' })
+
+    await prisma.donorInvite.update({ where: { id: inviteId }, data: { status: 'EXPIRED' } })
+    res.json({ success: true })
+  } catch (err) {
+    console.error('Cancel invite error:', err)
+    res.status(500).json({ error: 'Failed to cancel invite' })
   }
 })
 

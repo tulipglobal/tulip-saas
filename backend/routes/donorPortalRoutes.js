@@ -1843,4 +1843,253 @@ router.post('/reports/generate-monthly', donorAuth, async (req, res) => {
   }
 })
 
+// ── Donor Challenge Routes ──────────────────────────────────
+
+// POST /api/donor/expenses/:expenseId/challenge — Create a challenge
+router.post('/expenses/:expenseId/challenge', donorAuth, async (req, res) => {
+  try {
+    const { donorOrgId, donorMemberId } = req.donor
+    const { expenseId } = req.params
+    const { note } = req.body
+    if (!note || note.length > 500) return res.status(400).json({ error: 'Note is required (max 500 chars)' })
+
+    // Verify expense exists and donor has access
+    const expense = await prisma.expense.findUnique({
+      where: { id: expenseId },
+      select: { id: true, projectId: true, approvalStatus: true, description: true, vendor: true, amount: true, currency: true, ocrDate: true, createdAt: true }
+    })
+    if (!expense) return res.status(404).json({ error: 'Expense not found' })
+
+    // Check donor has access to this project
+    const access = await prisma.$queryRawUnsafe(
+      `SELECT id FROM "DonorProjectAccess" WHERE "donorOrgId" = $1 AND "projectId" = $2 AND "revokedAt" IS NULL`,
+      donorOrgId, expense.projectId
+    )
+    if (!access.length) return res.status(403).json({ error: 'No access to this project' })
+
+    // Check expense is approved
+    if (!['APPROVED', 'AUTO_APPROVED'].includes(expense.approvalStatus)) {
+      return res.status(400).json({ error: 'Can only challenge approved expenses' })
+    }
+
+    // Check no existing active challenge from this donor org
+    const existing = await prisma.$queryRawUnsafe(
+      `SELECT id FROM "ExpenseChallenge" WHERE "expenseId" = $1 AND "donorOrgId" = $2 AND status IN ('OPEN', 'ESCALATED')`,
+      expenseId, donorOrgId
+    )
+    if (existing.length) return res.status(409).json({ error: 'An active challenge already exists for this expense' })
+
+    // Create challenge
+    const challenge = await prisma.$queryRawUnsafe(
+      `INSERT INTO "ExpenseChallenge" ("expenseId", "projectId", "donorOrgId", "donorMemberId", note, status)
+       VALUES ($1, $2, $3, $4, $5, 'OPEN') RETURNING *`,
+      expenseId, expense.projectId, donorOrgId, donorMemberId, note
+    )
+
+    // Send email to NGO admins (non-blocking)
+    ;(async () => {
+      try {
+        const project = await prisma.project.findUnique({ where: { id: expense.projectId }, select: { name: true, tenantId: true } })
+        if (!project) return
+        const donorOrg = await prisma.$queryRawUnsafe(`SELECT name FROM "DonorOrganisation" WHERE id = $1`, donorOrgId)
+        const donorOrgName = donorOrg[0]?.name || 'A donor'
+        const admins = await prisma.user.findMany({
+          where: { tenantId: project.tenantId, role: { name: { in: ['Admin', 'Manager', 'admin', 'manager'] } } },
+          select: { email: true }
+        })
+        // Fallback: get all users for tenant if role query fails
+        const recipients = admins.length ? admins : await prisma.user.findMany({
+          where: { tenantId: project.tenantId },
+          select: { email: true },
+          take: 5
+        })
+        const vendor = expense.vendor || expense.description || 'Unknown'
+        const amount = `${expense.currency || 'USD'} ${(expense.amount || 0).toLocaleString()}`
+        for (const admin of recipients) {
+          await sendEmail({
+            to: admin.email,
+            subject: `Donor Flag — ${vendor} on ${project.name}`,
+            text: `${donorOrgName} has flagged an expense for review.\n\nProject: ${project.name}\nExpense: ${vendor} — ${amount}\nDonor note: ${note}\n\nPlease log in to respond: https://app.sealayer.io/dashboard/donor-flags\n\nThis flag does not freeze or void the expense.`,
+            html: `
+              <div style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;max-width:560px;margin:0 auto;padding:30px;background:#ffffff;border-radius:12px">
+                <h1 style="color:#183a1d;font-size:22px">Donor Flag</h1>
+                <p style="color:#183a1d"><strong>${donorOrgName}</strong> has flagged an expense for review.</p>
+                <div style="background:#fefbe9;border:1px solid #c8d6c0;border-radius:8px;padding:16px;margin:16px 0">
+                  <p style="margin:4px 0;color:#183a1d"><strong>Project:</strong> ${project.name}</p>
+                  <p style="margin:4px 0;color:#183a1d"><strong>Expense:</strong> ${vendor} — ${amount}</p>
+                  <p style="margin:4px 0;color:#183a1d"><strong>Donor note:</strong> ${note}</p>
+                </div>
+                <p style="color:#183a1d;font-size:13px">This flag does not freeze or void the expense.</p>
+                <div style="text-align:center;margin:24px 0">
+                  <a href="https://app.sealayer.io/dashboard/donor-flags" style="display:inline-block;padding:12px 28px;background:#f6c453;color:#183a1d;text-decoration:none;border-radius:8px;font-weight:600">Respond to Flag</a>
+                </div>
+              </div>`
+          }).catch(() => {})
+        }
+      } catch (err) { console.error('Challenge email error:', err.message) }
+    })()
+
+    res.json({ challenge: challenge[0] })
+  } catch (err) {
+    console.error('Create challenge error:', err)
+    res.status(500).json({ error: 'Failed to create challenge' })
+  }
+})
+
+// GET /api/donor/expenses/:expenseId/challenges — Get challenges for an expense
+router.get('/expenses/:expenseId/challenges', donorAuth, async (req, res) => {
+  try {
+    const { donorOrgId } = req.donor
+    const { expenseId } = req.params
+
+    const challenges = await prisma.$queryRawUnsafe(
+      `SELECT * FROM "ExpenseChallenge" WHERE "expenseId" = $1 AND "donorOrgId" = $2 ORDER BY "createdAt" DESC`,
+      expenseId, donorOrgId
+    )
+
+    // Get responses for each challenge
+    for (const c of challenges) {
+      const responses = await prisma.$queryRawUnsafe(
+        `SELECT * FROM "ExpenseChallengeResponse" WHERE "challengeId" = $1 ORDER BY "createdAt" ASC`,
+        c.id
+      )
+      c.responses = responses
+    }
+
+    res.json({ challenges })
+  } catch (err) {
+    console.error('Get challenges error:', err)
+    res.status(500).json({ error: 'Failed to fetch challenges' })
+  }
+})
+
+// POST /api/donor/challenges/:challengeId/respond — Donor responds to NGO response
+router.post('/challenges/:challengeId/respond', donorAuth, async (req, res) => {
+  try {
+    const { donorOrgId, donorMemberId } = req.donor
+    const { challengeId } = req.params
+    const { action, note } = req.body
+    if (!action || !['CONFIRM', 'ESCALATE'].includes(action)) return res.status(400).json({ error: 'action must be CONFIRM or ESCALATE' })
+    if (!note || note.length > 500) return res.status(400).json({ error: 'Note is required (max 500 chars)' })
+
+    // Verify challenge belongs to this donor org and is RESPONDED
+    const challenges = await prisma.$queryRawUnsafe(
+      `SELECT * FROM "ExpenseChallenge" WHERE id = $1 AND "donorOrgId" = $2`,
+      challengeId, donorOrgId
+    )
+    if (!challenges.length) return res.status(404).json({ error: 'Challenge not found' })
+    if (challenges[0].status !== 'RESPONDED') return res.status(400).json({ error: 'Can only respond after NGO has responded' })
+
+    const newStatus = action === 'CONFIRM' ? 'CONFIRMED' : 'ESCALATED'
+
+    // Create response
+    await prisma.$executeRawUnsafe(
+      `INSERT INTO "ExpenseChallengeResponse" ("challengeId", "respondedBy", "respondedByType", note, action)
+       VALUES ($1, $2, 'DONOR', $3, $4)`,
+      challengeId, donorMemberId, note, action
+    )
+
+    // Update challenge status
+    await prisma.$executeRawUnsafe(
+      `UPDATE "ExpenseChallenge" SET status = $1, "updatedAt" = NOW() WHERE id = $2`,
+      newStatus, challengeId
+    )
+
+    // Get updated challenge with responses
+    const updated = await prisma.$queryRawUnsafe(`SELECT * FROM "ExpenseChallenge" WHERE id = $1`, challengeId)
+    const responses = await prisma.$queryRawUnsafe(
+      `SELECT * FROM "ExpenseChallengeResponse" WHERE "challengeId" = $1 ORDER BY "createdAt" ASC`, challengeId
+    )
+    updated[0].responses = responses
+
+    // Send email to NGO (non-blocking)
+    ;(async () => {
+      try {
+        const challenge = challenges[0]
+        const expense = await prisma.expense.findUnique({ where: { id: challenge.expenseId }, select: { vendor: true, description: true, amount: true, currency: true } })
+        const project = await prisma.project.findUnique({ where: { id: challenge.projectId }, select: { name: true, tenantId: true } })
+        const donorOrg = await prisma.$queryRawUnsafe(`SELECT name FROM "DonorOrganisation" WHERE id = $1`, donorOrgId)
+        const donorOrgName = donorOrg[0]?.name || 'A donor'
+        const vendor = expense?.vendor || expense?.description || 'Unknown'
+        const amount = `${expense?.currency || 'USD'} ${(expense?.amount || 0).toLocaleString()}`
+
+        if (!project) return
+        const recipients = await prisma.user.findMany({ where: { tenantId: project.tenantId }, select: { email: true }, take: 5 })
+
+        if (action === 'CONFIRM') {
+          for (const r of recipients) {
+            await sendEmail({
+              to: r.email,
+              subject: `Donor Flag Resolved — ${vendor}`,
+              text: `${donorOrgName} has confirmed they are satisfied with your response on ${vendor} — ${amount}. The flag has been closed.`,
+              html: `<div style="font-family:'Segoe UI',sans-serif;max-width:560px;margin:0 auto;padding:30px;background:#fff;border-radius:12px"><h1 style="color:#183a1d">Donor Flag Resolved</h1><p style="color:#183a1d"><strong>${donorOrgName}</strong> has confirmed they are satisfied with your response on <strong>${vendor} — ${amount}</strong>.</p><p style="color:#2E7D32;font-weight:bold">The flag has been closed. &#10003;</p></div>`
+            }).catch(() => {})
+          }
+        } else {
+          for (const r of recipients) {
+            await sendEmail({
+              to: r.email,
+              subject: `Donor Re-flagged — ${vendor} on ${project.name}`,
+              text: `${donorOrgName} is not satisfied with your response and has re-flagged this expense.\n\nDonor note: ${note}\n\nPlease respond again: https://app.sealayer.io/dashboard/donor-flags`,
+              html: `<div style="font-family:'Segoe UI',sans-serif;max-width:560px;margin:0 auto;padding:30px;background:#fff;border-radius:12px"><h1 style="color:#C62828">Donor Re-flagged</h1><p style="color:#183a1d"><strong>${donorOrgName}</strong> is not satisfied and has re-flagged <strong>${vendor} — ${amount}</strong>.</p><div style="background:#FFEBEE;border-radius:8px;padding:16px;margin:16px 0"><p style="color:#C62828;margin:0"><strong>Donor note:</strong> ${note}</p></div><div style="text-align:center;margin:24px 0"><a href="https://app.sealayer.io/dashboard/donor-flags" style="display:inline-block;padding:12px 28px;background:#f6c453;color:#183a1d;text-decoration:none;border-radius:8px;font-weight:600">Respond Again</a></div></div>`
+            }).catch(() => {})
+          }
+        }
+      } catch (err) { console.error('Challenge response email error:', err.message) }
+    })()
+
+    res.json({ challenge: updated[0] })
+  } catch (err) {
+    console.error('Donor challenge respond error:', err)
+    res.status(500).json({ error: 'Failed to respond to challenge' })
+  }
+})
+
+// GET /api/donor/challenges — Get all challenges for this donor org
+router.get('/challenges', donorAuth, async (req, res) => {
+  try {
+    const { donorOrgId } = req.donor
+    const statusFilter = req.query.status
+
+    let query = `SELECT c.* FROM "ExpenseChallenge" c WHERE c."donorOrgId" = $1`
+    const params = [donorOrgId]
+    if (statusFilter) {
+      query += ` AND c.status = $2`
+      params.push(statusFilter)
+    }
+    query += ` ORDER BY c."createdAt" DESC`
+
+    const challenges = await prisma.$queryRawUnsafe(query, ...params)
+
+    // Enrich with expense and project data
+    for (const c of challenges) {
+      try {
+        const expense = await prisma.expense.findUnique({
+          where: { id: c.expenseId },
+          select: { vendor: true, description: true, amount: true, currency: true, ocrDate: true, createdAt: true }
+        })
+        c.expense = expense ? {
+          vendor: expense.vendor || expense.description, amount: expense.amount,
+          currency: expense.currency, expenseDate: expense.ocrDate || expense.createdAt
+        } : null
+      } catch { c.expense = null }
+
+      try {
+        const project = await prisma.project.findUnique({ where: { id: c.projectId }, select: { name: true } })
+        c.project = project ? { name: project.name } : null
+      } catch { c.project = null }
+
+      const responses = await prisma.$queryRawUnsafe(
+        `SELECT * FROM "ExpenseChallengeResponse" WHERE "challengeId" = $1 ORDER BY "createdAt" ASC`, c.id
+      )
+      c.responses = responses
+    }
+
+    res.json({ challenges })
+  } catch (err) {
+    console.error('Get all challenges error:', err)
+    res.status(500).json({ error: 'Failed to fetch challenges' })
+  }
+})
+
 module.exports = router

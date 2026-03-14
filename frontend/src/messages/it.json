@@ -25,7 +25,8 @@
     "developerApi": "API per sviluppatori",
     "embed": "Incorpora",
     "searchPlaceholder": "Cerca progetti, documenti...",
-    "donors": "Donatori"
+    "donors": "Donatori",
+    "donorFlags": "Segnalazioni donatori"
   },
   "common": {
     "save": "Salva",

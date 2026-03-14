@@ -8,7 +8,7 @@ import { useOfflineSync } from '@/hooks/useOfflineSync'
 import {
   LayoutDashboard, FolderOpen, FileCheck, Receipt, Banknote,
   Key, Webhook, BarChart3, Settings, LogOut, Code2, CreditCard, Users,
-  ChevronLeft, ChevronRight, Shield, Bell, Search, Menu, X, ListChecks, ScanLine, FolderSearch, Briefcase, ShieldCheck, Crown
+  ChevronLeft, ChevronRight, Shield, Bell, Search, Menu, X, ListChecks, ScanLine, FolderSearch, Briefcase, ShieldCheck, Crown, Flag
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useTranslations } from 'next-intl'
@@ -34,6 +34,7 @@ const navItems = [
   { key: 'bundleVerify', href: '/dashboard/api-portal/bundle', icon: FolderSearch },
   { key: 'developerApi', href: '/dashboard/api-portal/developer', icon: Code2 },
   { key: 'embed',       href: '/dashboard/embed',     icon: Code2 },
+  { key: 'donorFlags', href: '/dashboard/donor-flags', icon: Flag, fallback: 'Donor Flags' },
   { key: 'donors',     href: '/dashboard/settings/donors', icon: Users, fallback: 'Donors' },
   { key: 'settings',   href: '/dashboard/settings',  icon: Settings },
 ]
@@ -42,6 +43,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [pendingCount, setPendingCount] = useState(0)
+  const [donorFlagCount, setDonorFlagCount] = useState(0)
   const [isSuperadmin, setIsSuperadmin] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
@@ -59,6 +61,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       .then(d => { if (d?.isSuperadmin) setIsSuperadmin(true) })
       .catch(() => {})
   }, [pathname])
+
+  // Fetch donor flag count on mount and every 60 seconds
+  useEffect(() => {
+    const fetchFlagCount = () => {
+      apiGet('/api/ngo/donor-challenges/count')
+        .then(r => r.ok ? r.json() : { total: 0 })
+        .then(d => setDonorFlagCount(d.total || 0))
+        .catch(() => {})
+    }
+    fetchFlagCount()
+    const interval = setInterval(fetchFlagCount, 60000)
+    return () => clearInterval(interval)
+  }, [])
 
   // Close mobile sidebar on route change
   useEffect(() => { setMobileOpen(false) }, [pathname])
@@ -121,6 +136,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           const { href, icon: Icon } = item
           const label = item.fallback ? t(item.key, { defaultValue: item.fallback }) : t(item.key)
           const isWorkflow = href === '/dashboard/workflow'
+          const isDonorFlags = item.key === 'donorFlags'
           const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
           return (
             <Link key={href} href={href} className={clsx(
@@ -137,7 +153,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {isWorkflow && pendingCount > 0 && collapsed && !mobileOpen && (
                 <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#f6c453]" />
               )}
-              {active && (!collapsed || mobileOpen) && !isWorkflow && (
+              {isDonorFlags && donorFlagCount > 0 && (!collapsed || mobileOpen) && (
+                <span className="ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-red-500/20 text-red-500 leading-none">{donorFlagCount}</span>
+              )}
+              {isDonorFlags && donorFlagCount > 0 && collapsed && !mobileOpen && (
+                <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500" />
+              )}
+              {active && (!collapsed || mobileOpen) && !isWorkflow && !(isDonorFlags && donorFlagCount > 0) && (
                 <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#f6c453]" />
               )}
               {active && (!collapsed || mobileOpen) && isWorkflow && pendingCount === 0 && (

@@ -83,6 +83,21 @@ function extractAmount(kvLower, rawText) {
   return null
 }
 
+// All ISO 4217 currency codes supported by the platform
+const ALL_CURRENCY_CODES = [
+  'AED','AFN','ALL','AMD','ANG','AOA','ARS','AUD','AWG','AZN','BAM','BBD','BDT','BGN','BHD','BIF',
+  'BMD','BND','BOB','BRL','BSD','BTN','BWP','BYN','BZD','CAD','CDF','CHF','CLP','CNY','COP','CRC',
+  'CUP','CVE','CZK','DJF','DKK','DOP','DZD','EGP','ERN','ETB','EUR','FJD','GBP','GEL','GHS','GMD',
+  'GNF','GTQ','GYD','HKD','HNL','HTG','HUF','IDR','ILS','INR','IQD','IRR','ISK','JMD','JOD','JPY',
+  'KES','KGS','KHR','KMF','KRW','KWD','KZT','LAK','LBP','LKR','LRD','LSL','LYD','MAD','MDL','MGA',
+  'MKD','MMK','MNT','MOP','MRU','MUR','MVR','MWK','MXN','MYR','MZN','NAD','NGN','NIO','NOK','NPR',
+  'NZD','OMR','PAB','PEN','PGK','PHP','PKR','PLN','PYG','QAR','RON','RSD','RUB','RWF','SAR','SBD',
+  'SCR','SDG','SEK','SGD','SLL','SOS','SRD','SSP','STN','SYP','SZL','THB','TJS','TMT','TND','TOP',
+  'TRY','TTD','TWD','TZS','UAH','UGX','USD','UYU','UZS','VES','VND','VUV','WST','XAF','XCD','XOF',
+  'YER','ZAR','ZMW','ZWL',
+]
+const CURRENCY_CODE_SET = new Set(ALL_CURRENCY_CODES)
+
 function extractCurrency(kvLower, rawText) {
   const currencyKeys = ['currency']
   for (const key of currencyKeys) {
@@ -93,13 +108,44 @@ function extractCurrency(kvLower, rawText) {
     }
   }
 
-  // Scan for currency codes/symbols in raw text
-  const codes = rawText.match(/\b(AED|USD|EUR|GBP|INR|SAR|QAR|BHD|OMR|KWD|KES|UGX|TZS|NGN|ZAR|CAD|AUD|SGD|CHF|JPY)\b/i)
-  if (codes) return codes[1].toUpperCase()
+  // Scan for any 3-letter ISO currency code in raw text
+  const codePattern = /\b([A-Z]{3})\b/g
+  let match
+  while ((match = codePattern.exec(rawText)) !== null) {
+    if (CURRENCY_CODE_SET.has(match[1])) return match[1]
+  }
+  // Also try case-insensitive for OCR that may lowercase
+  const codeLower = rawText.match(/\b([A-Za-z]{3})\b/g)
+  if (codeLower) {
+    for (const c of codeLower) {
+      if (CURRENCY_CODE_SET.has(c.toUpperCase())) return c.toUpperCase()
+    }
+  }
 
-  const symbols = { '$': 'USD', '€': 'EUR', '£': 'GBP', '₹': 'INR', '¥': 'JPY', 'AED': 'AED', 'Dhs': 'AED', 'KSh': 'KES' }
+  // Symbol detection
+  const symbols = {
+    '€': 'EUR', '£': 'GBP', '₹': 'INR', '¥': 'JPY', '₩': 'KRW', '₱': 'PHP',
+    '₫': 'VND', '₦': 'NGN', '₵': 'GHS', '₪': 'ILS', '₸': 'KZT', '₴': 'UAH',
+    '₽': 'RUB', '₺': 'TRY', '₡': 'CRC', '₲': 'PYG', '฿': 'THB', '៛': 'KHR',
+    '₭': 'LAK', '₮': 'MNT', '﷼': 'IRR', '₠': 'EUR',
+    'Dhs': 'AED', 'DH': 'AED', 'KSh': 'KES', 'USh': 'UGX', 'TSh': 'TZS',
+    'R$': 'BRL', 'S/.': 'PEN', 'Bs.': 'BOB', 'Bs.S': 'VES', 'Mex$': 'MXN',
+    'RM': 'MYR', 'Rp': 'IDR', 'Rs': 'INR', 'Rs.': 'INR',
+  }
   for (const [sym, code] of Object.entries(symbols)) {
     if (rawText.includes(sym)) return code
+  }
+
+  // $ is ambiguous — check context for non-USD dollar currencies
+  if (rawText.includes('$')) {
+    // Check for specific dollar prefixes first
+    if (/\bA\$/.test(rawText)) return 'AUD'
+    if (/\bC\$/.test(rawText)) return 'CAD'
+    if (/\bNZ\$/.test(rawText)) return 'NZD'
+    if (/\bHK\$/.test(rawText)) return 'HKD'
+    if (/\bS\$/.test(rawText)) return 'SGD'
+    if (/\bTT\$/.test(rawText)) return 'TTD'
+    return 'USD'
   }
 
   return null
@@ -224,8 +270,11 @@ function normaliseAmount(str) {
 function parseCurrency(str) {
   if (!str) return null
   const upper = str.toUpperCase().trim()
-  const known = ['AED', 'USD', 'EUR', 'GBP', 'INR', 'SAR', 'QAR', 'BHD', 'OMR', 'KWD', 'KES', 'UGX', 'TZS', 'NGN', 'ZAR', 'CAD', 'AUD', 'SGD', 'CHF', 'JPY']
-  if (known.includes(upper)) return upper
+  // Direct 3-letter code match
+  if (CURRENCY_CODE_SET.has(upper)) return upper
+  // Try extracting a 3-letter code from a longer string (e.g. "AED - Dirham")
+  const codeMatch = upper.match(/\b([A-Z]{3})\b/)
+  if (codeMatch && CURRENCY_CODE_SET.has(codeMatch[1])) return codeMatch[1]
   return null
 }
 

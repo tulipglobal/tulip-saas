@@ -56,10 +56,15 @@ router.post('/projects/:projectId', async (req, res) => {
   try {
     const tenantId = req.user.tenantId
     const { projectId } = req.params
-    const { title, description, metric, targetValue, unit, targetDate } = req.body
+    const { title, description, category, metric, targetValue, targetUnit, unit, targetDate } = req.body
 
-    if (!title || !metric || targetValue === undefined) {
-      return res.status(400).json({ error: 'title, metric, and targetValue are required' })
+    // Accept both 'category' (frontend) and 'metric' (legacy) field names
+    const cat = category || metric
+    // Accept both 'targetUnit' (frontend) and 'unit' (legacy) field names
+    const u = targetUnit || unit
+
+    if (!title || !cat || targetValue === undefined) {
+      return res.status(400).json({ error: 'title, category, and targetValue are required' })
     }
 
     // Verify project belongs to tenant
@@ -70,10 +75,10 @@ router.post('/projects/:projectId', async (req, res) => {
     if (!project || project.tenantId !== tenantId) return res.status(403).json({ error: 'Not your project' })
 
     const milestone = await prisma.$queryRawUnsafe(
-      `INSERT INTO "ImpactMilestone" ("projectId", "tenantId", title, description, metric, "targetValue", unit, "targetDate", status)
+      `INSERT INTO "ImpactMilestone" ("projectId", "tenantId", title, description, category, "targetValue", "targetUnit", "targetDate", status)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'NOT_STARTED') RETURNING *`,
-      projectId, tenantId, title, description || null, metric, parseFloat(targetValue),
-      unit || null, targetDate ? new Date(targetDate) : null
+      projectId, tenantId, title, description || null, cat, parseFloat(targetValue),
+      u || null, targetDate ? new Date(targetDate) : null
     )
 
     // Notify donors about new milestone (non-blocking)
@@ -83,7 +88,7 @@ router.post('/projects/:projectId', async (req, res) => {
           projectId,
           'milestone.created',
           `New milestone — ${title}`,
-          `A new impact milestone "${title}" has been added to ${project.name}. Target: ${targetValue}${unit ? ' ' + unit : ''}.`,
+          `A new impact milestone "${title}" has been added to ${project.name}. Target: ${targetValue}${u ? ' ' + u : ''}.`,
           'milestone',
           milestone[0].id
         )
@@ -102,7 +107,7 @@ router.put('/:milestoneId', async (req, res) => {
   try {
     const tenantId = req.user.tenantId
     const { milestoneId } = req.params
-    const { title, description, metric, targetValue, unit, targetDate } = req.body
+    const { title, description, category, metric, targetValue, targetUnit, unit, targetDate } = req.body
 
     // Get milestone and verify tenant ownership
     const milestones = await prisma.$queryRawUnsafe(
@@ -133,9 +138,9 @@ router.put('/:milestoneId', async (req, res) => {
 
     if (title !== undefined) { sets.push(`title = $${idx}`); values.push(title); idx++ }
     if (description !== undefined) { sets.push(`description = $${idx}`); values.push(description); idx++ }
-    if (metric !== undefined) { sets.push(`metric = $${idx}`); values.push(metric); idx++ }
+    if (category !== undefined || metric !== undefined) { sets.push(`category = $${idx}`); values.push(category || metric); idx++ }
     if (targetValue !== undefined) { sets.push(`"targetValue" = $${idx}`); values.push(parseFloat(targetValue)); idx++ }
-    if (unit !== undefined) { sets.push(`unit = $${idx}`); values.push(unit); idx++ }
+    if (targetUnit !== undefined || unit !== undefined) { sets.push(`"targetUnit" = $${idx}`); values.push(targetUnit || unit); idx++ }
     if (targetDate !== undefined) { sets.push(`"targetDate" = $${idx}`); values.push(targetDate ? new Date(targetDate) : null); idx++ }
 
     if (sets.length === 0) return res.status(400).json({ error: 'No fields to update' })
@@ -161,9 +166,11 @@ router.post('/:milestoneId/update', async (req, res) => {
   try {
     const tenantId = req.user.tenantId
     const { milestoneId } = req.params
-    const { currentValue, note, evidenceIds } = req.body
+    const { currentValue, newValue, note, evidenceIds } = req.body
 
-    if (currentValue === undefined) return res.status(400).json({ error: 'currentValue is required' })
+    // Accept both 'newValue' (frontend) and 'currentValue' (legacy)
+    const val = newValue !== undefined ? newValue : currentValue
+    if (val === undefined) return res.status(400).json({ error: 'currentValue is required' })
 
     // Get milestone and verify tenant ownership
     const milestones = await prisma.$queryRawUnsafe(
@@ -185,13 +192,13 @@ router.post('/:milestoneId/update', async (req, res) => {
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
       milestoneId,
       req.user.userId,
-      parseFloat(currentValue),
+      parseFloat(val),
       note || null,
       evidenceIds ? JSON.stringify(evidenceIds) : null
     )
 
     // Recalculate milestone status based on currentValue vs targetValue
-    const parsedCurrent = parseFloat(currentValue)
+    const parsedCurrent = parseFloat(val)
     const target = parseFloat(milestone.targetValue)
     let newStatus = 'NOT_STARTED'
     if (parsedCurrent >= target) {

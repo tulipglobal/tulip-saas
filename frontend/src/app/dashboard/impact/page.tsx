@@ -134,9 +134,14 @@ export default function ImpactPage() {
         setAddModal(null)
         fetchData()
         setTimeout(() => setToast(''), 4000)
+      } else {
+        const err = await res.json().catch(() => ({ error: 'Failed to create milestone' }))
+        setToast(err.error || 'Failed to create milestone')
+        setTimeout(() => setToast(''), 5000)
       }
     } catch {
-      // silently fail
+      setToast('Network error — please try again')
+      setTimeout(() => setToast(''), 5000)
     } finally {
       setSubmitting(false)
     }
@@ -161,9 +166,14 @@ export default function ImpactPage() {
         setUpdateModal(null)
         fetchData()
         setTimeout(() => setToast(''), 4000)
+      } else {
+        const err = await res.json().catch(() => ({ error: 'Failed to update progress' }))
+        setToast(err.error || 'Failed to update progress')
+        setTimeout(() => setToast(''), 5000)
       }
     } catch {
-      // silently fail
+      setToast('Network error — please try again')
+      setTimeout(() => setToast(''), 5000)
     } finally {
       setSubmitting(false)
     }

@@ -26,6 +26,9 @@ interface FundingSourceForm {
   donorName: string
   amount: string
   currency: string
+  interestRate: string
+  termMonths: string
+  gracePeriodMonths: string
 }
 
 interface ProjectOption {
@@ -40,7 +43,7 @@ function emptyLine(): BudgetLineForm {
 }
 
 function emptyFunding(): FundingSourceForm {
-  return { key: crypto.randomUUID(), sourceType: '', sourceSubType: '', donorName: '', amount: '', currency: 'USD' }
+  return { key: crypto.randomUUID(), sourceType: '', sourceSubType: '', donorName: '', amount: '', currency: 'USD', interestRate: '', termMonths: '', gracePeriodMonths: '' }
 }
 
 const inputCls = "w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all [color-scheme:light]"
@@ -165,6 +168,11 @@ function NewBudgetInner() {
           donorName: f.donorName.trim(),
           amount: Number(f.amount),
           currency: f.currency,
+          ...(f.sourceType === 'Impact Investment' && {
+            interestRate: f.interestRate ? Number(f.interestRate) : null,
+            termMonths: f.termMonths ? Number(f.termMonths) : null,
+            gracePeriodMonths: f.gracePeriodMonths ? Number(f.gracePeriodMonths) : null,
+          }),
         }))
       })
       if (!res.ok) {
@@ -373,6 +381,28 @@ function NewBudgetInner() {
                     </div>
                   </div>
                 </div>
+                {fs.sourceType === 'Impact Investment' && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                    <div>
+                      <label className="text-xs text-[#183a1d]/60 mb-1 block">Interest Rate (%)</label>
+                      <input type="number" min="0" step="0.01" value={fs.interestRate}
+                        onChange={e => updateFunding(fs.key, 'interestRate', e.target.value)} placeholder="e.g. 5.5"
+                        className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-[#183a1d]/60 mb-1 block">Loan Term (months)</label>
+                      <input type="number" min="1" value={fs.termMonths}
+                        onChange={e => updateFunding(fs.key, 'termMonths', e.target.value)} placeholder="e.g. 24"
+                        className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-[#183a1d]/60 mb-1 block">Grace Period (months)</label>
+                      <input type="number" min="0" value={fs.gracePeriodMonths}
+                        onChange={e => updateFunding(fs.key, 'gracePeriodMonths', e.target.value)} placeholder="e.g. 6"
+                        className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all" />
+                    </div>
+                  </div>
+                )}
               </div>
             )
           })}

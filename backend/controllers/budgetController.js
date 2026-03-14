@@ -192,6 +192,39 @@ exports.create = async (req, res) => {
       details: { name, lineCount: lines.length, fundingSourceCount: (fundingSources || []).length }
     })
 
+    // Create ImpactInvestment records for Impact Investment funding sources
+    if (fundingSources && fundingSources.length > 0) {
+      for (const f of fundingSources) {
+        if (f.sourceType === 'Impact Investment') {
+          try {
+            const subType = (f.sourceSubType || 'LOAN').toUpperCase()
+            const instrumentType = subType.includes('EQUITY') ? 'EQUITY'
+              : subType.includes('OUTCOME') ? 'OUTCOME_BASED' : 'LOAN'
+
+            await prisma.$queryRawUnsafe(
+              `INSERT INTO "ImpactInvestment" (
+                "projectId", "tenantId", "instrumentType",
+                "totalFacility", currency, "interestRate", "termMonths",
+                "gracePeriodMonths", "startDate", notes, status
+              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'ACTIVE')`,
+              projectId,
+              req.user.tenantId,
+              instrumentType,
+              Number(f.amount) || 0,
+              f.currency || 'USD',
+              Number(f.interestRate) || 0,
+              f.termMonths ? Number(f.termMonths) : null,
+              Number(f.gracePeriodMonths) || 0,
+              periodFrom ? new Date(periodFrom) : new Date(),
+              `Auto-created from budget "${name}" — ${f.donorName}`
+            )
+          } catch (invErr) {
+            console.error('Failed to create ImpactInvestment for budget funding source:', invErr.message)
+          }
+        }
+      }
+    }
+
     res.status(201).json(budget)
   } catch (err) {
     console.error('budget create error:', err)

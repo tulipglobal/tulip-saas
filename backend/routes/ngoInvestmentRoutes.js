@@ -113,8 +113,8 @@ router.post('/:investmentId/drawdowns', async (req, res) => {
 
     const rows = await prisma.$queryRawUnsafe(
       `INSERT INTO "Drawdown" (
-        "investmentId", amount, currency, purpose, status, "requestedBy"
-      ) VALUES ($1, $2, $3, $4, 'REQUESTED', $5)
+        "investmentId", amount, currency, purpose, status, "requestedBy", "requestDate"
+      ) VALUES ($1, $2, $3, $4, 'REQUESTED', $5, NOW())
       RETURNING *`,
       investmentId, parseFloat(amount), currency, purpose || null, req.user.userId
     )

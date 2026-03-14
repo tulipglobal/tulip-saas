@@ -194,30 +194,81 @@ exports.create = async (req, res) => {
 
     // Create ImpactInvestment records for Impact Investment funding sources
     if (fundingSources && fundingSources.length > 0) {
+      // Look up donorOrgId from DonorProjectAccess
+      let donorOrgId = null
+      try {
+        const dpaRows = await prisma.$queryRawUnsafe(
+          `SELECT dpa."donorOrgId" FROM "DonorProjectAccess" dpa
+           WHERE dpa."projectId" = $1 AND dpa."revokedAt" IS NULL
+           LIMIT 1`,
+          projectId
+        )
+        if (dpaRows.length > 0) donorOrgId = dpaRows[0].donorOrgId
+      } catch {}
+
       for (const f of fundingSources) {
         if (f.sourceType === 'Impact Investment') {
           try {
             const subType = (f.sourceSubType || 'LOAN').toUpperCase()
             const instrumentType = subType.includes('EQUITY') ? 'EQUITY'
-              : subType.includes('OUTCOME') ? 'OUTCOME_BASED' : 'LOAN'
+              : subType.includes('OUTCOME') ? 'OUTCOME_BASED'
+              : subType.includes('REVENUE') ? 'REVENUE_SHARE' : 'LOAN'
 
-            await prisma.$queryRawUnsafe(
+            const facility = Number(f.amount) || 0
+            const rate = Number(f.interestRate) || 0
+            const term = f.termMonths ? Number(f.termMonths) : null
+            const grace = Number(f.gracePeriodMonths) || 0
+            const startDate = periodFrom ? new Date(periodFrom) : new Date()
+
+            const invRows = await prisma.$queryRawUnsafe(
               `INSERT INTO "ImpactInvestment" (
-                "projectId", "tenantId", "instrumentType",
-                "totalFacility", currency, "interestRate", "termMonths",
-                "gracePeriodMonths", "startDate", notes, status
-              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'ACTIVE')`,
+                "projectId", "tenantId", "donorOrgId", "investmentType",
+                "totalFacility", currency, "interestRate", "interestType",
+                "termMonths", "gracePeriodMonths", "startDate", notes, status
+              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'ACTIVE')
+              RETURNING *`,
               projectId,
               req.user.tenantId,
+              donorOrgId,
               instrumentType,
-              Number(f.amount) || 0,
+              facility,
               f.currency || 'USD',
-              Number(f.interestRate) || 0,
-              f.termMonths ? Number(f.termMonths) : null,
-              Number(f.gracePeriodMonths) || 0,
-              periodFrom ? new Date(periodFrom) : new Date(),
-              `Auto-created from budget "${name}" — ${f.donorName}`
+              rate,
+              f.interestType || 'FIXED',
+              term,
+              grace,
+              startDate,
+              `${f.donorName} — ${instrumentType} via budget "${name}"`
             )
+
+            const investment = invRows[0]
+
+            // Auto-generate repayment schedule if requested
+            if (f.autoGenerateSchedule !== false && term && term > 0) {
+              const repaymentMonths = term - grace
+              if (repaymentMonths > 0) {
+                const principalDue = facility / repaymentMonths
+                let remainingPrincipal = facility
+
+                for (let i = 1; i <= repaymentMonths; i++) {
+                  const dueDate = new Date(startDate)
+                  dueDate.setMonth(dueDate.getMonth() + grace + i)
+                  const interestDue = Math.round((remainingPrincipal * (rate / 100 / 12)) * 100) / 100
+                  const totalDue = Math.round((principalDue + interestDue) * 100) / 100
+
+                  await prisma.$queryRawUnsafe(
+                    `INSERT INTO "RepaymentSchedule" (
+                      "investmentId", "instalmentNumber", "dueDate",
+                      "principalDue", "interestDue", "totalDue", status
+                    ) VALUES ($1, $2, $3, $4, $5, $6, 'PENDING')`,
+                    investment.id, i, dueDate,
+                    Math.round(principalDue * 100) / 100,
+                    interestDue, totalDue
+                  )
+                  remainingPrincipal -= principalDue
+                }
+              }
+            }
           } catch (invErr) {
             console.error('Failed to create ImpactInvestment for budget funding source:', invErr.message)
           }
@@ -337,7 +388,8 @@ exports.addFundingSource = async (req, res) => {
     const budget = await db.budget.findUnique({ where: { id: req.params.id } })
     if (!budget) return res.status(404).json({ error: 'Budget not found' })
 
-    const { sourceType, sourceSubType, donorName, amount, currency, agreementFileKey, agreementHash } = req.body
+    const { sourceType, sourceSubType, donorName, amount, currency, agreementFileKey, agreementHash,
+            interestRate, interestType, gracePeriodMonths, termMonths, autoGenerateSchedule } = req.body
     if (!sourceType || !donorName || !amount) {
       return res.status(400).json({ error: 'sourceType, donorName, and amount are required' })
     }
@@ -363,6 +415,84 @@ exports.addFundingSource = async (req, res) => {
       tenantId: req.user.tenantId,
       details: { sourceType, donorName, amount: Number(amount) }
     })
+
+    // Create ImpactInvestment record for Impact Investment sources
+    if (sourceType === 'Impact Investment') {
+      try {
+        const subType = (sourceSubType || 'LOAN').toUpperCase()
+        const instrumentType = subType.includes('EQUITY') ? 'EQUITY'
+          : subType.includes('OUTCOME') ? 'OUTCOME_BASED'
+          : subType.includes('REVENUE') ? 'REVENUE_SHARE' : 'LOAN'
+
+        // Look up donorOrgId from DonorProjectAccess for this project
+        let donorOrgId = null
+        const dpaRows = await prisma.$queryRawUnsafe(
+          `SELECT dpa."donorOrgId" FROM "DonorProjectAccess" dpa
+           WHERE dpa."projectId" = $1 AND dpa."revokedAt" IS NULL
+           LIMIT 1`,
+          budget.projectId
+        )
+        if (dpaRows.length > 0) donorOrgId = dpaRows[0].donorOrgId
+
+        const facility = Number(amount) || 0
+        const rate = Number(interestRate) || 0
+        const term = termMonths ? Number(termMonths) : null
+        const grace = Number(gracePeriodMonths) || 0
+        const startDate = budget.periodFrom || new Date()
+
+        const invRows = await prisma.$queryRawUnsafe(
+          `INSERT INTO "ImpactInvestment" (
+            "projectId", "tenantId", "donorOrgId", "investmentType",
+            "totalFacility", currency, "interestRate", "interestType",
+            "termMonths", "gracePeriodMonths", "startDate", notes, status
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'ACTIVE')
+          RETURNING *`,
+          budget.projectId,
+          req.user.tenantId,
+          donorOrgId,
+          instrumentType,
+          facility,
+          currency || 'USD',
+          rate,
+          interestType || 'FIXED',
+          term,
+          grace,
+          new Date(startDate),
+          `${donorName} — ${instrumentType} via budget "${budget.name}"`
+        )
+
+        const investment = invRows[0]
+
+        // Auto-generate repayment schedule if requested and term specified
+        if (autoGenerateSchedule !== false && term && term > 0) {
+          const repaymentMonths = term - grace
+          if (repaymentMonths > 0) {
+            const principalDue = facility / repaymentMonths
+            let remainingPrincipal = facility
+
+            for (let i = 1; i <= repaymentMonths; i++) {
+              const dueDate = new Date(startDate)
+              dueDate.setMonth(dueDate.getMonth() + grace + i)
+              const interestDue = Math.round((remainingPrincipal * (rate / 100 / 12)) * 100) / 100
+              const totalDue = Math.round((principalDue + interestDue) * 100) / 100
+
+              await prisma.$queryRawUnsafe(
+                `INSERT INTO "RepaymentSchedule" (
+                  "investmentId", "instalmentNumber", "dueDate",
+                  "principalDue", "interestDue", "totalDue", status
+                ) VALUES ($1, $2, $3, $4, $5, $6, 'PENDING')`,
+                investment.id, i, dueDate,
+                Math.round(principalDue * 100) / 100,
+                interestDue, totalDue
+              )
+              remainingPrincipal -= principalDue
+            }
+          }
+        }
+      } catch (invErr) {
+        console.error('Failed to create ImpactInvestment from funding source:', invErr.message)
+      }
+    }
 
     // Auto-issue Trust Seal for agreement document (non-blocking)
     if (agreementHash) {

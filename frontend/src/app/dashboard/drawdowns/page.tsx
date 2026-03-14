@@ -320,18 +320,24 @@ export default function DrawdownsPage() {
             {/* Project / Investment select */}
             <div>
               <label className="block text-xs font-medium text-[#183a1d]/70 mb-1">Project</label>
-              <select
-                value={reqInvestmentId}
-                onChange={e => { setReqInvestmentId(e.target.value); setReqAmount('') }}
-                className="w-full rounded-lg border border-[#c8d6c0] bg-[#e1eedd] px-3 py-2 text-sm text-[#183a1d] outline-none focus:border-[#183a1d]/40"
-              >
-                <option value="">Select a project...</option>
-                {investmentOptions.map(o => (
-                  <option key={o.id} value={o.id}>
-                    {o.projectName} (remaining: {o.currency} {o.remaining.toLocaleString()})
-                  </option>
-                ))}
-              </select>
+              {investmentOptions.length === 0 ? (
+                <div className="rounded-lg border border-[#c8d6c0] bg-[#e1eedd] px-3 py-3 text-sm text-[#183a1d]/60">
+                  No active impact investments found. Create one via Budgets &rarr; Add Funding Source &rarr; Impact Investment.
+                </div>
+              ) : (
+                <select
+                  value={reqInvestmentId}
+                  onChange={e => { setReqInvestmentId(e.target.value); setReqAmount('') }}
+                  className="w-full rounded-lg border border-[#c8d6c0] bg-[#e1eedd] px-3 py-2 text-sm text-[#183a1d] outline-none focus:border-[#183a1d]/40"
+                >
+                  <option value="">Select a project...</option>
+                  {investmentOptions.map(o => (
+                    <option key={o.id} value={o.id}>
+                      {o.projectName} (remaining: {o.currency} {o.remaining.toLocaleString()})
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             {/* Amount */}

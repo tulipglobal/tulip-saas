@@ -27,8 +27,10 @@ interface FundingSourceForm {
   amount: string
   currency: string
   interestRate: string
+  interestType: string
   termMonths: string
   gracePeriodMonths: string
+  autoGenerateSchedule: boolean
 }
 
 interface ProjectOption {
@@ -43,7 +45,7 @@ function emptyLine(): BudgetLineForm {
 }
 
 function emptyFunding(): FundingSourceForm {
-  return { key: crypto.randomUUID(), sourceType: '', sourceSubType: '', donorName: '', amount: '', currency: 'USD', interestRate: '', termMonths: '', gracePeriodMonths: '' }
+  return { key: crypto.randomUUID(), sourceType: '', sourceSubType: '', donorName: '', amount: '', currency: 'USD', interestRate: '', interestType: 'FIXED', termMonths: '', gracePeriodMonths: '', autoGenerateSchedule: true }
 }
 
 const inputCls = "w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all [color-scheme:light]"
@@ -118,7 +120,7 @@ function NewBudgetInner() {
     }))
   }
 
-  const updateFunding = (key: string, field: keyof FundingSourceForm, value: string) => {
+  const updateFunding = (key: string, field: keyof FundingSourceForm, value: string | boolean) => {
     setFundingSources(prev => prev.map(f => {
       if (f.key !== key) return f
       const updated = { ...f, [field]: value }
@@ -170,8 +172,10 @@ function NewBudgetInner() {
           currency: f.currency,
           ...(f.sourceType === 'Impact Investment' && {
             interestRate: f.interestRate ? Number(f.interestRate) : null,
+            interestType: f.interestType || 'FIXED',
             termMonths: f.termMonths ? Number(f.termMonths) : null,
             gracePeriodMonths: f.gracePeriodMonths ? Number(f.gracePeriodMonths) : null,
+            autoGenerateSchedule: f.autoGenerateSchedule,
           }),
         }))
       })
@@ -382,26 +386,54 @@ function NewBudgetInner() {
                   </div>
                 </div>
                 {fs.sourceType === 'Impact Investment' && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
-                    <div>
-                      <label className="text-xs text-[#183a1d]/60 mb-1 block">Interest Rate (%)</label>
-                      <input type="number" min="0" step="0.01" value={fs.interestRate}
-                        onChange={e => updateFunding(fs.key, 'interestRate', e.target.value)} placeholder="e.g. 5.5"
-                        className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all" />
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 pt-1">
+                      <div>
+                        <label className="text-xs text-[#183a1d]/60 mb-1 block">Interest Rate (% p.a.)</label>
+                        <input type="number" min="0" step="0.01" value={fs.interestRate}
+                          onChange={e => updateFunding(fs.key, 'interestRate', e.target.value)} placeholder="e.g. 5.5"
+                          className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-[#183a1d]/60 mb-1 block">Interest Type</label>
+                        <div className="flex rounded-lg overflow-hidden border border-[#c8d6c0]">
+                          {(['FIXED', 'VARIABLE'] as const).map(t => (
+                            <button key={t} type="button" onClick={() => updateFunding(fs.key, 'interestType', t)}
+                              className="flex-1 px-3 py-2 text-xs font-medium transition-all"
+                              style={{ background: fs.interestType === t ? '#183a1d' : '#e1eedd', color: fs.interestType === t ? '#fefbe9' : '#183a1d' }}>
+                              {t}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-xs text-[#183a1d]/60 mb-1 block">Term (months)</label>
+                        <input type="number" min="1" value={fs.termMonths}
+                          onChange={e => updateFunding(fs.key, 'termMonths', e.target.value)} placeholder="e.g. 24"
+                          className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-[#183a1d]/60 mb-1 block">Grace Period (months)</label>
+                        <input type="number" min="0" value={fs.gracePeriodMonths}
+                          onChange={e => updateFunding(fs.key, 'gracePeriodMonths', e.target.value)} placeholder="e.g. 6"
+                          className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all" />
+                      </div>
                     </div>
-                    <div>
-                      <label className="text-xs text-[#183a1d]/60 mb-1 block">Loan Term (months)</label>
-                      <input type="number" min="1" value={fs.termMonths}
-                        onChange={e => updateFunding(fs.key, 'termMonths', e.target.value)} placeholder="e.g. 24"
-                        className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all" />
-                    </div>
-                    <div>
-                      <label className="text-xs text-[#183a1d]/60 mb-1 block">Grace Period (months)</label>
-                      <input type="number" min="0" value={fs.gracePeriodMonths}
-                        onChange={e => updateFunding(fs.key, 'gracePeriodMonths', e.target.value)} placeholder="e.g. 6"
-                        className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all" />
-                    </div>
-                  </div>
+                    {Number(fs.termMonths) > 0 && (
+                      <div className="pt-1">
+                        <label className="text-xs text-[#183a1d]/60 mb-1 block">Auto-generate repayment schedule</label>
+                        <div className="flex rounded-lg overflow-hidden border border-[#c8d6c0] w-fit">
+                          {([true, false] as const).map(v => (
+                            <button key={String(v)} type="button" onClick={() => updateFunding(fs.key, 'autoGenerateSchedule', v)}
+                              className="px-4 py-1.5 text-xs font-medium transition-all"
+                              style={{ background: fs.autoGenerateSchedule === v ? '#183a1d' : '#e1eedd', color: fs.autoGenerateSchedule === v ? '#fefbe9' : '#183a1d' }}>
+                              {v ? 'Yes' : 'No'}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )

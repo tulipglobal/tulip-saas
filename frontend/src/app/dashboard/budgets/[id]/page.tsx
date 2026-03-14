@@ -115,7 +115,7 @@ export default function BudgetDetailPage() {
 
   // Inline add funding source
   const [showAddFunding, setShowAddFunding] = useState(false)
-  const [newFunding, setNewFunding] = useState({ sourceType: '', sourceSubType: '', donorName: '', amount: '', currency: 'USD' })
+  const [newFunding, setNewFunding] = useState({ sourceType: '', sourceSubType: '', donorName: '', amount: '', currency: 'USD', interestRate: '', interestType: 'FIXED', gracePeriodMonths: '', termMonths: '', autoGenerateSchedule: true })
   const [addingFunding, setAddingFunding] = useState(false)
 
   const reload = () => {
@@ -143,9 +143,17 @@ export default function BudgetDetailPage() {
   const handleAddFunding = async () => {
     if (!newFunding.sourceType || !newFunding.donorName || !newFunding.amount) return
     setAddingFunding(true)
-    const res = await apiPost(`/api/budgets/${id}/funding-sources`, newFunding)
+    const payload: Record<string, any> = { ...newFunding }
+    if (newFunding.sourceType === 'Impact Investment') {
+      payload.interestRate = newFunding.interestRate ? Number(newFunding.interestRate) : null
+      payload.interestType = newFunding.interestType
+      payload.gracePeriodMonths = newFunding.gracePeriodMonths ? Number(newFunding.gracePeriodMonths) : null
+      payload.termMonths = newFunding.termMonths ? Number(newFunding.termMonths) : null
+      payload.autoGenerateSchedule = newFunding.autoGenerateSchedule
+    }
+    const res = await apiPost(`/api/budgets/${id}/funding-sources`, payload)
     if (res.ok) {
-      setNewFunding({ sourceType: '', sourceSubType: '', donorName: '', amount: '', currency: 'USD' })
+      setNewFunding({ sourceType: '', sourceSubType: '', donorName: '', amount: '', currency: 'USD', interestRate: '', interestType: 'FIXED', gracePeriodMonths: '', termMonths: '', autoGenerateSchedule: true })
       setShowAddFunding(false)
       reload()
     }
@@ -340,6 +348,54 @@ export default function BudgetDetailPage() {
                 </div>
               </div>
             </div>
+            {newFunding.sourceType === 'Impact Investment' && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div>
+                  <label className="text-xs text-[#183a1d]/60 mb-1 block">Interest Rate (% p.a.)</label>
+                  <input type="number" min="0" step="0.01" value={newFunding.interestRate}
+                    onChange={e => setNewFunding(p => ({ ...p, interestRate: e.target.value }))} placeholder="e.g. 5.5"
+                    className={inputCls} />
+                </div>
+                <div>
+                  <label className="text-xs text-[#183a1d]/60 mb-1 block">Interest Type</label>
+                  <div className="flex rounded-lg overflow-hidden border border-[#c8d6c0]">
+                    {(['FIXED', 'VARIABLE'] as const).map(t => (
+                      <button key={t} onClick={() => setNewFunding(p => ({ ...p, interestType: t }))}
+                        className="flex-1 px-3 py-2 text-xs font-medium transition-all"
+                        style={{ background: newFunding.interestType === t ? '#183a1d' : '#e1eedd', color: newFunding.interestType === t ? '#fefbe9' : '#183a1d' }}>
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs text-[#183a1d]/60 mb-1 block">Grace Period (months)</label>
+                  <input type="number" min="0" value={newFunding.gracePeriodMonths}
+                    onChange={e => setNewFunding(p => ({ ...p, gracePeriodMonths: e.target.value }))} placeholder="e.g. 6"
+                    className={inputCls} />
+                </div>
+                <div>
+                  <label className="text-xs text-[#183a1d]/60 mb-1 block">Term (months)</label>
+                  <input type="number" min="1" value={newFunding.termMonths}
+                    onChange={e => setNewFunding(p => ({ ...p, termMonths: e.target.value }))} placeholder="e.g. 24"
+                    className={inputCls} />
+                </div>
+              </div>
+            )}
+            {newFunding.sourceType === 'Impact Investment' && Number(newFunding.termMonths) > 0 && (
+              <div>
+                <label className="text-xs text-[#183a1d]/60 mb-1 block">Auto-generate repayment schedule</label>
+                <div className="flex rounded-lg overflow-hidden border border-[#c8d6c0] w-fit">
+                  {([true, false] as const).map(v => (
+                    <button key={String(v)} onClick={() => setNewFunding(p => ({ ...p, autoGenerateSchedule: v }))}
+                      className="px-4 py-1.5 text-xs font-medium transition-all"
+                      style={{ background: newFunding.autoGenerateSchedule === v ? '#183a1d' : '#e1eedd', color: newFunding.autoGenerateSchedule === v ? '#fefbe9' : '#183a1d' }}>
+                      {v ? 'Yes' : 'No'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <button onClick={handleAddFunding} disabled={addingFunding || !newFunding.sourceType || !newFunding.donorName || !newFunding.amount}
                 className="px-4 py-1.5 rounded-lg text-xs font-medium text-[#183a1d] disabled:opacity-40 transition-all bg-[#f6c453] hover:bg-[#f0a04b]">

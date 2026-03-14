@@ -71,9 +71,16 @@ router.get('/projects/:projectId/investments', donorAuth, async (req, res) => {
     const { projectId } = req.params
     const { donorOrgId } = req.donor
 
+    // Show investments belonging to this donor org, OR created by NGO without
+    // a donor org assigned (but donor has project access via DonorProjectAccess)
+    const hasAccess = await prisma.$queryRawUnsafe(
+      `SELECT 1 FROM "DonorProjectAccess" WHERE "donorOrgId" = $1 AND "projectId" = $2 AND "revokedAt" IS NULL LIMIT 1`,
+      donorOrgId, projectId
+    )
+
     const investments = await prisma.$queryRawUnsafe(
       `SELECT * FROM "ImpactInvestment"
-       WHERE "projectId" = $1 AND "donorOrgId" = $2
+       WHERE "projectId" = $1 AND ("donorOrgId" = $2${hasAccess.length > 0 ? ' OR "donorOrgId" IS NULL' : ''})
        ORDER BY "createdAt" DESC`,
       projectId, donorOrgId
     )
@@ -157,7 +164,7 @@ router.post('/projects/:projectId/investments', donorAuth, async (req, res) => {
 
     const rows = await prisma.$queryRawUnsafe(
       `INSERT INTO "ImpactInvestment" (
-        "projectId", "donorOrgId", "createdBy", "instrumentType",
+        "projectId", "donorOrgId", "createdBy", "investmentType",
         "totalFacility", currency, "interestRate", "termMonths",
         "gracePeriodMonths", "startDate", notes, status
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'ACTIVE')
@@ -440,14 +447,35 @@ router.get('/investments', donorAuth, async (req, res) => {
   try {
     const { donorOrgId } = req.donor
 
-    const investments = await prisma.$queryRawUnsafe(
-      `SELECT ii.*, p.name as "projectName"
-       FROM "ImpactInvestment" ii
-       LEFT JOIN "Project" p ON p.id = ii."projectId"
-       WHERE ii."donorOrgId" = $1
-       ORDER BY ii."createdAt" DESC`,
+    // Include investments assigned to this donor org, plus any unassigned ones
+    // on projects this donor has access to
+    const accessibleProjects = await prisma.$queryRawUnsafe(
+      `SELECT "projectId" FROM "DonorProjectAccess" WHERE "donorOrgId" = $1 AND "revokedAt" IS NULL`,
       donorOrgId
     )
+    const accessibleProjectIds = accessibleProjects.map(r => r.projectId)
+
+    let investments
+    if (accessibleProjectIds.length > 0) {
+      const placeholders = accessibleProjectIds.map((_, i) => `$${i + 2}`).join(', ')
+      investments = await prisma.$queryRawUnsafe(
+        `SELECT ii.*, p.name as "projectName"
+         FROM "ImpactInvestment" ii
+         LEFT JOIN "Project" p ON p.id = ii."projectId"
+         WHERE ii."donorOrgId" = $1 OR (ii."donorOrgId" IS NULL AND ii."projectId" IN (${placeholders}))
+         ORDER BY ii."createdAt" DESC`,
+        donorOrgId, ...accessibleProjectIds
+      )
+    } else {
+      investments = await prisma.$queryRawUnsafe(
+        `SELECT ii.*, p.name as "projectName"
+         FROM "ImpactInvestment" ii
+         LEFT JOIN "Project" p ON p.id = ii."projectId"
+         WHERE ii."donorOrgId" = $1
+         ORDER BY ii."createdAt" DESC`,
+        donorOrgId
+      )
+    }
 
     for (const inv of investments) {
       // Get schedule summary

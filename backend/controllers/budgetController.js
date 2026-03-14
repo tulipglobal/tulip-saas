@@ -199,7 +199,7 @@ exports.create = async (req, res) => {
       try {
         const dpaRows = await prisma.$queryRawUnsafe(
           `SELECT dpa."donorOrgId" FROM "DonorProjectAccess" dpa
-           WHERE dpa."projectId" = $1::uuid AND dpa."revokedAt" IS NULL
+           WHERE dpa."projectId" = $1 AND dpa."revokedAt" IS NULL
            LIMIT 1`,
           projectId
         )
@@ -428,7 +428,7 @@ exports.addFundingSource = async (req, res) => {
         let donorOrgId = null
         const dpaRows = await prisma.$queryRawUnsafe(
           `SELECT dpa."donorOrgId" FROM "DonorProjectAccess" dpa
-           WHERE dpa."projectId" = $1::uuid AND dpa."revokedAt" IS NULL
+           WHERE dpa."projectId" = $1 AND dpa."revokedAt" IS NULL
            LIMIT 1`,
           budget.projectId
         )

@@ -30,7 +30,7 @@ router.get('/projects/:projectId', async (req, res) => {
 
     const milestones = await prisma.$queryRawUnsafe(
       `SELECT im.* FROM "ImpactMilestone" im
-       WHERE im."projectId" = $1::uuid
+       WHERE im."projectId" = $1
        ORDER BY im."createdAt" ASC`,
       projectId
     )
@@ -76,7 +76,7 @@ router.post('/projects/:projectId', async (req, res) => {
 
     const milestone = await prisma.$queryRawUnsafe(
       `INSERT INTO "ImpactMilestone" ("projectId", "tenantId", title, description, category, "targetValue", "targetUnit", "targetDate", status)
-       VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7, $8, 'NOT_STARTED') RETURNING *`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'NOT_STARTED') RETURNING *`,
       projectId, tenantId, title, description || null, cat, parseFloat(targetValue),
       u || null, targetDate ? new Date(targetDate) : null
     )
@@ -189,7 +189,7 @@ router.post('/:milestoneId/update', async (req, res) => {
     // Create the update record
     const update = await prisma.$queryRawUnsafe(
       `INSERT INTO "ImpactMilestoneUpdate" ("milestoneId", "reportedBy", "newValue", note, "evidenceDocumentIds")
-       VALUES ($1::uuid, $2::uuid, $3, $4, $5) RETURNING *`,
+       VALUES ($1::uuid, $2, $3, $4, $5) RETURNING *`,
       milestoneId,
       req.user.userId,
       parseFloat(val),

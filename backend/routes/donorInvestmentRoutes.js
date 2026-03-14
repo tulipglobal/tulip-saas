@@ -74,7 +74,7 @@ router.get('/projects/:projectId/investments', donorAuth, async (req, res) => {
     // Show investments belonging to this donor org, OR created by NGO without
     // a donor org assigned (but donor has project access via DonorProjectAccess)
     const hasAccess = await prisma.$queryRawUnsafe(
-      `SELECT 1 FROM "DonorProjectAccess" WHERE "donorOrgId" = $1::uuid AND "projectId" = $2::uuid AND "revokedAt" IS NULL LIMIT 1`,
+      `SELECT 1 FROM "DonorProjectAccess" WHERE "donorOrgId" = $1 AND "projectId" = $2 AND "revokedAt" IS NULL LIMIT 1`,
       donorOrgId, projectId
     )
 
@@ -450,7 +450,7 @@ router.get('/investments', donorAuth, async (req, res) => {
     // Include investments assigned to this donor org, plus any unassigned ones
     // on projects this donor has access to
     const accessibleProjects = await prisma.$queryRawUnsafe(
-      `SELECT "projectId" FROM "DonorProjectAccess" WHERE "donorOrgId" = $1::uuid AND "revokedAt" IS NULL`,
+      `SELECT "projectId" FROM "DonorProjectAccess" WHERE "donorOrgId" = $1 AND "revokedAt" IS NULL`,
       donorOrgId
     )
     const accessibleProjectIds = accessibleProjects.map(r => r.projectId)
@@ -461,7 +461,7 @@ router.get('/investments', donorAuth, async (req, res) => {
       investments = await prisma.$queryRawUnsafe(
         `SELECT ii.*, p.name as "projectName"
          FROM "ImpactInvestment" ii
-         LEFT JOIN "Project" p ON p.id = ii."projectId"
+         LEFT JOIN "Project" p ON p.id = ii."projectId"::text
          WHERE ii."donorOrgId" = $1::uuid OR (ii."donorOrgId" IS NULL AND ii."projectId" IN (${placeholders}))
          ORDER BY ii."createdAt" DESC`,
         donorOrgId, ...accessibleProjectIds
@@ -470,7 +470,7 @@ router.get('/investments', donorAuth, async (req, res) => {
       investments = await prisma.$queryRawUnsafe(
         `SELECT ii.*, p.name as "projectName"
          FROM "ImpactInvestment" ii
-         LEFT JOIN "Project" p ON p.id = ii."projectId"
+         LEFT JOIN "Project" p ON p.id = ii."projectId"::text
          WHERE ii."donorOrgId" = $1::uuid
          ORDER BY ii."createdAt" DESC`,
         donorOrgId

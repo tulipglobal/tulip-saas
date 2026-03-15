@@ -419,7 +419,11 @@ exports.addFundingSource = async (req, res) => {
     if (reqDonorOrgId && funderType === 'PORTAL') {
       try {
         // Find projects linked to this budget
-        const budgetRecord = await prisma.budget.findUnique({ where: { id: req.params.id }, select: { projectId: true } })
+        const budgetRows = await prisma.$queryRawUnsafe(
+          `SELECT "projectId" FROM "Budget" WHERE id = $1::uuid`, req.params.id
+        )
+        const budgetRecord = budgetRows[0] || null
+        console.log('[auto-grant] budgetId:', req.params.id, 'budgetRecord:', JSON.stringify(budgetRecord), 'donorOrgId:', reqDonorOrgId)
         const projectIds = new Set()
         if (budgetRecord?.projectId) projectIds.add(budgetRecord.projectId)
         // Also check expenses
@@ -428,6 +432,7 @@ exports.addFundingSource = async (req, res) => {
         )
         for (const r of budgetExpenses) if (r.projectId) projectIds.add(r.projectId)
 
+        console.log('[auto-grant] projectIds to grant:', [...projectIds])
         for (const pid of projectIds) {
           const existing = await prisma.$queryRawUnsafe(
             `SELECT id FROM "DonorProjectAccess" WHERE "donorOrgId" = $1 AND "projectId" = $2::uuid LIMIT 1`,

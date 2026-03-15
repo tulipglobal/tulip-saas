@@ -307,4 +307,40 @@ router.get('/ngo/online-users', authenticate, tenantScope, async (req, res) => {
   }
 })
 
+// GET /api/messenger/donor/contacts — NGOs this donor is connected to
+router.get('/donor/contacts', donorAuth, async (req, res) => {
+  try {
+    const { donorOrgId } = req.donor
+    const contacts = await prisma.$queryRawUnsafe(`
+      SELECT DISTINCT dpa."tenantId" as id, t.name
+      FROM "DonorProjectAccess" dpa
+      JOIN "Tenant" t ON t.id = dpa."tenantId"
+      WHERE dpa."donorOrgId" = $1 AND dpa."revokedAt" IS NULL
+      ORDER BY t.name
+    `, donorOrgId)
+    res.json({ contacts })
+  } catch (err) {
+    console.error('Donor contacts error:', err)
+    res.json({ contacts: [] })
+  }
+})
+
+// GET /api/messenger/ngo/contacts — donor orgs connected to this NGO
+router.get('/ngo/contacts', authenticate, tenantScope, async (req, res) => {
+  try {
+    const tenantId = req.user.tenantId
+    const contacts = await prisma.$queryRawUnsafe(`
+      SELECT DISTINCT dpa."donorOrgId" as id, dorg.name
+      FROM "DonorProjectAccess" dpa
+      JOIN "DonorOrganisation" dorg ON dorg.id = dpa."donorOrgId"
+      WHERE dpa."tenantId" = $1 AND dpa."revokedAt" IS NULL
+      ORDER BY dorg.name
+    `, tenantId)
+    res.json({ contacts })
+  } catch (err) {
+    console.error('NGO contacts error:', err)
+    res.json({ contacts: [] })
+  }
+})
+
 module.exports = router

@@ -38,7 +38,7 @@ router.get('/projects/:projectId/funding-breakdown', donorAuth, async (req, res)
        FROM "ProjectFunding" pf
        JOIN "FundingAgreement" fa ON fa.id = pf."fundingAgreementId"
        LEFT JOIN "DonorOrganisation" dorg ON dorg.id = fa."donorOrgId"
-       WHERE pf."projectId" = $1::uuid
+       WHERE pf."projectId" = $1::text
          AND fa."funderType" = 'PORTAL'
          AND fa."donorOrgId" IS NOT NULL
        ORDER BY fa."createdAt" DESC`,

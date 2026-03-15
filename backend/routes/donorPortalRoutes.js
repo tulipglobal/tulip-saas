@@ -1321,20 +1321,22 @@ router.get('/activity', donorAuth, async (req, res) => {
     const tenantIds = [...new Set(accessRows.map(r => r.tenantId))]
 
     // Get recent audit logs for these projects
+    const tenantPlaceholders = tenantIds.map((_, i) => `$${i + 1}`).join(', ')
+    const projectPlaceholders = projectIds.map((_, i) => `$${tenantIds.length + i + 1}`).join(', ')
     const logs = await prisma.$queryRawUnsafe(
       `SELECT al.id, al.action, al."entityType", al."entityId",
               al."createdAt", al."tenantId"
        FROM "AuditLog" al
-       WHERE al."tenantId" = ANY($1::text[])
+       WHERE al."tenantId" IN (${tenantPlaceholders})
          AND al."entityType" IN ('Expense', 'Document')
          AND al."entityId" IN (
-           SELECT e.id FROM "Expense" e WHERE e."projectId" = ANY($2::text[])
+           SELECT e.id FROM "Expense" e WHERE e."projectId" IN (${projectPlaceholders})
            UNION ALL
-           SELECT d.id FROM "Document" d WHERE d."projectId" = ANY($2::text[])
+           SELECT d.id FROM "Document" d WHERE d."projectId" IN (${projectPlaceholders})
          )
        ORDER BY al."createdAt" DESC
        LIMIT 20`,
-      tenantIds, projectIds
+      ...tenantIds, ...projectIds
     )
 
     // Enrich with expense/document data

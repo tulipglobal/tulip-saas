@@ -746,7 +746,7 @@ router.get('/projects/:projectId', donorAuth, async (req, res) => {
           orderBy: { createdAt: 'desc' },
           select: {
             id: true, description: true, amount: true, currency: true,
-            category: true, expenseType: true, expenditureType: true, createdAt: true,
+            category: true, expenseType: true, createdAt: true,
             ocrVendor: true, ocrDate: true,
             fraudRiskLevel: true, fraudRiskScore: true,
             receiptSealId: true, approvalStatus: true,

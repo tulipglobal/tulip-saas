@@ -155,16 +155,13 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
       })
     })
 
-    socket.on('user_online', ({ userId }: { userId: string }) => {
-      setOnlineUsers(prev => new Set(prev).add(userId))
+    socket.on('user_online', (data: { userId: string; donorOrgId?: string }) => {
+      // NGO contacts are donor orgs — track by donorOrgId
+      if (data.donorOrgId) setOnlineUsers(prev => new Set(prev).add(data.donorOrgId!))
     })
 
-    socket.on('user_offline', ({ userId }: { userId: string }) => {
-      setOnlineUsers(prev => {
-        const next = new Set(prev)
-        next.delete(userId)
-        return next
-      })
+    socket.on('user_offline', (data: { userId: string; donorOrgId?: string }) => {
+      if (data.donorOrgId) setOnlineUsers(prev => { const s = new Set(prev); s.delete(data.donorOrgId!); return s })
     })
 
     socket.on('call_incoming', (call: IncomingCall) => {
@@ -245,7 +242,8 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
       if (res.ok) {
         const data = await res.json()
         const raw = Array.isArray(data.onlineUsers) ? data.onlineUsers : Array.isArray(data.data) ? data.data : Array.isArray(data) ? data : []
-        const ids = raw.map((u: any) => u.userId || u.donorOrgId || u.id || u)
+        // NGO contacts are donor orgs — use donorOrgId for matching
+        const ids = raw.filter((u: any) => u.donorOrgId).map((u: any) => u.donorOrgId)
         setOnlineUsers(new Set(ids))
       }
     } catch { /* silent */ }
@@ -368,22 +366,34 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
   }
 
   // ── Call actions ────────────────────────────────────────────
-  const handleCall = () => {
+  const handleCall = async () => {
     if (!activeConvoId || !activeContact || !socketRef.current) return
-    socketRef.current.emit('call_initiate', { conversationId: activeConvoId, targetOrgId: activeContact.id })
+    try {
+      await navigator.mediaDevices.getUserMedia({ audio: true })
+    } catch {
+      alert('Microphone access is required for calls')
+      return
+    }
+    socketRef.current.emit('call_initiate', { conversationId: activeConvoId, callerName: currentUserName })
     setActiveCall({ callId: activeConvoId, callerName: activeContact.name })
   }
 
-  const handleAcceptCall = () => {
+  const handleAcceptCall = async () => {
     if (!incomingCall || !socketRef.current) return
-    socketRef.current.emit('call_accept', { callId: incomingCall.callId })
+    try {
+      await navigator.mediaDevices.getUserMedia({ audio: true })
+    } catch {
+      alert('Microphone access is required for calls')
+      return
+    }
+    socketRef.current.emit('call_accept', { sessionId: incomingCall.callId, conversationId: incomingCall.callId })
     setActiveCall({ callId: incomingCall.callId, callerName: incomingCall.callerName })
     setIncomingCall(null)
   }
 
   const handleDeclineCall = () => {
     if (!incomingCall || !socketRef.current) return
-    socketRef.current.emit('call_decline', { callId: incomingCall.callId })
+    socketRef.current.emit('call_decline', { sessionId: incomingCall.callId })
     setIncomingCall(null)
   }
 

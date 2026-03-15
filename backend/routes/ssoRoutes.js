@@ -12,7 +12,7 @@ const prisma = require('../lib/client')
 const jwt = require('jsonwebtoken')
 const crypto = require('crypto')
 const { issueTokenPair } = require('../services/refreshTokenService')
-const { buildCache } = require('../lib/permissionCache')
+const { buildCache } = require('../services/permissionCacheService')
 const { createAuditLog } = require('../services/auditService')
 
 const JWT_SECRET = process.env.JWT_SECRET

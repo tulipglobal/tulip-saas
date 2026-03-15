@@ -43,7 +43,7 @@ function log(n, label, result, detail) {
   console.log(`[${String(n).padStart(2)}] ${tag.padEnd(6)} ${label}${d}`);
 }
 
-const TOTAL = 97;
+const TOTAL = 113;
 
 (async () => {
   console.log(`=== REGRESSION CHECKLIST (${TOTAL} items) ===\n`);
@@ -590,6 +590,77 @@ const TOTAL = 97;
     if (!enMsgs.documents || !enMsgs.documents[key]) { allDocKeysExist = false; missingDocI18n.push(key); }
   }
   log(97, "All documents page i18n keys defined", allDocKeysExist ? "PASS" : "FAIL", missingDocI18n.length ? "missing: " + missingDocI18n.join(",") : "all present");
+
+  // ═══════════════════════════════════════════════════════════
+  //  SECTION 22: SPRINT 6 — MESSENGER, TRANCHES, CONDITIONS, REPORTS (98-113)
+  // ═══════════════════════════════════════════════════════════
+  console.log("\n───  SPRINT 6 — MESSENGER, TRANCHES, CONDITIONS, REPORTS ───");
+
+  // 98 — Sprint 6 tables exist
+  const s6Tables = await prisma.$queryRawUnsafe(
+    "SELECT tablename FROM pg_tables WHERE schemaname = $1 AND tablename IN ($2,$3,$4,$5,$6,$7)",
+    "public", "Conversation", "Message", "CallSession", "DisbursementTranche", "GrantCondition", "SavedReport"
+  );
+  log(98, "Sprint 6 tables exist (6 expected)", s6Tables.length === 6 ? "PASS" : "FAIL", s6Tables.map(t => t.tablename).sort().join(", "));
+
+  // 99 — Socket.IO module exists
+  log(99, "lib/socketio.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/lib/socketio.js") ? "PASS" : "FAIL");
+
+  // 100 — Socket.IO initialized in app.js
+  const appJs = fs.readFileSync("/home/ubuntu/tulip-saas/backend/app.js", "utf8");
+  log(100, "app.js uses httpServer + Socket.IO", appJs.includes("initSocketIO") && appJs.includes("httpServer") ? "PASS" : "FAIL");
+
+  // 101 — Messenger routes file exists
+  log(101, "messengerRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/messengerRoutes.js") ? "PASS" : "FAIL");
+
+  // 102 — Tranche routes file exists
+  log(102, "trancheRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/trancheRoutes.js") ? "PASS" : "FAIL");
+
+  // 103 — Condition routes file exists
+  log(103, "conditionRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/conditionRoutes.js") ? "PASS" : "FAIL");
+
+  // 104 — Report routes file exists
+  log(104, "reportRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/reportRoutes.js") ? "PASS" : "FAIL");
+
+  // 105 — Messenger API endpoints respond (401 without auth = endpoint exists)
+  const msgResp = await httpReq("GET", "/api/messenger/donor/unread-count");
+  log(105, "Messenger unread-count endpoint", msgResp.status === 401 ? "PASS" : "FAIL", "status=" + msgResp.status);
+
+  // 106 — Tranche API endpoint responds
+  const trResp = await httpReq("GET", "/api/tranches/donor/funding/test");
+  log(106, "Tranche endpoint responds", trResp.status === 401 ? "PASS" : "FAIL", "status=" + trResp.status);
+
+  // 107 — Condition API endpoint responds
+  const condResp = await httpReq("GET", "/api/conditions/donor/funding/test");
+  log(107, "Condition endpoint responds", condResp.status === 401 ? "PASS" : "FAIL", "status=" + condResp.status);
+
+  // 108 — Report API endpoint responds
+  const repResp = await httpReq("GET", "/api/donor/reports/saved");
+  log(108, "Report saved endpoint responds", repResp.status === 401 ? "PASS" : "FAIL", "status=" + repResp.status);
+
+  // 109 — NGO MessengerPanel component exists
+  log(109, "NGO MessengerPanel.tsx exists",
+    fs.existsSync("/home/ubuntu/tulip-saas/frontend/src/components/MessengerPanel.tsx") ? "PASS" : "FAIL");
+
+  // 110 — NGO layout imports MessengerPanel
+  const ngoLayout = fs.readFileSync("/home/ubuntu/tulip-saas/frontend/src/app/dashboard/layout.tsx", "utf8");
+  log(110, "NGO layout imports MessengerPanel", ngoLayout.includes("MessengerPanel") ? "PASS" : "FAIL");
+
+  // 111 — Donor portal MessengerPanel exists
+  log(111, "Donor MessengerPanel.tsx exists",
+    fs.existsSync("/home/ubuntu/tulip-donor/components/MessengerPanel.tsx") ? "PASS" : "FAIL");
+
+  // 112 — Donor portal reports page exists
+  log(112, "Donor reports page exists",
+    fs.existsSync("/home/ubuntu/tulip-donor/app/reports/page.tsx") ? "PASS" : "FAIL");
+
+  // 113 — All 4 PM2 services online
+  const { execSync } = require("child_process");
+  const pm2Out = execSync("pm2 jlist 2>/dev/null").toString();
+  const pm2List = JSON.parse(pm2Out);
+  const allOnline = pm2List.every(p => p.pm2_env.status === "online");
+  log(113, "All 4 PM2 services online", allOnline && pm2List.length >= 4 ? "PASS" : "FAIL",
+    pm2List.map(p => p.name + ":" + p.pm2_env.status).join(", "));
 
   // ═══════════════════════════════════════════════════════════
   //  SUMMARY

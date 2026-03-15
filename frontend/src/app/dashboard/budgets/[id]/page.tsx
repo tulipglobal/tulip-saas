@@ -227,25 +227,26 @@ export default function BudgetDetailPage() {
 
   const handleAddFunding = async () => {
     const isImpact = newFunding.sourceType === 'Impact Investment'
-    const donorNameValid = isImpact
-      ? (donorMode === 'existing' ? !!newFunding.donorOrgId : !!newFunding.donorName)
-      : !!newFunding.donorName
+    const donorNameValid = donorMode === 'existing' ? !!newFunding.donorOrgId : !!newFunding.donorName
     if (!newFunding.sourceType || !donorNameValid || !newFunding.amount) return
     setAddingFunding(true)
     const payload: Record<string, any> = { ...newFunding }
+    // Set donor info based on mode (for all source types)
+    if (donorMode === 'existing') {
+      payload.donorOrgId = newFunding.donorOrgId
+      const org = donorOrgs.find(o => o.id === newFunding.donorOrgId)
+      payload.donorName = org?.name || ''
+      payload.funderType = 'PORTAL'
+    } else {
+      payload.donorOrgId = null
+      payload.funderType = 'EXTERNAL'
+    }
     if (isImpact) {
       payload.interestRate = newFunding.interestRate ? Number(newFunding.interestRate) : null
       payload.interestType = newFunding.interestType
       payload.gracePeriodMonths = newFunding.gracePeriodMonths ? Number(newFunding.gracePeriodMonths) : null
       payload.termMonths = newFunding.termMonths ? Number(newFunding.termMonths) : null
       payload.autoGenerateSchedule = newFunding.autoGenerateSchedule
-      if (donorMode === 'existing') {
-        payload.donorOrgId = newFunding.donorOrgId
-        const org = donorOrgs.find(o => o.id === newFunding.donorOrgId)
-        payload.donorName = org?.name || ''
-      } else {
-        payload.donorOrgId = null
-      }
     }
     const res = await apiPost(`/api/budgets/${id}/funding-sources`, payload)
     if (res.ok) {
@@ -576,35 +577,25 @@ export default function BudgetDetailPage() {
                 </select>
               </div>
               <div>
-                {newFunding.sourceType === 'Impact Investment' ? (
-                  <>
-                    <label className="text-xs text-[#183a1d]/60 mb-1 block">Investor *</label>
-                    <div className="flex rounded-lg overflow-hidden border border-[#c8d6c0] mb-2">
-                      {(['existing', 'external'] as const).map(m => (
-                        <button key={m} onClick={() => { setDonorMode(m); setNewFunding(p => ({ ...p, donorOrgId: '', donorName: '' })) }}
-                          className="flex-1 px-3 py-1.5 text-[11px] font-medium transition-all"
-                          style={{ background: donorMode === m ? '#183a1d' : '#e1eedd', color: donorMode === m ? '#fefbe9' : '#183a1d' }}>
-                          {m === 'existing' ? 'Existing Donor' : 'External Investor'}
-                        </button>
-                      ))}
-                    </div>
-                    {donorMode === 'existing' ? (
-                      <select value={newFunding.donorOrgId} onChange={e => setNewFunding(p => ({ ...p, donorOrgId: e.target.value }))}
-                        className={inputCls}>
-                        <option value="">Select donor org...</option>
-                        {donorOrgs.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
-                      </select>
-                    ) : (
-                      <input value={newFunding.donorName} onChange={e => setNewFunding(p => ({ ...p, donorName: e.target.value }))}
-                        placeholder="Investor name (no portal access)" className={inputCls} />
-                    )}
-                  </>
+                <label className="text-xs text-[#183a1d]/60 mb-1 block">Funded By *</label>
+                <div className="flex rounded-lg overflow-hidden border border-[#c8d6c0] mb-2">
+                  {(['existing', 'external'] as const).map(m => (
+                    <button key={m} onClick={() => { setDonorMode(m); setNewFunding(p => ({ ...p, donorOrgId: '', donorName: '' })) }}
+                      className="flex-1 px-3 py-1.5 text-[11px] font-medium transition-all"
+                      style={{ background: donorMode === m ? '#183a1d' : '#e1eedd', color: donorMode === m ? '#fefbe9' : '#183a1d' }}>
+                      {m === 'existing' ? 'Existing Donor' : 'Other'}
+                    </button>
+                  ))}
+                </div>
+                {donorMode === 'existing' ? (
+                  <select value={newFunding.donorOrgId} onChange={e => setNewFunding(p => ({ ...p, donorOrgId: e.target.value }))}
+                    className={inputCls}>
+                    <option value="">Select donor org...</option>
+                    {donorOrgs.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
+                  </select>
                 ) : (
-                  <>
-                    <label className="text-xs text-[#183a1d]/60 mb-1 block">Donor Name *</label>
-                    <input value={newFunding.donorName} onChange={e => setNewFunding(p => ({ ...p, donorName: e.target.value }))}
-                      placeholder="e.g. USAID" className={inputCls} />
-                  </>
+                  <input value={newFunding.donorName} onChange={e => setNewFunding(p => ({ ...p, donorName: e.target.value }))}
+                    placeholder="e.g. USAID, World Bank" className={inputCls} />
                 )}
               </div>
               <div>
@@ -666,7 +657,7 @@ export default function BudgetDetailPage() {
               </div>
             )}
             <div className="flex items-center gap-2">
-              <button onClick={handleAddFunding} disabled={addingFunding || !newFunding.sourceType || !newFunding.amount || (newFunding.sourceType === 'Impact Investment' ? (donorMode === 'existing' ? !newFunding.donorOrgId : !newFunding.donorName) : !newFunding.donorName)}
+              <button onClick={handleAddFunding} disabled={addingFunding || !newFunding.sourceType || !newFunding.amount || (donorMode === 'existing' ? !newFunding.donorOrgId : !newFunding.donorName)}
                 className="px-4 py-1.5 rounded-lg text-xs font-medium text-[#183a1d] disabled:opacity-40 transition-all bg-[#f6c453] hover:bg-[#f0a04b]">
                 {addingFunding ? 'Adding...' : 'Add Source'}
               </button>

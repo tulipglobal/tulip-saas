@@ -397,6 +397,8 @@ exports.addFundingSource = async (req, res) => {
       return res.status(400).json({ error: 'sourceType, donorName, and amount are required' })
     }
 
+    const funderType = req.body.funderType || (reqDonorOrgId ? 'PORTAL' : 'EXTERNAL')
+
     const source = await prisma.budgetFundingSource.create({
       data: {
         budgetId: req.params.id,
@@ -407,8 +409,47 @@ exports.addFundingSource = async (req, res) => {
         currency: currency || 'USD',
         agreementFileKey: agreementFileKey || null,
         agreementHash: agreementHash || null,
+        donorOrgId: reqDonorOrgId || null,
+        funderName: donorName,
+        funderType,
       }
     })
+
+    // Auto-grant DonorProjectAccess when a PORTAL donor is selected
+    if (reqDonorOrgId && funderType === 'PORTAL') {
+      try {
+        // Find projects linked to this budget
+        const budgetRecord = await prisma.budget.findUnique({ where: { id: req.params.id }, select: { projectId: true } })
+        const projectIds = new Set()
+        if (budgetRecord?.projectId) projectIds.add(budgetRecord.projectId)
+        // Also check expenses
+        const budgetExpenses = await prisma.$queryRawUnsafe(
+          `SELECT DISTINCT "projectId" FROM "Expense" WHERE "budgetId" = $1 AND "projectId" IS NOT NULL`, req.params.id
+        )
+        for (const r of budgetExpenses) if (r.projectId) projectIds.add(r.projectId)
+
+        for (const pid of projectIds) {
+          const existing = await prisma.$queryRawUnsafe(
+            `SELECT id FROM "DonorProjectAccess" WHERE "donorOrgId" = $1 AND "projectId" = $2::uuid LIMIT 1`,
+            reqDonorOrgId, pid
+          )
+          if (existing.length === 0) {
+            await prisma.$executeRawUnsafe(
+              `INSERT INTO "DonorProjectAccess" ("donorOrgId", "projectId", "tenantId", "grantedBy")
+               VALUES ($1, $2::uuid, $3, $4)`,
+              reqDonorOrgId, pid, req.user.tenantId, req.user.id
+            )
+          } else {
+            await prisma.$executeRawUnsafe(
+              `UPDATE "DonorProjectAccess" SET "revokedAt" = NULL WHERE "donorOrgId" = $1 AND "projectId" = $2::uuid`,
+              reqDonorOrgId, pid
+            )
+          }
+        }
+      } catch (accessErr) {
+        console.error('Auto-grant DonorProjectAccess on budget funding:', accessErr.message)
+      }
+    }
 
     await createAuditLog({
       action: 'budget.funding_source.added',

@@ -120,6 +120,54 @@ exports.create = async (req, res) => {
       include: { donor: { select: { id: true, name: true } }, budget: { select: { id: true, name: true } } }
     })
 
+    // Auto-grant DonorProjectAccess for all linked projects when funderType is PORTAL
+    if (agreement.donorOrgId && (agreement.funderType === 'PORTAL')) {
+      try {
+        // Get all projects linked to budgets that this agreement is linked to
+        const projectIds = []
+        if (agreement.budgetId) {
+          const budgetProjects = await prisma.$queryRawUnsafe(
+            `SELECT DISTINCT e."projectId" FROM "Expense" e WHERE e."budgetId" = $1 AND e."projectId" IS NOT NULL
+             UNION
+             SELECT DISTINCT pf."projectId" FROM "ProjectFunding" pf
+             JOIN "FundingAgreement" fa ON fa.id = pf."fundingAgreementId"
+             WHERE fa."budgetId" = $1`,
+            agreement.budgetId
+          )
+          for (const r of budgetProjects) if (r.projectId) projectIds.push(r.projectId)
+        }
+        // Also check ProjectFunding links for this agreement
+        const pfLinks = await prisma.projectFunding.findMany({
+          where: { fundingAgreementId: agreement.id },
+          select: { projectId: true }
+        })
+        for (const pf of pfLinks) projectIds.push(pf.projectId)
+
+        // Grant access for each unique project
+        const uniqueProjectIds = [...new Set(projectIds)]
+        for (const pid of uniqueProjectIds) {
+          const existing = await prisma.$queryRawUnsafe(
+            `SELECT id FROM "DonorProjectAccess" WHERE "donorOrgId" = $1 AND "projectId" = $2::uuid LIMIT 1`,
+            agreement.donorOrgId, pid
+          )
+          if (existing.length === 0) {
+            await prisma.$executeRawUnsafe(
+              `INSERT INTO "DonorProjectAccess" ("donorOrgId", "projectId", "tenantId", "grantedBy")
+               VALUES ($1, $2::uuid, $3, $4)`,
+              agreement.donorOrgId, pid, req.user.tenantId, req.user.userId || req.user.id
+            )
+          } else {
+            await prisma.$executeRawUnsafe(
+              `UPDATE "DonorProjectAccess" SET "revokedAt" = NULL WHERE "donorOrgId" = $1 AND "projectId" = $2::uuid`,
+              agreement.donorOrgId, pid
+            )
+          }
+        }
+      } catch (accessErr) {
+        console.error('Auto-grant DonorProjectAccess error:', accessErr.message)
+      }
+    }
+
     await createAuditLog({ action: 'FUNDING_AGREEMENT_CREATED', entityType: 'FundingAgreement', entityId: agreement.id, userId: req.user.userId || req.user.id, tenantId: req.user.tenantId }).catch(() => {})
 
     // Webhook: funding.created (non-blocking)
@@ -302,6 +350,33 @@ exports.linkProject = async (req, res) => {
       data: { projectId, fundingAgreementId: req.params.id, allocatedAmount: parseFloat(allocatedAmount), notes },
       include: { project: { select: { id: true, name: true } } }
     })
+
+    // Auto-grant DonorProjectAccess when linking a project to a PORTAL-funded agreement
+    const db = tenantClient(req.user.tenantId)
+    const agreement = await db.fundingAgreement.findFirst({ where: { id: req.params.id }, select: { donorOrgId: true, funderType: true } })
+    if (agreement?.donorOrgId && agreement.funderType === 'PORTAL') {
+      try {
+        const existing = await prisma.$queryRawUnsafe(
+          `SELECT id FROM "DonorProjectAccess" WHERE "donorOrgId" = $1 AND "projectId" = $2::uuid LIMIT 1`,
+          agreement.donorOrgId, projectId
+        )
+        if (existing.length === 0) {
+          await prisma.$executeRawUnsafe(
+            `INSERT INTO "DonorProjectAccess" ("donorOrgId", "projectId", "tenantId", "grantedBy")
+             VALUES ($1, $2::uuid, $3, $4)`,
+            agreement.donorOrgId, projectId, req.user.tenantId, req.user.userId || req.user.id
+          )
+        } else {
+          await prisma.$executeRawUnsafe(
+            `UPDATE "DonorProjectAccess" SET "revokedAt" = NULL WHERE "donorOrgId" = $1 AND "projectId" = $2::uuid`,
+            agreement.donorOrgId, projectId
+          )
+        }
+      } catch (accessErr) {
+        console.error('Auto-grant DonorProjectAccess on linkProject:', accessErr.message)
+      }
+    }
+
     res.status(201).json(link)
   } catch (err) {
     if (err.code === 'P2002') return res.status(400).json({ error: 'Project already linked to this agreement' })

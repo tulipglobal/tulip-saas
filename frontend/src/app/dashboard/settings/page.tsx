@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
-import { Building2, Shield, Save, Check, AlertCircle, Bell, Coins, Lock, Key } from 'lucide-react'
+import { Building2, Shield, Save, Check, AlertCircle, Bell, Coins, Lock, Key, Palette, FileText, Info } from 'lucide-react'
+import ThemeToggle from '@/components/ThemeToggle'
 import { apiGet, apiPatch, apiPost, apiPut } from '@/lib/api'
 import CountrySelect from '@/components/CountrySelect'
 import CurrencySelect from '@/components/CurrencySelect'
@@ -70,6 +71,19 @@ export default function SettingsPage() {
   const [ssoCallbackUrl, setSsoCallbackUrl] = useState('')
   const [savingSSO, setSavingSSO] = useState(false)
 
+  // Grant Reporting config
+  const [grantConfig, setGrantConfig] = useState<Record<string, string>>({
+    legalName: '', registeredAddress: '', country: '',
+    ein: '', ueiNumber: '', vatNumber: '', charityRegNumber: '',
+    legalRepName: '', legalRepTitle: '', legalRepEmail: '', legalRepPhone: '',
+    federalAgencyName: '', organizationalElement: '', basisOfAccounting: '',
+    indirectExpenseType: '', indirectExpenseRate: '',
+    euIndirectCostRate: '',
+    designatedBankName: '', designatedAccountNumber: '', designatedBankAddress: '',
+  })
+  const [savingGrant, setSavingGrant] = useState(false)
+  const [grantLoaded, setGrantLoaded] = useState(false)
+
   // Org form
   const [orgName, setOrgName] = useState('')
   const [orgDescription, setOrgDescription] = useState('')
@@ -102,6 +116,13 @@ export default function SettingsPage() {
         setOrgCurrency(setup.baseCurrency || 'USD')
       }
       if (notif) setNotifPrefs(notif)
+      // Fetch grant reporting config
+      apiGet('/api/ngo/grant-reporting-config').then(r => r.ok ? r.json() : null).then(data => {
+        if (data) {
+          setGrantConfig(prev => ({ ...prev, ...data }))
+          setGrantLoaded(true)
+        }
+      }).catch(() => {})
       // Fetch SSO config
       apiGet('/api/admin/sso/config').then(r => r.ok ? r.json() : null).then(data => {
         if (data?.config) {
@@ -210,6 +231,26 @@ export default function SettingsPage() {
     setSavingOrg(false)
   }
 
+  const setGrantField = (key: string, value: string) => {
+    setGrantConfig(prev => ({ ...prev, [key]: value }))
+  }
+
+  const saveGrantConfig = async () => {
+    setSavingGrant(true)
+    try {
+      const res = await apiPut('/api/ngo/grant-reporting-config', grantConfig)
+      if (res.ok) {
+        setToast({ message: 'Grant reporting settings saved', type: 'success' })
+      } else {
+        const err = await res.json().catch(() => ({}))
+        setToast({ message: err.error || 'Failed to save grant reporting settings', type: 'error' })
+      }
+    } catch {
+      setToast({ message: 'Failed to save grant reporting settings', type: 'error' })
+    }
+    setSavingGrant(false)
+  }
+
   if (loading) return (
     <div className="p-6 animate-fade-up">
       <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('settings.title')}</h1>
@@ -226,6 +267,16 @@ export default function SettingsPage() {
       <div>
         <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('settings.title')}</h1>
         <p className="text-[#183a1d]/60 text-sm mt-1">{t('settings.subtitle')}</p>
+      </div>
+
+      {/* Theme Section */}
+      <div className="rounded-xl border border-[#c8d6c0] px-5 py-5 space-y-4 bg-[#e1eedd]">
+        <div className="flex items-center gap-3">
+          <Palette size={18} className="text-[#183a1d]/60" />
+          <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide">Theme</h2>
+        </div>
+        <p className="text-xs text-[#183a1d]/50">Choose your preferred appearance. System will follow your device settings.</p>
+        <ThemeToggle />
       </div>
 
       {/* Profile Section */}
@@ -469,6 +520,165 @@ export default function SettingsPage() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* ── Grant Reporting Settings ──────────────── */}
+      <div className="rounded-xl border border-[#c8d6c0] p-5 space-y-5" style={{ background: '#e1eedd' }}>
+        <div className="flex items-center gap-2">
+          <FileText size={18} className="text-[#183a1d]" />
+          <div>
+            <h3 className="text-base font-semibold text-[#183a1d]">Grant Reporting</h3>
+            <p className="text-xs text-[#183a1d]/50 mt-0.5">Configure organisation details that pre-fill donor grant reports (SF-425, EU, World Bank).</p>
+          </div>
+        </div>
+
+        {/* Info banner */}
+        <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3">
+          <Info size={16} className="text-amber-600 shrink-0 mt-0.5" />
+          <p className="text-xs text-amber-800">
+            These details will be used to pre-fill grant reports. Ensure they match your official registration documents. You can override values per report.
+          </p>
+        </div>
+
+        {/* Organisation Details */}
+        <div>
+          <h4 className="text-xs font-semibold text-[#183a1d]/60 uppercase tracking-wide mb-3">Organisation Details</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-[#183a1d]/40 block mb-1">Legal Name</label>
+              <input className={inputClass} value={grantConfig.legalName} onChange={e => setGrantField('legalName', e.target.value)} placeholder="Registered legal name" />
+            </div>
+            <div>
+              <label className="text-xs text-[#183a1d]/40 block mb-1">Country</label>
+              <input className={inputClass} value={grantConfig.country} onChange={e => setGrantField('country', e.target.value)} placeholder="Country of registration" />
+            </div>
+            <div className="md:col-span-2">
+              <label className="text-xs text-[#183a1d]/40 block mb-1">Registered Address</label>
+              <input className={inputClass} value={grantConfig.registeredAddress} onChange={e => setGrantField('registeredAddress', e.target.value)} placeholder="Full registered address" />
+            </div>
+          </div>
+        </div>
+
+        {/* Tax & Registration */}
+        <div>
+          <h4 className="text-xs font-semibold text-[#183a1d]/60 uppercase tracking-wide mb-3">Tax & Registration</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-[#183a1d]/40 block mb-1">EIN (US)</label>
+              <input className={inputClass} value={grantConfig.ein} onChange={e => setGrantField('ein', e.target.value)} placeholder="e.g. 12-3456789" />
+            </div>
+            <div>
+              <label className="text-xs text-[#183a1d]/40 block mb-1">UEI Number (SAM.gov)</label>
+              <input className={inputClass} value={grantConfig.ueiNumber} onChange={e => setGrantField('ueiNumber', e.target.value)} placeholder="e.g. ZQGGKJL84DN7" />
+            </div>
+            <div>
+              <label className="text-xs text-[#183a1d]/40 block mb-1">VAT Number</label>
+              <input className={inputClass} value={grantConfig.vatNumber} onChange={e => setGrantField('vatNumber', e.target.value)} placeholder="e.g. GB123456789" />
+            </div>
+            <div>
+              <label className="text-xs text-[#183a1d]/40 block mb-1">Charity Registration Number</label>
+              <input className={inputClass} value={grantConfig.charityRegNumber} onChange={e => setGrantField('charityRegNumber', e.target.value)} placeholder="e.g. 1234567" />
+            </div>
+          </div>
+        </div>
+
+        {/* Authorised Representative */}
+        <div>
+          <h4 className="text-xs font-semibold text-[#183a1d]/60 uppercase tracking-wide mb-3">Authorised Representative</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-[#183a1d]/40 block mb-1">Full Name</label>
+              <input className={inputClass} value={grantConfig.legalRepName} onChange={e => setGrantField('legalRepName', e.target.value)} placeholder="e.g. Jane Smith" />
+            </div>
+            <div>
+              <label className="text-xs text-[#183a1d]/40 block mb-1">Title / Position</label>
+              <input className={inputClass} value={grantConfig.legalRepTitle} onChange={e => setGrantField('legalRepTitle', e.target.value)} placeholder="e.g. Executive Director" />
+            </div>
+            <div>
+              <label className="text-xs text-[#183a1d]/40 block mb-1">Email</label>
+              <input className={inputClass} type="email" value={grantConfig.legalRepEmail} onChange={e => setGrantField('legalRepEmail', e.target.value)} placeholder="e.g. jane@example.org" />
+            </div>
+            <div>
+              <label className="text-xs text-[#183a1d]/40 block mb-1">Phone</label>
+              <input className={inputClass} value={grantConfig.legalRepPhone} onChange={e => setGrantField('legalRepPhone', e.target.value)} placeholder="e.g. +1 555 123 4567" />
+            </div>
+          </div>
+        </div>
+
+        {/* USAID Settings */}
+        <div>
+          <h4 className="text-xs font-semibold text-[#183a1d]/60 uppercase tracking-wide mb-3">USAID Settings</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-[#183a1d]/40 block mb-1">Federal Agency Name</label>
+              <input className={inputClass} value={grantConfig.federalAgencyName} onChange={e => setGrantField('federalAgencyName', e.target.value)} placeholder="e.g. USAID" />
+            </div>
+            <div>
+              <label className="text-xs text-[#183a1d]/40 block mb-1">Organisational Element</label>
+              <input className={inputClass} value={grantConfig.organizationalElement} onChange={e => setGrantField('organizationalElement', e.target.value)} placeholder="e.g. Bureau for Global Health" />
+            </div>
+            <div>
+              <label className="text-xs text-[#183a1d]/40 block mb-1">Basis of Accounting</label>
+              <div className="flex gap-2">
+                {['Cash', 'Accrual'].map(basis => (
+                  <button key={basis} type="button"
+                    onClick={() => setGrantField('basisOfAccounting', basis)}
+                    className={`flex-1 py-2.5 rounded-lg text-sm font-medium border transition-all ${
+                      grantConfig.basisOfAccounting === basis
+                        ? 'bg-[#f6c453]/20 border-[#f6c453]/40 text-[#183a1d]'
+                        : 'bg-[#e1eedd] border-[#c8d6c0] text-[#183a1d]/60 hover:border-[#c8d6c0]'
+                    }`}>
+                    {basis}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="text-xs text-[#183a1d]/40 block mb-1">Indirect Expense Type</label>
+              <input className={inputClass} value={grantConfig.indirectExpenseType} onChange={e => setGrantField('indirectExpenseType', e.target.value)} placeholder="e.g. Provisional" />
+            </div>
+            <div>
+              <label className="text-xs text-[#183a1d]/40 block mb-1">Indirect Expense Rate (%)</label>
+              <input className={inputClass} type="number" step="0.01" value={grantConfig.indirectExpenseRate} onChange={e => setGrantField('indirectExpenseRate', e.target.value)} placeholder="e.g. 10" />
+            </div>
+          </div>
+        </div>
+
+        {/* EU Settings */}
+        <div>
+          <h4 className="text-xs font-semibold text-[#183a1d]/60 uppercase tracking-wide mb-3">EU Settings</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-[#183a1d]/40 block mb-1">EU Indirect Cost Rate (%)</label>
+              <input className={inputClass} type="number" step="0.01" value={grantConfig.euIndirectCostRate} onChange={e => setGrantField('euIndirectCostRate', e.target.value)} placeholder="e.g. 7" />
+            </div>
+          </div>
+        </div>
+
+        {/* World Bank Settings */}
+        <div>
+          <h4 className="text-xs font-semibold text-[#183a1d]/60 uppercase tracking-wide mb-3">World Bank Settings</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-[#183a1d]/40 block mb-1">Designated Bank Name</label>
+              <input className={inputClass} value={grantConfig.designatedBankName} onChange={e => setGrantField('designatedBankName', e.target.value)} placeholder="e.g. Standard Chartered" />
+            </div>
+            <div>
+              <label className="text-xs text-[#183a1d]/40 block mb-1">Designated Account Number</label>
+              <input className={inputClass} value={grantConfig.designatedAccountNumber} onChange={e => setGrantField('designatedAccountNumber', e.target.value)} placeholder="Account number" />
+            </div>
+            <div className="md:col-span-2">
+              <label className="text-xs text-[#183a1d]/40 block mb-1">Designated Bank Address</label>
+              <input className={inputClass} value={grantConfig.designatedBankAddress} onChange={e => setGrantField('designatedBankAddress', e.target.value)} placeholder="Full bank address" />
+            </div>
+          </div>
+        </div>
+
+        <button onClick={saveGrantConfig} disabled={savingGrant}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50 transition-all">
+          <Save size={14} />
+          {savingGrant ? 'Saving...' : 'Save Grant Reporting Settings'}
+        </button>
       </div>
     </div>
   )

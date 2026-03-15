@@ -333,6 +333,36 @@ function startAnchorScheduler() {
     }
   })
 
+  // Auto-generate monthly reports — 1st of every month at 06:00 UTC
+  cron.schedule('0 6 1 * *', async () => {
+    logger.info('[auto-reports] Generating monthly reports...')
+    try {
+      const { generateAutoReports } = require('./reportAutoService')
+      const count = await generateAutoReports('MONTHLY')
+      logger.info(`[auto-reports] Generated ${count} monthly reports`)
+    } catch (err) { logger.error('[auto-reports] Monthly failed', { error: err.message }) }
+  })
+
+  // Quarterly — 1st of Jan/Apr/Jul/Oct at 07:00 UTC
+  cron.schedule('0 7 1 1,4,7,10 *', async () => {
+    logger.info('[auto-reports] Generating quarterly reports...')
+    try {
+      const { generateAutoReports } = require('./reportAutoService')
+      const count = await generateAutoReports('QUARTERLY')
+      logger.info(`[auto-reports] Generated ${count} quarterly reports`)
+    } catch (err) { logger.error('[auto-reports] Quarterly failed', { error: err.message }) }
+  })
+
+  // Annual — 1st January at 08:00 UTC
+  cron.schedule('0 8 1 1 *', async () => {
+    logger.info('[auto-reports] Generating annual reports...')
+    try {
+      const { generateAutoReports } = require('./reportAutoService')
+      const count = await generateAutoReports('ANNUAL')
+      logger.info(`[auto-reports] Generated ${count} annual reports`)
+    } catch (err) { logger.error('[auto-reports] Annual failed', { error: err.message }) }
+  })
+
   logger.info('Blockchain anchor scheduler started (every 5 minutes)')
   logger.info('Anchor retry worker started (every 5 minutes)')
   logger.info('Webhook retry worker started (every 5 minutes)')
@@ -345,6 +375,9 @@ function startAnchorScheduler() {
   logger.info('Donor document expiry notifications scheduled (daily 2am UTC)')
   logger.info('Deliverable request reminders scheduled (daily 8am UTC)')
   logger.info('Repayment schedule reminders scheduled (daily 9am UTC)')
+  logger.info('Auto monthly reports scheduled (1st of month, 6am UTC)')
+  logger.info('Auto quarterly reports scheduled (1st of quarter, 7am UTC)')
+  logger.info('Auto annual reports scheduled (1st January, 8am UTC)')
 }
 
 module.exports = { startAnchorScheduler }

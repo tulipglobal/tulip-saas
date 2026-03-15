@@ -746,7 +746,7 @@ router.get('/projects/:projectId', donorAuth, async (req, res) => {
           orderBy: { createdAt: 'desc' },
           select: {
             id: true, description: true, amount: true, currency: true,
-            category: true, expenseType: true, createdAt: true,
+            category: true, expenseType: true, expenditureType: true, createdAt: true,
             ocrVendor: true, ocrDate: true,
             fraudRiskLevel: true, fraudRiskScore: true,
             receiptSealId: true, approvalStatus: true,
@@ -822,6 +822,7 @@ router.get('/projects/:projectId', donorAuth, async (req, res) => {
       amount: e.amount,
       currency: e.currency,
       category: e.category || e.expenseType || 'Other',
+      expenditureType: e.expenditureType || 'OPEX',
       fraudRiskLevel: e.fraudRiskLevel || 'LOW',
       sealId: e.receiptSealId || null,
       sealStatus: e.receiptSealId ? (sealMap[e.receiptSealId]?.status || 'ISSUED') : null,
@@ -1006,6 +1007,7 @@ router.get('/projects/:projectId/expenses/:expenseId', donorAuth, async (req, re
         amount: expense.amount,
         currency: expense.currency,
         category: expense.category || expense.expenseType || 'Other',
+        expenditureType: expense.expenditureType || 'OPEX',
         subCategory: expense.subCategory || null,
         projectName: expense.project?.name || '',
         fraudRiskScore: expense.fraudRiskScore || 0,
@@ -1063,18 +1065,24 @@ router.get('/projects/:projectId/budget', donorAuth, async (req, res) => {
     try {
       spendByCategory = await prisma.$queryRawUnsafe(
         `SELECT COALESCE(e.category, e."expenseType", 'Other') as category,
+                COALESCE(e."expenditureType", 'OPEX') as "expenditureType",
                 SUM(e.amount)::float as spent,
                 COUNT(*)::int as count
          FROM "Expense" e
          WHERE e."projectId" = $1
            AND e."approvalStatus" IN ('APPROVED', 'AUTO_APPROVED')
-         GROUP BY COALESCE(e.category, e."expenseType", 'Other')`,
+         GROUP BY COALESCE(e.category, e."expenseType", 'Other'), COALESCE(e."expenditureType", 'OPEX')`,
         projectId
       )
     } catch { /* may fail */ }
 
     const spendMap = {}
-    for (const s of spendByCategory) spendMap[s.category] = s.spent
+    for (const s of spendByCategory) {
+      const key = `${s.category}::${s.expenditureType || 'OPEX'}`
+      spendMap[key] = (spendMap[key] || 0) + s.spent
+      // Also keep a simple category map for backward compatibility
+      spendMap[s.category] = (spendMap[s.category] || 0) + s.spent
+    }
 
     // Merge budget lines with spend
     const categories = budgetLines.map(bl => {
@@ -1102,6 +1110,7 @@ router.get('/projects/:projectId/budget', donorAuth, async (req, res) => {
           category: s.category,
           subCategory: null,
           expenseType: null,
+          expenditureType: s.expenditureType || 'OPEX',
           budget: 0,
           spent: s.spent,
           remaining: -s.spent,
@@ -1110,6 +1119,28 @@ router.get('/projects/:projectId/budget', donorAuth, async (req, res) => {
         })
       }
     }
+
+    // Budget vs Actual grouped by expenditureType
+    let budgetVsActual = []
+    try {
+      budgetVsActual = await prisma.$queryRawUnsafe(
+        `SELECT
+          COALESCE(e."expenditureType", 'OPEX') as "expenditureType",
+          e.category,
+          COALESCE(SUM(bl."approvedAmount"), 0)::float as budgeted,
+          COALESCE(SUM(e.amount), 0)::float as actual,
+          COALESCE(SUM(bl."approvedAmount"), 0)::float - COALESCE(SUM(e.amount), 0)::float as variance,
+          CASE WHEN COALESCE(SUM(bl."approvedAmount"), 0) > 0
+            THEN ROUND(COALESCE(SUM(e.amount), 0) / COALESCE(SUM(bl."approvedAmount"), 0) * 100, 1)
+            ELSE 0 END as percentage
+        FROM "Expense" e
+        LEFT JOIN "BudgetLine" bl ON bl.category = e.category AND bl."projectId" = e."projectId"
+        WHERE e."projectId" = $1 AND e."approvalStatus" IN ('APPROVED', 'AUTO_APPROVED')
+        GROUP BY COALESCE(e."expenditureType", 'OPEX'), e.category
+        ORDER BY COALESCE(e."expenditureType", 'OPEX') DESC, e.category ASC`,
+        projectId
+      )
+    } catch { /* may fail if columns don't exist yet */ }
 
     // Monthly spend for last 6 months — always return all 6 months
     let monthlySpend = []
@@ -1167,6 +1198,7 @@ router.get('/projects/:projectId/budget', donorAuth, async (req, res) => {
 
     res.json({
       categories,
+      budgetVsActual,
       monthlySpend,
       totalBudget,
       totalSpent,
@@ -2684,6 +2716,280 @@ router.get('/projects/:projectId/audit', donorAuth, async (req, res) => {
   } catch (err) {
     console.error('Donor audit trail error:', err)
     res.status(500).json({ error: 'Failed to fetch audit trail' })
+  }
+})
+
+// PUT /api/donor/preferences/theme
+router.put('/preferences/theme', donorAuth, async (req, res) => {
+  try {
+    const { theme } = req.body
+    if (!theme || !['light', 'dark', 'system'].includes(theme)) {
+      return res.status(400).json({ error: 'Invalid theme. Must be light, dark, or system.' })
+    }
+
+    const memberId = req.donor.donorMemberId
+    await prisma.$executeRawUnsafe(
+      `UPDATE "DonorMember" SET "themePreference" = $1 WHERE id = $2`,
+      theme,
+      memberId
+    )
+
+    res.json({ theme })
+  } catch (err) {
+    console.error('Failed to update donor theme preference:', err)
+    res.status(500).json({ error: 'Failed to update theme preference' })
+  }
+})
+
+// ── GET /api/donor/search?q=term ─────────────────────────────
+router.get('/search', donorAuth, async (req, res) => {
+  try {
+    const { q, type = 'all' } = req.query
+    const { donorOrgId } = req.donor
+    if (!q || q.length < 2) return res.json({ results: [] })
+
+    // Get project IDs this donor org has access to
+    const accessRows = await prisma.$queryRawUnsafe(
+      `SELECT "projectId" FROM "DonorProjectAccess" WHERE "donorOrgId" = $1 AND "revokedAt" IS NULL`,
+      donorOrgId
+    )
+    if (!accessRows.length) return res.json({ results: [] })
+
+    const projectIds = accessRows.map(r => r.projectId)
+    const term = `%${q}%`
+    const results = []
+
+    // Build a SQL-safe list of project IDs
+    const placeholders = projectIds.map((_, i) => `$${i + 2}`).join(', ')
+
+    if (type === 'all' || type === 'projects') {
+      const projects = await prisma.$queryRawUnsafe(
+        `SELECT id, name, status, 'project' as type FROM "Project" WHERE id IN (${placeholders}) AND (name ILIKE $1 OR description ILIKE $1) LIMIT 5`,
+        term, ...projectIds
+      )
+      results.push(...projects.map(p => ({ ...p, type: 'project', url: `/projects/${p.id}` })))
+    }
+
+    if (type === 'all' || type === 'expenses') {
+      const expenses = await prisma.$queryRawUnsafe(
+        `SELECT e.id, e.vendor as name, e.status, e."projectId", 'expense' as type FROM "Expense" e WHERE e."projectId" IN (${placeholders}) AND (e.vendor ILIKE $1 OR e.description ILIKE $1 OR CAST(e.amount AS TEXT) LIKE $1) LIMIT 5`,
+        term, ...projectIds
+      )
+      results.push(...expenses.map(e => ({ ...e, type: 'expense', url: `/projects/${e.projectId}?expense=${e.id}` })))
+    }
+
+    if (type === 'all' || type === 'documents') {
+      const documents = await prisma.$queryRawUnsafe(
+        `SELECT d.id, d."fileName" as name, d.status, d."projectId", 'document' as type FROM "Document" d WHERE d."projectId" IN (${placeholders}) AND (d."fileName" ILIKE $1 OR d.tags::text ILIKE $1) LIMIT 5`,
+        term, ...projectIds
+      )
+      results.push(...documents.map(d => ({ ...d, type: 'document', url: `/projects/${d.projectId}` })))
+    }
+
+    res.json({ results })
+  } catch (err) {
+    console.error('Donor search error:', err)
+    res.status(500).json({ error: 'Search failed' })
+  }
+})
+
+// ── GET /api/donor/projects/:projectId/logframe ──────────────
+// Donor read-only: logframe outputs with nested indicators
+router.get('/projects/:projectId/logframe', donorAuth, async (req, res) => {
+  try {
+    const { donorOrgId } = req.donor
+    const { projectId } = req.params
+
+    // Verify access
+    const access = await prisma.$queryRawUnsafe(
+      `SELECT id, "tenantId" FROM "DonorProjectAccess"
+       WHERE "donorOrgId" = $1 AND "projectId" = $2 AND "revokedAt" IS NULL`,
+      donorOrgId, projectId
+    )
+    if (!access.length) return res.status(403).json({ error: 'No access to this project' })
+
+    const tenantId = access[0].tenantId
+
+    const rows = await prisma.$queryRawUnsafe(`
+      SELECT lo.*, json_agg(
+        json_build_object(
+          'id', li.id, 'indicator', li.indicator,
+          'baselineValue', li."baselineValue", 'targetValue', li."targetValue",
+          'actualValue', li."actualValue", 'unit', li.unit,
+          'ragStatus', li."ragStatus", 'reportingPeriod', li."reportingPeriod",
+          'notes', li.notes, 'lastUpdatedAt', li."lastUpdatedAt",
+          'measurementMethod', li."measurementMethod"
+        ) ORDER BY li."createdAt"
+      ) FILTER (WHERE li.id IS NOT NULL) as indicators
+      FROM "LogframeOutput" lo
+      LEFT JOIN "LogframeIndicator" li ON li."outputId" = lo.id
+      WHERE lo."projectId" = $1 AND lo."tenantId" = $2
+      GROUP BY lo.id
+      ORDER BY lo."outputNumber"
+    `, projectId, tenantId)
+
+    const outputs = rows.map(r => ({
+      ...r,
+      indicators: r.indicators || []
+    }))
+
+    res.json({ outputs })
+  } catch (err) {
+    console.error('Donor logframe fetch error:', err)
+    res.status(500).json({ error: 'Failed to fetch logframe' })
+  }
+})
+
+// ── GET /api/donor/projects/:projectId/risks ─────────────────
+// Donor read-only: risk register with summary
+router.get('/projects/:projectId/risks', donorAuth, async (req, res) => {
+  try {
+    const { donorOrgId } = req.donor
+    const { projectId } = req.params
+
+    // Verify access
+    const access = await prisma.$queryRawUnsafe(
+      `SELECT id, "tenantId" FROM "DonorProjectAccess"
+       WHERE "donorOrgId" = $1 AND "projectId" = $2 AND "revokedAt" IS NULL`,
+      donorOrgId, projectId
+    )
+    if (!access.length) return res.status(403).json({ error: 'No access to this project' })
+
+    const tenantId = access[0].tenantId
+
+    const rows = await prisma.$queryRawUnsafe(`
+      SELECT *, (likelihood * impact) as "riskScore"
+      FROM "RiskRegister"
+      WHERE "projectId" = $1 AND "tenantId" = $2
+      ORDER BY (likelihood * impact) DESC, "createdAt" DESC
+    `, projectId, tenantId)
+
+    const summary = {
+      total: rows.length,
+      high: 0,
+      medium: 0,
+      low: 0,
+      open: 0,
+      escalated: 0
+    }
+    for (const r of rows) {
+      const score = Number(r.riskScore)
+      if (score >= 13) summary.high++
+      else if (score >= 7) summary.medium++
+      else summary.low++
+
+      const status = (r.status || '').toUpperCase()
+      if (status === 'OPEN') summary.open++
+      if (status === 'ESCALATED') summary.escalated++
+    }
+
+    res.json({ risks: rows, summary })
+  } catch (err) {
+    console.error('Donor risks fetch error:', err)
+    res.status(500).json({ error: 'Failed to fetch risks' })
+  }
+})
+
+// ── GET /reports — list reports visible to donor ─────────────
+router.get('/reports', donorAuth, async (req, res) => {
+  try {
+    const { donorOrgId } = req.donor
+    const { type, limit } = req.query
+    const max = Math.min(parseInt(limit) || 50, 200)
+
+    let sql = `
+      SELECT gr.* FROM "GeneratedReport" gr
+      WHERE gr.status = 'READY'
+        AND (
+          gr."projectId" IN (SELECT "projectId" FROM "DonorProjectAccess" WHERE "donorOrgId" = $1 AND "revokedAt" IS NULL)
+          OR gr."donorOrgId" = $1
+        )
+    `
+    const params = [donorOrgId]
+    let idx = 2
+
+    if (type) {
+      sql += ` AND gr."reportType" = $${idx++}`
+      params.push(type)
+    }
+
+    sql += ` ORDER BY gr."createdAt" DESC LIMIT $${idx}`
+    params.push(max)
+
+    const reports = await prisma.$queryRawUnsafe(sql, ...params)
+    res.json({ reports })
+  } catch (err) {
+    console.error('Donor list reports error:', err)
+    res.status(500).json({ error: 'Failed to list reports' })
+  }
+})
+
+// ── POST /reports/:reportId/share — create share link ────────
+router.post('/reports/:reportId/share', donorAuth, async (req, res) => {
+  try {
+    const { donorOrgId } = req.donor
+    const { reportId } = req.params
+    const { expiresInDays } = req.body
+
+    // Verify donor has access to this report's project
+    const reports = await prisma.$queryRawUnsafe(`
+      SELECT gr.* FROM "GeneratedReport" gr
+      WHERE gr.id = $1 AND gr.status = 'READY'
+        AND (
+          gr."projectId" IN (SELECT "projectId" FROM "DonorProjectAccess" WHERE "donorOrgId" = $2 AND "revokedAt" IS NULL)
+          OR gr."donorOrgId" = $2
+        )
+    `, reportId, donorOrgId)
+
+    if (reports.length === 0) return res.status(404).json({ error: 'Report not found or no access' })
+
+    const token = crypto.randomBytes(32).toString('hex')
+    const expiresAt = expiresInDays
+      ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000)
+      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // default 30 days
+
+    const rows = await prisma.$queryRawUnsafe(`
+      INSERT INTO "ReportShareLink" ("reportId", token, "expiresAt", "createdBy", "createdByType")
+      VALUES ($1, $2, $3, $4, 'DONOR')
+      RETURNING *
+    `, reportId, token, expiresAt, req.donor.donorMemberId || null)
+
+    const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.sealayer.io'}/reports/shared/${token}`
+
+    res.json({ shareLink: rows[0], shareUrl, token })
+  } catch (err) {
+    console.error('Create report share link error:', err)
+    res.status(500).json({ error: 'Failed to create share link' })
+  }
+})
+
+// ── GET /reports/:reportId/download — presigned download URL ─
+router.get('/reports/:reportId/download', donorAuth, async (req, res) => {
+  try {
+    const { donorOrgId } = req.donor
+    const { reportId } = req.params
+
+    const reports = await prisma.$queryRawUnsafe(`
+      SELECT gr.* FROM "GeneratedReport" gr
+      WHERE gr.id = $1 AND gr.status = 'READY'
+        AND (
+          gr."projectId" IN (SELECT "projectId" FROM "DonorProjectAccess" WHERE "donorOrgId" = $2 AND "revokedAt" IS NULL)
+          OR gr."donorOrgId" = $2
+        )
+    `, reportId, donorOrgId)
+
+    if (reports.length === 0) return res.status(404).json({ error: 'Report not found or no access' })
+
+    const report = reports[0]
+    if (!report.fileKey) return res.status(404).json({ error: 'Report file not available' })
+
+    const { getPresignedUrlFromKey } = require('../lib/s3Upload')
+    const presignedUrl = await getPresignedUrlFromKey(report.fileKey, 3600, { contentType: 'application/pdf' })
+
+    res.json({ fileUrl: presignedUrl, hash: report.hash, name: report.name })
+  } catch (err) {
+    console.error('Donor report download error:', err)
+    res.status(500).json({ error: 'Failed to get download URL' })
   }
 })
 

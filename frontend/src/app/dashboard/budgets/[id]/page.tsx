@@ -408,49 +408,110 @@ export default function BudgetDetailPage() {
         ))}
       </div>
 
-      {/* 1. Budget Lines */}
-      <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
-        <div className="px-5 py-3 border-b border-[#c8d6c0] flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-[#183a1d]/70 uppercase tracking-wide">Budget Lines</h2>
-          <span className="text-xs text-[#183a1d]/40">{budget.lines.length} line{budget.lines.length !== 1 ? 's' : ''}</span>
-        </div>
-        <div className="hidden lg:grid grid-cols-[1fr_1.5fr_1fr_1fr_1fr_1fr] gap-4 px-5 py-2 border-b border-[#c8d6c0] text-xs text-[#183a1d]/40 uppercase tracking-wide">
-          <span>Type</span><span>Category</span><span>Approved</span><span>Spent</span><span>Remaining</span><span>Usage</span>
-        </div>
-        <div className="divide-y divide-[#c8d6c0]">
-          {budget.lines.map(line => {
-            const pct = line.approvedAmount > 0 ? Math.min(100, Math.round((line.spent / line.approvedAmount) * 100)) : 0
-            return (
-              <div key={line.id} className="px-5 py-3 lg:grid lg:grid-cols-[1fr_1.5fr_1fr_1fr_1fr_1fr] lg:gap-4 lg:items-center">
-                <div>
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border font-medium ${
-                    line.expenseType === 'CAPEX' ? 'bg-purple-400/10 text-purple-400 border-purple-400/20' : 'bg-cyan-400/10 text-cyan-400 border-cyan-400/20'
-                  }`}>{line.expenseType}</span>
-                </div>
-                <div>
-                  <div className="text-sm text-[#183a1d]">{line.category}</div>
-                  {line.subCategory && <div className="text-xs text-[#183a1d]/40">{line.subCategory}</div>}
-                  {line.description && <div className="text-xs text-[#183a1d]/30 italic">{line.description}</div>}
-                </div>
-                <div className="text-sm text-[#183a1d] font-medium">{line.currency} {line.approvedAmount.toLocaleString()}</div>
-                <div className="text-sm text-orange-400">{line.currency} {line.spent.toLocaleString()}</div>
-                <div className={`text-sm font-medium ${line.remaining >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  {line.currency} {line.remaining.toLocaleString()}
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 h-1.5 rounded-full bg-[#e1eedd] overflow-hidden">
-                    <div className="h-full rounded-full transition-all" style={{
-                      width: `${pct}%`,
-                      background: pct > 90 ? '#f87171' : pct > 70 ? '#fbbf24' : '#34d399'
-                    }} />
-                  </div>
-                  <span className="text-xs text-[#183a1d]/60 w-8 text-right">{pct}%</span>
-                </div>
+      {/* 1. Budget vs Actual — grouped by CapEx / OpEx */}
+      {(() => {
+        const capexLines = budget.lines.filter(l => l.expenseType === 'CAPEX')
+        const opexLines = budget.lines.filter(l => l.expenseType === 'OPEX')
+        const capexApproved = capexLines.reduce((s, l) => s + l.approvedAmount, 0)
+        const capexSpent = capexLines.reduce((s, l) => s + l.spent, 0)
+        const capexRemaining = capexLines.reduce((s, l) => s + l.remaining, 0)
+        const opexApproved = opexLines.reduce((s, l) => s + l.approvedAmount, 0)
+        const opexSpent = opexLines.reduce((s, l) => s + l.spent, 0)
+        const opexRemaining = opexLines.reduce((s, l) => s + l.remaining, 0)
+        const grandApproved = capexApproved + opexApproved
+        const grandSpent = capexSpent + opexSpent
+        const grandRemaining = capexRemaining + opexRemaining
+
+        const renderLineRow = (line: BudgetLine) => {
+          const pct = line.approvedAmount > 0 ? Math.min(100, Math.round((line.spent / line.approvedAmount) * 100)) : 0
+          return (
+            <div key={line.id} className="px-5 py-3 lg:grid lg:grid-cols-[2fr_1fr_1fr_1fr_1fr] lg:gap-4 lg:items-center">
+              <div>
+                <div className="text-sm text-[#183a1d]">{line.category}</div>
+                {line.subCategory && <div className="text-xs text-[#183a1d]/40">{line.subCategory}</div>}
+                {line.description && <div className="text-xs text-[#183a1d]/30 italic">{line.description}</div>}
               </div>
-            )
-          })}
-        </div>
-      </div>
+              <div className="text-sm text-[#183a1d] font-medium">{line.currency} {line.approvedAmount.toLocaleString()}</div>
+              <div className="text-sm text-orange-400">{line.currency} {line.spent.toLocaleString()}</div>
+              <div className={`text-sm font-medium ${line.remaining >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {line.currency} {line.remaining.toLocaleString()}
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 h-1.5 rounded-full bg-[#c8d6c0]/50 overflow-hidden">
+                  <div className="h-full rounded-full transition-all" style={{
+                    width: `${pct}%`,
+                    background: pct > 90 ? '#f87171' : pct > 70 ? '#fbbf24' : '#34d399'
+                  }} />
+                </div>
+                <span className="text-xs text-[#183a1d]/60 w-8 text-right">{pct}%</span>
+              </div>
+            </div>
+          )
+        }
+
+        const renderSubtotal = (label: string, approved: number, spent: number, remaining: number) => (
+          <div className="px-5 py-2.5 lg:grid lg:grid-cols-[2fr_1fr_1fr_1fr_1fr] lg:gap-4 lg:items-center bg-[#fefbe9]/60 border-t border-[#c8d6c0]">
+            <div className="text-xs font-semibold text-[#183a1d]/70 uppercase tracking-wide">{label}</div>
+            <div className="text-sm text-[#183a1d] font-bold">${approved.toLocaleString()}</div>
+            <div className="text-sm text-orange-500 font-bold">${spent.toLocaleString()}</div>
+            <div className={`text-sm font-bold ${remaining >= 0 ? 'text-green-500' : 'text-red-500'}`}>${remaining.toLocaleString()}</div>
+            <div />
+          </div>
+        )
+
+        return (
+          <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
+            <div className="px-5 py-3 border-b border-[#c8d6c0] flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-[#183a1d]/70 uppercase tracking-wide">Budget vs Actual</h2>
+              <span className="text-xs text-[#183a1d]/40">{budget.lines.length} line{budget.lines.length !== 1 ? 's' : ''}</span>
+            </div>
+            <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-4 px-5 py-2 border-b border-[#c8d6c0] text-xs text-[#183a1d]/40 uppercase tracking-wide">
+              <span>Category</span><span>Approved</span><span>Spent</span><span>Remaining</span><span>Usage</span>
+            </div>
+
+            {/* CapEx section */}
+            {capexLines.length > 0 && (
+              <>
+                <div className="px-5 py-2 border-b border-[#c8d6c0] bg-[#EFF6FF]/40">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#EFF6FF] text-[#1D4ED8] border border-[#1D4ED8]/20">
+                    CapEx — Capital Expenditure
+                  </span>
+                </div>
+                <div className="divide-y divide-[#c8d6c0]">
+                  {capexLines.map(renderLineRow)}
+                </div>
+                {renderSubtotal('CapEx Subtotal', capexApproved, capexSpent, capexRemaining)}
+              </>
+            )}
+
+            {/* OpEx section */}
+            {opexLines.length > 0 && (
+              <>
+                <div className="px-5 py-2 border-b border-[#c8d6c0] bg-[#F3F4F6]/40">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#F3F4F6] text-[#4B5563] border border-[#4B5563]/20">
+                    OpEx — Operating Expenditure
+                  </span>
+                </div>
+                <div className="divide-y divide-[#c8d6c0]">
+                  {opexLines.map(renderLineRow)}
+                </div>
+                {renderSubtotal('OpEx Subtotal', opexApproved, opexSpent, opexRemaining)}
+              </>
+            )}
+
+            {/* Grand Total */}
+            {(capexLines.length > 0 && opexLines.length > 0) && (
+              <div className="px-5 py-3 lg:grid lg:grid-cols-[2fr_1fr_1fr_1fr_1fr] lg:gap-4 lg:items-center bg-[#183a1d]/5 border-t-2 border-[#183a1d]/20">
+                <div className="text-sm font-bold text-[#183a1d] uppercase tracking-wide">Grand Total</div>
+                <div className="text-sm text-[#183a1d] font-bold">${grandApproved.toLocaleString()}</div>
+                <div className="text-sm text-orange-500 font-bold">${grandSpent.toLocaleString()}</div>
+                <div className={`text-sm font-bold ${grandRemaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>${grandRemaining.toLocaleString()}</div>
+                <div />
+              </div>
+            )}
+          </div>
+        )
+      })()}
 
       {/* 2. Funding Sources */}
       <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>

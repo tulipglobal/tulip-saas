@@ -60,6 +60,13 @@ export default async function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body className="min-h-screen bg-background antialiased">
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function(){
+            var t=localStorage.getItem('tulip_theme')||'system';
+            if(t==='system'){t=window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'}
+            document.documentElement.setAttribute('data-theme',t);
+          })()
+        ` }} />
         <NextIntlClientProvider messages={messages}>
           <OfflineBanner />
           {children}

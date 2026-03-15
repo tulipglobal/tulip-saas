@@ -68,7 +68,7 @@ exports.createExpense = async (req, res) => {
   try {
     const db = tenantClient(req.user.tenantId)
     const { title, description, amount, currency, projectId, fundingSourceId, fundingAgreementId,
-            expenseType, category, subCategory, budgetId, budgetLineId, vendor,
+            expenseType, expenditureType, category, subCategory, budgetId, budgetLineId, vendor,
             receiptFileKey, receiptHash, receiptSealId,
             ocrAmount, ocrVendor, ocrDate, expenseDate } = req.body
     const expenseTitle = title || description
@@ -77,6 +77,9 @@ exports.createExpense = async (req, res) => {
     }
     if (parseFloat(amount) <= 0) {
       return res.status(400).json({ error: 'Amount must be a positive number greater than zero' })
+    }
+    if (expenditureType && !['CAPEX', 'OPEX'].includes(expenditureType)) {
+      return res.status(400).json({ error: 'expenditureType must be CAPEX or OPEX' })
     }
 
     // Budget enforcement: if budgetLineId is provided, check remaining balance
@@ -185,6 +188,7 @@ exports.createExpense = async (req, res) => {
         budgetId:           budgetId || null,
         budgetLineId:       budgetLineId || null,
         expenseType:        expenseType || null,
+        expenditureType:    expenditureType || 'OPEX',
         category:           category || null,
         subCategory:        subCategory || null,
         vendor:             vendor || null,
@@ -290,9 +294,12 @@ exports.updateExpense = async (req, res) => {
     const existing = await db.expense.findFirst({ where: { id: req.params.id } })
     if (!existing) return res.status(404).json({ error: 'Expense not found' })
 
-    const { description, amount, currency, fundingSourceId, fundingAgreementId, expenseType, category, subCategory, budgetId, budgetLineId, vendor, receiptFileKey, receiptHash, receiptSealId } = req.body
+    const { description, amount, currency, fundingSourceId, fundingAgreementId, expenseType, expenditureType, category, subCategory, budgetId, budgetLineId, vendor, receiptFileKey, receiptHash, receiptSealId } = req.body
     if (amount !== undefined && parseFloat(amount) <= 0) {
       return res.status(400).json({ error: 'Amount must be a positive number greater than zero' })
+    }
+    if (expenditureType !== undefined && !['CAPEX', 'OPEX'].includes(expenditureType)) {
+      return res.status(400).json({ error: 'expenditureType must be CAPEX or OPEX' })
     }
 
     const updateData = {
@@ -304,6 +311,7 @@ exports.updateExpense = async (req, res) => {
       ...(budgetId           !== undefined && { budgetId: budgetId || null }),
       ...(budgetLineId       !== undefined && { budgetLineId: budgetLineId || null }),
       ...(expenseType        !== undefined && { expenseType }),
+      ...(expenditureType    !== undefined && { expenditureType }),
       ...(category           !== undefined && { category }),
       ...(subCategory        !== undefined && { subCategory }),
       ...(vendor             !== undefined && { vendor: vendor || null }),

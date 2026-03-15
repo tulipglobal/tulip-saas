@@ -292,6 +292,7 @@ model Expense {
   tenantId           String
   approvalStatus     String            @default("pending_review")
   expenseType        String?           // CAPEX or OPEX
+  expenditureType    String            @default("OPEX") // CAPEX or OPEX
   category           String?
   subCategory        String?
   vendor             String?

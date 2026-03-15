@@ -97,8 +97,8 @@ function HashCell({ hash }: { hash: string }) {
 function ExpenseTypeBadge({ type }: { type: string | null }) {
   if (!type) return null
   const cls = type === 'CAPEX'
-    ? 'bg-purple-400/10 text-purple-400 border-purple-400/20'
-    : 'bg-cyan-400/10 text-[#183a1d] border-cyan-400/20'
+    ? 'bg-[#EFF6FF] text-[#1D4ED8] border-[#1D4ED8]/20'
+    : 'bg-[#F3F4F6] text-[#4B5563] border-[#4B5563]/20'
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] border font-medium ${cls}`}>
       {type === 'CAPEX' ? 'CapEx' : 'OpEx'}

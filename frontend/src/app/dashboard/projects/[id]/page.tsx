@@ -3,14 +3,16 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { apiGet, apiPost } from '@/lib/api'
+import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api'
 import DocumentUploadSection from '@/components/DocumentUploadSection'
 import BlockchainStatusPill from '@/components/BlockchainStatusPill'
 import TrustSealCard from '@/components/TrustSealCard'
+import RiskRegisterTab from '@/components/RiskRegisterTab'
+import WorldBankTab from '@/components/WorldBankTab'
 import {
   ArrowLeft, FolderOpen, DollarSign, FileText, Activity,
   CheckCircle, Clock, XCircle, ExternalLink,
-  Calendar, Plus, Wallet
+  Calendar, Plus, Wallet, Target, Edit3, Trash2, X
 } from 'lucide-react'
 
 interface BudgetSummary {
@@ -64,7 +66,37 @@ const anchorBadge = (status: string) => {
   }
 }
 
-type TabKey = 'expenses' | 'documents' | 'budgets' | 'audit'
+type TabKey = 'expenses' | 'documents' | 'budgets' | 'logframe' | 'risks' | 'worldbank' | 'audit'
+
+type RAGStatus = 'NOT_STARTED' | 'GREEN' | 'AMBER' | 'RED'
+
+interface LogframeIndicator {
+  id: string
+  indicator: string
+  baselineValue: string | null
+  targetValue: string | null
+  actualValue: string | null
+  unit: string | null
+  measurementMethod: string | null
+  reportingPeriod: string | null
+  ragStatus: RAGStatus | null
+  notes: string | null
+}
+
+interface LogframeOutput {
+  id: string
+  outputNumber: number
+  title: string
+  description: string | null
+  indicators: LogframeIndicator[]
+}
+
+const RAG_STYLES: Record<string, { bg: string; text: string; label: string }> = {
+  NOT_STARTED: { bg: 'bg-gray-100', text: 'text-gray-600', label: 'Not started' },
+  GREEN: { bg: 'bg-[#F0FDF4]', text: 'text-[#166534]', label: 'On track' },
+  AMBER: { bg: 'bg-[#FFFBEB]', text: 'text-[#92400E]', label: 'At risk' },
+  RED: { bg: 'bg-[#FEF2F2]', text: 'text-[#991B1B]', label: 'Off track' },
+}
 
 export default function ProjectDetailPage() {
   const params = useParams()
@@ -77,6 +109,21 @@ export default function ProjectDetailPage() {
   const [error, setError] = useState('')
   const [sealMap, setSealMap] = useState<Record<string, { sealId: string; anchorStatus: string; txHash: string | null }>>({})
   const [activeSealId, setActiveSealId] = useState<string | null>(null)
+
+  // Logframe state
+  const [logframeOutputs, setLogframeOutputs] = useState<LogframeOutput[]>([])
+  const [showAddOutput, setShowAddOutput] = useState(false)
+  const [newOutput, setNewOutput] = useState({ title: '', description: '' })
+  const [savingOutput, setSavingOutput] = useState(false)
+  const [editingOutput, setEditingOutput] = useState<LogframeOutput | null>(null)
+  const [showAddIndicator, setShowAddIndicator] = useState<string | null>(null)
+  const [newIndicator, setNewIndicator] = useState({ indicator: '', baselineValue: '', targetValue: '', unit: '', measurementMethod: '', reportingPeriod: '' })
+  const [savingIndicator, setSavingIndicator] = useState(false)
+  const [updateIndicator, setUpdateIndicator] = useState<LogframeIndicator | null>(null)
+  const [updateActual, setUpdateActual] = useState('')
+  const [updateRAG, setUpdateRAG] = useState<RAGStatus>('NOT_STARTED')
+  const [updateNotes, setUpdateNotes] = useState('')
+  const [savingUpdate, setSavingUpdate] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -101,6 +148,101 @@ export default function ProjectDetailPage() {
       }
     }).catch(() => { setError('Failed to load project'); setLoading(false) })
   }, [id])
+
+  // Load logframe data when tab switches to logframe
+  useEffect(() => {
+    if (tab !== 'logframe' || !id) return
+    apiGet(`/api/ngo/projects/${id}/logframe`)
+      .then(r => r.ok ? r.json() : { outputs: [] })
+      .then(d => setLogframeOutputs(d.outputs ?? d.data ?? []))
+      .catch(() => setLogframeOutputs([]))
+  }, [tab, id])
+
+  const reloadLogframe = () => {
+    apiGet(`/api/ngo/projects/${id}/logframe`)
+      .then(r => r.ok ? r.json() : { outputs: [] })
+      .then(d => setLogframeOutputs(d.outputs ?? d.data ?? []))
+      .catch(() => {})
+  }
+
+  const handleAddOutput = async () => {
+    if (!newOutput.title.trim()) return
+    setSavingOutput(true)
+    const res = await apiPost(`/api/ngo/projects/${id}/logframe/outputs`, {
+      outputNumber: logframeOutputs.length + 1,
+      title: newOutput.title.trim(),
+      description: newOutput.description.trim() || null,
+    })
+    if (res.ok) {
+      setNewOutput({ title: '', description: '' })
+      setShowAddOutput(false)
+      reloadLogframe()
+    }
+    setSavingOutput(false)
+  }
+
+  const handleEditOutput = async () => {
+    if (!editingOutput) return
+    setSavingOutput(true)
+    const res = await apiPut(`/api/ngo/logframe/outputs/${editingOutput.id}`, {
+      title: editingOutput.title,
+      description: editingOutput.description,
+    })
+    if (res.ok) {
+      setEditingOutput(null)
+      reloadLogframe()
+    }
+    setSavingOutput(false)
+  }
+
+  const handleDeleteOutput = async (outputId: string) => {
+    if (!confirm('Delete this output and all its indicators?')) return
+    await apiDelete(`/api/ngo/logframe/outputs/${outputId}`)
+    reloadLogframe()
+  }
+
+  const handleAddIndicator = async (outputId: string) => {
+    if (!newIndicator.indicator.trim() || !newIndicator.targetValue.trim()) return
+    setSavingIndicator(true)
+    const res = await apiPost(`/api/ngo/logframe/outputs/${outputId}/indicators`, {
+      indicator: newIndicator.indicator.trim(),
+      baselineValue: newIndicator.baselineValue || null,
+      targetValue: newIndicator.targetValue,
+      unit: newIndicator.unit || null,
+      measurementMethod: newIndicator.measurementMethod || null,
+      reportingPeriod: newIndicator.reportingPeriod || null,
+    })
+    if (res.ok) {
+      setNewIndicator({ indicator: '', baselineValue: '', targetValue: '', unit: '', measurementMethod: '', reportingPeriod: '' })
+      setShowAddIndicator(null)
+      reloadLogframe()
+    }
+    setSavingIndicator(false)
+  }
+
+  const handleUpdateIndicator = async () => {
+    if (!updateIndicator) return
+    setSavingUpdate(true)
+    const res = await apiPut(`/api/ngo/logframe/indicators/${updateIndicator.id}`, {
+      actualValue: updateActual || null,
+      ragStatus: updateRAG,
+      notes: updateNotes || null,
+    })
+    if (res.ok) {
+      setUpdateIndicator(null)
+      setUpdateActual('')
+      setUpdateRAG('NOT_STARTED')
+      setUpdateNotes('')
+      reloadLogframe()
+    }
+    setSavingUpdate(false)
+  }
+
+  const handleDeleteIndicator = async (indicatorId: string) => {
+    if (!confirm('Delete this indicator?')) return
+    await apiDelete(`/api/ngo/logframe/indicators/${indicatorId}`)
+    reloadLogframe()
+  }
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-screen bg-[#fefbe9]">
@@ -184,11 +326,14 @@ export default function ProjectDetailPage() {
           { key: 'expenses' as TabKey, label: 'Expenses', count: expenses.length },
           { key: 'documents' as TabKey, label: 'Documents', count: project.documents?.length ?? 0 },
           { key: 'budgets' as TabKey, label: 'Budgets', count: project.budgets?.length ?? 0 },
+          { key: 'logframe' as TabKey, label: 'Logframe', count: logframeOutputs.length },
+          { key: 'risks' as TabKey, label: 'Risk Register' },
+          { key: 'worldbank' as TabKey, label: 'World Bank' },
           { key: 'audit' as TabKey, label: 'Audit', count: audit.length },
         ]).map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
             className={`px-4 py-1.5 rounded-md text-sm transition-all ${tab === t.key ? 'bg-[#e1eedd] text-[#183a1d]' : 'text-[#183a1d]/60 hover:text-[#183a1d]'}`}>
-            {t.label} ({t.count})
+            {t.label}{t.count != null ? ` (${t.count})` : ''}
           </button>
         ))}
       </div>
@@ -324,6 +469,272 @@ export default function ProjectDetailPage() {
           )}
         </div>
       )}
+
+      {/* Tab: Logframe */}
+      {tab === 'logframe' && (
+        <div className="space-y-4">
+          {/* Header */}
+          <div className="flex items-start justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-[#183a1d] flex items-center gap-2">
+                <Target size={18} /> Logical Framework
+              </h2>
+              <p className="text-[#183a1d]/60 text-sm mt-0.5">Track outputs, indicators and progress</p>
+            </div>
+            <button onClick={() => setShowAddOutput(true)}
+              className="flex items-center gap-2 text-sm font-medium text-[#183a1d] px-4 py-2 rounded-lg bg-[#f6c453] hover:bg-[#f0a04b] transition-all">
+              <Plus size={14} /> Add Output
+            </button>
+          </div>
+
+          {/* Empty state */}
+          {logframeOutputs.length === 0 && (
+            <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl flex flex-col items-center justify-center py-16 gap-3">
+              <Target size={36} className="text-[#183a1d]/30" />
+              <p className="text-[#183a1d]/40 text-sm">No outputs defined yet</p>
+              <button onClick={() => setShowAddOutput(true)} className="text-[#183a1d] hover:text-[#f6c453] text-xs">+ Add your first output</button>
+            </div>
+          )}
+
+          {/* Outputs */}
+          {logframeOutputs.map(output => (
+            <div key={output.id} className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl overflow-hidden">
+              {/* Output header */}
+              <div className="px-5 py-3 border-b border-[#c8d6c0] bg-[#183a1d]/5 flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-[#183a1d]">
+                    Output {output.outputNumber}: {output.title}
+                  </h3>
+                  {output.description && <p className="text-xs text-[#183a1d]/50 mt-0.5">{output.description}</p>}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setEditingOutput(output)} className="text-[#183a1d]/40 hover:text-[#183a1d] transition-colors" title="Edit">
+                    <Edit3 size={13} />
+                  </button>
+                  <button onClick={() => handleDeleteOutput(output.id)} className="text-[#183a1d]/40 hover:text-red-500 transition-colors" title="Delete">
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Indicators table */}
+              {output.indicators.length > 0 && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-[#c8d6c0]">
+                        {['Indicator', 'Baseline', 'Target', 'Actual', 'Unit', 'Method', 'Period', 'RAG', 'Notes', 'Action'].map(h => (
+                          <th key={h} className="text-left text-[10px] text-[#183a1d]/40 font-normal px-3 py-2 uppercase tracking-wide whitespace-nowrap">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {output.indicators.map(ind => {
+                        const rag = RAG_STYLES[ind.ragStatus || 'NOT_STARTED']
+                        return (
+                          <tr key={ind.id} className="border-b border-[#c8d6c0] last:border-0 hover:bg-[#fefbe9]/30">
+                            <td className="px-3 py-2.5 text-[#183a1d] max-w-[200px]">{ind.indicator}</td>
+                            <td className="px-3 py-2.5 text-[#183a1d]/60">{ind.baselineValue ?? '—'}</td>
+                            <td className="px-3 py-2.5 text-[#183a1d]/60">{ind.targetValue ?? '—'}</td>
+                            <td className="px-3 py-2.5 text-[#183a1d] font-medium">{ind.actualValue ?? '—'}</td>
+                            <td className="px-3 py-2.5 text-[#183a1d]/50 text-xs">{ind.unit ?? '—'}</td>
+                            <td className="px-3 py-2.5 text-[#183a1d]/50 text-xs">{ind.measurementMethod ?? '—'}</td>
+                            <td className="px-3 py-2.5 text-[#183a1d]/50 text-xs whitespace-nowrap">{ind.reportingPeriod ?? '—'}</td>
+                            <td className="px-3 py-2.5">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${rag.bg} ${rag.text}`}>
+                                {rag.label}
+                              </span>
+                            </td>
+                            <td className="px-3 py-2.5 text-[#183a1d]/50 text-xs max-w-[120px] truncate">{ind.notes ?? '—'}</td>
+                            <td className="px-3 py-2.5">
+                              <div className="flex items-center gap-1.5">
+                                <button onClick={() => { setUpdateIndicator(ind); setUpdateActual(ind.actualValue || ''); setUpdateRAG((ind.ragStatus || 'NOT_STARTED') as RAGStatus); setUpdateNotes(ind.notes || '') }}
+                                  className="text-[#183a1d]/40 hover:text-[#183a1d] text-xs font-medium">Update</button>
+                                <button onClick={() => handleDeleteIndicator(ind.id)}
+                                  className="text-[#183a1d]/30 hover:text-red-500 transition-colors"><Trash2 size={11} /></button>
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {output.indicators.length === 0 && (
+                <div className="px-5 py-4 text-center text-[#183a1d]/40 text-xs">No indicators yet</div>
+              )}
+
+              {/* Add indicator button */}
+              <div className="px-5 py-2.5 border-t border-[#c8d6c0]">
+                <button onClick={() => setShowAddIndicator(output.id)}
+                  className="text-xs text-[#183a1d]/60 hover:text-[#183a1d] flex items-center gap-1 transition-colors">
+                  <Plus size={12} /> Add Indicator
+                </button>
+              </div>
+            </div>
+          ))}
+
+          {/* Add Output Modal */}
+          {showAddOutput && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setShowAddOutput(false)}>
+              <div className="bg-[#fefbe9] rounded-xl border border-[#c8d6c0] p-6 max-w-md w-full space-y-4 shadow-xl" onClick={e => e.stopPropagation()}>
+                <h3 className="text-lg font-bold text-[#183a1d]">Add Output</h3>
+                <div>
+                  <label className="text-xs text-[#183a1d]/40 block mb-1">Output Number</label>
+                  <input className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] outline-none" value={logframeOutputs.length + 1} disabled />
+                </div>
+                <div>
+                  <label className="text-xs text-[#183a1d]/40 block mb-1">Title *</label>
+                  <input className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453]"
+                    value={newOutput.title} onChange={e => setNewOutput(p => ({ ...p, title: e.target.value }))} placeholder="e.g. Improved water access in target communities" />
+                </div>
+                <div>
+                  <label className="text-xs text-[#183a1d]/40 block mb-1">Description</label>
+                  <textarea className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] resize-none"
+                    rows={3} value={newOutput.description} onChange={e => setNewOutput(p => ({ ...p, description: e.target.value }))} placeholder="Optional description..." />
+                </div>
+                <div className="flex items-center gap-3 pt-2">
+                  <button onClick={handleAddOutput} disabled={savingOutput || !newOutput.title.trim()}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50">
+                    {savingOutput ? 'Saving...' : 'Add Output'}
+                  </button>
+                  <button onClick={() => setShowAddOutput(false)} className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d]">Cancel</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Edit Output Modal */}
+          {editingOutput && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setEditingOutput(null)}>
+              <div className="bg-[#fefbe9] rounded-xl border border-[#c8d6c0] p-6 max-w-md w-full space-y-4 shadow-xl" onClick={e => e.stopPropagation()}>
+                <h3 className="text-lg font-bold text-[#183a1d]">Edit Output</h3>
+                <div>
+                  <label className="text-xs text-[#183a1d]/40 block mb-1">Title *</label>
+                  <input className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] outline-none focus:border-[#f6c453]"
+                    value={editingOutput.title} onChange={e => setEditingOutput(p => p ? { ...p, title: e.target.value } : p)} />
+                </div>
+                <div>
+                  <label className="text-xs text-[#183a1d]/40 block mb-1">Description</label>
+                  <textarea className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] outline-none focus:border-[#f6c453] resize-none"
+                    rows={3} value={editingOutput.description || ''} onChange={e => setEditingOutput(p => p ? { ...p, description: e.target.value } : p)} />
+                </div>
+                <div className="flex items-center gap-3 pt-2">
+                  <button onClick={handleEditOutput} disabled={savingOutput || !editingOutput.title.trim()}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50">
+                    {savingOutput ? 'Saving...' : 'Save Changes'}
+                  </button>
+                  <button onClick={() => setEditingOutput(null)} className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d]">Cancel</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Add Indicator Modal */}
+          {showAddIndicator && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setShowAddIndicator(null)}>
+              <div className="bg-[#fefbe9] rounded-xl border border-[#c8d6c0] p-6 max-w-lg w-full space-y-4 shadow-xl" onClick={e => e.stopPropagation()}>
+                <h3 className="text-lg font-bold text-[#183a1d]">Add Indicator</h3>
+                <div>
+                  <label className="text-xs text-[#183a1d]/40 block mb-1">Indicator *</label>
+                  <textarea className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] resize-none"
+                    rows={2} value={newIndicator.indicator} onChange={e => setNewIndicator(p => ({ ...p, indicator: e.target.value }))}
+                    placeholder="e.g. Number of households with access to clean water" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs text-[#183a1d]/40 block mb-1">Baseline Value</label>
+                    <input className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453]"
+                      value={newIndicator.baselineValue} onChange={e => setNewIndicator(p => ({ ...p, baselineValue: e.target.value }))} placeholder="e.g. 0" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-[#183a1d]/40 block mb-1">Target Value *</label>
+                    <input className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453]"
+                      value={newIndicator.targetValue} onChange={e => setNewIndicator(p => ({ ...p, targetValue: e.target.value }))} placeholder="e.g. 500" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-xs text-[#183a1d]/40 block mb-1">Unit</label>
+                    <input className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453]"
+                      value={newIndicator.unit} onChange={e => setNewIndicator(p => ({ ...p, unit: e.target.value }))} placeholder="e.g. households" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-[#183a1d]/40 block mb-1">Measurement Method</label>
+                    <input className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453]"
+                      value={newIndicator.measurementMethod} onChange={e => setNewIndicator(p => ({ ...p, measurementMethod: e.target.value }))} placeholder="e.g. Survey" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-[#183a1d]/40 block mb-1">Reporting Period</label>
+                    <input className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453]"
+                      value={newIndicator.reportingPeriod} onChange={e => setNewIndicator(p => ({ ...p, reportingPeriod: e.target.value }))} placeholder="e.g. Quarterly" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 pt-2">
+                  <button onClick={() => handleAddIndicator(showAddIndicator)} disabled={savingIndicator || !newIndicator.indicator.trim() || !newIndicator.targetValue.trim()}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50">
+                    {savingIndicator ? 'Saving...' : 'Add Indicator'}
+                  </button>
+                  <button onClick={() => setShowAddIndicator(null)} className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d]">Cancel</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Update Indicator Modal */}
+          {updateIndicator && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setUpdateIndicator(null)}>
+              <div className="bg-[#fefbe9] rounded-xl border border-[#c8d6c0] p-6 max-w-md w-full space-y-4 shadow-xl" onClick={e => e.stopPropagation()}>
+                <h3 className="text-lg font-bold text-[#183a1d]">Update Indicator</h3>
+                <div>
+                  <label className="text-xs text-[#183a1d]/40 block mb-1">Indicator</label>
+                  <p className="text-sm text-[#183a1d] bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5">{updateIndicator.indicator}</p>
+                </div>
+                <div>
+                  <label className="text-xs text-[#183a1d]/40 block mb-1">Actual Value</label>
+                  <input className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453]"
+                    value={updateActual} onChange={e => setUpdateActual(e.target.value)} placeholder="Enter current actual value" />
+                </div>
+                <div>
+                  <label className="text-xs text-[#183a1d]/40 block mb-2">RAG Status</label>
+                  <div className="flex gap-2 flex-wrap">
+                    {(Object.entries(RAG_STYLES) as [RAGStatus, typeof RAG_STYLES[string]][]).map(([key, style]) => (
+                      <button key={key} onClick={() => setUpdateRAG(key)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                          updateRAG === key
+                            ? `${style.bg} ${style.text} border-current ring-1 ring-current`
+                            : 'bg-[#e1eedd] text-[#183a1d]/60 border-[#c8d6c0] hover:border-[#c8d6c0]'
+                        }`}>
+                        {style.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs text-[#183a1d]/40 block mb-1">Notes</label>
+                  <textarea className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] resize-none"
+                    rows={2} value={updateNotes} onChange={e => setUpdateNotes(e.target.value)} placeholder="Optional notes..." />
+                </div>
+                <div className="flex items-center gap-3 pt-2">
+                  <button onClick={handleUpdateIndicator} disabled={savingUpdate}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50">
+                    {savingUpdate ? 'Saving...' : 'Update'}
+                  </button>
+                  <button onClick={() => setUpdateIndicator(null)} className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d]">Cancel</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab: Risk Register */}
+      {tab === 'risks' && <RiskRegisterTab projectId={id} />}
+
+      {/* Tab: World Bank */}
+      {tab === 'worldbank' && <WorldBankTab projectId={id} />}
 
       {/* Tab: Audit */}
       {tab === 'audit' && (

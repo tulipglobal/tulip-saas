@@ -8,12 +8,14 @@ import { useOfflineSync } from '@/hooks/useOfflineSync'
 import {
   LayoutDashboard, FolderOpen, FileCheck, Receipt, Banknote,
   Key, Webhook, BarChart3, Settings, LogOut, Code2, CreditCard, Users,
-  ChevronLeft, ChevronRight, Shield, Bell, Search, Menu, X, ListChecks, ScanLine, FolderSearch, Briefcase, ShieldCheck, Crown, Flag, DollarSign, ArrowDownUp, MessageCircle
+  ChevronLeft, ChevronRight, Shield, Bell, Search, Menu, X, ListChecks, ScanLine, FolderSearch, Briefcase, ShieldCheck, Crown, Flag, DollarSign, ArrowDownUp, MessageCircle, FileText
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useTranslations } from 'next-intl'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
+import ThemeToggle from '@/components/ThemeToggle'
 import MessengerPanel, { useMessengerUnreadCount } from '@/components/MessengerPanel'
+import SearchModal from '@/components/SearchModal'
 
 interface AuditEntry {
   id: string
@@ -64,6 +66,7 @@ const navItems = [
   { key: 'expenses',   href: '/dashboard/expenses',  icon: Receipt },
   { key: 'auditLog',    href: '/dashboard/audit',     icon: Shield },
   { key: 'analytics',  href: '/dashboard/analytics', icon: BarChart3 },
+  { key: 'reports',    href: '/dashboard/reports',   icon: FileText, fallback: 'Reports' },
   { key: 'approvals',  href: '/dashboard/workflow',  icon: ListChecks, fallback: 'Workflow' },
   { key: 'billing',     href: '/dashboard/billing',   icon: CreditCard },
   { key: 'team',        href: '/dashboard/team',      icon: Users },
@@ -97,6 +100,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [hasRecent, setHasRecent] = useState(false)
   const [messengerOpen, setMessengerOpen] = useState(false)
   const [messengerTarget, setMessengerTarget] = useState<string | null>(null)
+  const [searchOpen, setSearchOpen] = useState(false)
   const messengerUnread = useMessengerUnreadCount()
   const notifPanelRef = useRef<HTMLDivElement>(null)
   const notifBtnRef = useRef<HTMLButtonElement>(null)
@@ -156,12 +160,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // Close mobile sidebar on route change
   useEffect(() => { setMobileOpen(false) }, [pathname])
 
-  // Close mobile sidebar on escape key
+  // Close mobile sidebar on escape key + Cmd+K search
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setMobileOpen(false)
         setShowNotifications(false)
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setSearchOpen(prev => !prev)
       }
     }
     document.addEventListener('keydown', onKey)
@@ -402,17 +410,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
 
             {/* Search — desktop only */}
-            <div className="hidden md:flex items-center gap-3 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 w-72">
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="hidden md:flex items-center gap-3 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 w-72 hover:bg-[#c8d6c0] transition-colors cursor-pointer"
+            >
               <Search size={15} className="text-[#183a1d]/40" />
-              <input
-                placeholder={t('searchPlaceholder')}
-                className="bg-transparent text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none w-full"
-              />
-            </div>
+              <span className="text-sm text-[#183a1d]/40 flex-1 text-left">{t('searchPlaceholder')}</span>
+              <kbd className="text-[10px] font-medium text-[#183a1d]/30 bg-[#fefbe9] border border-[#c8d6c0] rounded px-1.5 py-0.5">{typeof navigator !== 'undefined' && /Mac/.test(navigator.userAgent) ? '\u2318' : 'Ctrl+'}K</kbd>
+            </button>
           </div>
 
           {/* Right: language + bell + avatar */}
           <div className="flex items-center gap-3">
+            <ThemeToggle compact />
             <LanguageSwitcher />
             <div className="relative">
               <button
@@ -537,6 +547,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         onClose={() => { setMessengerOpen(false); setMessengerTarget(null) }}
         openToConversation={messengerTarget}
       />
+
+      {/* Search Modal */}
+      <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   )
 }

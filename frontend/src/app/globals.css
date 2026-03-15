@@ -1,6 +1,42 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
+:root, [data-theme="light"] {
+  --bg-primary: #fefbe9;
+  --bg-secondary: #e1eedd;
+  --bg-card: #ffffff;
+  --bg-sidebar: #183a1d;
+  --text-primary: #183a1d;
+  --text-secondary: #183a1d99;
+  --text-muted: #183a1d66;
+  --border-color: #c8d6c0;
+  --accent: #f6c453;
+  --accent-hover: #e5b342;
+  --sidebar-text: #e1eedd;
+  --sidebar-active: #f6c453;
+  --input-bg: #e1eedd;
+  --hover-bg: #d4e8c4;
+  --shadow-color: rgba(0,0,0,0.08);
+}
+
+[data-theme="dark"] {
+  --bg-primary: #0f1a0f;
+  --bg-secondary: #1a2e1a;
+  --bg-card: #1e331e;
+  --bg-sidebar: #0a140a;
+  --text-primary: #e1eedd;
+  --text-secondary: #e1eedd99;
+  --text-muted: #e1eedd66;
+  --border-color: #2d4a2d;
+  --accent: #f6c453;
+  --accent-hover: #e5b342;
+  --sidebar-text: #e1eedd;
+  --sidebar-active: #f6c453;
+  --input-bg: #1a2e1a;
+  --hover-bg: #243824;
+  --shadow-color: rgba(0,0,0,0.3);
+}
+
 @theme {
   --font-display: 'Inter', sans-serif;
   --font-body: 'Inter', sans-serif;

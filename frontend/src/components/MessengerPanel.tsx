@@ -81,15 +81,18 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
   const fileInputRef = useRef<HTMLInputElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
 
-  const currentUserId = typeof window !== 'undefined'
-    ? (() => { try { return JSON.parse(localStorage.getItem('tulip_user') || '{}').id } catch { return null } })()
-    : null
-  const currentUserName = typeof window !== 'undefined'
-    ? (() => { try { return JSON.parse(localStorage.getItem('tulip_user') || '{}').name || 'NGO User' } catch { return 'NGO User' } })()
-    : 'NGO User'
-  const currentTenantId = typeof window !== 'undefined'
-    ? (() => { try { return JSON.parse(localStorage.getItem('tulip_user') || '{}').tenantId } catch { return null } })()
-    : null
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [currentUserName, setCurrentUserName] = useState('NGO User')
+  const [currentTenantId, setCurrentTenantId] = useState<string | null>(null)
+
+  useEffect(() => {
+    try {
+      const user = JSON.parse(localStorage.getItem('tulip_user') || '{}')
+      setCurrentUserId(user.id || null)
+      setCurrentUserName(user.name || 'NGO User')
+      setCurrentTenantId(user.tenantId || null)
+    } catch { /* silent */ }
+  }, [])
 
   // ── Socket.IO connection ────────────────────────────────────
   useEffect(() => {
@@ -605,14 +608,14 @@ export function useMessengerUnreadCount() {
   const [count, setCount] = useState(0)
 
   useEffect(() => {
-    const fetch = () => {
+    const fetchUnread = () => {
       apiGet('/api/messenger/ngo/unread-count')
         .then(r => r.ok ? r.json() : { count: 0 })
         .then(d => setCount(d.count || d.unreadCount || 0))
         .catch(() => {})
     }
-    fetch()
-    const interval = setInterval(fetch, 30000)
+    fetchUnread()
+    const interval = setInterval(fetchUnread, 30000)
     return () => clearInterval(interval)
   }, [])
 

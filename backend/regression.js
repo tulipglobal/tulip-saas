@@ -1,13 +1,36 @@
 require("dotenv").config();
 const prisma = require("./lib/client");
 const fs = require("fs");
+const path = require("path");
 const http = require("http");
 const https = require("https");
 
-function httpReq(method, path, body, headers) {
+// ── Configurable base URLs ────────────────────────────────────
+const API_BASE = process.env.API_BASE || "https://api.tulipds.com";
+const NGO_BASE = process.env.NGO_BASE || "https://app.sealayer.io";
+const DONOR_BASE = process.env.DONOR_BASE || "https://donor.sealayer.io";
+
+// ── Configurable file paths (auto-detect local vs server) ─────
+const SAAS_ROOT = process.env.SAAS_ROOT || path.resolve(__dirname, "..");
+const DONOR_ROOT = process.env.DONOR_ROOT || path.resolve(__dirname, "../../tulip-donor");
+const VERIFY_ROOT = process.env.VERIFY_ROOT || path.resolve(__dirname, "../../tulip-verify");
+
+function urlGet(baseUrl, urlPath) {
   return new Promise(r => {
-    const opts = { hostname: "localhost", port: 5050, path, method, headers: { "Content-Type": "application/json", ...(headers||{}) } };
-    const req = http.request(opts, res => {
+    const fullUrl = baseUrl.replace(/\/$/, "") + urlPath;
+    const mod = fullUrl.startsWith("https") ? https : http;
+    mod.get(fullUrl, res => {
+      let d = ""; res.on("data", c => d += c); res.on("end", () => r({ status: res.statusCode, body: d }));
+    }).on("error", () => r({ status: 0, body: "" }));
+  });
+}
+
+function httpReq(method, urlPath, body, headers) {
+  return new Promise(r => {
+    const parsed = new URL(API_BASE.replace(/\/$/, "") + urlPath);
+    const mod = parsed.protocol === "https:" ? https : http;
+    const opts = { hostname: parsed.hostname, port: parsed.port || (parsed.protocol === "https:" ? 443 : 80), path: parsed.pathname + parsed.search, method, headers: { "Content-Type": "application/json", ...(headers||{}) } };
+    const req = mod.request(opts, res => {
       let d = ""; res.on("data", c => d += c);
       res.on("end", () => r({ status: res.statusCode, body: d, headers: res.headers }));
     });
@@ -17,12 +40,12 @@ function httpReq(method, path, body, headers) {
   });
 }
 
-function localGet(port, path) {
-  return new Promise(r => {
-    http.get({ hostname: "localhost", port, path }, res => {
-      let d = ""; res.on("data", c => d += c); res.on("end", () => r({ status: res.statusCode, body: d }));
-    }).on("error", () => r({ status: 0, body: "" }));
-  });
+function localGet(port, urlPath) {
+  if (port === 5050) return urlGet(API_BASE, urlPath);
+  if (port === 3000) return urlGet(NGO_BASE, urlPath);
+  if (port === 3001) return urlGet(NGO_BASE, urlPath);
+  if (port === 4000) return urlGet(DONOR_BASE, urlPath);
+  return urlGet(API_BASE, urlPath);
 }
 
 function extGet(url) {
@@ -188,19 +211,19 @@ const TOTAL = 161;
   // ═══════════════════════════════════════════════════════════
   console.log("\n\u2500\u2500\u2500 PM2 SERVICES & CONNECTIVITY \u2500\u2500\u2500");
 
-  const fe = await localGet(3000, "/");
-  log(24, "Frontend port 3000 online", fe.status === 200 ? "PASS" : "FAIL", "status=" + fe.status);
+  const fe = await urlGet(NGO_BASE, "/");
+  log(24, "NGO frontend online", fe.status === 200 ? "PASS" : "FAIL", "status=" + fe.status);
 
-  const verifyApp = await localGet(3001, "/");
-  log(25, "Verify app port 3001 online", verifyApp.status === 200 ? "PASS" : "FAIL", "status=" + verifyApp.status);
+  const donorFe = await urlGet(DONOR_BASE, "/");
+  log(25, "Donor frontend online", donorFe.status === 200 ? "PASS" : "FAIL", "status=" + donorFe.status);
 
-  const ping = await localGet(3000, "/api/ping");
+  const ping = await urlGet(NGO_BASE, "/api/ping");
   log(26, "/api/ping returns 200 ok", ping.status === 200 && ping.body === "ok" ? "PASS" : "FAIL", "status=" + ping.status + " body=" + ping.body);
 
-  const extPing = await extGet("https://app.sealayer.io/api/ping");
+  const extPing = await urlGet(NGO_BASE, "/api/ping");
   log(27, "External app.sealayer.io/api/ping", extPing.status === 200 ? "PASS" : "FAIL", "status=" + extPing.status);
 
-  const extApp = await extGet("https://app.sealayer.io");
+  const extApp = await urlGet(NGO_BASE, "/");
   log(28, "External app.sealayer.io", extApp.status === 200 ? "PASS" : "FAIL", "status=" + extApp.status);
 
   // ═══════════════════════════════════════════════════════════
@@ -208,17 +231,17 @@ const TOTAL = 161;
   // ═══════════════════════════════════════════════════════════
   console.log("\n\u2500\u2500\u2500 FRONTEND CODE VERIFICATION \u2500\u2500\u2500");
 
-  const pingRoute = fs.readFileSync("/home/ubuntu/tulip-saas/frontend/src/app/api/ping/route.ts", "utf8");
+  const pingRoute = fs.readFileSync("" + SAAS_ROOT + "/frontend/src/app/api/ping/route.ts", "utf8");
   log(29, "/api/ping has no backend proxy", pingRoute.indexOf("fetch(") === -1 ? "PASS" : "FAIL");
 
-  const offlineHook = fs.readFileSync("/home/ubuntu/tulip-saas/frontend/src/hooks/useOfflineSync.ts", "utf8");
+  const offlineHook = fs.readFileSync("" + SAAS_ROOT + "/frontend/src/hooks/useOfflineSync.ts", "utf8");
   log(30, "isOnline defaults to true", offlineHook.includes("useState(true)") ? "PASS" : "FAIL");
 
-  const syncService = fs.readFileSync("/home/ubuntu/tulip-saas/frontend/src/lib/syncService.ts", "utf8");
+  const syncService = fs.readFileSync("" + SAAS_ROOT + "/frontend/src/lib/syncService.ts", "utf8");
   log(31, "cacheDocuments() in syncService", syncService.includes("cacheDocuments") ? "PASS" : "FAIL");
   log(32, "Token refresh logic in drainQueue", syncService.includes("refreshAccessToken") ? "PASS" : "FAIL");
 
-  const expPage = fs.readFileSync("/home/ubuntu/tulip-saas/frontend/src/app/dashboard/expenses/page.tsx", "utf8");
+  const expPage = fs.readFileSync("" + SAAS_ROOT + "/frontend/src/app/dashboard/expenses/page.tsx", "utf8");
   log(33, "Date column in expenses table header", expPage.includes("<span>Date</span>") ? "PASS" : "FAIL");
   log(34, "AnchorBadge hidden when status=pending", expPage.includes("if (!status || status === 'pending') return null") ? "PASS" : "FAIL");
   log(35, "Void expense modal in expenses page", expPage.includes("VoidModal") ? "PASS" : "FAIL");
@@ -228,7 +251,7 @@ const TOTAL = 161;
   // ═══════════════════════════════════════════════════════════
   console.log("\n\u2500\u2500\u2500 #29 FRAUD RISK HIGHLIGHT \u2500\u2500\u2500");
 
-  const expCtrl = fs.readFileSync("/home/ubuntu/tulip-saas/backend/controllers/expenseController.js", "utf8");
+  const expCtrl = fs.readFileSync("" + SAAS_ROOT + "/backend/controllers/expenseController.js", "utf8");
   log(36, "FRAUD_RISK_SCORED audit action in code", expCtrl.includes("FRAUD_RISK_SCORED") ? "PASS" : "FAIL");
 
   try {
@@ -252,7 +275,7 @@ const TOTAL = 161;
   log(41, "/api/health responds (not rate-blocked)", rlHealth.status === 200 ? "PASS" : "FAIL");
 
   // Check rate limiter middleware exists
-  const hasRateLimiter = fs.existsSync("/home/ubuntu/tulip-saas/backend/middleware/rateLimiter.js") || fs.existsSync("/home/ubuntu/tulip-saas/backend/middleware/rateLimit.js");
+  const hasRateLimiter = fs.existsSync("" + SAAS_ROOT + "/backend/middleware/rateLimiter.js") || fs.existsSync("" + SAAS_ROOT + "/backend/middleware/rateLimit.js");
   log(42, "Rate limiter middleware file exists", hasRateLimiter ? "PASS" : "FAIL");
 
   // Internal API should skip rate limiting
@@ -299,7 +322,7 @@ const TOTAL = 161;
   const wfTask = await prisma.workflowTask.findFirst({ where: { type: "expense_approval" } });
   log(51, "Workflow task type=expense_approval", wfTask ? "PASS" : "FAIL");
 
-  const expCtrl2 = fs.readFileSync("/home/ubuntu/tulip-saas/backend/controllers/expenseController.js", "utf8");
+  const expCtrl2 = fs.readFileSync("" + SAAS_ROOT + "/backend/controllers/expenseController.js", "utf8");
   log(52, "approveExpense handler exists", expCtrl2.includes("exports.approveExpense") ? "PASS" : "FAIL");
   log(53, "rejectExpense handler exists", expCtrl2.includes("exports.rejectExpense") ? "PASS" : "FAIL");
 
@@ -308,15 +331,15 @@ const TOTAL = 161;
   // ═══════════════════════════════════════════════════════════
   console.log("\n\u2500\u2500\u2500 #32 POLYGON KEY & #31 REMOVE TEXTRACT \u2500\u2500\u2500");
 
-  const verifyEnv = fs.existsSync("/home/ubuntu/tulip-verify/.env");
+  const verifyEnv = fs.existsSync("" + VERIFY_ROOT + "/.env");
   if (verifyEnv) {
-    const envContent = fs.readFileSync("/home/ubuntu/tulip-verify/.env", "utf8");
+    const envContent = fs.readFileSync("" + VERIFY_ROOT + "/.env", "utf8");
     log(54, "tulip-verify has BLOCKCHAIN_PRIVATE_KEY", envContent.includes("BLOCKCHAIN_PRIVATE_KEY") ? "PASS" : "FAIL");
   } else {
     log(54, "tulip-verify .env exists", "FAIL", "file not found");
   }
 
-  const verifyOcr = fs.readFileSync("/home/ubuntu/tulip-verify/src/lib/ocr.ts", "utf8");
+  const verifyOcr = fs.readFileSync("" + VERIFY_ROOT + "/src/lib/ocr.ts", "utf8");
   log(55, "No Textract in tulip-verify ocr.ts", !verifyOcr.includes("Textract") && !verifyOcr.includes("textract") ? "PASS" : "FAIL");
   log(56, "Mindee import in tulip-verify ocr.ts", verifyOcr.includes("mindee") ? "PASS" : "FAIL");
 
@@ -327,8 +350,8 @@ const TOTAL = 161;
 
   // Check analytics page for beginAtZero or min: 0
   const analyticsFiles = [
-    "/home/ubuntu/tulip-saas/frontend/src/app/dashboard/analytics/page.tsx",
-    "/home/ubuntu/tulip-saas/frontend/src/app/dashboard/page.tsx",
+    "" + SAAS_ROOT + "/frontend/src/app/dashboard/analytics/page.tsx",
+    "" + SAAS_ROOT + "/frontend/src/app/dashboard/page.tsx",
   ];
   let hasBeginAtZero = false;
   let hasNumberFormat = false;
@@ -346,9 +369,9 @@ const TOTAL = 161;
   // Will be 401 without auth, but endpoint existing means not 404
   log(59, "/api/analytics/fraud endpoint exists", fraudAnalytics.status !== 404 ? "PASS" : "FAIL", "status=" + fraudAnalytics.status);
 
-  const analyticsPage = fs.existsSync("/home/ubuntu/tulip-saas/frontend/src/app/dashboard/analytics/page.tsx");
+  const analyticsPage = fs.existsSync("" + SAAS_ROOT + "/frontend/src/app/dashboard/analytics/page.tsx");
   if (analyticsPage) {
-    const ap = fs.readFileSync("/home/ubuntu/tulip-saas/frontend/src/app/dashboard/analytics/page.tsx", "utf8");
+    const ap = fs.readFileSync("" + SAAS_ROOT + "/frontend/src/app/dashboard/analytics/page.tsx", "utf8");
     log(60, "Fraud tab in analytics page", (ap.includes("fraud") || ap.includes("Fraud")) ? "PASS" : "FAIL");
   } else {
     log(60, "Analytics page exists", "FAIL", "file not found");
@@ -368,10 +391,10 @@ const TOTAL = 161;
     log(62, "webhookService deliver", "FAIL", e.message);
   }
 
-  const sealSvc = fs.readFileSync("/home/ubuntu/tulip-saas/backend/services/universalSealService.js", "utf8");
+  const sealSvc = fs.readFileSync("" + SAAS_ROOT + "/backend/services/universalSealService.js", "utf8");
   log(63, "seal.issued webhook in universalSealService", sealSvc.includes("seal.issued") ? "PASS" : "FAIL");
 
-  const anchorSvc = fs.readFileSync("/home/ubuntu/tulip-saas/backend/services/batchAnchorService.js", "utf8");
+  const anchorSvc = fs.readFileSync("" + SAAS_ROOT + "/backend/services/batchAnchorService.js", "utf8");
   log(64, "seal.anchored webhook in batchAnchorService", anchorSvc.includes("seal.anchored") ? "PASS" : "FAIL");
 
   log(65, "expense.flagged webhook in expenseController", expCtrl.includes("expense.flagged") ? "PASS" : "FAIL");
@@ -381,12 +404,12 @@ const TOTAL = 161;
   // ═══════════════════════════════════════════════════════════
   console.log("\n\u2500\u2500\u2500 #17 BULK DOCUMENT UPLOAD \u2500\u2500\u2500");
 
-  const docNewPage = fs.readFileSync("/home/ubuntu/tulip-saas/frontend/src/app/dashboard/documents/new/page.tsx", "utf8");
+  const docNewPage = fs.readFileSync("" + SAAS_ROOT + "/frontend/src/app/dashboard/documents/new/page.tsx", "utf8");
   log(66, "Multiple file input (multiple attribute)", docNewPage.includes("multiple") ? "PASS" : "FAIL");
   log(67, "Per-file status tracking", (docNewPage.includes("fileStatus") || docNewPage.includes("uploadStatus") || docNewPage.includes("status")) ? "PASS" : "FAIL");
   log(68, "Partial failure handling", (docNewPage.includes("failedCount") || docNewPage.includes("failed")) && docNewPage.includes("sealed") ? "PASS" : "FAIL");
 
-  const offlineSync = fs.readFileSync("/home/ubuntu/tulip-saas/frontend/src/lib/syncService.ts", "utf8");
+  const offlineSync = fs.readFileSync("" + SAAS_ROOT + "/frontend/src/lib/syncService.ts", "utf8");
   log(69, "Offline document queue in syncService", (offlineSync.includes("drainDocumentQueue") || offlineSync.includes("document")) ? "PASS" : "FAIL");
 
   // ═══════════════════════════════════════════════════════════
@@ -400,12 +423,12 @@ const TOTAL = 161;
   );
   log(70, "Document expiry columns in schema", docExpiryCols.length === 3 ? "PASS" : "FAIL", docExpiryCols.map(c=>c.column_name).join(","));
 
-  const docsPage = fs.readFileSync("/home/ubuntu/tulip-saas/frontend/src/app/dashboard/documents/page.tsx", "utf8");
+  const docsPage = fs.readFileSync("" + SAAS_ROOT + "/frontend/src/app/dashboard/documents/page.tsx", "utf8");
   log(71, "ExpiryCell component in documents page", docsPage.includes("ExpiryCell") || docsPage.includes("expiry") ? "PASS" : "FAIL");
 
-  log(72, "expiryAlerts.js job exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/jobs/expiryAlerts.js") ? "PASS" : "FAIL");
+  log(72, "expiryAlerts.js job exists", fs.existsSync("" + SAAS_ROOT + "/backend/jobs/expiryAlerts.js") ? "PASS" : "FAIL");
 
-  const expiryJob = fs.readFileSync("/home/ubuntu/tulip-saas/backend/jobs/expiryAlerts.js", "utf8");
+  const expiryJob = fs.readFileSync("" + SAAS_ROOT + "/backend/jobs/expiryAlerts.js", "utf8");
   log(73, "DOCUMENT_EXPIRY_ALERT audit log in job", expiryJob.includes("DOCUMENT_EXPIRY_ALERT") ? "PASS" : "FAIL");
 
   // ═══════════════════════════════════════════════════════════
@@ -422,10 +445,10 @@ const TOTAL = 161;
 
   // 75 — CurrencySelect component exists
   log(75, "CurrencySelect component exists",
-    fs.existsSync("/home/ubuntu/tulip-saas/frontend/src/components/CurrencySelect.tsx") ? "PASS" : "FAIL");
+    fs.existsSync("" + SAAS_ROOT + "/frontend/src/components/CurrencySelect.tsx") ? "PASS" : "FAIL");
 
   // 76 — currencies.ts utility with 150+ currencies
-  const currFile = "/home/ubuntu/tulip-saas/frontend/src/lib/currencies.ts";
+  const currFile = "" + SAAS_ROOT + "/frontend/src/lib/currencies.ts";
   if (fs.existsSync(currFile)) {
     const currContent = fs.readFileSync(currFile, "utf8");
     const currCount = (currContent.match(/code:/g) || []).length;
@@ -444,11 +467,11 @@ const TOTAL = 161;
   }
 
   // 78 — Expense new page uses CurrencySelect (not hardcoded dropdown)
-  const expNewPage = fs.readFileSync("/home/ubuntu/tulip-saas/frontend/src/app/dashboard/expenses/new/page.tsx", "utf8");
+  const expNewPage = fs.readFileSync("" + SAAS_ROOT + "/frontend/src/app/dashboard/expenses/new/page.tsx", "utf8");
   log(78, "Expense form uses CurrencySelect", expNewPage.includes("CurrencySelect") ? "PASS" : "FAIL");
 
   // 79 — Budget new page uses CurrencySelect
-  const budgetNewFile = "/home/ubuntu/tulip-saas/frontend/src/app/dashboard/budgets/new/page.tsx";
+  const budgetNewFile = "" + SAAS_ROOT + "/frontend/src/app/dashboard/budgets/new/page.tsx";
   if (fs.existsSync(budgetNewFile)) {
     const budgetNew = fs.readFileSync(budgetNewFile, "utf8");
     log(79, "Budget form uses CurrencySelect", budgetNew.includes("CurrencySelect") ? "PASS" : "FAIL");
@@ -457,7 +480,7 @@ const TOTAL = 161;
   }
 
   // 80 — Funding new page uses CurrencySelect
-  const fundingNewFile = "/home/ubuntu/tulip-saas/frontend/src/app/dashboard/funding/new/page.tsx";
+  const fundingNewFile = "" + SAAS_ROOT + "/frontend/src/app/dashboard/funding/new/page.tsx";
   if (fs.existsSync(fundingNewFile)) {
     const fundingNew = fs.readFileSync(fundingNewFile, "utf8");
     log(80, "Funding form uses CurrencySelect", fundingNew.includes("CurrencySelect") ? "PASS" : "FAIL");
@@ -466,7 +489,7 @@ const TOTAL = 161;
   }
 
   // 81 — Settings page has baseCurrency
-  const settingsFile = "/home/ubuntu/tulip-saas/frontend/src/app/dashboard/settings/page.tsx";
+  const settingsFile = "" + SAAS_ROOT + "/frontend/src/app/dashboard/settings/page.tsx";
   if (fs.existsSync(settingsFile)) {
     const settings = fs.readFileSync(settingsFile, "utf8");
     log(81, "Settings page has baseCurrency", settings.includes("baseCurrency") ? "PASS" : "FAIL");
@@ -514,30 +537,30 @@ const TOTAL = 161;
 
   // 87 — NGO investments route file exists
   log(87, "ngoInvestmentRoutes.js exists",
-    fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/ngoInvestmentRoutes.js") ? "PASS" : "FAIL");
+    fs.existsSync("" + SAAS_ROOT + "/backend/routes/ngoInvestmentRoutes.js") ? "PASS" : "FAIL");
 
   // 88 — Donor investments route file exists
   log(88, "donorInvestmentRoutes.js exists",
-    fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/donorInvestmentRoutes.js") ? "PASS" : "FAIL");
+    fs.existsSync("" + SAAS_ROOT + "/backend/routes/donorInvestmentRoutes.js") ? "PASS" : "FAIL");
 
   // 89 — NGO milestones route file exists
   log(89, "ngoMilestoneRoutes.js exists",
-    fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/ngoMilestoneRoutes.js") ? "PASS" : "FAIL");
+    fs.existsSync("" + SAAS_ROOT + "/backend/routes/ngoMilestoneRoutes.js") ? "PASS" : "FAIL");
 
   // 90 — Investment Monitoring page exists with schedule null guard
-  const invPage = fs.readFileSync("/home/ubuntu/tulip-saas/frontend/src/app/dashboard/investments/page.tsx", "utf8");
+  const invPage = fs.readFileSync("" + SAAS_ROOT + "/frontend/src/app/dashboard/investments/page.tsx", "utf8");
   log(90, "Investments page has schedule null guard", invPage.includes("inv.schedule || []") ? "PASS" : "FAIL");
 
   // 91 — Drawdowns page exists
   log(91, "Drawdowns page exists",
-    fs.existsSync("/home/ubuntu/tulip-saas/frontend/src/app/dashboard/drawdowns/page.tsx") ? "PASS" : "FAIL");
+    fs.existsSync("" + SAAS_ROOT + "/frontend/src/app/dashboard/drawdowns/page.tsx") ? "PASS" : "FAIL");
 
   // 92 — Budget page has donor org selector (donorMode)
-  const budgetDetail = fs.readFileSync("/home/ubuntu/tulip-saas/frontend/src/app/dashboard/budgets/[id]/page.tsx", "utf8");
+  const budgetDetail = fs.readFileSync("" + SAAS_ROOT + "/frontend/src/app/dashboard/budgets/[id]/page.tsx", "utf8");
   log(92, "Budget detail has donor org selector", budgetDetail.includes("donorMode") && budgetDetail.includes("donorOrgId") ? "PASS" : "FAIL");
 
   // 93 — Budget new page has donor org selector
-  const budgetNewContent = fs.readFileSync("/home/ubuntu/tulip-saas/frontend/src/app/dashboard/budgets/new/page.tsx", "utf8");
+  const budgetNewContent = fs.readFileSync("" + SAAS_ROOT + "/frontend/src/app/dashboard/budgets/new/page.tsx", "utf8");
   log(93, "Budget new has donor org selector", budgetNewContent.includes("donorMode") && budgetNewContent.includes("donorOrgId") ? "PASS" : "FAIL");
 
   // ═══════════════════════════════════════════════════════════
@@ -545,7 +568,7 @@ const TOTAL = 161;
   // ═══════════════════════════════════════════════════════════
   console.log("\n───  i18n COMPLETENESS ───");
 
-  const i18nDir = "/home/ubuntu/tulip-saas/frontend/src/messages";
+  const i18nDir = "" + SAAS_ROOT + "/frontend/src/messages";
   const langs = ["en", "fr", "es", "pt", "it"];
   const requiredNavKeys = ["investments", "drawdowns"];
   const requiredDocKeys = ["document", "type", "category", "expiry", "seal", "project"];
@@ -580,7 +603,7 @@ const TOTAL = 161;
   log(96, "All 5 i18n files exist (en,fr,es,pt,it)", allLangs ? "PASS" : "FAIL");
 
   // 97 — No MISSING_MESSAGE in frontend build output (check documents page has all keys)
-  const docPage = fs.readFileSync("/home/ubuntu/tulip-saas/frontend/src/app/dashboard/documents/page.tsx", "utf8");
+  const docPage = fs.readFileSync("" + SAAS_ROOT + "/frontend/src/app/dashboard/documents/page.tsx", "utf8");
   const docI18nCalls = docPage.match(/t\('documents\.(\w+)'\)/g) || [];
   const enMsgs = JSON.parse(fs.readFileSync(`${i18nDir}/en.json`, "utf8"));
   let allDocKeysExist = true;
@@ -604,23 +627,23 @@ const TOTAL = 161;
   log(98, "Sprint 6 tables exist (6 expected)", s6Tables.length === 6 ? "PASS" : "FAIL", s6Tables.map(t => t.tablename).sort().join(", "));
 
   // 99 — Socket.IO module exists
-  log(99, "lib/socketio.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/lib/socketio.js") ? "PASS" : "FAIL");
+  log(99, "lib/socketio.js exists", fs.existsSync("" + SAAS_ROOT + "/backend/lib/socketio.js") ? "PASS" : "FAIL");
 
   // 100 — Socket.IO initialized in app.js
-  const appJs = fs.readFileSync("/home/ubuntu/tulip-saas/backend/app.js", "utf8");
+  const appJs = fs.readFileSync("" + SAAS_ROOT + "/backend/app.js", "utf8");
   log(100, "app.js uses httpServer + Socket.IO", appJs.includes("initSocketIO") && appJs.includes("httpServer") ? "PASS" : "FAIL");
 
   // 101 — Messenger routes file exists
-  log(101, "messengerRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/messengerRoutes.js") ? "PASS" : "FAIL");
+  log(101, "messengerRoutes.js exists", fs.existsSync("" + SAAS_ROOT + "/backend/routes/messengerRoutes.js") ? "PASS" : "FAIL");
 
   // 102 — Tranche routes file exists
-  log(102, "trancheRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/trancheRoutes.js") ? "PASS" : "FAIL");
+  log(102, "trancheRoutes.js exists", fs.existsSync("" + SAAS_ROOT + "/backend/routes/trancheRoutes.js") ? "PASS" : "FAIL");
 
   // 103 — Condition routes file exists
-  log(103, "conditionRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/conditionRoutes.js") ? "PASS" : "FAIL");
+  log(103, "conditionRoutes.js exists", fs.existsSync("" + SAAS_ROOT + "/backend/routes/conditionRoutes.js") ? "PASS" : "FAIL");
 
   // 104 — Report routes file exists
-  log(104, "reportRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/reportRoutes.js") ? "PASS" : "FAIL");
+  log(104, "reportRoutes.js exists", fs.existsSync("" + SAAS_ROOT + "/backend/routes/reportRoutes.js") ? "PASS" : "FAIL");
 
   // 105 — Messenger API endpoints respond (401 without auth = endpoint exists)
   const msgResp = await httpReq("GET", "/api/messenger/donor/unread-count");
@@ -640,27 +663,31 @@ const TOTAL = 161;
 
   // 109 — NGO MessengerPanel component exists
   log(109, "NGO MessengerPanel.tsx exists",
-    fs.existsSync("/home/ubuntu/tulip-saas/frontend/src/components/MessengerPanel.tsx") ? "PASS" : "FAIL");
+    fs.existsSync("" + SAAS_ROOT + "/frontend/src/components/MessengerPanel.tsx") ? "PASS" : "FAIL");
 
   // 110 — NGO layout imports MessengerPanel
-  const ngoLayout = fs.readFileSync("/home/ubuntu/tulip-saas/frontend/src/app/dashboard/layout.tsx", "utf8");
+  const ngoLayout = fs.readFileSync("" + SAAS_ROOT + "/frontend/src/app/dashboard/layout.tsx", "utf8");
   log(110, "NGO layout imports MessengerPanel", ngoLayout.includes("MessengerPanel") ? "PASS" : "FAIL");
 
   // 111 — Donor portal MessengerPanel exists
   log(111, "Donor MessengerPanel.tsx exists",
-    fs.existsSync("/home/ubuntu/tulip-donor/components/MessengerPanel.tsx") ? "PASS" : "FAIL");
+    fs.existsSync("" + DONOR_ROOT + "/components/MessengerPanel.tsx") ? "PASS" : "FAIL");
 
   // 112 — Donor portal reports page exists
   log(112, "Donor reports page exists",
-    fs.existsSync("/home/ubuntu/tulip-donor/app/reports/page.tsx") ? "PASS" : "FAIL");
+    fs.existsSync("" + DONOR_ROOT + "/app/reports/page.tsx") ? "PASS" : "FAIL");
 
   // 113 — All 4 PM2 services online
   const { execSync } = require("child_process");
-  const pm2Out = execSync("pm2 jlist 2>/dev/null").toString();
-  const pm2List = JSON.parse(pm2Out);
-  const allOnline = pm2List.every(p => p.pm2_env.status === "online");
-  log(113, "All 4 PM2 services online", allOnline && pm2List.length >= 4 ? "PASS" : "FAIL",
-    pm2List.map(p => p.name + ":" + p.pm2_env.status).join(", "));
+  try {
+    const pm2Out = execSync("pm2 jlist 2>/dev/null").toString();
+    const pm2List = JSON.parse(pm2Out);
+    const allOnline = pm2List.every(p => p.pm2_env.status === "online");
+    log(113, "All 4 PM2 services online", allOnline && pm2List.length >= 4 ? "PASS" : "FAIL",
+      pm2List.map(p => p.name + ":" + p.pm2_env.status).join(", "));
+  } catch {
+    log(113, "All 4 PM2 services online", "SKIP", "pm2 not available locally — run on server");
+  }
 
   // ═══════════════════════════════════════════════════════════
   //  SECTION 23: SPRINT 7 — SSO, DARK MODE, SEARCH, SHARE (114-125)
@@ -674,17 +701,17 @@ const TOTAL = 161;
   log(114, "SSOConfig table exists", ssoTable.length > 0 ? "PASS" : "FAIL");
 
   // 115 — SSO routes file exists
-  log(115, "ssoRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/ssoRoutes.js") ? "PASS" : "FAIL");
+  log(115, "ssoRoutes.js exists", fs.existsSync("" + SAAS_ROOT + "/backend/routes/ssoRoutes.js") ? "PASS" : "FAIL");
 
   // 116 — SSO admin routes file exists
-  log(116, "ssoAdminRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/ssoAdminRoutes.js") ? "PASS" : "FAIL");
+  log(116, "ssoAdminRoutes.js exists", fs.existsSync("" + SAAS_ROOT + "/backend/routes/ssoAdminRoutes.js") ? "PASS" : "FAIL");
 
   // 117 — SSO check endpoint responds
   const ssoCheck = await httpReq("GET", "/api/auth/sso/check/test");
   log(117, "SSO check endpoint responds", ssoCheck.status === 200 ? "PASS" : "FAIL", "status=" + ssoCheck.status);
 
   // 118 — Theme preference route exists
-  log(118, "userPreferenceRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/userPreferenceRoutes.js") ? "PASS" : "FAIL");
+  log(118, "userPreferenceRoutes.js exists", fs.existsSync("" + SAAS_ROOT + "/backend/routes/userPreferenceRoutes.js") ? "PASS" : "FAIL");
 
   // 119 — User.themePreference column
   const themeCols = await prisma.$queryRawUnsafe(
@@ -694,10 +721,10 @@ const TOTAL = 161;
 
   // 120 — ThemeToggle component exists (NGO)
   log(120, "NGO ThemeToggle.tsx exists",
-    fs.existsSync("/home/ubuntu/tulip-saas/frontend/src/components/ThemeToggle.tsx") ? "PASS" : "FAIL");
+    fs.existsSync("" + SAAS_ROOT + "/frontend/src/components/ThemeToggle.tsx") ? "PASS" : "FAIL");
 
   // 121 — Search routes file exists
-  log(121, "searchRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/searchRoutes.js") ? "PASS" : "FAIL");
+  log(121, "searchRoutes.js exists", fs.existsSync("" + SAAS_ROOT + "/backend/routes/searchRoutes.js") ? "PASS" : "FAIL");
 
   // 122 — Search endpoint responds (401 = exists)
   const searchResp = await httpReq("GET", "/api/search?q=test");
@@ -705,7 +732,7 @@ const TOTAL = 161;
 
   // 123 — SearchModal component exists (NGO)
   log(123, "NGO SearchModal.tsx exists",
-    fs.existsSync("/home/ubuntu/tulip-saas/frontend/src/components/SearchModal.tsx") ? "PASS" : "FAIL");
+    fs.existsSync("" + SAAS_ROOT + "/frontend/src/components/SearchModal.tsx") ? "PASS" : "FAIL");
 
   // 124 — ShareLink table exists
   const shareTable = await prisma.$queryRawUnsafe(
@@ -715,8 +742,8 @@ const TOTAL = 161;
 
   // 125 — Share routes files exist
   log(125, "shareRoutes.js + sharePublicRoutes.js exist",
-    fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/shareRoutes.js") &&
-    fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/sharePublicRoutes.js") ? "PASS" : "FAIL");
+    fs.existsSync("" + SAAS_ROOT + "/backend/routes/shareRoutes.js") &&
+    fs.existsSync("" + SAAS_ROOT + "/backend/routes/sharePublicRoutes.js") ? "PASS" : "FAIL");
 
   // ═══════════════════════════════════════════════════════════
   //  SECTION 24: SPRINT 8 PART 0 — CAPEX/OPEX, LOGFRAME, RISK, GRANT CONFIG, WB (126-141)
@@ -737,7 +764,7 @@ const TOTAL = 161;
   log(127, "Logframe tables exist (2)", lfTables.length === 2 ? "PASS" : "FAIL", lfTables.map(t => t.tablename).join(", "));
 
   // 128 — Logframe routes file
-  log(128, "logframeRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/logframeRoutes.js") ? "PASS" : "FAIL");
+  log(128, "logframeRoutes.js exists", fs.existsSync("" + SAAS_ROOT + "/backend/routes/logframeRoutes.js") ? "PASS" : "FAIL");
 
   // 129 — RiskRegisterEntry table
   const riskTable = await prisma.$queryRawUnsafe(
@@ -746,11 +773,11 @@ const TOTAL = 161;
   log(129, "RiskRegisterEntry table exists", riskTable.length > 0 ? "PASS" : "FAIL");
 
   // 130 — Risk routes file
-  log(130, "riskRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/riskRoutes.js") ? "PASS" : "FAIL");
+  log(130, "riskRoutes.js exists", fs.existsSync("" + SAAS_ROOT + "/backend/routes/riskRoutes.js") ? "PASS" : "FAIL");
 
   // 131 — RiskRegisterTab component
   log(131, "RiskRegisterTab.tsx exists",
-    fs.existsSync("/home/ubuntu/tulip-saas/frontend/src/components/RiskRegisterTab.tsx") ? "PASS" : "FAIL");
+    fs.existsSync("" + SAAS_ROOT + "/frontend/src/components/RiskRegisterTab.tsx") ? "PASS" : "FAIL");
 
   // 132 — GrantReportingConfig table
   const grcTable = await prisma.$queryRawUnsafe(
@@ -759,7 +786,7 @@ const TOTAL = 161;
   log(132, "GrantReportingConfig table exists", grcTable.length > 0 ? "PASS" : "FAIL");
 
   // 133 — Grant reporting routes file
-  log(133, "grantReportingRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/grantReportingRoutes.js") ? "PASS" : "FAIL");
+  log(133, "grantReportingRoutes.js exists", fs.existsSync("" + SAAS_ROOT + "/backend/routes/grantReportingRoutes.js") ? "PASS" : "FAIL");
 
   // 134 — WBProjectComponent table
   const wbCompTable = await prisma.$queryRawUnsafe(
@@ -774,25 +801,25 @@ const TOTAL = 161;
   log(135, "WBProcurementContract table exists", wbContTable.length > 0 ? "PASS" : "FAIL");
 
   // 136 — WB routes file
-  log(136, "wbRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/wbRoutes.js") ? "PASS" : "FAIL");
+  log(136, "wbRoutes.js exists", fs.existsSync("" + SAAS_ROOT + "/backend/routes/wbRoutes.js") ? "PASS" : "FAIL");
 
   // 137 — WorldBankTab component
   log(137, "WorldBankTab.tsx exists",
-    fs.existsSync("/home/ubuntu/tulip-saas/frontend/src/components/WorldBankTab.tsx") ? "PASS" : "FAIL");
+    fs.existsSync("" + SAAS_ROOT + "/frontend/src/components/WorldBankTab.tsx") ? "PASS" : "FAIL");
 
   // 138 — NGO project page has Logframe tab
-  const projPage = fs.readFileSync("/home/ubuntu/tulip-saas/frontend/src/app/dashboard/projects/[id]/page.tsx", "utf8");
+  const projPage = fs.readFileSync("" + SAAS_ROOT + "/frontend/src/app/dashboard/projects/[id]/page.tsx", "utf8");
   log(138, "NGO project page has Logframe tab", projPage.includes("logframe") || projPage.includes("Logframe") ? "PASS" : "FAIL");
 
   // 139 — NGO project page has Risk Register tab
   log(139, "NGO project page has Risk Register tab", projPage.includes("RiskRegister") || projPage.includes("risk") ? "PASS" : "FAIL");
 
   // 140 — Settings page has Grant Reporting section
-  const settingsContent = fs.readFileSync("/home/ubuntu/tulip-saas/frontend/src/app/dashboard/settings/page.tsx", "utf8");
+  const settingsContent = fs.readFileSync("" + SAAS_ROOT + "/frontend/src/app/dashboard/settings/page.tsx", "utf8");
   log(140, "Settings page has Grant Reporting section", settingsContent.includes("grantReporting") || settingsContent.includes("Grant Reporting") ? "PASS" : "FAIL");
 
   // 141 — Donor portal has Logframe + Risk tabs
-  const donorProjPage = fs.readFileSync("/home/ubuntu/tulip-donor/app/projects/[id]/page.tsx", "utf8");
+  const donorProjPage = fs.readFileSync("" + DONOR_ROOT + "/app/projects/[id]/page.tsx", "utf8");
   log(141, "Donor project page has logframe + risks tabs",
     (donorProjPage.includes("logframe") || donorProjPage.includes("Logframe")) &&
     (donorProjPage.includes("risks") || donorProjPage.includes("Risk")) ? "PASS" : "FAIL");
@@ -815,7 +842,7 @@ const TOTAL = 161;
   log(143, "ReportShareLink table exists", repShareTable.length > 0 ? "PASS" : "FAIL");
 
   // 144 — reportEngine.js exists
-  log(144, "reportEngine.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/services/reportEngine.js") ? "PASS" : "FAIL");
+  log(144, "reportEngine.js exists", fs.existsSync("" + SAAS_ROOT + "/backend/services/reportEngine.js") ? "PASS" : "FAIL");
 
   // 145 — reportEngine loads and has key methods
   try {
@@ -825,13 +852,13 @@ const TOTAL = 161;
   } catch(e) { log(145, "reportEngine loads", "FAIL", e.message); }
 
   // 146 — ngoReportRoutes.js exists
-  log(146, "ngoReportRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/ngoReportRoutes.js") ? "PASS" : "FAIL");
+  log(146, "ngoReportRoutes.js exists", fs.existsSync("" + SAAS_ROOT + "/backend/routes/ngoReportRoutes.js") ? "PASS" : "FAIL");
 
   // 147 — reportPublicRoutes.js exists
-  log(147, "reportPublicRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/reportPublicRoutes.js") ? "PASS" : "FAIL");
+  log(147, "reportPublicRoutes.js exists", fs.existsSync("" + SAAS_ROOT + "/backend/routes/reportPublicRoutes.js") ? "PASS" : "FAIL");
 
   // 148 — reportAutoService.js exists
-  log(148, "reportAutoService.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/services/reportAutoService.js") ? "PASS" : "FAIL");
+  log(148, "reportAutoService.js exists", fs.existsSync("" + SAAS_ROOT + "/backend/services/reportAutoService.js") ? "PASS" : "FAIL");
 
   // 149 — NGO reports endpoint responds (401 = exists)
   const ngoRepResp = await httpReq("GET", "/api/ngo/reports");
@@ -854,27 +881,27 @@ const TOTAL = 161;
   log(153, "Public report share endpoint responds", pubRepResp.status !== 404 ? "PASS" : "FAIL", "status=" + pubRepResp.status);
 
   // 154 — Anchor scheduler has report cron jobs
-  const anchorSched = fs.readFileSync("/home/ubuntu/tulip-saas/backend/services/anchorScheduler.js", "utf8");
+  const anchorSched = fs.readFileSync("" + SAAS_ROOT + "/backend/services/anchorScheduler.js", "utf8");
   log(154, "Anchor scheduler has monthly report cron", anchorSched.includes("auto-reports") && anchorSched.includes("MONTHLY") ? "PASS" : "FAIL");
   log(155, "Anchor scheduler has quarterly report cron", anchorSched.includes("QUARTERLY") ? "PASS" : "FAIL");
   log(156, "Anchor scheduler has annual report cron", anchorSched.includes("ANNUAL") ? "PASS" : "FAIL");
 
   // 157 — NGO reports page exists
   log(157, "NGO reports page exists",
-    fs.existsSync("/home/ubuntu/tulip-saas/frontend/src/app/dashboard/reports/page.tsx") ? "PASS" : "FAIL");
+    fs.existsSync("" + SAAS_ROOT + "/frontend/src/app/dashboard/reports/page.tsx") ? "PASS" : "FAIL");
 
   // 158 — NGO layout has Reports nav item
   log(158, "NGO layout has Reports nav", ngoLayout.includes("reports") ? "PASS" : "FAIL");
 
   // 159 — Donor portal reports page exists
-  log(159, "Donor reports page exists", fs.existsSync("/home/ubuntu/tulip-donor/app/reports/page.tsx") ? "PASS" : "FAIL");
+  log(159, "Donor reports page exists", fs.existsSync("" + DONOR_ROOT + "/app/reports/page.tsx") ? "PASS" : "FAIL");
 
   // 160 — Donor ReportShareModal exists
-  log(160, "Donor ReportShareModal.tsx exists", fs.existsSync("/home/ubuntu/tulip-donor/components/ReportShareModal.tsx") ? "PASS" : "FAIL");
+  log(160, "Donor ReportShareModal.tsx exists", fs.existsSync("" + DONOR_ROOT + "/components/ReportShareModal.tsx") ? "PASS" : "FAIL");
 
   // 161 — Public report share page exists
   log(161, "Donor public report share page exists",
-    fs.existsSync("/home/ubuntu/tulip-donor/app/share/report/[token]/page.tsx") ? "PASS" : "FAIL");
+    fs.existsSync("" + DONOR_ROOT + "/app/share/report/[token]/page.tsx") ? "PASS" : "FAIL");
 
   // ═══════════════════════════════════════════════════════════
   //  SUMMARY

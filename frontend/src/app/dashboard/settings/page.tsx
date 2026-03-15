@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
-import { Building2, Shield, Save, Check, AlertCircle, Bell, Coins } from 'lucide-react'
-import { apiGet, apiPatch } from '@/lib/api'
+import { Building2, Shield, Save, Check, AlertCircle, Bell, Coins, Lock, Key } from 'lucide-react'
+import { apiGet, apiPatch, apiPost, apiPut } from '@/lib/api'
 import CountrySelect from '@/components/CountrySelect'
 import CurrencySelect from '@/components/CurrencySelect'
 
@@ -59,6 +59,17 @@ export default function SettingsPage() {
   const [notifPrefs, setNotifPrefs] = useState({ fraud: true, duplicate: true, mismatch: true, void: true, seal: false })
   const [savingNotif, setSavingNotif] = useState(false)
 
+  // SSO config
+  const [ssoConfig, setSsoConfig] = useState<{ provider: string; isEnabled: boolean; entryPoint?: string; issuer?: string; clientId?: string; callbackUrl?: string; cert?: string } | null>(null)
+  const [ssoProvider, setSsoProvider] = useState('GOOGLE')
+  const [ssoEntryPoint, setSsoEntryPoint] = useState('')
+  const [ssoIssuer, setSsoIssuer] = useState('')
+  const [ssoCert, setSsoCert] = useState('')
+  const [ssoClientId, setSsoClientId] = useState('')
+  const [ssoClientSecret, setSsoClientSecret] = useState('')
+  const [ssoCallbackUrl, setSsoCallbackUrl] = useState('')
+  const [savingSSO, setSavingSSO] = useState(false)
+
   // Org form
   const [orgName, setOrgName] = useState('')
   const [orgDescription, setOrgDescription] = useState('')
@@ -91,6 +102,17 @@ export default function SettingsPage() {
         setOrgCurrency(setup.baseCurrency || 'USD')
       }
       if (notif) setNotifPrefs(notif)
+      // Fetch SSO config
+      apiGet('/api/admin/sso/config').then(r => r.ok ? r.json() : null).then(data => {
+        if (data?.config) {
+          setSsoConfig(data.config)
+          setSsoProvider(data.config.provider || 'GOOGLE')
+          setSsoEntryPoint(data.config.entryPoint || '')
+          setSsoIssuer(data.config.issuer || '')
+          setSsoClientId(data.config.clientId || '')
+          setSsoCallbackUrl(data.config.callbackUrl || '')
+        }
+      }).catch(() => {})
       setLoading(false)
     }).catch(() => setLoading(false))
   }, [])
@@ -339,6 +361,114 @@ export default function SettingsPage() {
           </button>
           {org?.id && <span className="text-xs text-[#183a1d]/30 font-mono">Tenant: {org.id.slice(0, 8)}...</span>}
         </div>
+      </div>
+
+      {/* ── Enterprise SSO ──────────────────────── */}
+      <div className="rounded-xl border border-[#c8d6c0] p-5" style={{ background: '#e1eedd' }}>
+        <div className="flex items-center gap-2 mb-4">
+          <Key size={18} className="text-[#183a1d]" />
+          <h3 className="text-base font-semibold text-[#183a1d]">Enterprise SSO</h3>
+        </div>
+
+        {!ssoConfig?.isEnabled ? (
+          /* Locked state — SSO not enabled for this tenant */
+          <div className="flex items-center gap-4 p-4 rounded-lg" style={{ background: '#fefbe9', border: '1px solid #c8d6c0' }}>
+            <Lock size={24} className="text-[#183a1d]/30 shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-[#183a1d]">Single Sign-On is not enabled</p>
+              <p className="text-xs text-[#183a1d]/50 mt-1">Connect your identity provider (Google, Microsoft, Okta, SAML) for seamless single sign-on. Contact us to enable this feature for your organisation.</p>
+              <a href="mailto:support@sealayer.io?subject=Enable%20SSO" className="text-xs font-medium text-[#0c7aed] hover:underline mt-2 inline-block">Contact us to enable →</a>
+            </div>
+          </div>
+        ) : (
+          /* SSO enabled — show configuration form */
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="inline-block w-2 h-2 rounded-full bg-green-500" />
+              <span className="text-xs font-medium text-green-700">SSO Enabled</span>
+            </div>
+
+            <div>
+              <label className="text-xs text-[#183a1d]/40 block mb-2">Provider</label>
+              <div className="flex gap-2">
+                {['SAML', 'GOOGLE', 'MICROSOFT', 'OKTA'].map(p => (
+                  <button key={p} onClick={() => setSsoProvider(p)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${ssoProvider === p ? 'bg-[#f6c453] text-[#183a1d]' : 'bg-white text-[#183a1d]/60 border border-[#c8d6c0] hover:border-[#f6c453]'}`}>
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {(ssoProvider === 'GOOGLE' || ssoProvider === 'MICROSOFT') && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-[#183a1d]/40 block mb-1">Client ID</label>
+                  <input className={inputClass} value={ssoClientId} onChange={e => setSsoClientId(e.target.value)} placeholder="your-client-id.apps.googleusercontent.com" />
+                </div>
+                <div>
+                  <label className="text-xs text-[#183a1d]/40 block mb-1">Client Secret</label>
+                  <input className={inputClass} type="password" value={ssoClientSecret} onChange={e => setSsoClientSecret(e.target.value)} placeholder="••••••••" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-xs text-[#183a1d]/40 block mb-1">Callback URL</label>
+                  <input className={inputClass} value={ssoCallbackUrl} onChange={e => setSsoCallbackUrl(e.target.value)} placeholder={`https://api.tulipds.com/api/auth/sso/callback/${ssoProvider.toLowerCase()}`} />
+                </div>
+              </div>
+            )}
+
+            {(ssoProvider === 'SAML' || ssoProvider === 'OKTA') && (
+              <div className="grid grid-cols-1 gap-3">
+                <div>
+                  <label className="text-xs text-[#183a1d]/40 block mb-1">Entry Point URL</label>
+                  <input className={inputClass} value={ssoEntryPoint} onChange={e => setSsoEntryPoint(e.target.value)} placeholder="https://idp.example.com/sso/saml" />
+                </div>
+                <div>
+                  <label className="text-xs text-[#183a1d]/40 block mb-1">Issuer</label>
+                  <input className={inputClass} value={ssoIssuer} onChange={e => setSsoIssuer(e.target.value)} placeholder="https://idp.example.com" />
+                </div>
+                <div>
+                  <label className="text-xs text-[#183a1d]/40 block mb-1">Certificate (PEM)</label>
+                  <textarea className={inputClass + ' min-h-[80px] resize-y font-mono text-xs'} value={ssoCert} onChange={e => setSsoCert(e.target.value)} placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----" />
+                </div>
+                <div>
+                  <label className="text-xs text-[#183a1d]/40 block mb-1">Callback URL (ACS)</label>
+                  <input className={inputClass} value={ssoCallbackUrl} onChange={e => setSsoCallbackUrl(e.target.value)} placeholder="https://api.tulipds.com/api/auth/sso/callback/saml" />
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-3 pt-1">
+              <button onClick={async () => {
+                setSavingSSO(true)
+                try {
+                  const resp = await apiPost('/api/admin/sso/config', { provider: ssoProvider, entryPoint: ssoEntryPoint, issuer: ssoIssuer, cert: ssoCert || undefined, clientId: ssoClientId, clientSecret: ssoClientSecret || undefined, callbackUrl: ssoCallbackUrl })
+                  if (resp.ok) {
+                    setToast({ message: 'SSO configuration saved', type: 'success' })
+                    const data = await resp.json()
+                    if (data.config) setSsoConfig(data.config)
+                  } else {
+                    setToast({ message: 'Failed to save SSO config', type: 'error' })
+                  }
+                } catch { setToast({ message: 'Failed to save SSO config', type: 'error' }) }
+                setSavingSSO(false)
+              }} disabled={savingSSO}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50 transition-all">
+                <Save size={14} />
+                {savingSSO ? 'Saving...' : 'Save Configuration'}
+              </button>
+              <button onClick={async () => {
+                const resp = await apiPut('/api/admin/sso/config/toggle', { enabled: false })
+                if (resp.ok) {
+                  setSsoConfig(prev => prev ? { ...prev, isEnabled: false } : null)
+                  setToast({ message: 'SSO disabled', type: 'success' })
+                }
+              }} className="text-xs text-red-600 hover:underline">
+                Disable SSO
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Shield, Eye, EyeOff, ArrowRight } from 'lucide-react'
@@ -10,6 +10,23 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({ email: '', password: '' })
+
+  // Handle SSO callback redirect
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('sso') === 'success') {
+      const accessToken = params.get('accessToken')
+      const refreshToken = params.get('refreshToken')
+      const userData = params.get('user')
+      if (accessToken && refreshToken && userData) {
+        localStorage.setItem('tulip_token', accessToken)
+        localStorage.setItem('tulip_refresh', refreshToken)
+        try { localStorage.setItem('tulip_user', JSON.stringify(JSON.parse(decodeURIComponent(userData)))) } catch { localStorage.setItem('tulip_user', decodeURIComponent(userData)) }
+        window.location.href = '/dashboard'
+      }
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

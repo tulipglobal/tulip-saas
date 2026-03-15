@@ -95,12 +95,18 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
   useEffect(() => {
     if (!open) return
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5050'
-    const socket = io(apiUrl, {
-      transports: ['websocket', 'polling'],
-      autoConnect: true,
-    })
-    socketRef.current = socket
+    let socket: Socket
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5050'
+      socket = io(apiUrl, {
+        transports: ['websocket', 'polling'],
+        autoConnect: true,
+      })
+      socketRef.current = socket
+    } catch (err) {
+      console.warn('Socket.IO initialization failed:', err)
+      return
+    }
 
     socket.on('connect', () => {
       socket.emit('authenticate', {
@@ -111,17 +117,27 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
       })
     })
 
+    socket.on('connect_error', (err) => {
+      console.warn('Socket.IO connection error:', err.message)
+    })
+
     socket.on('new_message', (msg: Message) => {
       // Update conversation list
-      setConversations(prev => prev.map(c =>
-        c.id === msg.conversationId
-          ? { ...c, lastMessage: msg.content, lastMessageAt: msg.createdAt, unreadCount: c.unreadCount + (msg.senderType !== 'NGO' ? 1 : 0) }
-          : c
-      ))
+      setConversations(prev => {
+        const arr = Array.isArray(prev) ? prev : []
+        return arr.map(c =>
+          c.id === msg.conversationId
+            ? { ...c, lastMessage: msg.content, lastMessageAt: msg.createdAt, unreadCount: c.unreadCount + (msg.senderType !== 'NGO' ? 1 : 0) }
+            : c
+        )
+      })
       // If viewing this conversation, append message
       setActiveConvo(current => {
         if (current && current.id === msg.conversationId) {
-          setMessages(prev => [...prev, msg])
+          setMessages(prev => {
+            const arr = Array.isArray(prev) ? prev : []
+            return [...arr, msg]
+          })
           // Mark as read
           if (msg.senderType !== 'NGO') {
             apiPost(`/api/messenger/ngo/conversations/${msg.conversationId}/read`, {}).catch(() => {})
@@ -133,9 +149,12 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
     })
 
     socket.on('messages_read', ({ conversationId }: { conversationId: string }) => {
-      setConversations(prev => prev.map(c =>
-        c.id === conversationId ? { ...c, unreadCount: 0 } : c
-      ))
+      setConversations(prev => {
+        const arr = Array.isArray(prev) ? prev : []
+        return arr.map(c =>
+          c.id === conversationId ? { ...c, unreadCount: 0 } : c
+        )
+      })
     })
 
     socket.on('user_online', ({ userId }: { userId: string }) => {
@@ -167,7 +186,8 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
       const res = await apiGet('/api/messenger/ngo/conversations')
       if (res.ok) {
         const data = await res.json()
-        setConversations(data.data || data || [])
+        const list = Array.isArray(data.data) ? data.data : Array.isArray(data.conversations) ? data.conversations : Array.isArray(data) ? data : []
+        setConversations(list)
       }
     } catch { /* silent */ }
     setLoading(false)
@@ -179,7 +199,8 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
       const res = await apiGet('/api/messenger/ngo/online-users')
       if (res.ok) {
         const data = await res.json()
-        const ids = (data.data || data || []).map((u: any) => u.userId || u.id || u)
+        const raw = Array.isArray(data.data) ? data.data : Array.isArray(data.users) ? data.users : Array.isArray(data) ? data : []
+        const ids = raw.map((u: any) => u.userId || u.id || u)
         setOnlineUsers(new Set(ids))
       }
     } catch { /* silent */ }
@@ -208,7 +229,10 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
     apiGet(`/api/messenger/ngo/conversations/${activeConvo.id}/messages`)
       .then(r => r.ok ? r.json() : null)
       .then(data => {
-        if (data) setMessages(data.data || data || [])
+        if (data) {
+          const msgs = Array.isArray(data.data) ? data.data : Array.isArray(data.messages) ? data.messages : Array.isArray(data) ? data : []
+          setMessages(msgs)
+        }
         setMsgLoading(false)
         // Mark as read
         apiPost(`/api/messenger/ngo/conversations/${activeConvo.id}/read`, {}).catch(() => {})
@@ -216,9 +240,12 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
           socketRef.current.emit('messages_read', { conversationId: activeConvo.id })
         }
         // Update unread count locally
-        setConversations(prev => prev.map(c =>
-          c.id === activeConvo.id ? { ...c, unreadCount: 0 } : c
-        ))
+        setConversations(prev => {
+          const arr = Array.isArray(prev) ? prev : []
+          return arr.map(c =>
+            c.id === activeConvo.id ? { ...c, unreadCount: 0 } : c
+          )
+        })
       })
       .catch(() => setMsgLoading(false))
   }, [activeConvo])
@@ -237,10 +264,16 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
       const res = await apiPost(`/api/messenger/ngo/conversations/${activeConvo.id}/messages`, { content: text })
       if (res.ok) {
         const msg = await res.json()
-        setMessages(prev => [...prev, msg.data || msg])
-        setConversations(prev => prev.map(c =>
-          c.id === activeConvo.id ? { ...c, lastMessage: text, lastMessageAt: new Date().toISOString() } : c
-        ))
+        setMessages(prev => {
+          const arr = Array.isArray(prev) ? prev : []
+          return [...arr, msg.data || msg]
+        })
+        setConversations(prev => {
+          const arr = Array.isArray(prev) ? prev : []
+          return arr.map(c =>
+            c.id === activeConvo.id ? { ...c, lastMessage: text, lastMessageAt: new Date().toISOString() } : c
+          )
+        })
       }
     } catch { /* silent */ }
   }
@@ -260,7 +293,10 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
       })
       if (res.ok) {
         const msg = await res.json()
-        setMessages(prev => [...prev, msg.data || msg])
+        setMessages(prev => {
+          const arr = Array.isArray(prev) ? prev : []
+          return [...arr, msg.data || msg]
+        })
       }
     } catch { /* silent */ }
     if (fileInputRef.current) fileInputRef.current.value = ''
@@ -296,7 +332,8 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
   }
 
   // ── Sort conversations ─────────────────────────────────────
-  const sortedConversations = [...conversations]
+  const safeConversations = Array.isArray(conversations) ? conversations : []
+  const sortedConversations = [...safeConversations]
     .filter(c => !searchQuery || c.donorOrgName.toLowerCase().includes(searchQuery.toLowerCase()))
     .sort((a, b) => {
       switch (sortBy) {

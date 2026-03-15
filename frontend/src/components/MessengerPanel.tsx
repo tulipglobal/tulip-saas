@@ -4,18 +4,18 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { apiGet, apiPost } from '@/lib/api'
 import {
   X, Send, Paperclip, Phone, PhoneOff, ArrowLeft,
-  MessageCircle, ChevronDown, Search
+  MessageCircle, Search
 } from 'lucide-react'
 import { io, Socket } from 'socket.io-client'
 
 // ── Types ──────────────────────────────────────────────────────
 
-interface Conversation {
+interface Contact {
   id: string
-  donorOrgId: string
-  donorOrgName: string
-  lastMessage: string | null
-  lastMessageAt: string | null
+  name: string
+  conversationId?: string
+  lastMessage?: string | null
+  lastMessageAt?: string | null
   unreadCount: number
 }
 
@@ -38,8 +38,6 @@ interface IncomingCall {
   callerType: string
 }
 
-type SortOption = 'online' | 'recent' | 'unread' | 'alphabetical'
-
 // ── Helpers ────────────────────────────────────────────────────
 
 function formatTime(dateStr: string) {
@@ -59,19 +57,18 @@ function formatTime(dateStr: string) {
 interface MessengerPanelProps {
   open: boolean
   onClose: () => void
-  openToConversation?: string | null // donorOrgId to open directly
+  openToConversation?: string | null
 }
 
 export default function MessengerPanel({ open, onClose, openToConversation }: MessengerPanelProps) {
-  const [conversations, setConversations] = useState<Conversation[]>([])
-  const [activeConvo, setActiveConvo] = useState<Conversation | null>(null)
+  const [contacts, setContacts] = useState<Contact[]>([])
+  const [activeContact, setActiveContact] = useState<Contact | null>(null)
+  const [activeConvoId, setActiveConvoId] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [msgText, setMsgText] = useState('')
   const [loading, setLoading] = useState(false)
   const [msgLoading, setMsgLoading] = useState(false)
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set())
-  const [sortBy, setSortBy] = useState<SortOption>('online')
-  const [showSort, setShowSort] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [incomingCall, setIncomingCall] = useState<IncomingCall | null>(null)
   const [activeCall, setActiveCall] = useState<{ callId: string; callerName: string } | null>(null)
@@ -125,37 +122,35 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
     })
 
     socket.on('new_message', (msg: Message) => {
-      // Update conversation list
-      setConversations(prev => {
+      setContacts(prev => {
         const arr = Array.isArray(prev) ? prev : []
         return arr.map(c =>
-          c.id === msg.conversationId
+          c.conversationId === msg.conversationId
             ? { ...c, lastMessage: msg.content, lastMessageAt: msg.createdAt, unreadCount: c.unreadCount + (msg.senderType !== 'NGO' ? 1 : 0) }
             : c
         )
       })
-      // If viewing this conversation, append message
-      setActiveConvo(current => {
-        if (current && current.id === msg.conversationId) {
+      setActiveConvoId(currentId => {
+        if (currentId && currentId === msg.conversationId) {
           setMessages(prev => {
             const arr = Array.isArray(prev) ? prev : []
+            if (arr.some(m => m.id === msg.id)) return arr
             return [...arr, msg]
           })
-          // Mark as read
           if (msg.senderType !== 'NGO') {
             apiPost(`/api/messenger/ngo/conversations/${msg.conversationId}/read`, {}).catch(() => {})
             socket.emit('messages_read', { conversationId: msg.conversationId })
           }
         }
-        return current
+        return currentId
       })
     })
 
     socket.on('messages_read', ({ conversationId }: { conversationId: string }) => {
-      setConversations(prev => {
+      setContacts(prev => {
         const arr = Array.isArray(prev) ? prev : []
         return arr.map(c =>
-          c.id === conversationId ? { ...c, unreadCount: 0 } : c
+          c.conversationId === conversationId ? { ...c, unreadCount: 0 } : c
         )
       })
     })
@@ -182,16 +177,63 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
     }
   }, [open, currentUserId, currentUserName, currentTenantId])
 
-  // ── Fetch conversations ─────────────────────────────────────
-  const fetchConversations = useCallback(async () => {
+  // ── Fetch contacts + conversations and merge ──────────────
+  const fetchContacts = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await apiGet('/api/messenger/ngo/conversations')
-      if (res.ok) {
-        const data = await res.json()
-        const list = Array.isArray(data.data) ? data.data : Array.isArray(data.conversations) ? data.conversations : Array.isArray(data) ? data : []
-        setConversations(list)
+      const [contactsRes, convosRes] = await Promise.all([
+        apiGet('/api/messenger/ngo/contacts'),
+        apiGet('/api/messenger/ngo/conversations'),
+      ])
+
+      const contactList: { id: string; name: string }[] = []
+      if (contactsRes.ok) {
+        const d = await contactsRes.json()
+        const arr = Array.isArray(d.contacts) ? d.contacts : Array.isArray(d) ? d : []
+        contactList.push(...arr)
       }
+
+      const convoMap = new Map<string, any>()
+      if (convosRes.ok) {
+        const d = await convosRes.json()
+        const arr = Array.isArray(d.conversations) ? d.conversations : Array.isArray(d.data) ? d.data : Array.isArray(d) ? d : []
+        for (const c of arr) {
+          convoMap.set(c.donorOrgId, c)
+        }
+      }
+
+      // Merge: all contacts + any conversations for orgs not in contacts
+      const merged: Contact[] = []
+      const seen = new Set<string>()
+
+      for (const ct of contactList) {
+        seen.add(ct.id)
+        const convo = convoMap.get(ct.id)
+        merged.push({
+          id: ct.id,
+          name: ct.name,
+          conversationId: convo?.id || undefined,
+          lastMessage: convo?.lastMessage || null,
+          lastMessageAt: convo?.lastMessageAt || null,
+          unreadCount: convo?.unreadCount || 0,
+        })
+      }
+
+      // Add conversations for orgs not in contacts list
+      for (const [orgId, convo] of convoMap) {
+        if (!seen.has(orgId)) {
+          merged.push({
+            id: orgId,
+            name: convo.donorOrgName || 'Unknown',
+            conversationId: convo.id,
+            lastMessage: convo.lastMessage || null,
+            lastMessageAt: convo.lastMessageAt || null,
+            unreadCount: convo.unreadCount || 0,
+          })
+        }
+      }
+
+      setContacts(merged)
     } catch { /* silent */ }
     setLoading(false)
   }, [])
@@ -202,8 +244,8 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
       const res = await apiGet('/api/messenger/ngo/online-users')
       if (res.ok) {
         const data = await res.json()
-        const raw = Array.isArray(data.data) ? data.data : Array.isArray(data.users) ? data.users : Array.isArray(data) ? data : []
-        const ids = raw.map((u: any) => u.userId || u.id || u)
+        const raw = Array.isArray(data.onlineUsers) ? data.onlineUsers : Array.isArray(data.data) ? data.data : Array.isArray(data) ? data : []
+        const ids = raw.map((u: any) => u.userId || u.donorOrgId || u.id || u)
         setOnlineUsers(new Set(ids))
       }
     } catch { /* silent */ }
@@ -211,47 +253,65 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
 
   useEffect(() => {
     if (!open) return
-    fetchConversations()
+    fetchContacts()
     fetchOnlineUsers()
-  }, [open, fetchConversations, fetchOnlineUsers])
+  }, [open, fetchContacts, fetchOnlineUsers])
 
   // ── Open to specific conversation ──────────────────────────
   useEffect(() => {
-    if (open && openToConversation && conversations.length > 0) {
-      const convo = conversations.find(c => c.donorOrgId === openToConversation)
-      if (convo) {
-        setActiveConvo(convo)
-      }
+    if (open && openToConversation && contacts.length > 0) {
+      const contact = contacts.find(c => c.id === openToConversation)
+      if (contact) openChat(contact)
     }
-  }, [open, openToConversation, conversations])
+  }, [open, openToConversation, contacts])
 
-  // ── Fetch messages for active conversation ──────────────────
-  useEffect(() => {
-    if (!activeConvo) return
+  // ── Open chat with a contact ──────────────────────────────
+  const openChat = async (contact: Contact) => {
+    setActiveContact(contact)
+    setMessages([])
     setMsgLoading(true)
-    apiGet(`/api/messenger/ngo/conversations/${activeConvo.id}/messages`)
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (data) {
-          const msgs = Array.isArray(data.data) ? data.data : Array.isArray(data.messages) ? data.messages : Array.isArray(data) ? data : []
-          setMessages(msgs)
+
+    let convoId = contact.conversationId
+    if (!convoId) {
+      // Ensure conversation exists
+      try {
+        const res = await apiPost('/api/messenger/ngo/conversations/ensure', { donorOrgId: contact.id })
+        if (res.ok) {
+          const data = await res.json()
+          convoId = data.conversation?.id
+          // Update contact with conversation ID
+          setContacts(prev => prev.map(c => c.id === contact.id ? { ...c, conversationId: convoId } : c))
         }
-        setMsgLoading(false)
-        // Mark as read
-        apiPost(`/api/messenger/ngo/conversations/${activeConvo.id}/read`, {}).catch(() => {})
-        if (socketRef.current) {
-          socketRef.current.emit('messages_read', { conversationId: activeConvo.id })
-        }
-        // Update unread count locally
-        setConversations(prev => {
-          const arr = Array.isArray(prev) ? prev : []
-          return arr.map(c =>
-            c.id === activeConvo.id ? { ...c, unreadCount: 0 } : c
-          )
-        })
-      })
-      .catch(() => setMsgLoading(false))
-  }, [activeConvo])
+      } catch { /* silent */ }
+    }
+
+    if (!convoId) {
+      setMsgLoading(false)
+      return
+    }
+
+    setActiveConvoId(convoId)
+
+    // Join the conversation room for real-time messages
+    if (socketRef.current) {
+      socketRef.current.emit('join_conversation', { conversationId: convoId })
+    }
+
+    try {
+      const res = await apiGet(`/api/messenger/ngo/conversations/${convoId}/messages`)
+      if (res.ok) {
+        const data = await res.json()
+        const msgs = Array.isArray(data.messages) ? data.messages : Array.isArray(data.data) ? data.data : Array.isArray(data) ? data : []
+        setMessages(msgs)
+      }
+      // Mark as read
+      if (socketRef.current) {
+        socketRef.current.emit('mark_read', { conversationId: convoId, userId: currentUserId })
+      }
+      setContacts(prev => prev.map(c => c.id === contact.id ? { ...c, unreadCount: 0 } : c))
+    } catch { /* silent */ }
+    setMsgLoading(false)
+  }
 
   // ── Scroll to bottom on new messages ────────────────────────
   useEffect(() => {
@@ -260,45 +320,47 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
 
   // ── Send message ────────────────────────────────────────────
   const handleSend = async () => {
-    if (!msgText.trim() || !activeConvo) return
+    if (!msgText.trim() || !activeConvoId || !socketRef.current) return
     const text = msgText.trim()
     setMsgText('')
-    try {
-      const res = await apiPost(`/api/messenger/ngo/conversations/${activeConvo.id}/messages`, { content: text })
-      if (res.ok) {
-        const msg = await res.json()
-        setMessages(prev => {
-          const arr = Array.isArray(prev) ? prev : []
-          return [...arr, msg.data || msg]
-        })
-        setConversations(prev => {
-          const arr = Array.isArray(prev) ? prev : []
-          return arr.map(c =>
-            c.id === activeConvo.id ? { ...c, lastMessage: text, lastMessageAt: new Date().toISOString() } : c
-          )
-        })
-      }
-    } catch { /* silent */ }
+    socketRef.current.emit('send_message', {
+      conversationId: activeConvoId,
+      senderId: currentUserId,
+      senderName: currentUserName,
+      senderType: 'NGO',
+      content: text,
+      type: 'TEXT',
+    })
+    setContacts(prev => prev.map(c =>
+      c.conversationId === activeConvoId ? { ...c, lastMessage: text, lastMessageAt: new Date().toISOString() } : c
+    ))
   }
 
   // ── File attach ─────────────────────────────────────────────
   const handleFileAttach = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file || !activeConvo) return
+    if (!file || !activeConvoId) return
     const formData = new FormData()
     formData.append('file', file)
     try {
       const token = localStorage.getItem('tulip_token')
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/messenger/ngo/conversations/${activeConvo.id}/messages/file`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/messenger/ngo/conversations/file`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
         body: formData,
       })
       if (res.ok) {
-        const msg = await res.json()
-        setMessages(prev => {
-          const arr = Array.isArray(prev) ? prev : []
-          return [...arr, msg.data || msg]
+        const d = await res.json()
+        socketRef.current?.emit('send_message', {
+          conversationId: activeConvoId,
+          senderId: currentUserId,
+          senderName: currentUserName,
+          senderType: 'NGO',
+          content: file.name,
+          type: 'FILE',
+          fileUrl: d.fileUrl,
+          fileName: file.name,
+          fileSize: file.size,
         })
       }
     } catch { /* silent */ }
@@ -307,12 +369,9 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
 
   // ── Call actions ────────────────────────────────────────────
   const handleCall = () => {
-    if (!activeConvo || !socketRef.current) return
-    socketRef.current.emit('call_initiate', {
-      conversationId: activeConvo.id,
-      targetOrgId: activeConvo.donorOrgId,
-    })
-    setActiveCall({ callId: activeConvo.id, callerName: activeConvo.donorOrgName })
+    if (!activeConvoId || !activeContact || !socketRef.current) return
+    socketRef.current.emit('call_initiate', { conversationId: activeConvoId, targetOrgId: activeContact.id })
+    setActiveCall({ callId: activeConvoId, callerName: activeContact.name })
   }
 
   const handleAcceptCall = () => {
@@ -334,36 +393,20 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
     setActiveCall(null)
   }
 
-  // ── Sort conversations ─────────────────────────────────────
-  const safeConversations = Array.isArray(conversations) ? conversations : []
-  const sortedConversations = [...safeConversations]
-    .filter(c => !searchQuery || c.donorOrgName.toLowerCase().includes(searchQuery.toLowerCase()))
+  // ── Filter + sort contacts ─────────────────────────────────
+  const safeContacts = Array.isArray(contacts) ? contacts : []
+  const filteredContacts = [...safeContacts]
+    .filter(c => !searchQuery || c.name.toLowerCase().includes(searchQuery.toLowerCase()))
     .sort((a, b) => {
-      switch (sortBy) {
-        case 'online': {
-          const aOnline = onlineUsers.has(a.donorOrgId) ? 1 : 0
-          const bOnline = onlineUsers.has(b.donorOrgId) ? 1 : 0
-          if (bOnline !== aOnline) return bOnline - aOnline
-          return (b.lastMessageAt || '').localeCompare(a.lastMessageAt || '')
-        }
-        case 'recent':
-          return (b.lastMessageAt || '').localeCompare(a.lastMessageAt || '')
-        case 'unread':
-          if (b.unreadCount !== a.unreadCount) return b.unreadCount - a.unreadCount
-          return (b.lastMessageAt || '').localeCompare(a.lastMessageAt || '')
-        case 'alphabetical':
-          return a.donorOrgName.localeCompare(b.donorOrgName)
-        default:
-          return 0
-      }
+      // Online first, then by last message, then alphabetical
+      const aOnline = onlineUsers.has(a.id) ? 1 : 0
+      const bOnline = onlineUsers.has(b.id) ? 1 : 0
+      if (bOnline !== aOnline) return bOnline - aOnline
+      if (a.lastMessageAt && b.lastMessageAt) return (b.lastMessageAt || '').localeCompare(a.lastMessageAt || '')
+      if (a.lastMessageAt) return -1
+      if (b.lastMessageAt) return 1
+      return a.name.localeCompare(b.name)
     })
-
-  const sortLabels: Record<SortOption, string> = {
-    online: 'Online first',
-    recent: 'Most recent',
-    unread: 'Unread first',
-    alphabetical: 'Alphabetical',
-  }
 
   if (!open) return null
 
@@ -417,29 +460,27 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
       >
         {/* Header */}
         <div className="h-14 border-b border-[#c8d6c0] flex items-center justify-between px-4 shrink-0 bg-[#183a1d]">
-          {activeConvo ? (
+          {activeContact ? (
             <>
-              <button onClick={() => { setActiveConvo(null); setMessages([]) }}
+              <button onClick={() => { if (activeConvoId && socketRef.current) socketRef.current.emit('leave_conversation', { conversationId: activeConvoId }); setActiveContact(null); setActiveConvoId(null); setMessages([]) }}
                 className="w-8 h-8 rounded-lg flex items-center justify-center text-[#fefbe9]/70 hover:text-[#fefbe9] hover:bg-[#fefbe9]/10 transition-all">
                 <ArrowLeft size={16} />
               </button>
               <div className="flex-1 min-w-0 ml-2">
                 <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full shrink-0 ${onlineUsers.has(activeConvo.donorOrgId) ? 'bg-green-400' : 'bg-gray-400'}`} />
-                  <span className="text-sm font-medium text-[#fefbe9] truncate">{activeConvo.donorOrgName}</span>
+                  <div className={`w-2 h-2 rounded-full shrink-0 ${onlineUsers.has(activeContact.id) ? 'bg-green-400' : 'bg-gray-400'}`} />
+                  <span className="text-sm font-medium text-[#fefbe9] truncate">{activeContact.name}</span>
                 </div>
                 <p className="text-[10px] text-[#fefbe9]/50">
-                  {onlineUsers.has(activeConvo.donorOrgId) ? 'Online' : 'Offline'}
+                  {onlineUsers.has(activeContact.id) ? 'Online' : 'Offline'}
                 </p>
               </div>
             </>
           ) : (
-            <>
-              <div className="flex items-center gap-2">
-                <MessageCircle size={16} className="text-[#f6c453]" />
-                <span className="text-sm font-semibold text-[#fefbe9]">Messages</span>
-              </div>
-            </>
+            <div className="flex items-center gap-2">
+              <MessageCircle size={16} className="text-[#f6c453]" />
+              <span className="text-sm font-semibold text-[#fefbe9]">Messages</span>
+            </div>
           )}
           <button onClick={onClose}
             className="w-8 h-8 rounded-lg flex items-center justify-center text-[#fefbe9]/70 hover:text-[#fefbe9] hover:bg-[#fefbe9]/10 transition-all">
@@ -447,7 +488,7 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
           </button>
         </div>
 
-        {activeConvo ? (
+        {activeContact ? (
           /* ── Message Thread ──────────────────────────────── */
           <>
             <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
@@ -515,72 +556,62 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
             </div>
           </>
         ) : (
-          /* ── Conversation List ───────────────────────────── */
+          /* ── Contact List ─────────────────────────────────── */
           <>
-            {/* Search + Sort */}
-            <div className="px-3 py-2 border-b border-[#c8d6c0] space-y-2">
+            <div className="px-3 py-2 border-b border-[#c8d6c0]">
               <div className="flex items-center gap-2 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-1.5">
                 <Search size={14} className="text-[#183a1d]/40 shrink-0" />
                 <input
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Search conversations..."
+                  placeholder="Search contacts..."
                   className="bg-transparent text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none w-full"
                 />
-              </div>
-              <div className="relative">
-                <button onClick={() => setShowSort(!showSort)}
-                  className="flex items-center gap-1 text-xs text-[#183a1d]/50 hover:text-[#183a1d] transition-all">
-                  Sort: {sortLabels[sortBy]}
-                  <ChevronDown size={12} />
-                </button>
-                {showSort && (
-                  <div className="absolute top-6 left-0 bg-[#fefbe9] border border-[#c8d6c0] rounded-lg shadow-lg py-1 z-10 min-w-[140px]">
-                    {(Object.keys(sortLabels) as SortOption[]).map(opt => (
-                      <button key={opt} onClick={() => { setSortBy(opt); setShowSort(false) }}
-                        className={`w-full text-left px-3 py-1.5 text-xs hover:bg-[#e1eedd] transition-all ${sortBy === opt ? 'text-[#183a1d] font-medium' : 'text-[#183a1d]/60'}`}>
-                        {sortLabels[opt]}
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
 
             <div className="flex-1 overflow-y-auto">
               {loading ? (
                 <div className="flex items-center justify-center py-10 text-sm text-[#183a1d]/40">Loading...</div>
-              ) : sortedConversations.length === 0 ? (
-                <div className="flex items-center justify-center py-10 text-sm text-[#183a1d]/40">
-                  {searchQuery ? 'No conversations match your search' : 'No conversations yet'}
+              ) : filteredContacts.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center px-6">
+                  <MessageCircle size={32} className="text-[#183a1d]/20 mb-3" />
+                  <p className="text-sm text-[#183a1d]/40">
+                    {searchQuery ? 'No contacts match your search' : 'No connected donors yet'}
+                  </p>
+                  {!searchQuery && (
+                    <p className="text-xs text-[#183a1d]/30 mt-1">Invite donors via Settings to start messaging</p>
+                  )}
                 </div>
               ) : (
-                sortedConversations.map(convo => (
+                filteredContacts.map(contact => (
                   <button
-                    key={convo.id}
-                    onClick={() => setActiveConvo(convo)}
+                    key={contact.id}
+                    onClick={() => openChat(contact)}
                     className="w-full text-left px-4 py-3 border-b border-[#c8d6c0]/50 hover:bg-[#e1eedd] transition-colors flex items-center gap-3"
                   >
                     <div className="relative shrink-0">
                       <div className="w-10 h-10 rounded-full bg-[#183a1d] flex items-center justify-center text-xs font-bold text-[#f6c453]">
-                        {convo.donorOrgName.charAt(0).toUpperCase()}
+                        {contact.name.charAt(0).toUpperCase()}
                       </div>
                       <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#fefbe9] ${
-                        onlineUsers.has(convo.donorOrgId) ? 'bg-green-400' : 'bg-gray-300'
+                        onlineUsers.has(contact.id) ? 'bg-green-400' : 'bg-gray-300'
                       }`} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-[#183a1d] truncate">{convo.donorOrgName}</span>
-                        {convo.lastMessageAt && (
-                          <span className="text-[10px] text-[#183a1d]/40 shrink-0 ml-2">{formatTime(convo.lastMessageAt)}</span>
+                        <span className="text-sm font-medium text-[#183a1d] truncate">{contact.name}</span>
+                        {contact.lastMessageAt && (
+                          <span className="text-[10px] text-[#183a1d]/40 shrink-0 ml-2">{formatTime(contact.lastMessageAt)}</span>
                         )}
                       </div>
                       <div className="flex items-center justify-between mt-0.5">
-                        <p className="text-xs text-[#183a1d]/50 truncate">{convo.lastMessage || 'No messages'}</p>
-                        {convo.unreadCount > 0 && (
+                        <p className="text-xs text-[#183a1d]/50 truncate">
+                          {contact.lastMessage || (onlineUsers.has(contact.id) ? 'Online' : 'Tap to chat')}
+                        </p>
+                        {contact.unreadCount > 0 && (
                           <span className="ml-2 shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#f6c453] text-[#183a1d] leading-none">
-                            {convo.unreadCount}
+                            {contact.unreadCount}
                           </span>
                         )}
                       </div>

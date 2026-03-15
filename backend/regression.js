@@ -43,7 +43,7 @@ function log(n, label, result, detail) {
   console.log(`[${String(n).padStart(2)}] ${tag.padEnd(6)} ${label}${d}`);
 }
 
-const TOTAL = 113;
+const TOTAL = 161;
 
 (async () => {
   console.log(`=== REGRESSION CHECKLIST (${TOTAL} items) ===\n`);
@@ -661,6 +661,220 @@ const TOTAL = 113;
   const allOnline = pm2List.every(p => p.pm2_env.status === "online");
   log(113, "All 4 PM2 services online", allOnline && pm2List.length >= 4 ? "PASS" : "FAIL",
     pm2List.map(p => p.name + ":" + p.pm2_env.status).join(", "));
+
+  // ═══════════════════════════════════════════════════════════
+  //  SECTION 23: SPRINT 7 — SSO, DARK MODE, SEARCH, SHARE (114-125)
+  // ═══════════════════════════════════════════════════════════
+  console.log("\n───  SPRINT 7 — SSO, DARK MODE, SEARCH, SHARE ───");
+
+  // 114 — SSOConfig table exists
+  const ssoTable = await prisma.$queryRawUnsafe(
+    "SELECT tablename FROM pg_tables WHERE schemaname = $1 AND tablename = $2", "public", "SSOConfig"
+  );
+  log(114, "SSOConfig table exists", ssoTable.length > 0 ? "PASS" : "FAIL");
+
+  // 115 — SSO routes file exists
+  log(115, "ssoRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/ssoRoutes.js") ? "PASS" : "FAIL");
+
+  // 116 — SSO admin routes file exists
+  log(116, "ssoAdminRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/ssoAdminRoutes.js") ? "PASS" : "FAIL");
+
+  // 117 — SSO check endpoint responds
+  const ssoCheck = await httpReq("GET", "/api/auth/sso/check/test");
+  log(117, "SSO check endpoint responds", ssoCheck.status === 200 ? "PASS" : "FAIL", "status=" + ssoCheck.status);
+
+  // 118 — Theme preference route exists
+  log(118, "userPreferenceRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/userPreferenceRoutes.js") ? "PASS" : "FAIL");
+
+  // 119 — User.themePreference column
+  const themeCols = await prisma.$queryRawUnsafe(
+    "SELECT column_name FROM information_schema.columns WHERE table_name = $1 AND column_name = $2", "User", "themePreference"
+  );
+  log(119, "User.themePreference column exists", themeCols.length === 1 ? "PASS" : "FAIL");
+
+  // 120 — ThemeToggle component exists (NGO)
+  log(120, "NGO ThemeToggle.tsx exists",
+    fs.existsSync("/home/ubuntu/tulip-saas/frontend/src/components/ThemeToggle.tsx") ? "PASS" : "FAIL");
+
+  // 121 — Search routes file exists
+  log(121, "searchRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/searchRoutes.js") ? "PASS" : "FAIL");
+
+  // 122 — Search endpoint responds (401 = exists)
+  const searchResp = await httpReq("GET", "/api/search?q=test");
+  log(122, "Search endpoint responds", searchResp.status === 401 ? "PASS" : "FAIL", "status=" + searchResp.status);
+
+  // 123 — SearchModal component exists (NGO)
+  log(123, "NGO SearchModal.tsx exists",
+    fs.existsSync("/home/ubuntu/tulip-saas/frontend/src/components/SearchModal.tsx") ? "PASS" : "FAIL");
+
+  // 124 — ShareLink table exists
+  const shareTable = await prisma.$queryRawUnsafe(
+    "SELECT tablename FROM pg_tables WHERE schemaname = $1 AND tablename = $2", "public", "ShareLink"
+  );
+  log(124, "ShareLink table exists", shareTable.length > 0 ? "PASS" : "FAIL");
+
+  // 125 — Share routes files exist
+  log(125, "shareRoutes.js + sharePublicRoutes.js exist",
+    fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/shareRoutes.js") &&
+    fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/sharePublicRoutes.js") ? "PASS" : "FAIL");
+
+  // ═══════════════════════════════════════════════════════════
+  //  SECTION 24: SPRINT 8 PART 0 — CAPEX/OPEX, LOGFRAME, RISK, GRANT CONFIG, WB (126-141)
+  // ═══════════════════════════════════════════════════════════
+  console.log("\n───  SPRINT 8 PART 0 — CAPEX/OPEX, LOGFRAME, RISK, GRANT, WB ───");
+
+  // 126 — Expense.expenditureType column
+  const expTypeCols = await prisma.$queryRawUnsafe(
+    "SELECT column_name FROM information_schema.columns WHERE table_name = $1 AND column_name = $2", "Expense", "expenditureType"
+  );
+  log(126, "Expense.expenditureType column exists", expTypeCols.length === 1 ? "PASS" : "FAIL");
+
+  // 127 — LogframeOutput + LogframeIndicator tables
+  const lfTables = await prisma.$queryRawUnsafe(
+    "SELECT tablename FROM pg_tables WHERE schemaname = $1 AND tablename IN ($2,$3)",
+    "public", "LogframeOutput", "LogframeIndicator"
+  );
+  log(127, "Logframe tables exist (2)", lfTables.length === 2 ? "PASS" : "FAIL", lfTables.map(t => t.tablename).join(", "));
+
+  // 128 — Logframe routes file
+  log(128, "logframeRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/logframeRoutes.js") ? "PASS" : "FAIL");
+
+  // 129 — RiskRegisterEntry table
+  const riskTable = await prisma.$queryRawUnsafe(
+    "SELECT tablename FROM pg_tables WHERE schemaname = $1 AND tablename = $2", "public", "RiskRegisterEntry"
+  );
+  log(129, "RiskRegisterEntry table exists", riskTable.length > 0 ? "PASS" : "FAIL");
+
+  // 130 — Risk routes file
+  log(130, "riskRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/riskRoutes.js") ? "PASS" : "FAIL");
+
+  // 131 — RiskRegisterTab component
+  log(131, "RiskRegisterTab.tsx exists",
+    fs.existsSync("/home/ubuntu/tulip-saas/frontend/src/components/RiskRegisterTab.tsx") ? "PASS" : "FAIL");
+
+  // 132 — GrantReportingConfig table
+  const grcTable = await prisma.$queryRawUnsafe(
+    "SELECT tablename FROM pg_tables WHERE schemaname = $1 AND tablename = $2", "public", "GrantReportingConfig"
+  );
+  log(132, "GrantReportingConfig table exists", grcTable.length > 0 ? "PASS" : "FAIL");
+
+  // 133 — Grant reporting routes file
+  log(133, "grantReportingRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/grantReportingRoutes.js") ? "PASS" : "FAIL");
+
+  // 134 — WBProjectComponent table
+  const wbCompTable = await prisma.$queryRawUnsafe(
+    "SELECT tablename FROM pg_tables WHERE schemaname = $1 AND tablename = $2", "public", "WBProjectComponent"
+  );
+  log(134, "WBProjectComponent table exists", wbCompTable.length > 0 ? "PASS" : "FAIL");
+
+  // 135 — WBProcurementContract table
+  const wbContTable = await prisma.$queryRawUnsafe(
+    "SELECT tablename FROM pg_tables WHERE schemaname = $1 AND tablename = $2", "public", "WBProcurementContract"
+  );
+  log(135, "WBProcurementContract table exists", wbContTable.length > 0 ? "PASS" : "FAIL");
+
+  // 136 — WB routes file
+  log(136, "wbRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/wbRoutes.js") ? "PASS" : "FAIL");
+
+  // 137 — WorldBankTab component
+  log(137, "WorldBankTab.tsx exists",
+    fs.existsSync("/home/ubuntu/tulip-saas/frontend/src/components/WorldBankTab.tsx") ? "PASS" : "FAIL");
+
+  // 138 — NGO project page has Logframe tab
+  const projPage = fs.readFileSync("/home/ubuntu/tulip-saas/frontend/src/app/dashboard/projects/[id]/page.tsx", "utf8");
+  log(138, "NGO project page has Logframe tab", projPage.includes("logframe") || projPage.includes("Logframe") ? "PASS" : "FAIL");
+
+  // 139 — NGO project page has Risk Register tab
+  log(139, "NGO project page has Risk Register tab", projPage.includes("RiskRegister") || projPage.includes("risk") ? "PASS" : "FAIL");
+
+  // 140 — Settings page has Grant Reporting section
+  const settingsContent = fs.readFileSync("/home/ubuntu/tulip-saas/frontend/src/app/dashboard/settings/page.tsx", "utf8");
+  log(140, "Settings page has Grant Reporting section", settingsContent.includes("grantReporting") || settingsContent.includes("Grant Reporting") ? "PASS" : "FAIL");
+
+  // 141 — Donor portal has Logframe + Risk tabs
+  const donorProjPage = fs.readFileSync("/home/ubuntu/tulip-donor/app/projects/[id]/page.tsx", "utf8");
+  log(141, "Donor project page has logframe + risks tabs",
+    (donorProjPage.includes("logframe") || donorProjPage.includes("Logframe")) &&
+    (donorProjPage.includes("risks") || donorProjPage.includes("Risk")) ? "PASS" : "FAIL");
+
+  // ═══════════════════════════════════════════════════════════
+  //  SECTION 25: SPRINT 8 PARTS 1-4 — REPORT ENGINE + REPORTS (142-161)
+  // ═══════════════════════════════════════════════════════════
+  console.log("\n───  SPRINT 8 PARTS 1-4 — REPORTS ───");
+
+  // 142 — GeneratedReport table
+  const genRepTable = await prisma.$queryRawUnsafe(
+    "SELECT tablename FROM pg_tables WHERE schemaname = $1 AND tablename = $2", "public", "GeneratedReport"
+  );
+  log(142, "GeneratedReport table exists", genRepTable.length > 0 ? "PASS" : "FAIL");
+
+  // 143 — ReportShareLink table
+  const repShareTable = await prisma.$queryRawUnsafe(
+    "SELECT tablename FROM pg_tables WHERE schemaname = $1 AND tablename = $2", "public", "ReportShareLink"
+  );
+  log(143, "ReportShareLink table exists", repShareTable.length > 0 ? "PASS" : "FAIL");
+
+  // 144 — reportEngine.js exists
+  log(144, "reportEngine.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/services/reportEngine.js") ? "PASS" : "FAIL");
+
+  // 145 — reportEngine loads and has key methods
+  try {
+    const engine = require("./services/reportEngine");
+    log(145, "reportEngine has createDoc + addCoverPage",
+      typeof engine.createDoc === "function" && typeof engine.addCoverPage === "function" ? "PASS" : "FAIL");
+  } catch(e) { log(145, "reportEngine loads", "FAIL", e.message); }
+
+  // 146 — ngoReportRoutes.js exists
+  log(146, "ngoReportRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/ngoReportRoutes.js") ? "PASS" : "FAIL");
+
+  // 147 — reportPublicRoutes.js exists
+  log(147, "reportPublicRoutes.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/routes/reportPublicRoutes.js") ? "PASS" : "FAIL");
+
+  // 148 — reportAutoService.js exists
+  log(148, "reportAutoService.js exists", fs.existsSync("/home/ubuntu/tulip-saas/backend/services/reportAutoService.js") ? "PASS" : "FAIL");
+
+  // 149 — NGO reports endpoint responds (401 = exists)
+  const ngoRepResp = await httpReq("GET", "/api/ngo/reports");
+  log(149, "NGO reports endpoint responds", ngoRepResp.status === 401 ? "PASS" : "FAIL", "status=" + ngoRepResp.status);
+
+  // 150 — Monthly report endpoint responds
+  const monthlyResp = await httpReq("POST", "/api/ngo/reports/generate/monthly", {});
+  log(150, "Monthly report endpoint responds", monthlyResp.status === 401 ? "PASS" : "FAIL", "status=" + monthlyResp.status);
+
+  // 151 — USAID SF-425 endpoint responds
+  const usaidResp = await httpReq("POST", "/api/ngo/reports/generate/usaid-sf425", {});
+  log(151, "USAID SF-425 endpoint responds", usaidResp.status === 401 ? "PASS" : "FAIL", "status=" + usaidResp.status);
+
+  // 152 — WB procurement endpoint responds
+  const wbRepResp = await httpReq("POST", "/api/ngo/reports/generate/wb-procurement", {});
+  log(152, "WB procurement endpoint responds", wbRepResp.status === 401 ? "PASS" : "FAIL", "status=" + wbRepResp.status);
+
+  // 153 — Public report share endpoint responds
+  const pubRepResp = await httpReq("GET", "/api/public/reports/invalidtoken");
+  log(153, "Public report share endpoint responds", pubRepResp.status !== 404 ? "PASS" : "FAIL", "status=" + pubRepResp.status);
+
+  // 154 — Anchor scheduler has report cron jobs
+  const anchorSched = fs.readFileSync("/home/ubuntu/tulip-saas/backend/services/anchorScheduler.js", "utf8");
+  log(154, "Anchor scheduler has monthly report cron", anchorSched.includes("auto-reports") && anchorSched.includes("MONTHLY") ? "PASS" : "FAIL");
+  log(155, "Anchor scheduler has quarterly report cron", anchorSched.includes("QUARTERLY") ? "PASS" : "FAIL");
+  log(156, "Anchor scheduler has annual report cron", anchorSched.includes("ANNUAL") ? "PASS" : "FAIL");
+
+  // 157 — NGO reports page exists
+  log(157, "NGO reports page exists",
+    fs.existsSync("/home/ubuntu/tulip-saas/frontend/src/app/dashboard/reports/page.tsx") ? "PASS" : "FAIL");
+
+  // 158 — NGO layout has Reports nav item
+  log(158, "NGO layout has Reports nav", ngoLayout.includes("reports") ? "PASS" : "FAIL");
+
+  // 159 — Donor portal reports page exists
+  log(159, "Donor reports page exists", fs.existsSync("/home/ubuntu/tulip-donor/app/reports/page.tsx") ? "PASS" : "FAIL");
+
+  // 160 — Donor ReportShareModal exists
+  log(160, "Donor ReportShareModal.tsx exists", fs.existsSync("/home/ubuntu/tulip-donor/components/ReportShareModal.tsx") ? "PASS" : "FAIL");
+
+  // 161 — Public report share page exists
+  log(161, "Donor public report share page exists",
+    fs.existsSync("/home/ubuntu/tulip-donor/app/share/report/[token]/page.tsx") ? "PASS" : "FAIL");
 
   // ═══════════════════════════════════════════════════════════
   //  SUMMARY

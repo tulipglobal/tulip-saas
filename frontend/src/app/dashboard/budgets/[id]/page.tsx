@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { apiGet, apiPut, apiPost, apiDelete } from '@/lib/api'
 import Link from 'next/link'
-import { ArrowLeft, Banknote, Receipt, Edit3, Check, X, Plus, Trash2, AlertTriangle, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Banknote, Receipt, Edit3, Check, X, Plus, Trash2, AlertTriangle, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react'
 import { FUNDING_SOURCE_TYPES, FUNDING_SOURCE_TYPE_KEYS } from '@/lib/ngo-categories'
 import CurrencySelect from '@/components/CurrencySelect'
 
@@ -64,6 +64,29 @@ interface BudgetDetail {
   remaining: number
 }
 
+interface Tranche {
+  id: string
+  trancheNumber: number
+  conditions: string | null
+  plannedDate: string | null
+  status: 'PENDING' | 'CONDITIONS_MET' | 'RELEASED' | 'UTILISED'
+  releaseDate: string | null
+  amount: number
+  utilisedAmount: number | null
+  currency: string
+  conditionsConfirmedAt: string | null
+}
+
+interface GrantCondition {
+  id: string
+  title: string
+  description: string | null
+  status: 'ACTIVE' | 'MET' | 'BREACHED' | 'WAIVED'
+  fundingAgreementId: string
+  note: string | null
+  updatedAt: string
+}
+
 const STATUS_OPTIONS = ['DRAFT', 'APPROVED', 'ACTIVE', 'CLOSED']
 
 function StatusBadge({ status }: { status: string }) {
@@ -120,6 +143,20 @@ export default function BudgetDetailPage() {
   const [donorOrgs, setDonorOrgs] = useState<{ id: string; name: string }[]>([])
   const [donorMode, setDonorMode] = useState<'existing' | 'external'>('existing')
 
+  // Tranches & Conditions state
+  const [tranches, setTranches] = useState<Record<string, Tranche[]>>({})
+  const [conditions, setConditions] = useState<Record<string, GrantCondition[]>>({})
+  const [tranchesExpanded, setTranchesExpanded] = useState(true)
+  const [conditionsExpanded, setConditionsExpanded] = useState(true)
+  const [utilisationInput, setUtilisationInput] = useState<Record<string, string>>({})
+  const [confirmingTranche, setConfirmingTranche] = useState<string | null>(null)
+  const [utilisingTranche, setUtilisingTranche] = useState<string | null>(null)
+  const [breachModal, setBreachModal] = useState<{ conditionId: string; title: string } | null>(null)
+  const [breachNote, setBreachNote] = useState('')
+  const [breachSubmitting, setBreachSubmitting] = useState(false)
+  const [conditionActionLoading, setConditionActionLoading] = useState<string | null>(null)
+  const [breachSuccess, setBreachSuccess] = useState(false)
+
   const reload = () => {
     apiGet(`/api/budgets/${id}`)
       .then(r => r.ok ? r.json() : null)
@@ -133,6 +170,47 @@ export default function BudgetDetailPage() {
       if (d?.data) setDonorOrgs(d.data)
     }).catch(() => {})
   }, [])
+
+  // Fetch tranches and conditions for funding agreements
+  useEffect(() => {
+    if (!budget) return
+    const agreements = budget.fundingAgreements || []
+    const fundingWithAgreement = budget.fundingSources.filter((f: any) => f.fundingAgreementId)
+
+    const allAgreementIds = [
+      ...agreements.map((a: any) => a.id),
+      ...fundingWithAgreement.map((f: any) => f.fundingAgreementId),
+    ].filter((v, i, arr) => arr.indexOf(v) === i) // unique
+
+    if (allAgreementIds.length === 0) return
+
+    // Fetch tranches for each agreement
+    allAgreementIds.forEach(agreementId => {
+      apiGet(`/api/tranches/ngo/funding/${agreementId}`)
+        .then(r => r.ok ? r.json() : null)
+        .then(d => {
+          if (d) {
+            const list = d.data || d.tranches || d || []
+            if (Array.isArray(list) && list.length > 0) {
+              setTranches(prev => ({ ...prev, [agreementId]: list }))
+            }
+          }
+        })
+        .catch(() => {})
+
+      apiGet(`/api/conditions/ngo/funding/${agreementId}`)
+        .then(r => r.ok ? r.json() : null)
+        .then(d => {
+          if (d) {
+            const list = d.data || d.conditions || d || []
+            if (Array.isArray(list) && list.length > 0) {
+              setConditions(prev => ({ ...prev, [agreementId]: list }))
+            }
+          }
+        })
+        .catch(() => {})
+    })
+  }, [budget])
 
   const handleStatusChange = async () => {
     if (!budget || !newStatus) return
@@ -182,6 +260,91 @@ export default function BudgetDetailPage() {
     await apiDelete(`/api/budgets/${id}/funding-sources/${sourceId}`)
     reload()
   }
+
+  // Tranche: confirm conditions met
+  const handleConfirmConditions = async (trancheId: string, agreementId: string) => {
+    setConfirmingTranche(trancheId)
+    const res = await apiPut(`/api/tranches/ngo/${trancheId}/conditions-met`, {})
+    if (res.ok) {
+      setTranches(prev => ({
+        ...prev,
+        [agreementId]: (prev[agreementId] || []).map(t =>
+          t.id === trancheId ? { ...t, status: 'CONDITIONS_MET' as const, conditionsConfirmedAt: new Date().toISOString() } : t
+        )
+      }))
+    }
+    setConfirmingTranche(null)
+  }
+
+  // Tranche: record utilisation
+  const handleRecordUtilisation = async (trancheId: string, agreementId: string) => {
+    const amount = Number(utilisationInput[trancheId])
+    if (!amount || amount <= 0) return
+    setUtilisingTranche(trancheId)
+    const res = await apiPut(`/api/tranches/ngo/${trancheId}/utilisation`, { utilisedAmount: amount })
+    if (res.ok) {
+      setTranches(prev => ({
+        ...prev,
+        [agreementId]: (prev[agreementId] || []).map(t =>
+          t.id === trancheId ? { ...t, status: 'UTILISED' as const, utilisedAmount: amount } : t
+        )
+      }))
+      setUtilisationInput(prev => { const next = { ...prev }; delete next[trancheId]; return next })
+    }
+    setUtilisingTranche(null)
+  }
+
+  // Condition: mark as met
+  const handleConditionMet = async (conditionId: string, agreementId: string) => {
+    setConditionActionLoading(conditionId)
+    const res = await apiPut(`/api/conditions/ngo/${conditionId}/status`, { status: 'MET' })
+    if (res.ok) {
+      setConditions(prev => ({
+        ...prev,
+        [agreementId]: (prev[agreementId] || []).map(c =>
+          c.id === conditionId ? { ...c, status: 'MET' as const } : c
+        )
+      }))
+    }
+    setConditionActionLoading(null)
+  }
+
+  // Condition: report breach
+  const handleBreachSubmit = async () => {
+    if (!breachModal || !breachNote.trim()) return
+    setBreachSubmitting(true)
+    // Find which agreement this condition belongs to
+    let agreementId = ''
+    for (const [agId, conds] of Object.entries(conditions)) {
+      if (conds.some(c => c.id === breachModal.conditionId)) {
+        agreementId = agId
+        break
+      }
+    }
+    const res = await apiPut(`/api/conditions/ngo/${breachModal.conditionId}/status`, {
+      status: 'BREACHED',
+      note: breachNote.trim()
+    })
+    if (res.ok && agreementId) {
+      setConditions(prev => ({
+        ...prev,
+        [agreementId]: (prev[agreementId] || []).map(c =>
+          c.id === breachModal.conditionId ? { ...c, status: 'BREACHED' as const, note: breachNote.trim() } : c
+        )
+      }))
+      setBreachSuccess(true)
+      setTimeout(() => {
+        setBreachModal(null)
+        setBreachNote('')
+        setBreachSuccess(false)
+      }, 2000)
+    }
+    setBreachSubmitting(false)
+  }
+
+  // Collect all tranches and conditions
+  const allTranches = Object.entries(tranches).flatMap(([agId, list]) => list.map(t => ({ ...t, _agreementId: agId })))
+  const allConditions = Object.entries(conditions).flatMap(([agId, list]) => list.map(c => ({ ...c, _agreementId: agId })))
 
   if (loading) return <div className="p-8 text-center text-[#183a1d]/40">Loading...</div>
   if (!budget) return <div className="p-8 text-center text-[#183a1d]/40">Budget not found</div>
@@ -499,6 +662,242 @@ export default function BudgetDetailPage() {
           </div>
         )}
       </div>
+
+      {/* 4. Disbursement Tranches */}
+      {allTranches.length > 0 && (
+        <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
+          <button
+            onClick={() => setTranchesExpanded(!tranchesExpanded)}
+            className="w-full px-5 py-3 border-b border-[#c8d6c0] flex items-center justify-between hover:bg-[#c8d6c0]/20 transition-all"
+          >
+            <h2 className="text-sm font-semibold text-[#183a1d]/70 uppercase tracking-wide flex items-center gap-2">
+              <Banknote size={14} /> Tranches
+            </h2>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-[#183a1d]/40">{allTranches.length} tranche{allTranches.length !== 1 ? 's' : ''}</span>
+              {tranchesExpanded ? <ChevronUp size={14} className="text-[#183a1d]/40" /> : <ChevronDown size={14} className="text-[#183a1d]/40" />}
+            </div>
+          </button>
+
+          {tranchesExpanded && (
+            <>
+              {/* Progress summary */}
+              {(() => {
+                const totalAmount = allTranches.reduce((s, t) => s + (t.amount || 0), 0)
+                const releasedAmount = allTranches.filter(t => t.status === 'RELEASED' || t.status === 'UTILISED').reduce((s, t) => s + (t.amount || 0), 0)
+                const utilisedAmount = allTranches.reduce((s, t) => s + (t.utilisedAmount || 0), 0)
+                const releasedPct = totalAmount > 0 ? Math.round((releasedAmount / totalAmount) * 100) : 0
+                const utilisedPct = totalAmount > 0 ? Math.round((utilisedAmount / totalAmount) * 100) : 0
+                return (
+                  <div className="px-5 py-3 border-b border-[#c8d6c0] bg-[#fefbe9]/50">
+                    <div className="flex items-center justify-between text-xs text-[#183a1d]/60 mb-2">
+                      <span>Released: ${releasedAmount.toLocaleString()} of ${totalAmount.toLocaleString()} ({releasedPct}%)</span>
+                      <span>Utilised: ${utilisedAmount.toLocaleString()} ({utilisedPct}%)</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-[#c8d6c0]/50 overflow-hidden">
+                      <div className="h-full rounded-full bg-green-400 transition-all" style={{ width: `${releasedPct}%` }} />
+                    </div>
+                  </div>
+                )
+              })()}
+
+              {/* Table header */}
+              <div className="hidden lg:grid grid-cols-[50px_1.5fr_1fr_0.8fr_1fr_0.8fr_1.2fr] gap-3 px-5 py-2 border-b border-[#c8d6c0] text-xs text-[#183a1d]/40 uppercase tracking-wide">
+                <span>#</span>
+                <span>Conditions</span>
+                <span>Planned Date</span>
+                <span>Status</span>
+                <span>Release Date</span>
+                <span>Utilised</span>
+                <span>Action</span>
+              </div>
+
+              <div className="divide-y divide-[#c8d6c0]">
+                {allTranches.map(tranche => {
+                  const statusColors: Record<string, string> = {
+                    PENDING: 'bg-gray-100 text-gray-600 border-gray-200',
+                    CONDITIONS_MET: 'bg-amber-100 text-amber-700 border-amber-200',
+                    RELEASED: 'bg-green-100 text-green-700 border-green-200',
+                    UTILISED: 'bg-blue-100 text-blue-700 border-blue-200',
+                  }
+                  return (
+                    <div key={tranche.id} className="px-5 py-3 lg:grid lg:grid-cols-[50px_1.5fr_1fr_0.8fr_1fr_0.8fr_1.2fr] lg:gap-3 lg:items-center space-y-2 lg:space-y-0">
+                      <div className="text-sm font-medium text-[#183a1d]">{tranche.trancheNumber}</div>
+                      <div className="text-sm text-[#183a1d]/70">{tranche.conditions || '—'}</div>
+                      <div className="text-sm text-[#183a1d]/60">{tranche.plannedDate ? formatDate(tranche.plannedDate) : '—'}</div>
+                      <div>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border font-medium ${statusColors[tranche.status] || statusColors.PENDING}`}>
+                          {tranche.status.replace(/_/g, ' ')}
+                        </span>
+                      </div>
+                      <div className="text-sm text-[#183a1d]/60">{tranche.releaseDate ? formatDate(tranche.releaseDate) : '—'}</div>
+                      <div className="text-sm text-[#183a1d]/60">
+                        {tranche.utilisedAmount != null ? `${tranche.currency} ${tranche.utilisedAmount.toLocaleString()}` : '—'}
+                      </div>
+                      <div>
+                        {(tranche.status === 'PENDING' || (tranche.status === 'CONDITIONS_MET' && !tranche.conditionsConfirmedAt)) && (
+                          <button
+                            onClick={() => handleConfirmConditions(tranche.id, tranche._agreementId)}
+                            disabled={confirmingTranche === tranche.id}
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50 transition-all"
+                          >
+                            <Check size={12} />
+                            {confirmingTranche === tranche.id ? 'Confirming...' : 'Confirm conditions met'}
+                          </button>
+                        )}
+                        {tranche.status === 'RELEASED' && (
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={utilisationInput[tranche.id] || ''}
+                              onChange={e => setUtilisationInput(prev => ({ ...prev, [tranche.id]: e.target.value }))}
+                              placeholder="Amount"
+                              className="w-24 bg-[#fefbe9] border border-[#c8d6c0] rounded-lg px-2 py-1 text-xs text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all"
+                            />
+                            <button
+                              onClick={() => handleRecordUtilisation(tranche.id, tranche._agreementId)}
+                              disabled={utilisingTranche === tranche.id || !utilisationInput[tranche.id]}
+                              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-blue-500/10 text-blue-700 hover:bg-blue-500/20 disabled:opacity-50 transition-all"
+                            >
+                              {utilisingTranche === tranche.id ? 'Saving...' : 'Record Utilisation'}
+                            </button>
+                          </div>
+                        )}
+                        {tranche.status === 'UTILISED' && (
+                          <span className="text-xs text-blue-600 font-medium">Fully utilised</span>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* 5. Grant Conditions */}
+      {allConditions.length > 0 && (
+        <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
+          <button
+            onClick={() => setConditionsExpanded(!conditionsExpanded)}
+            className="w-full px-5 py-3 border-b border-[#c8d6c0] flex items-center justify-between hover:bg-[#c8d6c0]/20 transition-all"
+          >
+            <h2 className="text-sm font-semibold text-[#183a1d]/70 uppercase tracking-wide flex items-center gap-2">
+              <CheckCircle size={14} /> Grant Conditions
+            </h2>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-[#183a1d]/40">{allConditions.length} condition{allConditions.length !== 1 ? 's' : ''}</span>
+              {conditionsExpanded ? <ChevronUp size={14} className="text-[#183a1d]/40" /> : <ChevronDown size={14} className="text-[#183a1d]/40" />}
+            </div>
+          </button>
+
+          {conditionsExpanded && (
+            <div className="divide-y divide-[#c8d6c0]">
+              {allConditions.map(condition => {
+                const statusColors: Record<string, string> = {
+                  ACTIVE: 'bg-gray-100 text-gray-600 border-gray-200',
+                  MET: 'bg-green-100 text-green-700 border-green-200',
+                  BREACHED: 'bg-red-100 text-red-700 border-red-200',
+                  WAIVED: 'bg-blue-100 text-blue-700 border-blue-200',
+                }
+                return (
+                  <div key={condition.id} className="px-5 py-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="text-sm font-medium text-[#183a1d]">{condition.title}</h4>
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border font-medium ${statusColors[condition.status] || statusColors.ACTIVE}`}>
+                            {condition.status}
+                          </span>
+                        </div>
+                        {condition.description && (
+                          <p className="text-xs text-[#183a1d]/50 mt-0.5">{condition.description}</p>
+                        )}
+                        {condition.note && (
+                          <p className="text-xs text-[#183a1d]/40 italic mt-1">Note: {condition.note}</p>
+                        )}
+                      </div>
+                      {condition.status === 'ACTIVE' && (
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            onClick={() => handleConditionMet(condition.id, condition._agreementId)}
+                            disabled={conditionActionLoading === condition.id}
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-green-500/10 text-green-700 hover:bg-green-500/20 disabled:opacity-50 transition-all"
+                          >
+                            <Check size={12} />
+                            {conditionActionLoading === condition.id ? 'Saving...' : 'Mark as Met'}
+                          </button>
+                          <button
+                            onClick={() => { setBreachModal({ conditionId: condition.id, title: condition.title }); setBreachNote(''); setBreachSuccess(false) }}
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 text-red-700 hover:bg-red-500/20 transition-all"
+                          >
+                            <AlertTriangle size={12} /> Report Breach
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Breach Report Modal */}
+      {breachModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => { setBreachModal(null); setBreachNote(''); setBreachSuccess(false) }} />
+          <div className="relative bg-[#fefbe9] rounded-2xl border border-[#c8d6c0] shadow-xl w-full max-w-md mx-4">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#c8d6c0]">
+              <div>
+                <h3 className="text-base font-bold text-[#183a1d]">Report Breach</h3>
+                <p className="text-xs text-[#183a1d]/50 mt-0.5">{breachModal.title}</p>
+              </div>
+              <button onClick={() => { setBreachModal(null); setBreachNote(''); setBreachSuccess(false) }}
+                className="text-[#183a1d]/40 hover:text-[#183a1d] transition-all">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="px-5 py-4">
+              {breachSuccess ? (
+                <div className="text-center py-4">
+                  <CheckCircle size={32} className="mx-auto text-green-500 mb-2" />
+                  <p className="text-sm text-[#183a1d] font-medium">Donor has been notified of this condition breach.</p>
+                </div>
+              ) : (
+                <>
+                  <label className="text-xs text-[#183a1d]/60 mb-1 block">Describe the breach situation</label>
+                  <textarea
+                    value={breachNote}
+                    onChange={e => setBreachNote(e.target.value)}
+                    rows={4}
+                    placeholder="Explain what happened and any corrective actions planned..."
+                    className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all resize-none"
+                  />
+                  <div className="flex items-center gap-3 mt-4">
+                    <button
+                      onClick={handleBreachSubmit}
+                      disabled={breachSubmitting || !breachNote.trim()}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 transition-all"
+                    >
+                      <AlertTriangle size={14} />
+                      {breachSubmitting ? 'Submitting...' : 'Submit'}
+                    </button>
+                    <button onClick={() => { setBreachModal(null); setBreachNote(''); setBreachSuccess(false) }}
+                      className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] hover:bg-[#c8d6c0]/40 transition-all">
+                      Cancel
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { apiGet, apiPost, apiDelete, apiFetch } from '@/lib/api'
-import { UserPlus, ArrowLeft, Mail, Building2, FolderOpen, Clock, Settings, X, Check, AlertCircle, RefreshCw, Ban, Shield } from 'lucide-react'
+import { UserPlus, ArrowLeft, Mail, Building2, FolderOpen, Clock, Settings, X, Check, AlertCircle, RefreshCw, Ban, Shield, MessageCircle } from 'lucide-react'
 
 interface ProjectAccess {
   projectId: string
@@ -139,6 +139,27 @@ export default function DonorsPage() {
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const [manageTarget, setManageTarget] = useState<ActiveDonor | null>(null)
+  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set())
+
+  // Fetch online users
+  useEffect(() => {
+    const fetchOnline = () => {
+      apiGet('/api/messenger/ngo/online-users')
+        .then(r => r.ok ? r.json() : { data: [] })
+        .then(d => {
+          const ids = (d.data || d || []).map((u: any) => u.orgId || u.userId || u.id || u)
+          setOnlineUsers(new Set(ids))
+        })
+        .catch(() => {})
+    }
+    fetchOnline()
+    const interval = setInterval(fetchOnline, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const openMessenger = (donorOrgId: string) => {
+    window.dispatchEvent(new CustomEvent('open-messenger', { detail: { donorOrgId } }))
+  }
 
   const fetchData = useCallback(() => {
     setLoading(true)
@@ -251,15 +272,29 @@ export default function DonorsPage() {
                     <div key={donor.memberId} className="rounded-xl border border-[#c8d6c0] bg-[#e1eedd] overflow-hidden">
                       <div className="flex items-center justify-between px-4 py-3">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-[#183a1d] bg-[#f6c453] shrink-0">
-                            {(donor.name || donor.email).charAt(0).toUpperCase()}
+                          <div className="relative shrink-0">
+                            <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-[#183a1d] bg-[#f6c453]">
+                              {(donor.name || donor.email).charAt(0).toUpperCase()}
+                            </div>
+                            <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#e1eedd] ${onlineUsers.has(donor.orgId) ? 'bg-green-400' : 'bg-gray-300'}`} />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-medium text-[#183a1d] truncate">{donor.orgName || donor.name || donor.email}</p>
+                            <div className="flex items-center gap-1.5">
+                              <p className="text-sm font-medium text-[#183a1d] truncate">{donor.orgName || donor.name || donor.email}</p>
+                              <span className={`text-[10px] ${onlineUsers.has(donor.orgId) ? 'text-green-600' : 'text-[#183a1d]/30'}`}>
+                                {onlineUsers.has(donor.orgId) ? 'Online' : 'Offline'}
+                              </span>
+                            </div>
                             <p className="text-xs text-[#183a1d]/50 truncate">{donor.email}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0 ml-3">
+                          <button
+                            onClick={() => openMessenger(donor.orgId)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-[#f6c453]/40 text-[#183a1d]/70 hover:bg-[#f6c453]/10 hover:border-[#f6c453] transition-all"
+                          >
+                            <MessageCircle size={12} /> Message
+                          </button>
                           <button
                             onClick={() => setManageTarget(donor)}
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-[#c8d6c0] text-[#183a1d]/70 hover:bg-[#c8d6c0]/40 transition-all"

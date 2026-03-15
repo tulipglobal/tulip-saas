@@ -1,20 +1,25 @@
 // ─────────────────────────────────────────────────────────────
-//  app.js — v9
+//  app.js — v10
 //
-//  Changes from v8:
-//  ✔ /api/timestamps routes (RFC 3161)
+//  Changes from v9:
+//  ✔ Socket.IO for real-time messenger
+//  ✔ Messenger, tranche, condition, report routes
 // ─────────────────────────────────────────────────────────────
 
 require('dotenv').config()
 
+const http         = require('http')
 const express      = require('express')
 const swaggerUi    = require('swagger-ui-express')
 const swaggerSpec  = require('./lib/swagger')
 const { startAnchorScheduler } = require('./services/anchorScheduler')
 const prisma       = require('./lib/client')
 const logger       = require('./lib/logger')
+const { initSocketIO } = require('./lib/socketio')
 
 const app = express()
+const httpServer = http.createServer(app)
+initSocketIO(httpServer)
 const cors = require('cors')
 app.use(cors({ origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:4000', 'https://tulipds.com', 'https://www.tulipds.com', 'https://app.tulipds.com', 'https://donor.tulipds.com', 'https://verify.tulipds.com', 'https://app.sealayer.io', 'https://verify.sealayer.io', 'https://ngo.sealayer.io', 'https://donor.sealayer.io'], credentials: true }))
 app.set('trust proxy', 1)
@@ -77,6 +82,10 @@ const ngoDeliverableRoutes = require('./routes/ngoDeliverableRoutes')
 const ngoMilestoneRoutes = require('./routes/ngoMilestoneRoutes')
 const donorInvestmentRoutes = require('./routes/donorInvestmentRoutes')
 const ngoInvestmentRoutes = require('./routes/ngoInvestmentRoutes')
+const messengerRoutes = require('./routes/messengerRoutes')
+const trancheRoutes = require('./routes/trancheRoutes')
+const conditionRoutes = require('./routes/conditionRoutes')
+const reportRoutes = require('./routes/reportRoutes')
 
 app.get('/', (req, res) => res.send('Tulip API Running'))
 
@@ -139,6 +148,10 @@ app.use('/api/ngo/deliverables', apiLimiter, ngoDeliverableRoutes)
 app.use('/api/ngo/milestones', apiLimiter, ngoMilestoneRoutes)
 app.use('/api/donor', apiLimiter, donorInvestmentRoutes)
 app.use('/api/ngo/investments', apiLimiter, ngoInvestmentRoutes)
+app.use('/api/messenger', apiLimiter, messengerRoutes)
+app.use('/api/tranches', apiLimiter, trancheRoutes)
+app.use('/api/conditions', apiLimiter, conditionRoutes)
+app.use('/api/donor/reports', apiLimiter, reportRoutes)
 
 app.use((err, req, res, next) => {
   logger.error('Unhandled error', { error: err.message, path: req.path })
@@ -153,11 +166,12 @@ process.on('SIGTERM', async () => {
   process.exit(0)
 })
 
-app.listen(5050, () => {
+httpServer.listen(5050, () => {
   logger.info('Server running on port 5050', {
     env:  process.env.NODE_ENV || 'development',
     docs: 'http://localhost:5050/api/docs',
     pid:  process.pid,
+    socketio: true,
   })
 })
 

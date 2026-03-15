@@ -8,11 +8,12 @@ import { useOfflineSync } from '@/hooks/useOfflineSync'
 import {
   LayoutDashboard, FolderOpen, FileCheck, Receipt, Banknote,
   Key, Webhook, BarChart3, Settings, LogOut, Code2, CreditCard, Users,
-  ChevronLeft, ChevronRight, Shield, Bell, Search, Menu, X, ListChecks, ScanLine, FolderSearch, Briefcase, ShieldCheck, Crown, Flag, DollarSign, ArrowDownUp
+  ChevronLeft, ChevronRight, Shield, Bell, Search, Menu, X, ListChecks, ScanLine, FolderSearch, Briefcase, ShieldCheck, Crown, Flag, DollarSign, ArrowDownUp, MessageCircle
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useTranslations } from 'next-intl'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
+import MessengerPanel, { useMessengerUnreadCount } from '@/components/MessengerPanel'
 
 interface AuditEntry {
   id: string
@@ -94,12 +95,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [notifications, setNotifications] = useState<AuditEntry[]>([])
   const [notifLoading, setNotifLoading] = useState(false)
   const [hasRecent, setHasRecent] = useState(false)
+  const [messengerOpen, setMessengerOpen] = useState(false)
+  const [messengerTarget, setMessengerTarget] = useState<string | null>(null)
+  const messengerUnread = useMessengerUnreadCount()
   const notifPanelRef = useRef<HTMLDivElement>(null)
   const notifBtnRef = useRef<HTMLButtonElement>(null)
   const pathname = usePathname()
   const router = useRouter()
   const t = useTranslations('nav')
   useOfflineSync() // mount globally — drains offline queue + pre-caches projects
+
+  // Listen for open-messenger events from child pages (e.g. donors page)
+  useEffect(() => {
+    const handler = (e: CustomEvent<{ donorOrgId: string }>) => {
+      setMessengerTarget(e.detail.donorOrgId)
+      setMessengerOpen(true)
+    }
+    window.addEventListener('open-messenger' as any, handler as any)
+    return () => window.removeEventListener('open-messenger' as any, handler as any)
+  }, [])
 
   // Fetch workflow pending count + superadmin check
   useEffect(() => {
@@ -488,6 +502,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
               )}
             </div>
+            <button
+              onClick={() => { setMessengerOpen(true); setMessengerTarget(null) }}
+              className="relative w-9 h-9 rounded-lg bg-[#e1eedd] border border-[#c8d6c0] flex items-center justify-center hover:bg-[#c8d6c0] transition-all"
+            >
+              <MessageCircle size={16} className="text-[#183a1d]" />
+              {messengerUnread > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-[#f6c453] text-[#183a1d] text-[10px] font-bold flex items-center justify-center px-1 leading-none">
+                  {messengerUnread > 99 ? '99+' : messengerUnread}
+                </span>
+              )}
+            </button>
             <div className="flex items-center gap-2.5 pl-3 border-l border-[#c8d6c0]">
               <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-[#183a1d] bg-[#f6c453]">
                 N
@@ -505,6 +530,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {children}
         </main>
       </div>
+
+      {/* Messenger Panel */}
+      <MessengerPanel
+        open={messengerOpen}
+        onClose={() => { setMessengerOpen(false); setMessengerTarget(null) }}
+        openToConversation={messengerTarget}
+      />
     </div>
   )
 }

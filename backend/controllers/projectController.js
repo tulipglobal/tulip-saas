@@ -155,7 +155,9 @@ exports.getProject = async (req, res) => {
 exports.createProject = async (req, res) => {
   try {
     const db = tenantClient(req.user.tenantId)
-    const { name, description, budget, startDate, endDate } = req.body
+    const { name, description, budget, startDate, endDate,
+            fundingSourceType, funderType, funderName, donorOrgId,
+            inviteEmail, inviteOrgName } = req.body
     if (!name) return res.status(400).json({ error: 'name is required' })
 
     const project = await db.project.create({
@@ -166,6 +168,92 @@ exports.createProject = async (req, res) => {
         endDate: endDate ? new Date(endDate) : null,
       }
     })
+
+    // Create a FundingSource record linked to this project
+    if (fundingSourceType) {
+      await db.fundingSource.create({
+        data: {
+          projectId: project.id,
+          name: funderName || fundingSourceType,
+          fundingType: fundingSourceType,
+          amount: 0,
+          currency: 'USD',
+          donorOrgId: donorOrgId || null,
+          funderName: funderName || null,
+          funderType: funderType || 'EXTERNAL',
+        }
+      })
+    }
+
+    // Grant DonorProjectAccess if an existing donor org was selected
+    if (donorOrgId && funderType === 'PORTAL') {
+      const existing = await prisma.$queryRawUnsafe(
+        `SELECT id FROM "DonorProjectAccess" WHERE "donorOrgId" = $1 AND "projectId" = $2::uuid LIMIT 1`,
+        donorOrgId, project.id
+      )
+      if (existing.length === 0) {
+        await prisma.$executeRawUnsafe(
+          `INSERT INTO "DonorProjectAccess" ("donorOrgId", "projectId", "tenantId", "grantedBy")
+           VALUES ($1, $2::uuid, $3, $4)`,
+          donorOrgId, project.id, req.user.tenantId, req.user.id
+        )
+      } else {
+        // Restore access if previously revoked
+        await prisma.$executeRawUnsafe(
+          `UPDATE "DonorProjectAccess" SET "revokedAt" = NULL WHERE "donorOrgId" = $1 AND "projectId" = $2::uuid`,
+          donorOrgId, project.id
+        )
+      }
+    }
+
+    // Send donor invite if "Invite New" was chosen
+    if (inviteEmail && inviteOrgName) {
+      try {
+        // Create DonorOrganisation if it doesn't exist
+        const existingOrg = await prisma.$queryRawUnsafe(
+          `SELECT id FROM "DonorOrganisation" WHERE LOWER(name) = LOWER($1) LIMIT 1`, inviteOrgName
+        )
+        let newDonorOrgId = existingOrg[0]?.id
+        if (!newDonorOrgId) {
+          const created = await prisma.$queryRawUnsafe(
+            `INSERT INTO "DonorOrganisation" (name, type) VALUES ($1, 'Foundation') RETURNING id`, inviteOrgName
+          )
+          newDonorOrgId = created[0].id
+        }
+
+        // Grant project access to the new org
+        const existingAccess = await prisma.$queryRawUnsafe(
+          `SELECT id FROM "DonorProjectAccess" WHERE "donorOrgId" = $1 AND "projectId" = $2::uuid LIMIT 1`,
+          newDonorOrgId, project.id
+        )
+        if (existingAccess.length === 0) {
+          await prisma.$executeRawUnsafe(
+            `INSERT INTO "DonorProjectAccess" ("donorOrgId", "projectId", "tenantId", "grantedBy")
+             VALUES ($1, $2::uuid, $3, $4)`,
+            newDonorOrgId, project.id, req.user.tenantId, req.user.id
+          )
+        }
+
+        // Create a DonorInvite record
+        const crypto = require('crypto')
+        const inviteToken = crypto.randomBytes(32).toString('hex')
+        await prisma.donorInvite.create({
+          data: {
+            token: inviteToken,
+            email: inviteEmail,
+            inviteType: 'NGO_INVITES_DONOR',
+            tenantId: req.user.tenantId,
+            projectId: project.id,
+            invitedByUserId: req.user.id,
+            status: 'PENDING',
+            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+          }
+        }).catch(() => {})
+      } catch (invErr) {
+        console.error('Donor invite during project creation:', invErr.message)
+      }
+    }
+
     await createAuditLog({ action: 'PROJECT_CREATED', entityType: 'Project', entityId: project.id, userId: req.user.id, tenantId: req.user.tenantId }).catch(() => {})
     res.status(201).json(project)
   } catch (err) {

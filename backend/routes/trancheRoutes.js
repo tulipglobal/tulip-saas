@@ -217,6 +217,88 @@ router.put('/ngo/:trancheId/conditions-met', authenticate, tenantScope, upload.s
   }
 })
 
+// PUT /api/tranches/ngo/:trancheId/attach-evidence
+router.put('/ngo/:trancheId/attach-evidence', authenticate, tenantScope, upload.single('file'), async (req, res) => {
+  try {
+    const { trancheId } = req.params
+    const { notes } = req.body
+
+    if (!req.file) return res.status(400).json({ error: 'No file attached' })
+
+    const current = await prisma.$queryRawUnsafe(
+      `SELECT * FROM "DisbursementTranche" WHERE id = $1::uuid AND "tenantId" = $2`, trancheId, req.user.tenantId
+    )
+    if (!current.length) return res.status(404).json({ error: 'Tranche not found' })
+
+    const tranche = current[0]
+    const sha256Hash = computeSHA256(req.file.buffer)
+    const { fileUrl } = await uploadToS3(req.file.buffer, req.file.originalname, req.user.tenantId, 'conditions')
+
+    // Resolve actual projectId
+    let docProjectId = null
+    try {
+      const projCheck = await prisma.project.findUnique({ where: { id: tranche.projectId }, select: { id: true } })
+      if (projCheck) {
+        docProjectId = projCheck.id
+      } else {
+        const budgetCheck = await prisma.$queryRawUnsafe(
+          `SELECT "projectId" FROM "Budget" WHERE id = $1::uuid`, tranche.projectId
+        )
+        if (budgetCheck.length > 0) docProjectId = budgetCheck[0].projectId
+      }
+    } catch {}
+
+    const document = await prisma.document.create({
+      data: {
+        name: `Evidence — Tranche #${tranche.trancheNumber}`,
+        description: notes || `Supporting evidence for tranche #${tranche.trancheNumber}`,
+        documentType: 'Condition Evidence',
+        documentLevel: 'project',
+        category: 'contract',
+        fileUrl,
+        fileType: req.file.originalname.split('.').pop()?.toLowerCase() || null,
+        fileSize: req.file.size,
+        sha256Hash,
+        projectId: docProjectId,
+        tenantId: req.user.tenantId,
+        uploadedById: req.user.id,
+      }
+    })
+
+    await prisma.$executeRawUnsafe(
+      `UPDATE "DisbursementTranche" SET "evidenceDocumentId" = $1, "updatedAt" = NOW() WHERE id = $2::uuid`,
+      document.id, trancheId
+    ).catch(() => {})
+
+    await createAuditLog({
+      action: 'document.uploaded',
+      entityType: 'Document',
+      entityId: document.id,
+      userId: req.user.id,
+      tenantId: req.user.tenantId,
+      details: { name: document.name, sha256Hash, trancheId, type: 'condition_evidence' }
+    })
+
+    // Notify donor
+    const agreement = await prisma.fundingAgreement.findFirst({ where: { id: tranche.fundingAgreementId }, select: { donorOrgId: true, title: true } })
+    if (agreement?.donorOrgId) {
+      createNotification({
+        donorOrgId: agreement.donorOrgId,
+        alertType: 'funding.evidence_attached',
+        title: `Evidence attached for Tranche #${tranche.trancheNumber}`,
+        body: `NGO has uploaded evidence for tranche #${tranche.trancheNumber} of ${agreement.title}`,
+        entityType: 'DisbursementTranche',
+        entityId: tranche.id
+      }).catch(() => {})
+    }
+
+    res.json({ tranche: { ...tranche, evidenceDocumentId: document.id }, document })
+  } catch (err) {
+    console.error('Attach evidence error:', err)
+    res.status(500).json({ error: 'Failed to attach evidence' })
+  }
+})
+
 // PUT /api/tranches/ngo/:trancheId/utilisation
 router.put('/ngo/:trancheId/utilisation', authenticate, tenantScope, async (req, res) => {
   try {

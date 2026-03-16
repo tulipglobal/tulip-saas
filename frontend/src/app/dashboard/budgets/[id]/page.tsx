@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { apiGet, apiPut, apiPost, apiDelete } from '@/lib/api'
 import Link from 'next/link'
-import { ArrowLeft, Banknote, Receipt, Edit3, Check, X, Plus, Trash2, AlertTriangle, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react'
+import { ArrowLeft, Banknote, Receipt, Edit3, Check, X, Plus, Trash2, AlertTriangle, CheckCircle, ChevronDown, ChevronUp, Upload } from 'lucide-react'
 import { FUNDING_SOURCE_TYPES, FUNDING_SOURCE_TYPE_KEYS } from '@/lib/ngo-categories'
 import CurrencySelect from '@/components/CurrencySelect'
 
@@ -76,6 +76,7 @@ interface Tranche {
   utilisedAmount: number | null
   currency: string
   conditionsConfirmedAt: string | null
+  evidenceDocumentId: string | null
 }
 
 interface GrantCondition {
@@ -160,6 +161,10 @@ export default function BudgetDetailPage() {
   const [breachSubmitting, setBreachSubmitting] = useState(false)
   const [conditionActionLoading, setConditionActionLoading] = useState<string | null>(null)
   const [breachSuccess, setBreachSuccess] = useState(false)
+  const [showEvidenceModal, setShowEvidenceModal] = useState<{ trancheId: string; agreementId: string } | null>(null)
+  const [evidenceFile, setEvidenceFile] = useState<File | null>(null)
+  const [evidenceNotes, setEvidenceNotes] = useState('')
+  const [uploadingEvidence, setUploadingEvidence] = useState(false)
 
   const reload = () => {
     apiGet(`/api/budgets/${id}`)
@@ -295,6 +300,38 @@ export default function BudgetDetailPage() {
       console.error('Confirm conditions error:', err)
     }
     setConfirmingTranche(null)
+  }
+
+  const handleAttachEvidence = async (trancheId: string, agreementId: string) => {
+    if (!evidenceFile) return
+    setUploadingEvidence(true)
+    try {
+      const token = localStorage.getItem('tulip_token')
+      const fd = new FormData()
+      fd.append('file', evidenceFile)
+      if (evidenceNotes) fd.append('notes', evidenceNotes)
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tranches/ngo/${trancheId}/attach-evidence`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setTranches(prev => ({
+          ...prev,
+          [agreementId]: (prev[agreementId] || []).map(t =>
+            t.id === trancheId ? { ...t, evidenceDocumentId: data.document?.id || 'attached' } : t
+          )
+        }))
+        setShowEvidenceModal(null)
+        setEvidenceFile(null)
+        setEvidenceNotes('')
+      }
+    } catch (err) {
+      console.error('Attach evidence error:', err)
+    }
+    setUploadingEvidence(false)
   }
 
   // Tranche: record utilisation
@@ -839,6 +876,15 @@ export default function BudgetDetailPage() {
                         {tranche.status === 'UTILISED' && (
                           <span className="text-xs text-blue-600 font-medium">Fully utilised</span>
                         )}
+                        {tranche.status !== 'PENDING' && !tranche.evidenceDocumentId && (
+                          <button
+                            onClick={() => setShowEvidenceModal({ trancheId: tranche.id, agreementId: tranche._agreementId })}
+                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-purple-500/10 text-purple-700 hover:bg-purple-500/20 transition-all mt-1"
+                          >
+                            <Upload size={12} />
+                            Attach Evidence
+                          </button>
+                        )}
                       </div>
                     </div>
                   )
@@ -968,6 +1014,65 @@ export default function BudgetDetailPage() {
                   {confirmingTranche === showConditionsModal.trancheId ? 'Submitting...' : 'Confirm & Notify Donor'}
                 </button>
                 <button onClick={() => { setShowConditionsModal(null); setConditionsFile(null); setConditionsNotes('') }}
+                  className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] hover:bg-[#c8d6c0]/40 transition-all">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Attach Evidence Modal */}
+      {showEvidenceModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => { setShowEvidenceModal(null); setEvidenceFile(null); setEvidenceNotes('') }} />
+          <div className="relative bg-[#fefbe9] rounded-2xl border border-[#c8d6c0] shadow-xl w-full max-w-md mx-4">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#c8d6c0]">
+              <div>
+                <h3 className="text-base font-bold text-[#183a1d]">Attach Evidence</h3>
+                <p className="text-xs text-[#183a1d]/50 mt-0.5">Upload a supporting document — it will be hashed and stored</p>
+              </div>
+              <button onClick={() => { setShowEvidenceModal(null); setEvidenceFile(null); setEvidenceNotes('') }}
+                className="text-[#183a1d]/40 hover:text-[#183a1d] transition-all">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="px-5 py-4 space-y-4">
+              <div>
+                <label className="text-xs text-[#183a1d]/60 mb-1 block">Notes (optional)</label>
+                <textarea
+                  value={evidenceNotes}
+                  onChange={e => setEvidenceNotes(e.target.value)}
+                  rows={2}
+                  placeholder="Describe the evidence..."
+                  className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all resize-none"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-[#183a1d]/60 mb-1 block">Evidence File</label>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,.xlsx,.xls,.jpg,.jpeg,.png,.csv"
+                  onChange={e => setEvidenceFile(e.target.files?.[0] || null)}
+                  className="w-full text-sm text-[#183a1d]/70 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-[#c8d6c0] file:bg-[#e1eedd] file:text-[#183a1d] file:text-xs file:font-medium hover:file:bg-[#c8d6c0] file:cursor-pointer file:transition-all"
+                />
+                {evidenceFile && (
+                  <p className="text-xs text-[#183a1d]/50 mt-1">
+                    {evidenceFile.name} ({(evidenceFile.size / 1024).toFixed(0)} KB) — will be hashed &amp; stored in Documents
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  onClick={() => handleAttachEvidence(showEvidenceModal.trancheId, showEvidenceModal.agreementId)}
+                  disabled={uploadingEvidence || !evidenceFile}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 transition-all"
+                >
+                  <Upload size={14} />
+                  {uploadingEvidence ? 'Uploading...' : 'Upload & Notify Donor'}
+                </button>
+                <button onClick={() => { setShowEvidenceModal(null); setEvidenceFile(null); setEvidenceNotes('') }}
                   className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] hover:bg-[#c8d6c0]/40 transition-all">
                   Cancel
                 </button>

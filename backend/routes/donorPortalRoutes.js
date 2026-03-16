@@ -2813,6 +2813,13 @@ router.get('/projects/:projectId/logframe', donorAuth, async (req, res) => {
 
     const tenantId = access[0].tenantId
 
+    // Fetch project-level logframe fields
+    const projRows = await prisma.$queryRawUnsafe(
+      `SELECT "logframeGoal", "logframePurpose", "logframeAssumptions" FROM "Project" WHERE id = $1 AND "tenantId" = $2`,
+      projectId, tenantId
+    )
+    const proj = projRows[0] || {}
+
     const rows = await prisma.$queryRawUnsafe(`
       SELECT lo.*, json_agg(
         json_build_object(
@@ -2836,7 +2843,12 @@ router.get('/projects/:projectId/logframe', donorAuth, async (req, res) => {
       indicators: r.indicators || []
     }))
 
-    res.json({ outputs })
+    res.json({
+      outputs,
+      logframeGoal: proj.logframeGoal || null,
+      logframePurpose: proj.logframePurpose || null,
+      logframeAssumptions: proj.logframeAssumptions || null,
+    })
   } catch (err) {
     console.error('Donor logframe fetch error:', err)
     res.status(500).json({ error: 'Failed to fetch logframe' })

@@ -48,7 +48,7 @@ router.get('/', async (req, res) => {
       periodEnd: r.dateRangeTo,
       generatedAt: r.createdAt,
       size: r.fileSizeBytes || 0,
-      sealStatus: r.hash ? 'anchored' : r.status === 'READY' ? 'sealing' : 'pending',
+      sealStatus: r.hash ? 'anchored' : r.status === 'READY' ? 'ready' : 'pending',
       downloadUrl: r.fileUrl,
       sha256: r.hash,
     }))
@@ -136,10 +136,11 @@ async function fetchDeliverables(projectId, tenantId) {
 
 async function fetchSeals(projectId, tenantId, from, to) {
   return prisma.$queryRawUnsafe(`
-    SELECT * FROM "TrustSeal"
-    WHERE "projectId" = $1 AND "tenantId" = $2
-      AND "createdAt" >= $3 AND "createdAt" < $4
-    ORDER BY "createdAt" ASC
+    SELECT ts.* FROM "TrustSeal" ts
+    INNER JOIN "Expense" e ON e.id::text = ts."expenseId"::text
+    WHERE e."projectId" = $1 AND ts."tenantId" = $2
+      AND ts."createdAt" >= $3 AND ts."createdAt" < $4
+    ORDER BY ts."createdAt" ASC
   `, projectId, tenantId, from, to)
 }
 
@@ -236,12 +237,12 @@ function addDeliverables(doc, re, deliverables) {
     doc.text('No deliverable requests recorded.')
     return
   }
-  const headers = ['Title', 'Status', 'Deadline', 'Submitted']
+  const headers = ['Title', 'Status', 'Deadline', 'Confirmed']
   const rows = deliverables.map(d => [
     d.title || '—',
     d.status || '—',
     re.formatDate(d.deadline),
-    re.formatDate(d.submittedAt),
+    re.formatDate(d.confirmedAt),
   ])
   re.addTable(doc, headers, rows, { colWidths: [200, 80, 110, 105] })
 }
@@ -252,11 +253,11 @@ function addMilestones(doc, re, milestones) {
     doc.text('No impact milestones recorded.')
     return
   }
-  const headers = ['Title', 'Target', 'Actual', 'Status']
+  const headers = ['Title', 'Target', 'Current', 'Status']
   const rows = milestones.map(m => [
     m.title || '—',
     String(m.targetValue ?? '—'),
-    String(m.actualValue ?? '—'),
+    String(m.currentValue ?? '—'),
     m.status || '—',
   ])
   re.addTable(doc, headers, rows, { colWidths: [200, 90, 90, 115] })
@@ -273,7 +274,7 @@ function addBlockchainVerification(doc, re, seals) {
     (s.id || '').substring(0, 12) + '...',
     s.status || '—',
     re.formatDate(s.createdAt),
-    String(s.trustScore ?? '—'),
+    String(s.fraudRiskScore ?? '—'),
   ])
   re.addTable(doc, headers, rows, { colWidths: [160, 100, 120, 115] })
 }

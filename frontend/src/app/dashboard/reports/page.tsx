@@ -27,7 +27,7 @@ interface Report {
   periodEnd: string
   generatedAt: string
   size: number
-  sealStatus: 'anchored' | 'sealing' | 'pending'
+  sealStatus: 'anchored' | 'sealing' | 'ready' | 'pending'
   downloadUrl?: string
   shareToken?: string
   sha256?: string
@@ -686,9 +686,13 @@ export default function ReportsPage() {
                           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
                             <Check size={12} /> Anchored
                           </span>
+                        ) : report.sealStatus === 'ready' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                            <Check size={12} /> Ready
+                          </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
-                            <Clock size={12} /> Sealing
+                            <Clock size={12} /> Pending
                           </span>
                         )}
                       </td>

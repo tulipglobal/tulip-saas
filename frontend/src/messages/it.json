@@ -30,7 +30,9 @@
     "deliverables": "Consegnabili",
     "impact": "Impatto",
     "investments": "Investimenti",
-    "drawdowns": "Prelievi"
+    "drawdowns": "Prelievi",
+    "reports": "Rapporti",
+    "workflow": "Flusso di lavoro"
   },
   "common": {
     "save": "Salva",

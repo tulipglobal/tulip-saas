@@ -30,7 +30,9 @@
     "deliverables": "Livrables",
     "impact": "Impact",
     "investments": "Investissements",
-    "drawdowns": "Retraits"
+    "drawdowns": "Retraits",
+    "reports": "Rapports",
+    "workflow": "Flux de travail"
   },
   "common": {
     "save": "Enregistrer",

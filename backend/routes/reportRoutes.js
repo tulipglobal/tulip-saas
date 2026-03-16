@@ -7,7 +7,7 @@ const router = express.Router()
 const jwt = require('jsonwebtoken')
 const prisma = require('../lib/client')
 const PDFDocument = require('pdfkit')
-const { uploadToS3, getPresignedUrl } = require('../lib/s3Upload')
+const { uploadToS3, getPresignedUrl, getPresignedUrlFromKey } = require('../lib/s3Upload')
 
 const JWT_SECRET = process.env.JWT_SECRET
 
@@ -217,7 +217,7 @@ router.post('/generate', donorAuth, async (req, res) => {
     `, donorOrgId, donorMemberId, name, JSON.stringify({ dateRange: { from, to }, projectIds: validIds, sections: mappedSections }))
 
     // Generate presigned URL for download
-    const reportUrl = await getPresignedUrl(key)
+    const reportUrl = await getPresignedUrlFromKey(key, 3600, { contentType: 'application/pdf' })
 
     res.json({ reportUrl, downloadUrl: reportUrl, savedReportId: saved[0]?.id, fileUrl })
   } catch (err) {

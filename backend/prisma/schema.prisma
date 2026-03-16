@@ -88,10 +88,10 @@ model Budget {
   projectId           String?
   Project             Project?              @relation(fields: [projectId], references: [id])
   Tenant              Tenant                @relation(fields: [tenantId], references: [id])
-  BudgetFundingSource BudgetFundingSource[]
-  BudgetLine          BudgetLine[]
-  Expense             Expense[]
-  FundingAgreement    FundingAgreement[]
+  fundingSources      BudgetFundingSource[]
+  lines               BudgetLine[]
+  expenses            Expense[]
+  fundingAgreements   FundingAgreement[]
 
   @@index([periodFrom, periodTo])
   @@index([projectId])
@@ -142,7 +142,7 @@ model BudgetLine {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime
   Budget         Budget    @relation(fields: [budgetId], references: [id], onDelete: Cascade)
-  Expense        Expense[]
+  expenses       Expense[]
 
   @@index([budgetId])
   @@index([expenseType])
@@ -319,8 +319,8 @@ model Document {
   fraudRiskScore             Int?
   fraudRiskLevel             String?
   fraudSignals               Json?
-  Expense                    Expense?  @relation(fields: [expenseId], references: [id])
-  Project                    Project?  @relation(fields: [projectId], references: [id])
+  expense                    Expense?  @relation(fields: [expenseId], references: [id])
+  project                    Project?  @relation(fields: [projectId], references: [id])
   Tenant                     Tenant    @relation(fields: [tenantId], references: [id])
   User                       User?     @relation(fields: [uploadedById], references: [id])
 
@@ -347,7 +347,7 @@ model Donor {
   createdAt          DateTime           @default(now())
   updatedAt          DateTime
   DonorUser          DonorUser[]
-  FundingAgreement   FundingAgreement[]
+  fundingAgreements  FundingAgreement[]
 
   @@index([email])
   @@index([type])
@@ -366,7 +366,7 @@ model DonorInvite {
   createdAt       DateTime @default(now())
   updatedAt       DateTime
   User            User     @relation(fields: [invitedByUserId], references: [id])
-  Project         Project? @relation(fields: [projectId], references: [id])
+  project         Project? @relation(fields: [projectId], references: [id])
   Tenant          Tenant   @relation(fields: [tenantId], references: [id])
 
   @@index([email])
@@ -467,7 +467,7 @@ model DonorUser {
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime
-  Donor        Donor    @relation(fields: [donorId], references: [id])
+  donor        Donor    @relation(fields: [donorId], references: [id])
 
   @@index([donorId])
 }
@@ -565,12 +565,12 @@ model Expense {
   approvedAt         DateTime?
   approvedBy         String?
   expenditureType    String?           @default("OPEX") @db.VarChar(10)
-  Document           Document[]
-  Budget             Budget?           @relation(fields: [budgetId], references: [id])
-  BudgetLine         BudgetLine?       @relation(fields: [budgetLineId], references: [id])
-  FundingAgreement   FundingAgreement? @relation(fields: [fundingAgreementId], references: [id])
-  FundingSource      FundingSource?    @relation(fields: [fundingSourceId], references: [id])
-  Project            Project           @relation(fields: [projectId], references: [id])
+  documents          Document[]
+  budget             Budget?           @relation(fields: [budgetId], references: [id])
+  budgetLine         BudgetLine?       @relation(fields: [budgetLineId], references: [id])
+  fundingAgreement   FundingAgreement? @relation(fields: [fundingAgreementId], references: [id])
+  fundingSource      FundingSource?    @relation(fields: [fundingSourceId], references: [id])
+  project            Project           @relation(fields: [projectId], references: [id])
   Tenant             Tenant            @relation(fields: [tenantId], references: [id])
 
   @@index([budgetId])
@@ -643,13 +643,13 @@ model FundingAgreement {
   funderName          String?               @db.VarChar(200)
   funderType          String?               @default("EXTERNAL") @db.VarChar(20)
   DisbursementTranche DisbursementTranche[]
-  Expense             Expense[]
-  Budget              Budget?               @relation(fields: [budgetId], references: [id])
-  Donor               Donor?                @relation(fields: [donorId], references: [id])
+  expenses            Expense[]
+  budget              Budget?               @relation(fields: [budgetId], references: [id])
+  donor               Donor?                @relation(fields: [donorId], references: [id])
   DonorOrganisation   DonorOrganisation?    @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   Tenant              Tenant                @relation(fields: [tenantId], references: [id])
   GrantCondition      GrantCondition[]
-  ProjectFunding      ProjectFunding[]
+  projectFunding      ProjectFunding[]
 
   @@index([budgetId])
   @@index([donorId])
@@ -671,9 +671,9 @@ model FundingSource {
   donorOrgId        String?
   funderName        String?            @db.VarChar(200)
   funderType        String?            @default("EXTERNAL") @db.VarChar(20)
-  Expense           Expense[]
+  expenses          Expense[]
   DonorOrganisation DonorOrganisation? @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  Project           Project            @relation(fields: [projectId], references: [id])
+  project           Project            @relation(fields: [projectId], references: [id])
   Tenant            Tenant             @relation(fields: [tenantId], references: [id])
 
   @@index([fundingType])
@@ -957,11 +957,11 @@ model Project {
   logframeAssumptions    String?
   baseCurrency           String?          @default("USD")
   donorReportingCurrency String?
-  Budget                 Budget[]
-  Document               Document[]
+  budgets                Budget[]
+  documents              Document[]
   DonorInvite            DonorInvite[]
-  Expense                Expense[]
-  FundingSource          FundingSource[]
+  expenses               Expense[]
+  fundingSources         FundingSource[]
   Tenant                 Tenant           @relation(fields: [tenantId], references: [id])
   ProjectFunding         ProjectFunding[]
 
@@ -978,7 +978,7 @@ model ProjectFunding {
   createdAt          DateTime         @default(now())
   updatedAt          DateTime
   FundingAgreement   FundingAgreement @relation(fields: [fundingAgreementId], references: [id])
-  Project            Project          @relation(fields: [projectId], references: [id])
+  project            Project          @relation(fields: [projectId], references: [id])
 
   @@unique([projectId, fundingAgreementId])
   @@index([fundingAgreementId])

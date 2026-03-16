@@ -342,7 +342,7 @@ if (!record) {
 
   const doc = await prisma.document.findFirst({
     where: { sha256Hash: dataHash },
-    include: { Project: { select: { name: true } }, Expense: { select: { description: true, amount: true, currency: true, Project: { select: { name: true } } } } }
+    include: { project: { select: { name: true } }, expense: { select: { description: true, amount: true, currency: true, project: { select: { name: true } } } } }
   })
   if (!doc) return res.json({ verified: false, reason: 'Hash not found', dataHash })
 
@@ -375,10 +375,10 @@ if (!record) {
       documentName: doc.name,
       fileType: doc.fileType,
       documentLevel: doc.documentLevel,
-      projectName: doc.Project?.name || doc.Expense?.Project?.name || null,
-      expenseDescription: doc.Expense?.description || null,
-      amount: doc.Expense?.amount || null,
-      currency: doc.Expense?.currency || null,
+      projectName: doc.project?.name || doc.expense?.project?.name || null,
+      expenseDescription: doc.expense?.description || null,
+      amount: doc.expense?.amount || null,
+      currency: doc.expense?.currency || null,
     },
     integrity: { hashIntact: true, chainIntact: true },
     blockchain: {
@@ -438,7 +438,7 @@ if (!record) {
         const expense = await prisma.expense.findUnique({
           where: { id: record.entityId },
           select: { description: true, amount: true, currency: true,
-                    Project: { select: { name: true } } }
+                    project: { select: { name: true } } }
         })
         if (expense) {
           entityDetails = {
@@ -447,7 +447,7 @@ if (!record) {
             expenseDescription: expense.description,
             amount: expense.amount,
             currency: expense.currency,
-            projectName: expense.Project?.name || null,
+            projectName: expense.project?.name || null,
           }
         }
       } else if (record.entityType === 'Project' && record.entityId) {
@@ -468,7 +468,7 @@ if (!record) {
       } else if (record.entityType === 'Document' && record.entityId) {
         const document = await prisma.document.findUnique({
           where: { id: record.entityId },
-          select: { name: true, fileType: true, Project: { select: { name: true } } }
+          select: { name: true, fileType: true, project: { select: { name: true } } }
         })
         if (document) {
           entityDetails = {
@@ -476,13 +476,13 @@ if (!record) {
             organisationType: tenant?.tenantType || null,
             documentName: document.name,
             fileType: document.fileType || null,
-            projectName: document.Project?.name || null,
+            projectName: document.project?.name || null,
           }
         }
       } else if (record.entityType === 'FundingSource' && record.entityId) {
         const fs = await prisma.fundingSource.findUnique({
           where: { id: record.entityId },
-          select: { name: true, amount: true, currency: true, Project: { select: { name: true } } }
+          select: { name: true, amount: true, currency: true, project: { select: { name: true } } }
         })
         if (fs) {
           entityDetails = {
@@ -491,7 +491,7 @@ if (!record) {
             documentName: fs.name,
             amount: fs.amount,
             currency: fs.currency,
-            projectName: fs.Project?.name || null,
+            projectName: fs.project?.name || null,
           }
         }
       } else if (record.entityType === 'User') {

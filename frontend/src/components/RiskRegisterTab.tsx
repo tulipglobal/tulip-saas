@@ -81,7 +81,7 @@ export default function RiskRegisterTab({ projectId }: { projectId: string }) {
   const fetchRisks = useCallback(() => {
     apiGet(`/api/ngo/projects/${projectId}/risks`)
       .then(r => r.ok ? r.json() : { data: [] })
-      .then(res => setRisks(res.data ?? res ?? []))
+      .then(res => setRisks(res.risks ?? res.data ?? res ?? []))
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [projectId])

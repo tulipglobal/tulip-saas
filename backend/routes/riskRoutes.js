@@ -74,8 +74,11 @@ router.post('/projects/:projectId/risks', async (req, res) => {
 
     if (!description) return res.status(400).json({ error: 'Description is required' })
 
+    // Normalize category to uppercase
+    const normalizedCategory = category ? category.toUpperCase() : 'OTHER'
+
     // Validate category
-    if (category && !VALID_CATEGORIES.includes(category)) {
+    if (!VALID_CATEGORIES.includes(normalizedCategory)) {
       return res.status(400).json({ error: `Category must be one of: ${VALID_CATEGORIES.join(', ')}` })
     }
 
@@ -108,7 +111,7 @@ router.post('/projects/:projectId/risks', async (req, res) => {
       INSERT INTO "RiskRegister" (id, "projectId", "tenantId", "riskNumber", description, category, likelihood, impact, mitigation, owner, "reviewDate", notes, status, "createdAt", "updatedAt")
       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'OPEN', NOW(), NOW())
       RETURNING *, (likelihood * impact) as "riskScore"
-    `, projectId, tenantId, riskNumber, description, category || 'OTHER', lh || 3, im || 3, mitigation || null, owner || null, reviewDate || null, notes || null)
+    `, projectId, tenantId, riskNumber, description, normalizedCategory, lh || 3, im || 3, mitigation || null, owner || null, reviewDate || null, notes || null)
 
     res.status(201).json(rows[0])
   } catch (err) {
@@ -131,8 +134,9 @@ router.put('/risks/:riskId', async (req, res) => {
     `, riskId, tenantId)
     if (!existing.length) return res.status(404).json({ error: 'Risk not found' })
 
-    // Validate category if provided
-    if (category && !VALID_CATEGORIES.includes(category)) {
+    // Normalize + validate category if provided
+    const normalizedCategory = category ? category.toUpperCase() : null
+    if (normalizedCategory && !VALID_CATEGORIES.includes(normalizedCategory)) {
       return res.status(400).json({ error: `Category must be one of: ${VALID_CATEGORIES.join(', ')}` })
     }
 
@@ -165,7 +169,7 @@ router.put('/risks/:riskId', async (req, res) => {
       likelihood !== undefined ? Number(likelihood) : null,
       impact !== undefined ? Number(impact) : null,
       mitigation || null, status || null, notes || null,
-      reviewDate || null, description || null, category || null, owner || null)
+      reviewDate || null, description || null, normalizedCategory, owner || null)
 
     res.json(rows[0])
   } catch (err) {

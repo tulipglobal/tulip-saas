@@ -60,7 +60,7 @@ router.post('/generate', donorAuth, async (req, res) => {
     // Fetch projects
     const projects = await prisma.project.findMany({
       where: { id: { in: validIds } },
-      select: { id: true, name: true, budget: true, status: true }
+      select: { id: true, name: true, budget: true, status: true, tenantId: true }
     })
 
     // Build PDF
@@ -88,12 +88,13 @@ router.post('/generate', donorAuth, async (req, res) => {
       doc.moveDown()
       doc.fontSize(10).fillColor('#333')
 
+      try {
       if (section === 'expenses') {
         const expenses = await prisma.expense.findMany({
           where: { projectId: { in: validIds }, createdAt: { gte: from, lte: to } },
           orderBy: { createdAt: 'desc' },
           take: 200,
-          select: { title: true, vendor: true, amount: true, currency: true, createdAt: true, category: true, fraudRiskLevel: true }
+          select: { description: true, vendor: true, amount: true, currency: true, createdAt: true, category: true, fraudRiskLevel: true }
         })
         doc.text(`Total expenses: ${expenses.length}`)
         const totalAmount = expenses.reduce((s, e) => s + (Number(e.amount) || 0), 0)
@@ -186,6 +187,10 @@ router.post('/generate', donorAuth, async (req, res) => {
         for (const a of agreements) {
           doc.text(`${a.title}  |  ${a.currency || 'USD'} ${Number(a.totalAmount || 0).toLocaleString()}  |  ${a.type || '—'}  |  ${a.status || '—'}`)
         }
+      }
+      } catch (sectionErr) {
+        console.error(`Report section "${section}" error:`, sectionErr.message)
+        doc.text(`Error loading ${sectionTitle(section)} data.`)
       }
     }
 

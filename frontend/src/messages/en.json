@@ -30,7 +30,9 @@
     "impact": "Impact",
     "investments": "Investments",
     "drawdowns": "Drawdowns",
-    "searchPlaceholder": "Search projects, documents..."
+    "searchPlaceholder": "Search projects, documents...",
+    "reports": "Reports",
+    "workflow": "Workflow"
   },
   "common": {
     "save": "Save",

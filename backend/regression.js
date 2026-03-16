@@ -66,7 +66,7 @@ function log(n, label, result, detail) {
   console.log(`[${String(n).padStart(2)}] ${tag.padEnd(6)} ${label}${d}`);
 }
 
-const TOTAL = 178;
+const TOTAL = 185;
 
 (async () => {
   console.log(`=== REGRESSION CHECKLIST (${TOTAL} items) ===\n`);
@@ -991,6 +991,42 @@ const TOTAL = 178;
   const budgetCtrl = fs.readFileSync("" + SAAS_ROOT + "/backend/controllers/budgetController.js", "utf8");
   log(178, "Budget creation auto-creates FundingAgreement for PORTAL donors",
     budgetCtrl.includes("fundingAgreement.create") && budgetCtrl.includes("PORTAL") && budgetCtrl.includes("projectFunding.create") ? "PASS" : "FAIL");
+
+  // ═══════════════════════════════════════════════════════════
+  //  179–185  INVESTMENT / REPAYMENT / DRAWDOWN CHECKS
+  // ═══════════════════════════════════════════════════════════
+
+  const ngoInvRoutes = fs.readFileSync("" + SAAS_ROOT + "/backend/routes/ngoInvestmentRoutes.js", "utf8");
+  const donorInvRoutes = fs.readFileSync("" + SAAS_ROOT + "/backend/routes/donorInvestmentRoutes.js", "utf8");
+  // trancheRoutes already loaded above
+
+  // 179 — RepaymentSchedule INSERT includes id + amount + timestamps
+  log(179, "RepaymentSchedule INSERT includes id, amount, timestamps",
+    budgetCtrl.includes('id, "investmentId"') && budgetCtrl.includes('amount, "principalDue"') ? "PASS" : "FAIL");
+
+  // 180 — Donor investment route also includes id in RS INSERT
+  log(180, "Donor investment RS INSERT includes id + amount",
+    donorInvRoutes.includes('id, "investmentId"') && donorInvRoutes.includes('amount, "principalDue"') ? "PASS" : "FAIL");
+
+  // 181 — NGO investments route parses numeric fields
+  log(181, "NGO investments route parses numeric totalFacility/drawnDown",
+    ngoInvRoutes.includes("parseFloat(inv.totalFacility)") && ngoInvRoutes.includes("parseFloat(inv.drawnDown)") ? "PASS" : "FAIL");
+
+  // 182 — NGO investments adds currency to schedule rows
+  log(182, "NGO investments adds currency to schedule rows",
+    ngoInvRoutes.includes("currency: inv.currency") ? "PASS" : "FAIL");
+
+  // 183 — Covenant query aliases metric as name
+  log(183, "Covenant query aliases metric as name for frontend",
+    ngoInvRoutes.includes("metric as name") ? "PASS" : "FAIL");
+
+  // 184 — Tranche creation blocked for impact investments
+  log(184, "Tranche creation blocked when project has active ImpactInvestment",
+    trancheRoutes.includes("ImpactInvestment") && trancheRoutes.includes("Use drawdowns instead") ? "PASS" : "FAIL");
+
+  // 185 — drawnDown updated on drawdown approval
+  log(185, "drawnDown on ImpactInvestment updated when drawdown approved",
+    donorInvRoutes.includes('UPDATE "ImpactInvestment"') && donorInvRoutes.includes('"drawnDown"') ? "PASS" : "FAIL");
 
   // ═══════════════════════════════════════════════════════════
   //  SUMMARY

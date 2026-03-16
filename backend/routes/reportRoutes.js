@@ -25,15 +25,28 @@ function donorAuth(req, res, next) {
 // POST /api/donor/reports/generate
 router.post('/generate', donorAuth, async (req, res) => {
   try {
-    const { name, dateRange, projectIds, sections } = req.body
+    const { name, dateRange, dateFrom, dateTo, projectIds, sections } = req.body
     const { donorOrgId, donorMemberId } = req.donor
 
     if (!name || !projectIds?.length || !sections?.length) {
       return res.status(400).json({ error: 'name, projectIds, and sections are required' })
     }
 
-    const from = dateRange?.from ? new Date(dateRange.from) : new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
-    const to = dateRange?.to ? new Date(dateRange.to) : new Date()
+    // Map frontend section keys to backend keys
+    const sectionKeyMap = {
+      expense_summary: 'expenses',
+      budget_vs_actual: 'budget',
+      impact_milestones: 'milestones',
+      deliverable_requests: 'deliverables',
+      blockchain_seals: 'seals',
+      fraud_risk_summary: 'fraud',
+      funding_breakdown: 'funding',
+    }
+    const mappedSections = sections.map(s => sectionKeyMap[s] || s)
+
+    // Accept both { dateRange: { from, to } } and { dateFrom, dateTo }
+    const from = dateRange?.from ? new Date(dateRange.from) : dateFrom ? new Date(dateFrom) : new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
+    const to = dateRange?.to ? new Date(dateRange.to) : dateTo ? new Date(dateTo) : new Date()
 
     // Verify donor has access to these projects
     const accessRows = await prisma.$queryRawUnsafe(`
@@ -69,7 +82,7 @@ router.post('/generate', donorAuth, async (req, res) => {
     const placeholders = validIds.map((_, i) => `$${i + 1}`).join(',')
 
     // Sections
-    for (const section of sections) {
+    for (const section of mappedSections) {
       doc.addPage()
       doc.fontSize(16).fillColor('#3C3489').text(sectionTitle(section))
       doc.moveDown()
@@ -196,12 +209,12 @@ router.post('/generate', donorAuth, async (req, res) => {
       INSERT INTO "SavedReport" ("donorOrgId", "donorMemberId", name, "reportConfig", "lastGeneratedAt")
       VALUES ($1, $2, $3, $4::jsonb, NOW())
       RETURNING *
-    `, donorOrgId, donorMemberId, name, JSON.stringify({ dateRange: { from, to }, projectIds: validIds, sections }))
+    `, donorOrgId, donorMemberId, name, JSON.stringify({ dateRange: { from, to }, projectIds: validIds, sections: mappedSections }))
 
     // Generate presigned URL for download
     const reportUrl = await getPresignedUrl(key)
 
-    res.json({ reportUrl, savedReportId: saved[0]?.id, fileUrl })
+    res.json({ reportUrl, downloadUrl: reportUrl, savedReportId: saved[0]?.id, fileUrl })
   } catch (err) {
     console.error('Generate report error:', err)
     res.status(500).json({ error: 'Failed to generate report' })
@@ -216,7 +229,18 @@ router.get('/saved', donorAuth, async (req, res) => {
       WHERE "donorOrgId" = $1
       ORDER BY "createdAt" DESC
     `, req.donor.donorOrgId)
-    res.json({ reports })
+
+    // Map reportConfig fields to top-level for frontend compatibility
+    const mapped = reports.map(r => {
+      const config = typeof r.reportConfig === 'string' ? JSON.parse(r.reportConfig) : (r.reportConfig || {})
+      return {
+        ...r,
+        projects: config.projectIds || [],
+        sections: config.sections || [],
+      }
+    })
+
+    res.json({ reports: mapped })
   } catch (err) {
     console.error('Get saved reports error:', err)
     res.status(500).json({ error: 'Failed to fetch reports' })

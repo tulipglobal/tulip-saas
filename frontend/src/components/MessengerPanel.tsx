@@ -68,7 +68,9 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
   const [msgText, setMsgText] = useState('')
   const [loading, setLoading] = useState(false)
   const [msgLoading, setMsgLoading] = useState(false)
-  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set())
+  const [onlineUsers, setOnlineUsers] = useState<Map<string, string>>(new Map()) // id -> 'online'|'away'
+  const [myStatus, setMyStatus] = useState<'online' | 'away' | 'offline'>('online')
+  const [showStatusMenu, setShowStatusMenu] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [incomingCall, setIncomingCall] = useState<IncomingCall | null>(null)
   const [activeCall, setActiveCall] = useState<{ callId: string; callerName: string } | null>(null)
@@ -155,13 +157,13 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
       })
     })
 
-    socket.on('user_online', (data: { userId: string; donorOrgId?: string }) => {
+    socket.on('user_online', (data: { userId: string; donorOrgId?: string; status?: string }) => {
       // NGO contacts are donor orgs — track by donorOrgId
-      if (data.donorOrgId) setOnlineUsers(prev => new Set(prev).add(data.donorOrgId!))
+      if (data.donorOrgId) setOnlineUsers(prev => { const m = new Map(prev); m.set(data.donorOrgId!, data.status || 'online'); return m })
     })
 
     socket.on('user_offline', (data: { userId: string; donorOrgId?: string }) => {
-      if (data.donorOrgId) setOnlineUsers(prev => { const s = new Set(prev); s.delete(data.donorOrgId!); return s })
+      if (data.donorOrgId) setOnlineUsers(prev => { const m = new Map(prev); m.delete(data.donorOrgId!); return m })
     })
 
     socket.on('call_incoming', (call: IncomingCall) => {
@@ -243,8 +245,9 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
         const data = await res.json()
         const raw = Array.isArray(data.onlineUsers) ? data.onlineUsers : Array.isArray(data.data) ? data.data : Array.isArray(data) ? data : []
         // NGO contacts are donor orgs — use donorOrgId for matching
-        const ids = raw.filter((u: any) => u.donorOrgId).map((u: any) => u.donorOrgId)
-        setOnlineUsers(new Set(ids))
+        const m = new Map<string, string>()
+        raw.filter((u: any) => u.donorOrgId).forEach((u: any) => m.set(u.donorOrgId, u.status || 'online'))
+        setOnlineUsers(m)
       }
     } catch { /* silent */ }
   }, [])
@@ -403,6 +406,21 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
     setActiveCall(null)
   }
 
+  // ── Status helpers ─────────────────────────────────────────
+  const getContactStatus = (id: string): 'online' | 'away' | 'offline' => {
+    const s = onlineUsers.get(id)
+    if (!s) return 'offline'
+    return s as 'online' | 'away' | 'offline'
+  }
+  const statusColor = (s: string) => s === 'online' ? 'bg-green-400' : s === 'away' ? 'bg-yellow-400' : 'bg-gray-400'
+  const statusLabel = (s: string) => s === 'online' ? 'Online' : s === 'away' ? 'Away' : 'Offline'
+
+  const handleSetMyStatus = (status: 'online' | 'away' | 'offline') => {
+    setMyStatus(status)
+    setShowStatusMenu(false)
+    if (socketRef.current) socketRef.current.emit('set_status', { status })
+  }
+
   // ── Filter + sort contacts ─────────────────────────────────
   const safeContacts = Array.isArray(contacts) ? contacts : []
   const filteredContacts = [...safeContacts]
@@ -478,11 +496,11 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
               </button>
               <div className="flex-1 min-w-0 ml-2">
                 <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full shrink-0 ${onlineUsers.has(activeContact.id) ? 'bg-green-400' : 'bg-gray-400'}`} />
+                  <div className={`w-2 h-2 rounded-full shrink-0 ${statusColor(getContactStatus(activeContact.id))}`} />
                   <span className="text-sm font-medium text-[#fefbe9] truncate">{activeContact.name}</span>
                 </div>
                 <p className="text-[10px] text-[#fefbe9]/50">
-                  {onlineUsers.has(activeContact.id) ? 'Online' : 'Offline'}
+                  {statusLabel(getContactStatus(activeContact.id))}
                 </p>
               </div>
             </>
@@ -492,10 +510,30 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
               <span className="text-sm font-semibold text-[#fefbe9]">Messages</span>
             </div>
           )}
-          <button onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-[#fefbe9]/70 hover:text-[#fefbe9] hover:bg-[#fefbe9]/10 transition-all">
-            <X size={16} />
-          </button>
+          <div className="flex items-center gap-1">
+            {/* Status selector */}
+            <div className="relative">
+              <button onClick={() => setShowStatusMenu(!showStatusMenu)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-[#fefbe9]/70 hover:text-[#fefbe9] hover:bg-[#fefbe9]/10 transition-all">
+                <div className={`w-3 h-3 rounded-full border-2 border-[#fefbe9]/30 ${statusColor(myStatus)}`} />
+              </button>
+              {showStatusMenu && (
+                <div className="absolute right-0 top-9 bg-[#183a1d] border border-[#c8d6c0]/30 rounded-lg shadow-xl z-50 py-1 min-w-[130px]">
+                  {(['online', 'away', 'offline'] as const).map(s => (
+                    <button key={s} onClick={() => handleSetMyStatus(s)}
+                      className={`w-full px-3 py-2 text-left text-xs flex items-center gap-2 hover:bg-[#fefbe9]/10 transition-colors ${myStatus === s ? 'text-[#f6c453]' : 'text-[#fefbe9]/80'}`}>
+                      <div className={`w-2.5 h-2.5 rounded-full ${statusColor(s)}`} />
+                      {s === 'online' ? 'Online' : s === 'away' ? 'Away' : 'Appear Offline'}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button onClick={onClose}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-[#fefbe9]/70 hover:text-[#fefbe9] hover:bg-[#fefbe9]/10 transition-all">
+              <X size={16} />
+            </button>
+          </div>
         </div>
 
         {activeContact ? (
@@ -604,9 +642,7 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
                       <div className="w-10 h-10 rounded-full bg-[#183a1d] flex items-center justify-center text-xs font-bold text-[#f6c453]">
                         {contact.name.charAt(0).toUpperCase()}
                       </div>
-                      <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#fefbe9] ${
-                        onlineUsers.has(contact.id) ? 'bg-green-400' : 'bg-gray-300'
-                      }`} />
+                      <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#fefbe9] ${statusColor(getContactStatus(contact.id))}`} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
@@ -617,7 +653,7 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
                       </div>
                       <div className="flex items-center justify-between mt-0.5">
                         <p className="text-xs text-[#183a1d]/50 truncate">
-                          {contact.lastMessage || (onlineUsers.has(contact.id) ? 'Online' : 'Tap to chat')}
+                          {contact.lastMessage || statusLabel(getContactStatus(contact.id))}
                         </p>
                         {contact.unreadCount > 0 && (
                           <span className="ml-2 shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#f6c453] text-[#183a1d] leading-none">

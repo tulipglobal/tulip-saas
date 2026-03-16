@@ -55,15 +55,14 @@ router.post('/', donorAuth, async (req, res) => {
     }
 
     const token = crypto.randomBytes(32).toString('hex')
-    const expiresAt = expiresInDays
-      ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000)
-      : null
+    const days = expiresInDays || 30
+    const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
 
     const [link] = await prisma.$queryRawUnsafe(
-      `INSERT INTO "ShareLink" (id, token, "projectId", "donorOrgId", "expiresAt", "viewCount", "isActive", "createdAt", "updatedAt")
-       VALUES (gen_random_uuid(), $1, $2, $3, $4, 0, true, NOW(), NOW())
+      `INSERT INTO "ShareLink" (id, token, "projectId", "donorOrgId", "donorMemberId", "expiresAt", "expiryDays", "viewCount", "createdAt")
+       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, 0, NOW())
        RETURNING id, token, "expiresAt", "createdAt"`,
-      token, projectId, donorOrgId, expiresAt
+      token, projectId, donorOrgId, donorMemberId, expiresAt, days
     )
 
     res.status(201).json({
@@ -86,10 +85,10 @@ router.get('/', donorAuth, async (req, res) => {
 
     const links = await prisma.$queryRawUnsafe(
       `SELECT sl.id, sl.token, sl."projectId", sl."expiresAt", sl."viewCount",
-              sl."isActive", sl."createdAt", p.name as "projectName"
+              sl."isRevoked", sl."createdAt", p.name as "projectName"
        FROM "ShareLink" sl
        LEFT JOIN "Project" p ON p.id = sl."projectId"
-       WHERE sl."donorOrgId" = $1 AND sl."isActive" = true
+       WHERE sl."donorOrgId" = $1 AND (sl."isRevoked" = false OR sl."isRevoked" IS NULL)
        ORDER BY sl."createdAt" DESC`,
       donorOrgId
     )
@@ -114,9 +113,9 @@ router.get('/project/:projectId', donorAuth, async (req, res) => {
     const { projectId } = req.params
 
     const links = await prisma.$queryRawUnsafe(
-      `SELECT id, token, "expiresAt", "viewCount", "isActive", "createdAt"
+      `SELECT id, token, "expiresAt", "viewCount", "isRevoked", "createdAt"
        FROM "ShareLink"
-       WHERE "donorOrgId" = $1 AND "projectId" = $2 AND "isActive" = true
+       WHERE "donorOrgId" = $1 AND "projectId" = $2 AND ("isRevoked" = false OR "isRevoked" IS NULL)
        ORDER BY "createdAt" DESC`,
       donorOrgId, projectId
     )
@@ -142,7 +141,7 @@ router.delete('/:id', donorAuth, async (req, res) => {
 
     const result = await prisma.$executeRawUnsafe(
       `UPDATE "ShareLink"
-       SET "isActive" = false, "updatedAt" = NOW()
+       SET "isRevoked" = true, "revokedAt" = NOW()
        WHERE id = $1 AND "donorOrgId" = $2`,
       id, donorOrgId
     )

@@ -70,6 +70,13 @@ const navItems = [
   { key: 'approvals',  href: '/dashboard/workflow',  icon: ListChecks, fallback: 'Workflow' },
   { key: 'billing',     href: '/dashboard/billing',   icon: CreditCard },
   { key: 'team',        href: '/dashboard/team',      icon: Users },
+  { key: 'donorFlags', href: '/dashboard/donor-flags', icon: Flag, fallback: 'Donor Flags' },
+  { key: 'deliverables', href: '/dashboard/deliverables', icon: FileCheck, fallback: 'Deliverables' },
+  { key: 'impact', href: '/dashboard/impact', icon: BarChart3, fallback: 'Impact' },
+  { key: 'investments', href: '/dashboard/investments', icon: DollarSign, fallback: 'Investments' },
+  { key: 'drawdowns', href: '/dashboard/drawdowns', icon: ArrowDownUp, fallback: 'Drawdowns' },
+  { key: 'donors',     href: '/dashboard/settings/donors', icon: Users, fallback: 'Donors' },
+  // Developer / integration tools — above Settings
   { key: 'apiKeys',     href: '/dashboard/api-keys',  icon: Key },
   { key: 'webhooks',    href: '/dashboard/webhooks',  icon: Webhook },
   { key: 'trustSeal',   href: '/dashboard/trust-seal',     icon: ShieldCheck },
@@ -78,12 +85,6 @@ const navItems = [
   { key: 'bundleVerify', href: '/dashboard/api-portal/bundle', icon: FolderSearch },
   { key: 'developerApi', href: '/dashboard/api-portal/developer', icon: Code2 },
   { key: 'embed',       href: '/dashboard/embed',     icon: Code2 },
-  { key: 'donorFlags', href: '/dashboard/donor-flags', icon: Flag, fallback: 'Donor Flags' },
-  { key: 'deliverables', href: '/dashboard/deliverables', icon: FileCheck, fallback: 'Deliverables' },
-  { key: 'impact', href: '/dashboard/impact', icon: BarChart3, fallback: 'Impact' },
-  { key: 'investments', href: '/dashboard/investments', icon: DollarSign, fallback: 'Investments' },
-  { key: 'drawdowns', href: '/dashboard/drawdowns', icon: ArrowDownUp, fallback: 'Drawdowns' },
-  { key: 'donors',     href: '/dashboard/settings/donors', icon: Users, fallback: 'Donors' },
   { key: 'settings',   href: '/dashboard/settings',  icon: Settings },
 ]
 
@@ -101,6 +102,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [messengerOpen, setMessengerOpen] = useState(false)
   const [messengerTarget, setMessengerTarget] = useState<string | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [userName, setUserName] = useState('NGO Admin')
+  const [userEmail, setUserEmail] = useState('')
+  const [userRole, setUserRole] = useState('Administrator')
+  const profileRef = useRef<HTMLDivElement>(null)
   const messengerUnread = useMessengerUnreadCount()
   const notifPanelRef = useRef<HTMLDivElement>(null)
   const notifBtnRef = useRef<HTMLButtonElement>(null)
@@ -108,6 +114,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter()
   const t = useTranslations('nav')
   useOfflineSync() // mount globally — drains offline queue + pre-caches projects
+
+  // Load user data from localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('tulip_user')
+      if (stored) {
+        const u = JSON.parse(stored)
+        if (u.name) setUserName(u.name)
+        if (u.email) setUserEmail(u.email)
+        if (u.role) setUserRole(u.role)
+      }
+    } catch {}
+  }, [])
+
+  // Close profile dropdown on outside click
+  useEffect(() => {
+    if (!profileOpen) return
+    const handleClick = (e: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [profileOpen])
 
   // Listen for open-messenger events from child pages (e.g. donors page)
   useEffect(() => {
@@ -523,14 +554,64 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </span>
               )}
             </button>
-            <div className="flex items-center gap-2.5 pl-3 border-l border-[var(--tulip-sage-dark)]">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-[var(--tulip-forest)] bg-[var(--tulip-gold)]">
-                N
-              </div>
-              <div className="hidden sm:block">
-                <div className="text-sm font-medium text-[var(--tulip-forest)]">NGO Admin</div>
-                <div className="text-xs text-[var(--tulip-forest)]/50">Administrator</div>
-              </div>
+            <div className="relative" ref={profileRef}>
+              <button
+                onClick={() => setProfileOpen(prev => !prev)}
+                className="flex items-center gap-2.5 pl-3 border-l border-[var(--tulip-sage-dark)] cursor-pointer hover:opacity-80 transition-all"
+              >
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-[var(--tulip-forest)] bg-[var(--tulip-gold)]">
+                  {userName.charAt(0).toUpperCase()}
+                </div>
+                <div className="hidden sm:block text-left">
+                  <div className="text-sm font-medium text-[var(--tulip-forest)]">{userName}</div>
+                  <div className="text-xs text-[var(--tulip-forest)]/50">{userRole}</div>
+                </div>
+                <svg className="hidden sm:block text-[var(--tulip-forest)]/40" width={12} height={12} viewBox="0 0 12 12" fill="none">
+                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+
+              {profileOpen && (
+                <div
+                  className="absolute right-0 top-12 w-64 bg-[var(--tulip-cream)] border border-[var(--tulip-sage-dark)] rounded-xl shadow-xl z-50 overflow-hidden"
+                  style={{ animation: 'slideInRight 0.2s ease-out' }}
+                >
+                  {/* User info header */}
+                  <div className="px-4 py-3 border-b border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]">
+                    <p className="text-sm font-semibold text-[var(--tulip-forest)]">{userName}</p>
+                    {userEmail && <p className="text-xs text-[var(--tulip-forest)]/50 truncate">{userEmail}</p>}
+                    <p className="text-[10px] text-[var(--tulip-forest)]/40 mt-0.5">{userRole}</p>
+                  </div>
+
+                  {/* Menu items */}
+                  <div className="py-1">
+                    <Link href="/dashboard/settings" onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] transition-all">
+                      <Settings size={15} className="text-[var(--tulip-forest)]/40" /> Profile & Settings
+                    </Link>
+                    <Link href="/dashboard/team" onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] transition-all">
+                      <Users size={15} className="text-[var(--tulip-forest)]/40" /> Team Members
+                    </Link>
+                    <Link href="/dashboard/billing" onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] transition-all">
+                      <CreditCard size={15} className="text-[var(--tulip-forest)]/40" /> Billing
+                    </Link>
+                    <Link href="/dashboard/api-keys" onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] transition-all">
+                      <Key size={15} className="text-[var(--tulip-forest)]/40" /> API Keys
+                    </Link>
+                  </div>
+
+                  {/* Sign out */}
+                  <div className="border-t border-[var(--tulip-sage-dark)] py-1">
+                    <button onClick={() => { setProfileOpen(false); handleSignOut() }}
+                      className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-all">
+                      <LogOut size={15} /> Sign Out
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </header>

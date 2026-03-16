@@ -22,6 +22,9 @@ const INTERNAL_SECRET = process.env.INTERNAL_API_SECRET
 const skipInternal = (req) => {
   if (req.path === '/api/health' || req.path === '/') return true
   if (INTERNAL_SECRET && req.headers['x-internal-secret'] === INTERNAL_SECRET) return true
+  // Skip rate limiting for local/private IPs (server-to-server calls)
+  const ip = req.ip || ''
+  if (ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1') return true
   return false
 }
 
@@ -38,7 +41,7 @@ const onLimitReached = (req) => {
 // ── General API limiter — per IP ──────────────────────────────
 const apiLimiter = rateLimit({
   windowMs:         15 * 60 * 1000,
-  max:              200,
+  max:              5000,
   keyGenerator:     byIP,
   standardHeaders:  true,
   legacyHeaders:    false,

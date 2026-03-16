@@ -698,12 +698,16 @@ export default function ReportsPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-1">
-                          {report.downloadUrl && (
-                            <a href={report.downloadUrl} title="Download"
-                              className="p-1.5 rounded-md hover:bg-[var(--tulip-sage)] transition-colors text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]">
-                              <Download size={14} />
-                            </a>
-                          )}
+                          <button onClick={async () => {
+                              const res = await apiGet(`/api/ngo/reports/${report.id}/download`)
+                              if (res.ok) {
+                                const data = await res.json()
+                                window.open(data.url, '_blank')
+                              }
+                            }} title="Download"
+                            className="p-1.5 rounded-md hover:bg-[var(--tulip-sage)] transition-colors text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]">
+                            <Download size={14} />
+                          </button>
                           <button onClick={() => openShare(report)} title="Share"
                             className="p-1.5 rounded-md hover:bg-[var(--tulip-sage)] transition-colors text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]">
                             <Share2 size={14} />

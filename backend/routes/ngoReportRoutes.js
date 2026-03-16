@@ -9,7 +9,26 @@
 const express = require('express')
 const router = express.Router()
 const prisma = require('../lib/client')
+const { getPresignedUrlFromKey } = require('../lib/s3Upload')
 const reportEngine = require('../services/reportEngine')
+
+// ── GET /:reportId/download — fresh presigned URL for report download
+router.get('/:reportId/download', async (req, res) => {
+  try {
+    const { reportId } = req.params
+    const tenantId = req.user.tenantId
+    const rows = await prisma.$queryRawUnsafe(
+      `SELECT "fileKey", name FROM "GeneratedReport" WHERE id = $1 AND "tenantId"::text = $2`,
+      reportId, tenantId
+    )
+    if (!rows.length || !rows[0].fileKey) return res.status(404).json({ error: 'Report file not found' })
+    const url = await getPresignedUrlFromKey(rows[0].fileKey, 3600)
+    res.json({ url, fileName: rows[0].name })
+  } catch (err) {
+    console.error('Download report error:', err)
+    res.status(500).json({ error: 'Failed to get download URL' })
+  }
+})
 
 // ── GET / — list reports ─────────────────────────────────────
 router.get('/', async (req, res) => {

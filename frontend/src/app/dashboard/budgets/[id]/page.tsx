@@ -70,6 +70,7 @@ interface Tranche {
   conditions: string | null
   plannedDate: string | null
   status: 'PENDING' | 'CONDITIONS_MET' | 'RELEASED' | 'UTILISED'
+  releaseConditions: string | null
   releaseDate: string | null
   amount: number
   utilisedAmount: number | null
@@ -775,7 +776,7 @@ export default function BudgetDetailPage() {
                   return (
                     <div key={tranche.id} className="px-5 py-3 lg:grid lg:grid-cols-[50px_1.5fr_1fr_0.8fr_1fr_0.8fr_1.2fr] lg:gap-3 lg:items-center space-y-2 lg:space-y-0">
                       <div className="text-sm font-medium text-[#183a1d]">{tranche.trancheNumber}</div>
-                      <div className="text-sm text-[#183a1d]/70">{tranche.conditions || '—'}</div>
+                      <div className="text-sm text-[#183a1d]/70">{tranche.releaseConditions || tranche.conditions || '—'}</div>
                       <div className="text-sm text-[#183a1d]/60">{tranche.plannedDate ? formatDate(tranche.plannedDate) : '—'}</div>
                       <div>
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border font-medium ${statusColors[tranche.status] || statusColors.PENDING}`}>

@@ -742,7 +742,6 @@ router.get('/projects/:projectId', donorAuth, async (req, res) => {
       where: { id: projectId },
       include: {
         expenses: {
-          where: { approvalStatus: { in: ['APPROVED', 'AUTO_APPROVED'] } },
           orderBy: { createdAt: 'desc' },
           select: {
             id: true, description: true, amount: true, currency: true,

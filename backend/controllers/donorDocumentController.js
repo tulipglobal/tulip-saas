@@ -26,7 +26,7 @@ exports.listDocuments = async (req, res) => {
     }
 
     const documents = await prisma.document.findMany({
-      where: { tenantId: { in: tenantIds }, approvalStatus: 'approved' },
+      where: { tenantId: { in: tenantIds }, approvalStatus: { in: ['APPROVED', 'approved'] } },
       select: {
         id: true,
         name: true,
@@ -96,7 +96,7 @@ exports.getDocument = async (req, res) => {
       where: {
         id: req.params.id,
         tenantId: { in: tenantIds },
-        approvalStatus: 'approved',
+        approvalStatus: { in: ['APPROVED', 'approved'] },
       },
       select: {
         id: true,
@@ -154,7 +154,7 @@ exports.viewDocument = async (req, res) => {
       where: {
         id: req.params.id,
         tenantId: { in: tenantIds },
-        approvalStatus: 'approved',
+        approvalStatus: { in: ['APPROVED', 'approved'] },
       },
       select: { id: true, fileUrl: true },
     })

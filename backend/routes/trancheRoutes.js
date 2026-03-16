@@ -107,16 +107,16 @@ router.put('/donor/:trancheId/release', donorAuth, async (req, res) => {
     try {
       // tranche.projectId may be a budgetId
       const budgetResult = await prisma.$queryRawUnsafe(
-        `SELECT id, status FROM "Budget" WHERE id = $1::uuid AND status = 'DRAFT'`, tranche.projectId
+        `SELECT id, status FROM "Budget" WHERE id::text = $1 AND status = 'DRAFT'`, tranche.projectId
       ).catch(() => [])
       if (budgetResult.length > 0) {
         await prisma.$executeRawUnsafe(
-          `UPDATE "Budget" SET status = 'ACTIVE', "updatedAt" = NOW() WHERE id = $1::uuid`, budgetResult[0].id
+          `UPDATE "Budget" SET status = 'ACTIVE', "updatedAt" = NOW() WHERE id::text = $1`, budgetResult[0].id
         )
       } else {
         // projectId might be the actual project — find its draft budgets
         await prisma.$executeRawUnsafe(
-          `UPDATE "Budget" SET status = 'ACTIVE', "updatedAt" = NOW() WHERE "projectId" = $1::uuid AND status = 'DRAFT'`, tranche.projectId
+          `UPDATE "Budget" SET status = 'ACTIVE', "updatedAt" = NOW() WHERE "projectId"::text = $1 AND status = 'DRAFT'`, tranche.projectId
         ).catch(() => {})
       }
     } catch {}
@@ -215,7 +215,7 @@ router.get('/ngo/funding/:agreementId', authenticate, tenantScope, async (req, r
         const projCheck = await prisma.project.findUnique({ where: { id: projectId }, select: { id: true } }).catch(() => null)
         if (!projCheck) {
           const budgetCheck = await prisma.$queryRawUnsafe(
-            `SELECT "projectId" FROM "Budget" WHERE id = $1::uuid`, projectId
+            `SELECT "projectId" FROM "Budget" WHERE id::text = $1`, projectId
           ).catch(() => [])
           if (budgetCheck.length > 0) realProjectId = budgetCheck[0].projectId
         }
@@ -276,7 +276,7 @@ router.put('/ngo/:trancheId/conditions-met', authenticate, tenantScope, upload.s
             docProjectId = projCheck.id
           } else {
             const budgetCheck = await prisma.$queryRawUnsafe(
-              `SELECT "projectId" FROM "Budget" WHERE id = $1::uuid`, tranche.projectId
+              `SELECT "projectId" FROM "Budget" WHERE id::text = $1`, tranche.projectId
             )
             if (budgetCheck.length > 0) docProjectId = budgetCheck[0].projectId
           }
@@ -366,7 +366,7 @@ router.put('/ngo/:trancheId/attach-evidence', authenticate, tenantScope, upload.
         docProjectId = projCheck.id
       } else {
         const budgetCheck = await prisma.$queryRawUnsafe(
-          `SELECT "projectId" FROM "Budget" WHERE id = $1::uuid`, tranche.projectId
+          `SELECT "projectId" FROM "Budget" WHERE id::text = $1`, tranche.projectId
         )
         if (budgetCheck.length > 0) docProjectId = budgetCheck[0].projectId
       }

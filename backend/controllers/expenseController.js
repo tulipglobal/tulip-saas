@@ -790,12 +790,12 @@ exports.approveExpense = async (req, res) => {
 
     const existing = await db.expense.findFirst({ where: { id: req.params.id } })
     if (!existing) return res.status(404).json({ error: 'Expense not found' })
-    if (existing.approvalStatus === 'approved') return res.status(400).json({ error: 'Expense already approved' })
+    if (existing.approvalStatus === 'APPROVED' || existing.approvalStatus === 'approved') return res.status(400).json({ error: 'Expense already approved' })
 
     const updated = await db.expense.update({
       where: { id: req.params.id },
       data: {
-        approvalStatus: 'approved',
+        approvalStatus: 'APPROVED',
         approvalNote: note || null,
         approvedBy: req.user.userId,
         approvedAt: new Date(),

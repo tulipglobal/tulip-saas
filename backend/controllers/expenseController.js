@@ -100,6 +100,45 @@ exports.createExpense = async (req, res) => {
       }
     }
 
+    // Disbursement enforcement: if project has PORTAL funding, expenses can't exceed released tranche total
+    if (projectId) {
+      try {
+        const releasedResult = await prisma.$queryRawUnsafe(
+          `SELECT COALESCE(SUM(dt.amount), 0)::float as "totalReleased"
+           FROM "DisbursementTranche" dt
+           JOIN "FundingAgreement" fa ON fa.id = dt."fundingAgreementId"
+           JOIN "ProjectFunding" pf ON pf."fundingAgreementId" = fa.id
+           WHERE pf."projectId" = $1::uuid
+             AND fa."funderType" = 'PORTAL'
+             AND dt.status IN ('RELEASED', 'UTILISED')`,
+          projectId
+        )
+        const totalReleased = releasedResult[0]?.totalReleased || 0
+
+        // Only enforce if this project has PORTAL funding with tranches
+        if (totalReleased > 0 || await prisma.$queryRawUnsafe(
+          `SELECT 1 FROM "FundingAgreement" fa
+           JOIN "ProjectFunding" pf ON pf."fundingAgreementId" = fa.id
+           WHERE pf."projectId" = $1::uuid AND fa."funderType" = 'PORTAL' LIMIT 1`, projectId
+        ).then(r => r.length > 0)) {
+          const projectSpentAgg = await prisma.expense.aggregate({
+            where: { projectId },
+            _sum: { amount: true }
+          })
+          const projectSpent = Number(projectSpentAgg._sum.amount || 0)
+          const disbursedRemaining = totalReleased - projectSpent
+          if (totalReleased > 0 && parseFloat(amount) > disbursedRemaining) {
+            return res.status(400).json({
+              error: `Exceeds disbursed funds: ${currency || 'USD'} ${disbursedRemaining.toLocaleString()} remaining from released tranches (total released: ${totalReleased.toLocaleString()}, already spent: ${projectSpent.toLocaleString()})`
+            })
+          }
+        }
+      } catch (disbErr) {
+        console.error('Disbursement check error:', disbErr.message)
+        // Non-blocking — if tables don't exist yet, allow expense creation
+      }
+    }
+
     // Compute mismatch flags if OCR values provided
     const mismatch = (ocrAmount != null || ocrVendor || ocrDate)
       ? checkMismatches(

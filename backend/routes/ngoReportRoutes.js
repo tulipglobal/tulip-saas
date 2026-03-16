@@ -20,8 +20,8 @@ router.get('/', async (req, res) => {
 
     let sql = `SELECT gr.*, p.name as "projectName"
       FROM "GeneratedReport" gr
-      LEFT JOIN "Project" p ON p.id = gr."projectId"
-      WHERE gr."tenantId" = $1`
+      LEFT JOIN "Project" p ON p.id = gr."projectId"::text
+      WHERE gr."tenantId"::text = $1`
     const params = [tenantId]
     let idx = 2
 
@@ -87,9 +87,9 @@ async function fetchExpenses(projectId, tenantId, from, to) {
   return prisma.$queryRawUnsafe(`
     SELECT * FROM "Expense"
     WHERE "projectId" = $1 AND "tenantId" = $2
-      AND date >= $3 AND date < $4
-      AND status = 'APPROVED'
-    ORDER BY date ASC
+      AND "createdAt" >= $3 AND "createdAt" < $4
+      AND "approvalStatus" = 'APPROVED'
+    ORDER BY "createdAt" ASC
   `, projectId, tenantId, from, to)
 }
 
@@ -98,8 +98,8 @@ async function fetchExpenseTotals(projectId, tenantId, from, to) {
     SELECT category, COUNT(*)::int as count, SUM(amount)::float as total
     FROM "Expense"
     WHERE "projectId" = $1 AND "tenantId" = $2
-      AND date >= $3 AND date < $4
-      AND status = 'APPROVED'
+      AND "createdAt" >= $3 AND "createdAt" < $4
+      AND "approvalStatus" = 'APPROVED'
     GROUP BY category
     ORDER BY total DESC
   `, projectId, tenantId, from, to)
@@ -110,8 +110,8 @@ async function fetchTopVendors(projectId, tenantId, from, to) {
     SELECT vendor, COUNT(*)::int as count, SUM(amount)::float as total
     FROM "Expense"
     WHERE "projectId" = $1 AND "tenantId" = $2
-      AND date >= $3 AND date < $4
-      AND status = 'APPROVED' AND vendor IS NOT NULL
+      AND "createdAt" >= $3 AND "createdAt" < $4
+      AND "approvalStatus" = 'APPROVED' AND vendor IS NOT NULL
     GROUP BY vendor
     ORDER BY total DESC
     LIMIT 5
@@ -147,9 +147,9 @@ async function fetchFraudFlags(projectId, tenantId, from, to) {
   return prisma.$queryRawUnsafe(`
     SELECT * FROM "Expense"
     WHERE "projectId" = $1 AND "tenantId" = $2
-      AND date >= $3 AND date < $4
+      AND "createdAt" >= $3 AND "createdAt" < $4
       AND ("fraudRiskLevel" IS NOT NULL AND "fraudRiskLevel" != 'NONE')
-    ORDER BY date ASC
+    ORDER BY "createdAt" ASC
   `, projectId, tenantId, from, to)
 }
 
@@ -161,9 +161,9 @@ async function fetchTenant(tenantId) {
 async function createReportRecord(tenantId, projectId, reportType, name, dateFrom, dateTo, config, userId) {
   const rows = await prisma.$queryRawUnsafe(`
     INSERT INTO "GeneratedReport" ("tenantId", "projectId", "reportType", name, "dateRangeFrom", "dateRangeTo", "reportConfig", "generatedBy", "generatedByType", status)
-    VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, 'NGO', 'GENERATING')
+    VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7::jsonb, $8::uuid, 'NGO', 'GENERATING')
     RETURNING *
-  `, tenantId, projectId, reportType, name, dateFrom, dateTo, JSON.stringify(config || {}), userId)
+  `, tenantId, projectId || null, reportType, name, dateFrom, dateTo, JSON.stringify(config || {}), userId || null)
   return rows[0]
 }
 
@@ -207,11 +207,11 @@ function addExpenseDetail(doc, re, expenses, currency) {
   }
   const headers = ['Date', 'Vendor', 'Category', 'Amount', 'Status']
   const rows = expenses.slice(0, 200).map(e => [
-    re.formatDate(e.date),
+    re.formatDate(e.createdAt),
     e.vendor || '—',
     e.category || '—',
     re.formatCurrency(e.amount, currency),
-    e.status || '—',
+    e.approvalStatus || '—',
   ])
   re.addTable(doc, headers, rows, { colWidths: [80, 120, 100, 100, 95] })
   if (expenses.length > 200) {
@@ -288,7 +288,7 @@ function addFraudSummary(doc, re, flaggedExpenses, currency) {
   doc.moveDown(0.5)
   const headers = ['Date', 'Vendor', 'Amount', 'Risk Level']
   const rows = flaggedExpenses.map(e => [
-    re.formatDate(e.date),
+    re.formatDate(e.createdAt),
     e.vendor || '—',
     re.formatCurrency(e.amount, currency),
     e.fraudRiskLevel || '—',
@@ -742,7 +742,7 @@ router.post('/generate/usaid-sf425', async (req, res) => {
     // All-time expenses for cumulative
     const allExpenses = await prisma.$queryRawUnsafe(`
       SELECT SUM(amount)::float as total FROM "Expense"
-      WHERE "projectId" = $1 AND "tenantId" = $2 AND status = 'APPROVED'
+      WHERE "projectId" = $1 AND "tenantId" = $2 AND "approvalStatus" = 'APPROVED'
     `, projectId, tenantId)
     const cumulativeSpent = allExpenses[0]?.total || 0
 

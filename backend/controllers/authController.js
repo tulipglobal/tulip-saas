@@ -151,7 +151,7 @@ exports.login = async (req, res) => {
 
     const user = await prisma.user.findUnique({
       where:   { email },
-      include: { roles: { include: { role: true } } }
+      include: { UserRole: { include: { Role: true } } }
     })
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
@@ -296,15 +296,16 @@ exports.me = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where:   { id: req.user.userId },
-      include: { roles: { include: { role: true } }, tenant: { select: { name: true, completedSetup: true, plan: true, planStatus: true, trialEndsAt: true } } }
+      include: { UserRole: { include: { Role: true } }, Tenant: { select: { name: true, completedSetup: true, plan: true, planStatus: true, trialEndsAt: true } } }
     })
     if (!user || user.deletedAt) return res.status(404).json({ error: 'User not found' })
-    const isPaidPlan = user.tenant?.plan && user.tenant.plan !== 'FREE'
-    const trialActive = !isPaidPlan && user.tenant?.trialEndsAt && new Date(user.tenant.trialEndsAt) > new Date()
+    const tenant = user.Tenant
+    const isPaidPlan = tenant?.plan && tenant.plan !== 'FREE'
+    const trialActive = !isPaidPlan && tenant?.trialEndsAt && new Date(tenant.trialEndsAt) > new Date()
     const trialDaysLeft = trialActive
-      ? Math.ceil((new Date(user.tenant.trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+      ? Math.ceil((new Date(tenant.trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
       : 0
-    res.json({ id: user.id, email: user.email, name: user.name, tenantId: user.tenantId, tenantName: user.tenant?.name || null, completedSetup: user.tenant?.completedSetup ?? true, plan: user.tenant?.plan || 'FREE', planStatus: user.tenant?.planStatus || 'active', trialEndsAt: user.tenant?.trialEndsAt || null, trialActive, trialDaysLeft, createdAt: user.createdAt, roles: user.roles.map(r => r.role.name), preferredLanguage: user.preferredLanguage || 'en' })
+    res.json({ id: user.id, email: user.email, name: user.name, tenantId: user.tenantId, tenantName: tenant?.name || null, completedSetup: tenant?.completedSetup ?? true, plan: tenant?.plan || 'FREE', planStatus: tenant?.planStatus || 'active', trialEndsAt: tenant?.trialEndsAt || null, trialActive, trialDaysLeft, createdAt: user.createdAt, roles: (user.UserRole || []).map(r => r.Role.name), preferredLanguage: user.preferredLanguage || 'en' })
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch user' })
   }

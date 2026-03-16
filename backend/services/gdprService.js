@@ -78,7 +78,7 @@ async function exportUserData(userId, tenantId) {
       name:      user.name,
       tenantId:  user.tenantId,
       createdAt: user.createdAt,
-      roles:     user.roles.map(r => r.role.name),
+      roles:     (user.UserRole || user.roles || []).map(r => (r.Role || r.role)?.name),
     },
     auditLogs,
     documents,

@@ -23,7 +23,7 @@ async function findOrCreateSSOUser(profile, tenantId) {
   const email = profile.email || profile.nameID
   if (!email) throw new Error('SSO profile missing email')
 
-  let user = await prisma.user.findUnique({ where: { email }, include: { roles: { include: { role: true } } } })
+  let user = await prisma.user.findUnique({ where: { email }, include: { UserRole: { include: { Role: true } } } })
 
   if (user) {
     // Verify user belongs to this tenant
@@ -35,7 +35,7 @@ async function findOrCreateSSOUser(profile, tenantId) {
       user = await prisma.user.update({
         where: { id: user.id },
         data: { name: profile.displayName },
-        include: { roles: { include: { role: true } } }
+        include: { UserRole: { include: { Role: true } } }
       })
     }
     return user
@@ -54,7 +54,7 @@ async function findOrCreateSSOUser(profile, tenantId) {
       tenantId,
       completedSetup: true,
     },
-    include: { roles: { include: { role: true } } }
+    include: { UserRole: { include: { Role: true } } }
   })
 
   // Assign default role if found
@@ -64,7 +64,7 @@ async function findOrCreateSSOUser(profile, tenantId) {
     })
     user = await prisma.user.findUnique({
       where: { id: user.id },
-      include: { roles: { include: { role: true } } }
+      include: { UserRole: { include: { Role: true } } }
     })
   }
 

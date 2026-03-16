@@ -15,10 +15,10 @@ router.get('/', async (req, res) => {
   try {
     const u = await prisma.user.findUnique({
       where: { id: userId },
-      select: { name: true, roles: { include: { role: { select: { name: true } } } } },
+      select: { name: true, UserRole: { include: { Role: { select: { name: true } } } } },
     })
     if (u) {
-      const topRole = u.roles.find(r => r.role.name === 'admin') ? 'admin' : u.roles[0]?.role?.name || 'member'
+      const topRole = u.UserRole.find(r => r.Role.name === 'admin') ? 'admin' : u.UserRole[0]?.Role?.name || 'member'
       user = { name: u.name, role: topRole }
     }
   } catch (err) {

@@ -151,7 +151,7 @@ async function retryFailed() {
       attempts:    { lt: MAX_ATTEMPTS },
       nextRetryAt: { lte: new Date() }
     },
-    include: { webhook: true },
+    include: { Webhook: true },
     take: 50
   })
 
@@ -160,8 +160,8 @@ async function retryFailed() {
   console.log(`[webhook] Retrying ${due.length} failed deliveries`)
 
   for (const delivery of due) {
-    if (!delivery.webhook?.active) continue
-    await deliver(delivery, delivery.webhook).catch(err =>
+    if (!delivery.Webhook?.active) continue
+    await deliver(delivery, delivery.Webhook).catch(err =>
       console.error(`[webhook] Retry ${delivery.id} error:`, err.message)
     )
   }

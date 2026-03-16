@@ -17,7 +17,7 @@ exports.list = async (req, res) => {
       where: { tenantId, deletedAt: null },
       select: {
         id: true, name: true, email: true, createdAt: true,
-        roles: { include: { role: { select: { id: true, name: true } } } }
+        UserRole: { include: { Role: { select: { id: true, name: true } } } }
       },
       orderBy: { createdAt: 'asc' }
     })
@@ -27,7 +27,7 @@ exports.list = async (req, res) => {
       name: u.name,
       email: u.email,
       createdAt: u.createdAt,
-      roles: u.roles.map(r => ({ id: r.role.id, name: r.role.name })),
+      roles: (u.UserRole || []).map(r => ({ id: r.Role.id, name: r.Role.name })),
     }))
 
     res.json({ data: members })

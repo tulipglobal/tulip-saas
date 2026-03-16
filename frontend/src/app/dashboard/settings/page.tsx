@@ -550,7 +550,7 @@ export default function SettingsPage() {
             </div>
             <div>
               <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Country</label>
-              <input className={inputClass} value={grantConfig.country} onChange={e => setGrantField('country', e.target.value)} placeholder="Country of registration" />
+              <CountrySelect value={grantConfig.country} onChange={(v) => setGrantField('country', v)} />
             </div>
             <div className="md:col-span-2">
               <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Registered Address</label>

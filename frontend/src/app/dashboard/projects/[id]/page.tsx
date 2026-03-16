@@ -553,7 +553,7 @@ export default function ProjectDetailPage() {
                 disabled={savingGoalPurpose}
                 className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--tulip-forest)] text-[var(--tulip-cream)] hover:bg-[var(--tulip-forest)]/90 transition-all disabled:opacity-50"
               >
-                {savingGoalPurpose ? 'Saving...' : 'Save Goal & Purpose'}
+                {savingGoalPurpose ? 'Saving...' : 'Save'}
               </button>
               {goalPurposeSaved && (
                 <span className="text-xs text-emerald-600 flex items-center gap-1"><CheckCircle size={13} /> Saved</span>

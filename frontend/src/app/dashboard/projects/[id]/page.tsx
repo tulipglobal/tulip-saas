@@ -216,6 +216,9 @@ export default function ProjectDetailPage() {
       setNewIndicator({ indicator: '', baselineValue: '', targetValue: '', unit: '', measurementMethod: '', reportingPeriod: '' })
       setShowAddIndicator(null)
       reloadLogframe()
+    } else {
+      const d = await res.json().catch(() => ({ error: 'Failed to add indicator' }))
+      alert(d.error || 'Failed to add indicator')
     }
     setSavingIndicator(false)
   }

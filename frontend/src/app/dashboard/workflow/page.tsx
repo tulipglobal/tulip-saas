@@ -331,7 +331,7 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
               )}
 
               {expense.fraudRiskScore != null && (
-                <div className="text-[10px] text-[var(--tulip-forest)]/30">{t('fraudScore', { score: expense.fraudRiskScore, level: expense.fraudRiskLevel })}</div>
+                <div className="text-[10px] text-[var(--tulip-forest)]/30">{t('fraudScore', { score: expense.fraudRiskScore, level: expense.fraudRiskLevel || 'unknown' })}</div>
               )}
             </div>
           )}
@@ -411,6 +411,13 @@ export default function WorkflowPage() {
   const [summary, setSummary] = useState<Summary>({ pending: 0, inReview: 0, approved: 0, rejected: 0 })
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('')
+  const STATUS_TABS = [
+    { key: '', label: t('allTasks') },
+    { key: 'pending', label: t('pending') },
+    { key: 'in_review', label: t('inReview') },
+    { key: 'approved', label: t('approved') },
+    { key: 'rejected', label: t('rejected') },
+  ]
 
   const load = () => {
     const statusParam = tab ? `?status=${tab}` : ''

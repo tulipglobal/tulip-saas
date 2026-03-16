@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { apiGet } from '@/lib/api'
 import {
   ScanLine, Upload, FileText, Loader2, CheckCircle2, XCircle,
@@ -53,7 +54,7 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
-function RiskBadge({ level, score }: { level: string; score: number | null }) {
+function RiskBadge({ level, score, t }: { level: string; score: number | null; t: (key: string, values?: Record<string, string | number | Date>) => string }) {
   const map: Record<string, string> = {
     low: 'bg-green-400/10 text-green-400 border-green-400/20',
     medium: 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20',
@@ -62,12 +63,13 @@ function RiskBadge({ level, score }: { level: string; score: number | null }) {
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase border ${map[level] ?? 'bg-[var(--tulip-sage)] text-[var(--tulip-forest)]/60 border-[var(--tulip-sage-dark)]'}`}>
       {level === 'high' && <AlertTriangle size={10} />}
-      {level} risk{score != null ? ` · ${score}/100` : ''}
+      {score != null ? t('riskWithScore', { level, score }) : t('riskNoScore', { level })}
     </span>
   )
 }
 
 export default function OcrPage() {
+  const t = useTranslations('apiPortal.ocr')
   const [jobs, setJobs] = useState<OcrJob[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
@@ -162,7 +164,7 @@ export default function OcrPage() {
       setJobs((prev) => [job, ...prev])
       setSelectedJob(job)
     } catch (err) {
-      setError('Network error — could not reach API')
+      setError(t('networkError'))
     } finally {
       setUploading(false)
     }
@@ -210,16 +212,16 @@ export default function OcrPage() {
             <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[var(--tulip-gold)]">
               <ScanLine size={20} />
             </div>
-            OCR Engine
+            {t('title')}
           </h1>
           <p className="text-[var(--tulip-forest)]/60 text-sm mt-1">
-            Extract text from documents, normalise with AI, and generate compliance reports.
+            {t('subtitle')}
           </p>
         </div>
         <button onClick={fetchJobs}
           className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] text-sm text-[var(--tulip-forest)]/70 hover:text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] transition-all">
           <RefreshCw size={14} />
-          Refresh
+          {t('refresh')}
         </button>
       </div>
 
@@ -240,7 +242,7 @@ export default function OcrPage() {
         {uploading ? (
           <div className="flex flex-col items-center gap-3">
             <Loader2 size={32} className="text-[var(--tulip-gold)] animate-spin" />
-            <p className="text-[var(--tulip-forest)]/70 text-sm">Uploading and starting OCR...</p>
+            <p className="text-[var(--tulip-forest)]/70 text-sm">{t('uploadingOcr')}</p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-3">
@@ -248,8 +250,8 @@ export default function OcrPage() {
               <Upload size={24} className="text-[var(--tulip-forest)]" />
             </div>
             <div>
-              <p className="text-[var(--tulip-forest)] font-medium">Drop a document here or click to upload</p>
-              <p className="text-[var(--tulip-forest)]/40 text-xs mt-1">PDF, JPG, PNG, TIFF, WEBP — up to 20MB</p>
+              <p className="text-[var(--tulip-forest)] font-medium">{t('dropOrClick')}</p>
+              <p className="text-[var(--tulip-forest)]/40 text-xs mt-1">{t('fileTypes')}</p>
             </div>
           </div>
         )}
@@ -265,18 +267,18 @@ export default function OcrPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Jobs list */}
         <div className="lg:col-span-1 space-y-3">
-          <h2 className="text-sm font-semibold text-[var(--tulip-forest)]/60 uppercase tracking-wider">Jobs ({jobs.length})</h2>
+          <h2 className="text-sm font-semibold text-[var(--tulip-forest)]/60 uppercase tracking-wider">{t('jobsCount', { count: jobs.length })}</h2>
 
           {loading && (
             <div className="text-center py-8 text-[var(--tulip-forest)]/40">
               <Loader2 size={20} className="animate-spin mx-auto mb-2" />
-              Loading...
+              {t('loading')}
             </div>
           )}
 
           {!loading && jobs.length === 0 && (
             <div className="text-center py-8 text-[var(--tulip-forest)]/40 text-sm">
-              No OCR jobs yet. Upload a document to get started.
+              {t('noJobsYet')}
             </div>
           )}
 
@@ -302,7 +304,7 @@ export default function OcrPage() {
               </div>
               {job.assessmentResult && (
                 <div className="mt-2">
-                  <RiskBadge level={job.assessmentResult} score={job.assessmentScore} />
+                  <RiskBadge level={job.assessmentResult} score={job.assessmentScore} t={t} />
                 </div>
               )}
             </button>
@@ -315,7 +317,7 @@ export default function OcrPage() {
             <div className="flex items-center justify-center h-64 rounded-2xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]">
               <div className="text-center text-[var(--tulip-forest)]/40">
                 <Eye size={32} className="mx-auto mb-2 opacity-40" />
-                <p className="text-sm">Select a job to view results</p>
+                <p className="text-sm">{t('selectJobPrompt')}</p>
               </div>
             </div>
           ) : (
@@ -328,19 +330,19 @@ export default function OcrPage() {
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                   <div>
-                    <span className="text-[var(--tulip-forest)]/40">Type</span>
+                    <span className="text-[var(--tulip-forest)]/40">{t('type')}</span>
                     <p className="text-[var(--tulip-forest)] mt-0.5">{selectedJob.documentType || selectedJob.fileType || '—'}</p>
                   </div>
                   <div>
-                    <span className="text-[var(--tulip-forest)]/40">Size</span>
+                    <span className="text-[var(--tulip-forest)]/40">{t('size')}</span>
                     <p className="text-[var(--tulip-forest)] mt-0.5">{formatSize(selectedJob.fileSize)}</p>
                   </div>
                   <div>
-                    <span className="text-[var(--tulip-forest)]/40">Language</span>
+                    <span className="text-[var(--tulip-forest)]/40">{t('language')}</span>
                     <p className="text-[var(--tulip-forest)] mt-0.5 uppercase">{selectedJob.detectedLanguage || '—'}</p>
                   </div>
                   <div>
-                    <span className="text-[var(--tulip-forest)]/40">Confidence</span>
+                    <span className="text-[var(--tulip-forest)]/40">{t('confidence')}</span>
                     <p className="text-[var(--tulip-forest)] mt-0.5">{selectedJob.confidence != null ? `${selectedJob.confidence}%` : '—'}</p>
                   </div>
                 </div>
@@ -355,7 +357,7 @@ export default function OcrPage() {
                     </div>
                     {selectedJob.anchorTxHash && (
                       <div className="flex items-center gap-2 text-xs mt-1">
-                        <span className="text-[var(--tulip-forest)]/40 ml-5">Polygon TX</span>
+                        <span className="text-[var(--tulip-forest)]/40 ml-5">{t('polygonTx')}</span>
                         <code className="text-green-400/70 font-mono text-[11px]">{selectedJob.anchorTxHash}</code>
                       </div>
                     )}
@@ -369,7 +371,7 @@ export default function OcrPage() {
                     className="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-forest)] transition-all hover:opacity-90 bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)]"
                   >
                     <Download size={14} />
-                    Download Normalised PDF
+                    {t('downloadNormalisedPdf')}
                   </button>
                 )}
               </div>
@@ -379,12 +381,12 @@ export default function OcrPage() {
                 <div className="p-5 rounded-2xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]">
                   <h4 className="font-semibold text-sm text-[var(--tulip-forest)]/70 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <Eye size={14} className="text-[var(--tulip-forest)]" />
-                    Original Document
+                    {t('originalDocument')}
                   </h4>
                   {docPreviewLoading ? (
                     <div className="flex items-center justify-center py-12">
                       <Loader2 size={20} className="animate-spin text-[var(--tulip-gold)]" />
-                      <span className="ml-3 text-sm text-[var(--tulip-forest)]/60">Loading preview...</span>
+                      <span className="ml-3 text-sm text-[var(--tulip-forest)]/60">{t('loadingPreview')}</span>
                     </div>
                   ) : docPreviewUrl ? (
                     <div className="rounded-xl overflow-hidden border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]">
@@ -396,7 +398,7 @@ export default function OcrPage() {
                     </div>
                   ) : (
                     <div className="flex items-center justify-center py-8 text-sm text-[var(--tulip-forest)]/40">
-                      Preview not available
+                      {t('previewNotAvailable')}
                     </div>
                   )}
                 </div>
@@ -407,10 +409,10 @@ export default function OcrPage() {
                 <div className="p-5 rounded-2xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]">
                   <h4 className="font-semibold text-sm text-[var(--tulip-forest)]/70 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <AlertTriangle size={14} className="text-yellow-400" />
-                    Risk Assessment
+                    {t('riskAssessment')}
                   </h4>
                   <div className="flex items-center gap-4 mb-3">
-                    <RiskBadge level={selectedJob.assessmentResult} score={selectedJob.assessmentScore} />
+                    <RiskBadge level={selectedJob.assessmentResult} score={selectedJob.assessmentScore} t={t} />
                   </div>
                   {selectedJob.assessmentNotes ? (
                     <p className="text-sm text-[var(--tulip-forest)]/70">{selectedJob.assessmentNotes}</p>
@@ -419,7 +421,7 @@ export default function OcrPage() {
                   {/* Flags */}
                   {Array.isArray(flags) && flags.length > 0 ? (
                     <div className="mt-4 space-y-2">
-                      <span className="text-[var(--tulip-forest)]/40 text-xs uppercase tracking-wider">Flags</span>
+                      <span className="text-[var(--tulip-forest)]/40 text-xs uppercase tracking-wider">{t('flags')}</span>
                       {flags.map((flag, i) => {
                         const sevColor = flag.severity === 'high' ? 'text-red-400' : flag.severity === 'medium' ? 'text-yellow-400' : 'text-[var(--tulip-forest)]/60'
                         return (
@@ -445,54 +447,54 @@ export default function OcrPage() {
                 <div className="p-5 rounded-2xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]">
                   <h4 className="font-semibold text-sm text-[var(--tulip-forest)]/70 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <Sparkles size={14} className="text-purple-400" />
-                    Extracted Document Data
+                    {t('extractedDocumentData')}
                   </h4>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     {norm.documentNumber ? (
                       <div>
-                        <span className="text-[var(--tulip-forest)]/40 text-xs">Doc Number</span>
+                        <span className="text-[var(--tulip-forest)]/40 text-xs">{t('docNumber')}</span>
                         <p className="text-[var(--tulip-forest)]">{String(norm.documentNumber)}</p>
                       </div>
                     ) : null}
                     {norm.documentDate ? (
                       <div>
-                        <span className="text-[var(--tulip-forest)]/40 text-xs">Date</span>
+                        <span className="text-[var(--tulip-forest)]/40 text-xs">{t('date')}</span>
                         <p className="text-[var(--tulip-forest)]">{String(norm.documentDate)}</p>
                       </div>
                     ) : null}
                     {norm.currency ? (
                       <div>
-                        <span className="text-[var(--tulip-forest)]/40 text-xs">Currency</span>
+                        <span className="text-[var(--tulip-forest)]/40 text-xs">{t('currency')}</span>
                         <p className="text-[var(--tulip-forest)]">{String(norm.currency)}</p>
                       </div>
                     ) : null}
                     {norm.total != null ? (
                       <div>
-                        <span className="text-[var(--tulip-forest)]/40 text-xs">Total</span>
+                        <span className="text-[var(--tulip-forest)]/40 text-xs">{t('total')}</span>
                         <p className="text-[var(--tulip-forest)] font-mono">{String(norm.currency || '')} {Number(norm.total).toLocaleString()}</p>
                       </div>
                     ) : null}
                     {norm.vendor ? (
                       <div>
-                        <span className="text-[var(--tulip-forest)]/40 text-xs">Vendor</span>
+                        <span className="text-[var(--tulip-forest)]/40 text-xs">{t('vendor')}</span>
                         <p className="text-[var(--tulip-forest)]">{String((norm.vendor as Record<string, unknown>)?.name || '—')}</p>
                       </div>
                     ) : null}
                     {norm.buyer ? (
                       <div>
-                        <span className="text-[var(--tulip-forest)]/40 text-xs">Buyer</span>
+                        <span className="text-[var(--tulip-forest)]/40 text-xs">{t('buyer')}</span>
                         <p className="text-[var(--tulip-forest)]">{String((norm.buyer as Record<string, unknown>)?.name || '—')}</p>
                       </div>
                     ) : null}
                     {norm.paymentTerms ? (
                       <div className="col-span-2">
-                        <span className="text-[var(--tulip-forest)]/40 text-xs">Payment Terms</span>
+                        <span className="text-[var(--tulip-forest)]/40 text-xs">{t('paymentTerms')}</span>
                         <p className="text-[var(--tulip-forest)]/70">{String(norm.paymentTerms)}</p>
                       </div>
                     ) : null}
                     {Array.isArray(norm.lineItems) && norm.lineItems.length > 0 ? (
                       <div className="col-span-2">
-                        <span className="text-[var(--tulip-forest)]/40 text-xs">Line Items ({norm.lineItems.length})</span>
+                        <span className="text-[var(--tulip-forest)]/40 text-xs">{t('lineItemsCount', { count: norm.lineItems.length })}</span>
                         <div className="mt-2 space-y-1">
                           {(norm.lineItems as Array<Record<string, unknown>>).slice(0, 10).map((item, i) => (
                             <div key={i} className="flex justify-between text-xs p-2 rounded bg-[var(--tulip-sage)]">
@@ -513,7 +515,7 @@ export default function OcrPage() {
               {selectedJob.rawText && (
                 <details className="rounded-2xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] overflow-hidden">
                   <summary className="px-5 py-3 cursor-pointer text-sm font-medium text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] transition-colors">
-                    Raw Extracted Text
+                    {t('rawExtractedText')}
                   </summary>
                   <pre className="px-5 pb-4 text-xs text-[var(--tulip-forest)]/60 whitespace-pre-wrap font-mono max-h-64 overflow-y-auto">
                     {selectedJob.rawText.slice(0, 5000)}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { apiGet } from '@/lib/api'
 import {
   FolderSearch, Upload, FileText, Loader2, CheckCircle2, XCircle,
@@ -84,7 +85,7 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
-function RiskBadge({ level, score }: { level: string; score: number | null }) {
+function RiskBadge({ level, score, t }: { level: string; score: number | null; t: (key: string, values?: Record<string, string | number | Date>) => string }) {
   const map: Record<string, string> = {
     low: 'bg-green-400/10 text-green-400 border-green-400/20',
     medium: 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20',
@@ -93,7 +94,7 @@ function RiskBadge({ level, score }: { level: string; score: number | null }) {
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase border ${map[level] ?? 'bg-[var(--tulip-sage)] text-[var(--tulip-forest)]/60 border-[var(--tulip-sage-dark)]'}`}>
       {level === 'high' ? <AlertTriangle size={10} /> : null}
-      {level} risk{score != null ? ` · ${score}/100` : ''}
+      {score != null ? t('riskWithScore', { level, score }) : t('riskNoScore', { level })}
     </span>
   )
 }
@@ -108,6 +109,7 @@ function SeverityBadge({ severity }: { severity: string }) {
 }
 
 export default function BundlePage() {
+  const t = useTranslations('apiPortal.bundle')
   const [bundles, setBundles] = useState<BundleJob[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
@@ -156,7 +158,7 @@ export default function BundlePage() {
   const handleUpload = async (files: FileList) => {
     if (files.length === 0) return
     if (files.length > 20) {
-      setError('Maximum 20 files per bundle')
+      setError(t('maxFilesError'))
       return
     }
 
@@ -188,7 +190,7 @@ export default function BundlePage() {
       setSelectedBundle(bundle)
       setBundleName('')
     } catch {
-      setError('Network error — could not reach API')
+      setError(t('networkError'))
     } finally {
       setUploading(false)
     }
@@ -228,16 +230,16 @@ export default function BundlePage() {
             <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[var(--tulip-gold)]">
               <FolderSearch size={20} />
             </div>
-            Bundle Verify
+            {t('title')}
           </h1>
           <p className="text-[var(--tulip-forest)]/60 text-sm mt-1">
-            Upload multiple documents for cross-analysis and inconsistency detection.
+            {t('subtitle')}
           </p>
         </div>
         <button onClick={fetchBundles}
           className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] text-sm text-[var(--tulip-forest)]/70 hover:text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] transition-all">
           <RefreshCw size={14} />
-          Refresh
+          {t('refresh')}
         </button>
       </div>
 
@@ -247,7 +249,7 @@ export default function BundlePage() {
           type="text"
           value={bundleName}
           onChange={(e) => setBundleName(e.target.value)}
-          placeholder="Bundle name (optional)"
+          placeholder={t('bundleNamePlaceholder')}
           className="w-full px-4 py-2.5 rounded-xl bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] transition-all"
         />
         <div
@@ -266,7 +268,7 @@ export default function BundlePage() {
           {uploading ? (
             <div className="flex flex-col items-center gap-3">
               <Loader2 size={32} className="text-[var(--tulip-gold)] animate-spin" />
-              <p className="text-[var(--tulip-forest)]/70 text-sm">Uploading bundle and starting processing...</p>
+              <p className="text-[var(--tulip-forest)]/70 text-sm">{t('uploadingBundle')}</p>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-3">
@@ -274,8 +276,8 @@ export default function BundlePage() {
                 <Upload size={24} className="text-[var(--tulip-forest)]" />
               </div>
               <div>
-                <p className="text-[var(--tulip-forest)] font-medium">Drop multiple documents here or click to upload</p>
-                <p className="text-[var(--tulip-forest)]/40 text-xs mt-1">Up to 20 files — PDF, JPG, PNG, TIFF, WEBP — 20MB each</p>
+                <p className="text-[var(--tulip-forest)] font-medium">{t('dropMultiple')}</p>
+                <p className="text-[var(--tulip-forest)]/40 text-xs mt-1">{t('fileTypes')}</p>
               </div>
             </div>
           )}
@@ -292,18 +294,18 @@ export default function BundlePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Bundle list */}
         <div className="lg:col-span-1 space-y-3">
-          <h2 className="text-sm font-semibold text-[var(--tulip-forest)]/60 uppercase tracking-wider">Bundles ({bundles.length})</h2>
+          <h2 className="text-sm font-semibold text-[var(--tulip-forest)]/60 uppercase tracking-wider">{t('bundlesCount', { count: bundles.length })}</h2>
 
           {loading ? (
             <div className="text-center py-8 text-[var(--tulip-forest)]/40">
               <Loader2 size={20} className="animate-spin mx-auto mb-2" />
-              Loading...
+              {t('loading')}
             </div>
           ) : null}
 
           {!loading && bundles.length === 0 ? (
             <div className="text-center py-8 text-[var(--tulip-forest)]/40 text-sm">
-              No bundles yet. Upload documents to get started.
+              {t('noBundlesYet')}
             </div>
           ) : null}
 
@@ -322,7 +324,7 @@ export default function BundlePage() {
                   <p className="text-sm font-medium text-[var(--tulip-forest)] truncate">{bundle.name}</p>
                   <p className="text-xs text-[var(--tulip-forest)]/40 mt-0.5">
                     {new Date(bundle.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                    {' · '}{bundle.fileCount} files
+                    {' · '}{t('filesCount', { count: bundle.fileCount })}
                   </p>
                   {bundle.status === 'processing_docs' ? (
                     <div className="mt-1.5">
@@ -330,7 +332,7 @@ export default function BundlePage() {
                         <div className="h-full rounded-full bg-blue-400 transition-all duration-500"
                           style={{ width: `${bundle.fileCount > 0 ? (bundle.completedCount / bundle.fileCount) * 100 : 0}%` }} />
                       </div>
-                      <p className="text-[10px] text-[var(--tulip-forest)]/40 mt-0.5">{bundle.completedCount}/{bundle.fileCount} docs processed</p>
+                      <p className="text-[10px] text-[var(--tulip-forest)]/40 mt-0.5">{t('docsProcessed', { completed: bundle.completedCount, total: bundle.fileCount })}</p>
                     </div>
                   ) : null}
                 </div>
@@ -338,7 +340,7 @@ export default function BundlePage() {
               </div>
               {bundle.overallRiskLevel ? (
                 <div className="mt-2">
-                  <RiskBadge level={bundle.overallRiskLevel} score={bundle.overallRiskScore} />
+                  <RiskBadge level={bundle.overallRiskLevel} score={bundle.overallRiskScore} t={t} />
                 </div>
               ) : null}
             </button>
@@ -351,7 +353,7 @@ export default function BundlePage() {
             <div className="flex items-center justify-center h-64 rounded-2xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]">
               <div className="text-center text-[var(--tulip-forest)]/40">
                 <Eye size={32} className="mx-auto mb-2 opacity-40" />
-                <p className="text-sm">Select a bundle to view results</p>
+                <p className="text-sm">{t('selectBundlePrompt')}</p>
               </div>
             </div>
           ) : (
@@ -364,19 +366,19 @@ export default function BundlePage() {
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                   <div>
-                    <span className="text-[var(--tulip-forest)]/40">Files</span>
+                    <span className="text-[var(--tulip-forest)]/40">{t('files')}</span>
                     <p className="text-[var(--tulip-forest)] mt-0.5">{selectedBundle.fileCount}</p>
                   </div>
                   <div>
-                    <span className="text-[var(--tulip-forest)]/40">Processed</span>
+                    <span className="text-[var(--tulip-forest)]/40">{t('processed')}</span>
                     <p className="text-[var(--tulip-forest)] mt-0.5">{selectedBundle.completedCount}/{selectedBundle.fileCount}</p>
                   </div>
                   <div>
-                    <span className="text-[var(--tulip-forest)]/40">Risk Level</span>
+                    <span className="text-[var(--tulip-forest)]/40">{t('riskLevel')}</span>
                     <p className="text-[var(--tulip-forest)] mt-0.5 uppercase">{selectedBundle.overallRiskLevel || '—'}</p>
                   </div>
                   <div>
-                    <span className="text-[var(--tulip-forest)]/40">Risk Score</span>
+                    <span className="text-[var(--tulip-forest)]/40">{t('riskScore')}</span>
                     <p className="text-[var(--tulip-forest)] mt-0.5">{selectedBundle.overallRiskScore != null ? `${selectedBundle.overallRiskScore}/100` : '—'}</p>
                   </div>
                 </div>
@@ -388,7 +390,7 @@ export default function BundlePage() {
                       <div className="h-full rounded-full bg-blue-400 transition-all duration-500"
                         style={{ width: `${selectedBundle.fileCount > 0 ? (selectedBundle.completedCount / selectedBundle.fileCount) * 100 : 0}%` }} />
                     </div>
-                    <p className="text-xs text-[var(--tulip-forest)]/40 mt-1">Processing documents... {selectedBundle.completedCount}/{selectedBundle.fileCount} complete</p>
+                    <p className="text-xs text-[var(--tulip-forest)]/40 mt-1">{t('processingDocs', { completed: selectedBundle.completedCount, total: selectedBundle.fileCount })}</p>
                   </div>
                 ) : null}
 
@@ -410,7 +412,7 @@ export default function BundlePage() {
                     className="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-forest)] transition-all hover:opacity-90 bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)]"
                   >
                     <Download size={14} />
-                    Download Master Report
+                    {t('downloadMasterReport')}
                   </button>
                 ) : null}
               </div>
@@ -420,7 +422,7 @@ export default function BundlePage() {
                 <div className="p-5 rounded-2xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]">
                   <h4 className="font-semibold text-sm text-[var(--tulip-forest)]/70 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <FileText size={14} className="text-[var(--tulip-forest)]" />
-                    Documents ({selectedBundle.ocrJobs.length})
+                    {t('documentsCount', { count: selectedBundle.ocrJobs.length })}
                   </h4>
                   <div className="space-y-2">
                     {selectedBundle.ocrJobs.map((job, i) => (
@@ -434,7 +436,7 @@ export default function BundlePage() {
                             <span className="text-[10px] text-[var(--tulip-forest)]/40 uppercase">{job.documentType}</span>
                           ) : null}
                           {job.assessmentResult ? (
-                            <RiskBadge level={job.assessmentResult} score={job.assessmentScore} />
+                            <RiskBadge level={job.assessmentResult} score={job.assessmentScore} t={t} />
                           ) : (
                             <StatusBadge status={job.status} />
                           )}
@@ -452,12 +454,12 @@ export default function BundlePage() {
                   <div className="p-5 rounded-2xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]">
                     <h4 className="font-semibold text-sm text-[var(--tulip-forest)]/70 uppercase tracking-wider mb-3 flex items-center gap-2">
                       <ShieldCheck size={14} className="text-green-400" />
-                      Cross-Analysis Results
+                      {t('crossAnalysisResults')}
                     </h4>
                     <div className="flex items-center gap-4 mb-3">
-                      <RiskBadge level={cross.bundleRiskLevel} score={cross.bundleRiskScore} />
+                      <RiskBadge level={cross.bundleRiskLevel} score={cross.bundleRiskScore} t={t} />
                       <span className="text-xs text-[var(--tulip-forest)]/40">
-                        Consistency: {cross.consistencyScore}/100
+                        {t('consistency', { score: cross.consistencyScore })}
                       </span>
                       <span className={`text-xs font-semibold uppercase ${
                         cross.overallRecommendation === 'approve' ? 'text-green-400' :
@@ -468,7 +470,7 @@ export default function BundlePage() {
                     </div>
                     <p className="text-sm text-[var(--tulip-forest)]/70">{cross.summary}</p>
                     {cross.overallRecommendationReason ? (
-                      <p className="text-xs text-[var(--tulip-forest)]/60 mt-2">Reason: {cross.overallRecommendationReason}</p>
+                      <p className="text-xs text-[var(--tulip-forest)]/60 mt-2">{t('reason', { reason: cross.overallRecommendationReason })}</p>
                     ) : null}
                   </div>
 
@@ -477,7 +479,7 @@ export default function BundlePage() {
                     <div className="p-5 rounded-2xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]">
                       <h4 className="font-semibold text-sm text-[var(--tulip-forest)]/70 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <AlertTriangle size={14} className="text-yellow-400" />
-                        Cross-Check Findings ({cross.crossChecks.length})
+                        {t('crossCheckFindings', { count: cross.crossChecks.length })}
                       </h4>
                       <div className="space-y-3">
                         {cross.crossChecks.map((check, i) => (
@@ -485,7 +487,7 @@ export default function BundlePage() {
                             <div className="flex items-center gap-2 mb-1">
                               <SeverityBadge severity={check.severity} />
                               <span className="text-xs text-[var(--tulip-forest)]/60 uppercase">{check.checkType}</span>
-                              <span className="text-xs text-[var(--tulip-forest)]/30">Docs: {check.documents?.join(', ')}</span>
+                              <span className="text-xs text-[var(--tulip-forest)]/30">{t('docsLabel', { docs: check.documents?.join(', ') })}</span>
                             </div>
                             <p className="text-sm text-[var(--tulip-forest)]">{check.finding}</p>
                             {check.recommendation ? (
@@ -502,7 +504,7 @@ export default function BundlePage() {
                     <div className="p-5 rounded-2xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]">
                       <h4 className="font-semibold text-sm text-[var(--tulip-forest)]/70 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <ArrowRightLeft size={14} className="text-indigo-400" />
-                        Document Relationships
+                        {t('documentRelationships')}
                       </h4>
                       <div className="space-y-2">
                         {cross.documentRelationships.map((rel, i) => {
@@ -527,7 +529,7 @@ export default function BundlePage() {
                     <div className="p-5 rounded-2xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]">
                       <h4 className="font-semibold text-sm text-[var(--tulip-forest)]/70 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <FileWarning size={14} className="text-orange-400" />
-                        Missing Documents
+                        {t('missingDocuments')}
                       </h4>
                       <div className="space-y-1.5">
                         {cross.missingDocuments.map((doc, i) => (

@@ -45,6 +45,17 @@ router.post('/donor/funding/:agreementId', donorAuth, async (req, res) => {
     })
     if (!agreement) return res.status(403).json({ error: 'Not your agreement' })
 
+    // Block tranches for impact investments — use drawdowns instead
+    const impactInv = await prisma.$queryRawUnsafe(
+      `SELECT id FROM "ImpactInvestment"
+       WHERE "projectId"::text = $1 AND "donorOrgId"::text = $2 AND status = 'ACTIVE'
+       LIMIT 1`,
+      agreement.projectId || agreement.budgetId, req.donor.donorOrgId
+    ).catch(() => [])
+    if (impactInv.length > 0) {
+      return res.status(400).json({ error: 'This funding has an active impact investment. Use drawdowns instead of tranches.' })
+    }
+
     const rows = await prisma.$queryRawUnsafe(`
       INSERT INTO "DisbursementTranche" ("fundingAgreementId", "projectId", "tenantId", "trancheNumber", amount, currency, "releaseConditions", "plannedReleaseDate", notes)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)

@@ -33,18 +33,22 @@ router.get('/', async (req, res) => {
 
     if (!projectIds.length) return res.json({ investments: [] })
 
-    const placeholders = projectIds.map((_, i) => `$${i + 1}::uuid`).join(', ')
+    const placeholders = projectIds.map((_, i) => `$${i + 1}`).join(', ')
     const investments = await prisma.$queryRawUnsafe(
       `SELECT ii.*, dorg.name as "donorOrgName"
        FROM "ImpactInvestment" ii
        LEFT JOIN "DonorOrganisation" dorg ON dorg.id = ii."donorOrgId"::text
-       WHERE ii."projectId" IN (${placeholders})
+       WHERE ii."projectId"::text IN (${placeholders})
        ORDER BY ii."createdAt" DESC`,
       ...projectIds
     )
 
     for (const inv of investments) {
       inv.projectName = projectMap[inv.projectId] || 'Unknown'
+      // Parse numeric fields from raw SQL (returned as strings)
+      inv.totalFacility = parseFloat(inv.totalFacility) || 0
+      inv.drawnDown = parseFloat(inv.drawnDown) || 0
+      inv.interestRate = parseFloat(inv.interestRate) || 0
 
       // Repayment summary
       const schedule = await prisma.$queryRawUnsafe(
@@ -61,11 +65,12 @@ router.get('/', async (req, res) => {
       const nextRepayment = schedule.find(s => s.status === 'PENDING' || s.status === 'OVERDUE') || null
 
       inv.repaymentSummary = { totalPaid, totalDue, overdueCount, nextRepayment, instalmentCount: schedule.length }
-      inv.schedule = schedule
+      // Add currency to each schedule row (frontend expects it)
+      inv.schedule = schedule.map(s => ({ ...s, currency: inv.currency, amount: parseFloat(s.totalDue) || parseFloat(s.amount) || 0 }))
 
       // Covenant status
       const covenants = await prisma.$queryRawUnsafe(
-        `SELECT * FROM "Covenant"
+        `SELECT *, metric as name FROM "Covenant"
          WHERE "investmentId" = $1::uuid
          ORDER BY "createdAt" ASC`,
         inv.id

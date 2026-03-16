@@ -197,13 +197,15 @@ router.post('/projects/:projectId/investments', donorAuth, async (req, res) => {
         const interestDue = Math.round((remainingPrincipal * (rate / 100 / 12)) * 100) / 100
         const totalDue = Math.round((principalDue + interestDue) * 100) / 100
 
+        const crypto = require('crypto')
         const instalment = await prisma.$queryRawUnsafe(
           `INSERT INTO "RepaymentSchedule" (
-            "investmentId", "instalmentNumber", "dueDate",
-            "principalDue", "interestDue", "totalDue", status
-          ) VALUES ($1::uuid, $2, $3, $4, $5, $6, 'PENDING')
+            id, "investmentId", "instalmentNumber", "dueDate",
+            amount, "principalDue", "interestDue", "totalDue", status,
+            "createdAt", "updatedAt"
+          ) VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, 'PENDING', NOW(), NOW())
           RETURNING *`,
-          investment.id, i, dueDate,
+          crypto.randomUUID(), investment.id, i, dueDate, totalDue,
           Math.round(principalDue * 100) / 100,
           interestDue, totalDue
         )
@@ -341,6 +343,17 @@ router.post('/investments/:investmentId/drawdowns/:id/approve', donorAuth, async
       donorMemberId, id, investmentId
     )
     if (!updated.length) return res.status(404).json({ error: 'Drawdown not found' })
+
+    // Update drawnDown on the investment
+    await prisma.$queryRawUnsafe(
+      `UPDATE "ImpactInvestment"
+       SET "drawnDown" = COALESCE((
+         SELECT SUM(amount) FROM "Drawdown"
+         WHERE "investmentId" = $1::uuid AND status IN ('APPROVED', 'DISBURSED')
+       ), 0), "updatedAt" = NOW()
+       WHERE id = $1::uuid`,
+      investmentId
+    ).catch(err => console.error('Update drawnDown error:', err.message))
 
     // Get project name for email
     const projectId = inv[0].projectId

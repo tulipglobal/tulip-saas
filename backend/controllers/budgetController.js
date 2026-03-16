@@ -325,12 +325,14 @@ exports.create = async (req, res) => {
                   const interestDue = Math.round((remainingPrincipal * (rate / 100 / 12)) * 100) / 100
                   const totalDue = Math.round((principalDue + interestDue) * 100) / 100
 
+                  const crypto = require('crypto')
                   await prisma.$queryRawUnsafe(
                     `INSERT INTO "RepaymentSchedule" (
-                      "investmentId", "instalmentNumber", "dueDate",
-                      "principalDue", "interestDue", "totalDue", status
-                    ) VALUES ($1::uuid, $2, $3, $4, $5, $6, 'PENDING')`,
-                    investment.id, i, dueDate,
+                      id, "investmentId", "instalmentNumber", "dueDate",
+                      amount, "principalDue", "interestDue", "totalDue", status,
+                      "createdAt", "updatedAt"
+                    ) VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, 'PENDING', NOW(), NOW())`,
+                    crypto.randomUUID(), investment.id, i, dueDate, totalDue,
                     Math.round(principalDue * 100) / 100,
                     interestDue, totalDue
                   )
@@ -633,12 +635,14 @@ exports.addFundingSource = async (req, res) => {
               const interestDue = Math.round((remainingPrincipal * (rate / 100 / 12)) * 100) / 100
               const totalDue = Math.round((principalDue + interestDue) * 100) / 100
 
+              const crypto = require('crypto')
               await prisma.$queryRawUnsafe(
                 `INSERT INTO "RepaymentSchedule" (
-                  "investmentId", "instalmentNumber", "dueDate",
-                  "principalDue", "interestDue", "totalDue", status
-                ) VALUES ($1::uuid, $2, $3, $4, $5, $6, 'PENDING')`,
-                investment.id, i, dueDate,
+                  id, "investmentId", "instalmentNumber", "dueDate",
+                  amount, "principalDue", "interestDue", "totalDue", status,
+                  "createdAt", "updatedAt"
+                ) VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, 'PENDING', NOW(), NOW())`,
+                crypto.randomUUID(), investment.id, i, dueDate, totalDue,
                 Math.round(principalDue * 100) / 100,
                 interestDue, totalDue
               )

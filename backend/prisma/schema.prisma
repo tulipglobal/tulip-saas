@@ -7,7 +7,7 @@ datasource db {
 }
 
 model ApiKey {
-  id          String        @id
+  id          String        @id @default(uuid())
   tenantId    String
   createdBy   String
   name        String

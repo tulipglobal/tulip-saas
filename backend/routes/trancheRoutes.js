@@ -101,7 +101,41 @@ router.put('/donor/:trancheId/release', donorAuth, async (req, res) => {
     `, actualReleaseDate ? new Date(actualReleaseDate) : new Date(), notes || null, trancheId)
 
     if (!rows.length) return res.status(404).json({ error: 'Tranche not found' })
-    res.json({ tranche: rows[0] })
+
+    // Auto-activate budget when first tranche is released
+    const tranche = rows[0]
+    try {
+      // tranche.projectId may be a budgetId
+      const budgetResult = await prisma.$queryRawUnsafe(
+        `SELECT id, status FROM "Budget" WHERE id = $1::uuid AND status = 'DRAFT'`, tranche.projectId
+      ).catch(() => [])
+      if (budgetResult.length > 0) {
+        await prisma.$executeRawUnsafe(
+          `UPDATE "Budget" SET status = 'ACTIVE', "updatedAt" = NOW() WHERE id = $1::uuid`, budgetResult[0].id
+        )
+      } else {
+        // projectId might be the actual project — find its draft budgets
+        await prisma.$executeRawUnsafe(
+          `UPDATE "Budget" SET status = 'ACTIVE', "updatedAt" = NOW() WHERE "projectId" = $1::uuid AND status = 'DRAFT'`, tranche.projectId
+        ).catch(() => {})
+      }
+    } catch {}
+
+    // Notify NGO
+    try {
+      const agreement = await prisma.fundingAgreement.findFirst({ where: { id: tranche.fundingAgreementId }, select: { tenantId: true, title: true } })
+      if (agreement?.tenantId) {
+        await createAuditLog({
+          action: 'tranche.released',
+          entityType: 'DisbursementTranche',
+          entityId: tranche.id,
+          tenantId: agreement.tenantId,
+          details: { trancheNumber: tranche.trancheNumber, amount: tranche.amount, releasedBy: 'donor' }
+        })
+      }
+    } catch {}
+
+    res.json({ tranche })
   } catch (err) {
     console.error('Release tranche error:', err)
     res.status(500).json({ error: 'Failed to release tranche' })

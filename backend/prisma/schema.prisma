@@ -18,17 +18,17 @@ model ApiKey {
   expiresAt   DateTime?
   revokedAt   DateTime?
   createdAt   DateTime      @default(now())
-  User        User          @relation(fields: [createdBy], references: [id])
-  Tenant      Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  ApiUsageLog ApiUsageLog[]
-  OcrJob      OcrJob[]
+  user        User          @relation(fields: [createdBy], references: [id])
+  tenant      Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  apiUsageLogs ApiUsageLog[]
+  ocrJobs     OcrJob[]
 
   @@index([createdBy])
   @@index([tenantId])
 }
 
 model ApiUsageLog {
-  id           String   @id
+  id           String   @id @default(uuid())
   apiKeyId     String
   tenantId     String
   endpoint     String
@@ -37,7 +37,7 @@ model ApiUsageLog {
   responseTime Int      @default(0)
   errorMessage String?
   createdAt    DateTime @default(now())
-  ApiKey       ApiKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  apiKey       ApiKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
 
   @@index([apiKeyId])
   @@index([createdAt])
@@ -46,7 +46,7 @@ model ApiUsageLog {
 }
 
 model AuditLog {
-  id              String    @id
+  id              String    @id @default(uuid())
   action          String
   entityType      String
   entityId        String
@@ -65,8 +65,8 @@ model AuditLog {
   timestampToken  String?
   timestampedAt   DateTime?
   tsaUrl          String?
-  Tenant          Tenant    @relation(fields: [tenantId], references: [id])
-  User            User?     @relation(fields: [userId], references: [id])
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  user            User?     @relation(fields: [userId], references: [id])
 
   @@index([anchorStatus])
   @@index([batchId])
@@ -76,7 +76,7 @@ model AuditLog {
 }
 
 model Budget {
-  id                  String                @id
+  id                  String                @id @default(uuid())
   tenantId            String
   name                String
   periodFrom          DateTime
@@ -86,8 +86,8 @@ model Budget {
   createdAt           DateTime              @default(now())
   updatedAt           DateTime
   projectId           String?
-  Project             Project?              @relation(fields: [projectId], references: [id])
-  Tenant              Tenant                @relation(fields: [tenantId], references: [id])
+  project             Project?              @relation(fields: [projectId], references: [id])
+  tenant              Tenant                @relation(fields: [tenantId], references: [id])
   fundingSources      BudgetFundingSource[]
   lines               BudgetLine[]
   expenses            Expense[]
@@ -110,7 +110,7 @@ model BudgetAlert {
 }
 
 model BudgetFundingSource {
-  id                 String             @id
+  id                 String             @id @default(uuid())
   budgetId           String
   sourceType         String
   sourceSubType      String?
@@ -124,14 +124,14 @@ model BudgetFundingSource {
   funderType         String?            @default("EXTERNAL") @db.VarChar(20)
   funderName         String?
   fundingAgreementId String?
-  Budget             Budget             @relation(fields: [budgetId], references: [id], onDelete: Cascade)
-  DonorOrganisation  DonorOrganisation? @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  budget             Budget             @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  donorOrganisation  DonorOrganisation? @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([budgetId])
 }
 
 model BudgetLine {
-  id             String    @id
+  id             String    @id @default(uuid())
   budgetId       String
   expenseType    String
   category       String
@@ -141,7 +141,7 @@ model BudgetLine {
   currency       String    @default("USD")
   createdAt      DateTime  @default(now())
   updatedAt      DateTime
-  Budget         Budget    @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  budget         Budget    @relation(fields: [budgetId], references: [id], onDelete: Cascade)
   expenses       Expense[]
 
   @@index([budgetId])
@@ -149,7 +149,7 @@ model BudgetLine {
 }
 
 model BundleJob {
-  id                String            @id
+  id                String            @id @default(uuid())
   tenantId          String
   name              String
   status            String            @default("pending")
@@ -165,9 +165,9 @@ model BundleJob {
   createdAt         DateTime          @default(now())
   updatedAt         DateTime
   caseId            String?
-  VerificationCase  VerificationCase? @relation(fields: [caseId], references: [id])
-  Tenant            Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  OcrJob            OcrJob[]
+  verificationCase  VerificationCase? @relation(fields: [caseId], references: [id])
+  tenant            Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ocrJobs           OcrJob[]
 
   @@index([caseId])
   @@index([createdAt])
@@ -187,7 +187,7 @@ model CallSession {
   startedAt      DateTime?    @db.Timestamp(6)
   endedAt        DateTime?    @db.Timestamp(6)
   createdAt      DateTime?    @default(now()) @db.Timestamp(6)
-  Conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model Conversation {
@@ -197,9 +197,9 @@ model Conversation {
   lastMessageAt     DateTime?         @db.Timestamp(6)
   createdAt         DateTime?         @default(now()) @db.Timestamp(6)
   updatedAt         DateTime?         @default(now()) @db.Timestamp(6)
-  CallSession       CallSession[]
-  DonorOrganisation DonorOrganisation @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  Message           Message[]
+  callSessions      CallSession[]
+  donorOrganisation DonorOrganisation @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  messages          Message[]
 
   @@unique([tenantId, donorOrgId])
   @@index([donorOrgId], map: "idx_conversation_donor")
@@ -217,7 +217,7 @@ model Covenant {
   status           String           @default("OK") @db.VarChar(20)
   createdAt        DateTime?        @default(now()) @db.Timestamp(6)
   updatedAt        DateTime?        @default(now()) @db.Timestamp(6)
-  ImpactInvestment ImpactInvestment @relation(fields: [investmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  impactInvestment ImpactInvestment @relation(fields: [investmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([investmentId], map: "idx_covenant_investment")
 }
@@ -238,7 +238,7 @@ model DeliverableRequest {
   createdAt             DateTime?               @default(now()) @db.Timestamp(6)
   updatedAt             DateTime?               @default(now()) @db.Timestamp(6)
   attachments           String?
-  DeliverableSubmission DeliverableSubmission[]
+  deliverableSubmissions DeliverableSubmission[]
 
   @@index([projectId], map: "idx_deliverable_project")
   @@index([tenantId], map: "idx_deliverable_tenant")
@@ -254,7 +254,7 @@ model DeliverableSubmission {
   documentIds        String[]           @default([])
   submittedAt        DateTime?          @default(now()) @db.Timestamp(6)
   version            Int                @default(1)
-  DeliverableRequest DeliverableRequest @relation(fields: [requestId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  deliverableRequest DeliverableRequest @relation(fields: [requestId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([requestId], map: "idx_delsub_request")
 }
@@ -278,13 +278,13 @@ model DisbursementTranche {
   createdAt          DateTime?        @default(now()) @db.Timestamp(6)
   updatedAt          DateTime?        @default(now()) @db.Timestamp(6)
   evidenceDocumentId String?
-  FundingAgreement   FundingAgreement @relation(fields: [fundingAgreementId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  fundingAgreement   FundingAgreement @relation(fields: [fundingAgreementId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([fundingAgreementId], map: "idx_tranche_agreement")
 }
 
 model Document {
-  id                         String    @id
+  id                         String    @id @default(uuid())
   name                       String
   fileUrl                    String
   fileType                   String?
@@ -321,8 +321,8 @@ model Document {
   fraudSignals               Json?
   expense                    Expense?  @relation(fields: [expenseId], references: [id])
   project                    Project?  @relation(fields: [projectId], references: [id])
-  Tenant                     Tenant    @relation(fields: [tenantId], references: [id])
-  User                       User?     @relation(fields: [uploadedById], references: [id])
+  tenant                     Tenant    @relation(fields: [tenantId], references: [id])
+  user                       User?     @relation(fields: [uploadedById], references: [id])
 
   @@index([expenseId])
   @@index([expiryDate])
@@ -335,7 +335,7 @@ model Document {
 }
 
 model Donor {
-  id                 String             @id
+  id                 String             @id @default(uuid())
   name               String
   organisationName   String?
   type               String             @default("FOUNDATION")
@@ -346,7 +346,7 @@ model Donor {
   logoUrl            String?
   createdAt          DateTime           @default(now())
   updatedAt          DateTime
-  DonorUser          DonorUser[]
+  donorUsers         DonorUser[]
   fundingAgreements  FundingAgreement[]
 
   @@index([email])
@@ -354,7 +354,7 @@ model Donor {
 }
 
 model DonorInvite {
-  id              String   @id
+  id              String   @id @default(uuid())
   token           String   @unique
   email           String
   invitedByUserId String
@@ -365,9 +365,9 @@ model DonorInvite {
   expiresAt       DateTime
   createdAt       DateTime @default(now())
   updatedAt       DateTime
-  User            User     @relation(fields: [invitedByUserId], references: [id])
+  user            User     @relation(fields: [invitedByUserId], references: [id])
   project         Project? @relation(fields: [projectId], references: [id])
-  Tenant          Tenant   @relation(fields: [tenantId], references: [id])
+  tenant          Tenant   @relation(fields: [tenantId], references: [id])
 
   @@index([email])
   @@index([status])
@@ -386,9 +386,9 @@ model DonorMember {
   createdAt         DateTime?          @default(now()) @db.Timestamp(6)
   updatedAt         DateTime?          @default(now()) @db.Timestamp(6)
   themePreference   String?            @default("system") @db.VarChar(10)
-  DonorOrganisation DonorOrganisation? @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  SavedReport       SavedReport[]
-  ShareLink         ShareLink[]
+  donorOrganisation DonorOrganisation? @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  savedReports      SavedReport[]
+  shareLinks        ShareLink[]
 }
 
 model DonorNotification {
@@ -432,16 +432,16 @@ model DonorOrganisation {
   website             String?
   createdAt           DateTime?             @default(now()) @db.Timestamp(6)
   updatedAt           DateTime?             @default(now()) @db.Timestamp(6)
-  BudgetFundingSource BudgetFundingSource[]
-  Conversation        Conversation[]
-  DonorMember         DonorMember[]
-  DonorProjectAccess  DonorProjectAccess[]
-  FundingAgreement    FundingAgreement[]
-  FundingSource       FundingSource[]
-  GeneratedReport     GeneratedReport[]
-  GrantCondition      GrantCondition[]
-  SavedReport         SavedReport[]
-  ShareLink           ShareLink[]
+  budgetFundingSources BudgetFundingSource[]
+  conversations        Conversation[]
+  donorMembers         DonorMember[]
+  donorProjectAccesses DonorProjectAccess[]
+  fundingAgreements    FundingAgreement[]
+  fundingSources       FundingSource[]
+  generatedReports     GeneratedReport[]
+  grantConditions      GrantCondition[]
+  savedReports         SavedReport[]
+  shareLinks           ShareLink[]
 }
 
 model DonorProjectAccess {
@@ -452,13 +452,13 @@ model DonorProjectAccess {
   grantedBy         String
   grantedAt         DateTime?          @default(now()) @db.Timestamp(6)
   revokedAt         DateTime?          @db.Timestamp(6)
-  DonorOrganisation DonorOrganisation? @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  donorOrganisation DonorOrganisation? @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@unique([donorOrgId, projectId])
 }
 
 model DonorUser {
-  id           String   @id
+  id           String   @id @default(uuid())
   email        String   @unique
   passwordHash String
   donorId      String
@@ -489,19 +489,19 @@ model Drawdown {
   updatedAt         DateTime?        @default(now()) @db.Timestamp(6)
   requestedBy       String?          @db.Uuid
   rejectionReason   String?
-  ImpactInvestment  ImpactInvestment @relation(fields: [investmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  impactInvestment  ImpactInvestment @relation(fields: [investmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([investmentId], map: "idx_drawdown_investment")
 }
 
 model EngagementEvent {
-  id        String   @id
+  id        String   @id @default(uuid())
   tenantId  String
   userId    String?
   eventType String
   metadata  Json?
   createdAt DateTime @default(now())
-  Tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([createdAt])
   @@index([eventType])
@@ -528,7 +528,7 @@ model ExchangeRate {
 }
 
 model Expense {
-  id                 String            @id
+  id                 String            @id @default(uuid())
   description        String
   amount             Float
   currency           String
@@ -571,7 +571,7 @@ model Expense {
   fundingAgreement   FundingAgreement? @relation(fields: [fundingAgreementId], references: [id])
   fundingSource      FundingSource?    @relation(fields: [fundingSourceId], references: [id])
   project            Project           @relation(fields: [projectId], references: [id])
-  Tenant             Tenant            @relation(fields: [tenantId], references: [id])
+  tenant             Tenant            @relation(fields: [tenantId], references: [id])
 
   @@index([budgetId])
   @@index([budgetLineId])
@@ -614,7 +614,7 @@ model ExpenseChallengeResponse {
 }
 
 model FundingAgreement {
-  id                  String                @id
+  id                  String                @id @default(uuid())
   donorId             String?
   tenantId            String
   title               String
@@ -642,14 +642,14 @@ model FundingAgreement {
   donorOrgId          String?
   funderName          String?               @db.VarChar(200)
   funderType          String?               @default("EXTERNAL") @db.VarChar(20)
-  DisbursementTranche DisbursementTranche[]
-  expenses            Expense[]
-  budget              Budget?               @relation(fields: [budgetId], references: [id])
-  donor               Donor?                @relation(fields: [donorId], references: [id])
-  DonorOrganisation   DonorOrganisation?    @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  Tenant              Tenant                @relation(fields: [tenantId], references: [id])
-  GrantCondition      GrantCondition[]
-  projectFunding      ProjectFunding[]
+  disbursementTranches DisbursementTranche[]
+  expenses             Expense[]
+  budget               Budget?               @relation(fields: [budgetId], references: [id])
+  donor                Donor?                @relation(fields: [donorId], references: [id])
+  donorOrganisation    DonorOrganisation?    @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tenant               Tenant                @relation(fields: [tenantId], references: [id])
+  grantConditions      GrantCondition[]
+  projectFunding       ProjectFunding[]
 
   @@index([budgetId])
   @@index([donorId])
@@ -660,7 +660,7 @@ model FundingAgreement {
 }
 
 model FundingSource {
-  id                String             @id
+  id                String             @id @default(uuid())
   name              String
   fundingType       String
   amount            Float
@@ -672,9 +672,9 @@ model FundingSource {
   funderName        String?            @db.VarChar(200)
   funderType        String?            @default("EXTERNAL") @db.VarChar(20)
   expenses          Expense[]
-  DonorOrganisation DonorOrganisation? @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  donorOrganisation DonorOrganisation? @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   project           Project            @relation(fields: [projectId], references: [id])
-  Tenant            Tenant             @relation(fields: [tenantId], references: [id])
+  tenant            Tenant             @relation(fields: [tenantId], references: [id])
 
   @@index([fundingType])
   @@index([projectId])
@@ -703,8 +703,8 @@ model GeneratedReport {
   errorMessage      String?
   createdAt         DateTime?          @default(now()) @db.Timestamp(6)
   updatedAt         DateTime?          @default(now()) @db.Timestamp(6)
-  DonorOrganisation DonorOrganisation? @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  ReportShareLink   ReportShareLink[]
+  donorOrganisation DonorOrganisation? @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  reportShareLinks  ReportShareLink[]
 
   @@index([projectId], map: "idx_gen_report_project")
   @@index([tenantId], map: "idx_gen_report_tenant")
@@ -727,8 +727,8 @@ model GrantCondition {
   checkedAt          DateTime?         @db.Timestamp(6)
   createdAt          DateTime?         @default(now()) @db.Timestamp(6)
   updatedAt          DateTime?         @default(now()) @db.Timestamp(6)
-  DonorOrganisation  DonorOrganisation @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  FundingAgreement   FundingAgreement  @relation(fields: [fundingAgreementId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  donorOrganisation  DonorOrganisation @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  fundingAgreement   FundingAgreement  @relation(fields: [fundingAgreementId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([fundingAgreementId], map: "idx_condition_agreement")
 }
@@ -766,7 +766,7 @@ model ImpactEvidence {
   documentId      String
   uploadedBy      String
   uploadedAt      DateTime?       @default(now()) @db.Timestamp(6)
-  ImpactMilestone ImpactMilestone @relation(fields: [milestoneId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  impactMilestone ImpactMilestone @relation(fields: [milestoneId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model ImpactInvestment {
@@ -790,8 +790,8 @@ model ImpactInvestment {
   createdAt          DateTime?  @default(now()) @db.Timestamp(6)
   updatedAt          DateTime?  @default(now()) @db.Timestamp(6)
   createdBy          String?    @db.Uuid
-  Covenant           Covenant[]
-  Drawdown           Drawdown[]
+  covenants          Covenant[]
+  drawdowns          Drawdown[]
 
   @@index([donorOrgId], map: "idx_investment_donor")
   @@index([projectId], map: "idx_investment_project")
@@ -811,8 +811,8 @@ model ImpactMilestone {
   status                String                  @default("ON_TRACK") @db.VarChar(20)
   createdAt             DateTime?               @default(now()) @db.Timestamp(6)
   updatedAt             DateTime?               @default(now()) @db.Timestamp(6)
-  ImpactEvidence        ImpactEvidence[]
-  ImpactMilestoneUpdate ImpactMilestoneUpdate[]
+  impactEvidence        ImpactEvidence[]
+  impactMilestoneUpdates ImpactMilestoneUpdate[]
 
   @@index([projectId], map: "idx_milestone_project")
   @@index([tenantId], map: "idx_milestone_tenant")
@@ -827,7 +827,7 @@ model ImpactMilestoneUpdate {
   note                String?
   evidenceDocumentIds String[]        @default([])
   reportedAt          DateTime?       @default(now()) @db.Timestamp(6)
-  ImpactMilestone     ImpactMilestone @relation(fields: [milestoneId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  impactMilestone     ImpactMilestone @relation(fields: [milestoneId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([milestoneId], map: "idx_milestone_update")
 }
@@ -849,7 +849,7 @@ model LogframeIndicator {
   lastUpdatedAt     DateTime?      @db.Timestamp(6)
   createdAt         DateTime?      @default(now()) @db.Timestamp(6)
   updatedAt         DateTime?      @default(now()) @db.Timestamp(6)
-  LogframeOutput    LogframeOutput @relation(fields: [outputId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  logframeOutput    LogframeOutput @relation(fields: [outputId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([outputId], map: "idx_indicator_output")
 }
@@ -863,7 +863,7 @@ model LogframeOutput {
   description       String?
   createdAt         DateTime?           @default(now()) @db.Timestamp(6)
   updatedAt         DateTime?           @default(now()) @db.Timestamp(6)
-  LogframeIndicator LogframeIndicator[]
+  logframeIndicators LogframeIndicator[]
 
   @@index([projectId], map: "idx_logframe_project")
 }
@@ -885,14 +885,14 @@ model Message {
   readAt         DateTime?    @db.Timestamp(6)
   expiresAt      DateTime?    @default(dbgenerated("(now() + '90 days'::interval)")) @db.Timestamp(6)
   createdAt      DateTime?    @default(now()) @db.Timestamp(6)
-  Conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([conversationId], map: "idx_message_conversation")
   @@index([expiresAt], map: "idx_message_expires")
 }
 
 model OcrJob {
-  id               String            @id
+  id               String            @id @default(uuid())
   tenantId         String
   status           String            @default("pending")
   fileType         String
@@ -920,10 +920,10 @@ model OcrJob {
   caseId           String?
   ocrFingerprint   String?
   pHash            String?
-  ApiKey           ApiKey?           @relation(fields: [apiKeyId], references: [id])
-  BundleJob        BundleJob?        @relation(fields: [bundleJobId], references: [id])
-  VerificationCase VerificationCase? @relation(fields: [caseId], references: [id])
-  Tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  apiKey           ApiKey?           @relation(fields: [apiKeyId], references: [id])
+  bundleJob        BundleJob?        @relation(fields: [bundleJobId], references: [id])
+  verificationCase VerificationCase? @relation(fields: [caseId], references: [id])
+  tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([bundleJobId])
   @@index([caseId])
@@ -935,14 +935,14 @@ model OcrJob {
 }
 
 model Permission {
-  id             String           @id
-  key            String           @unique
-  description    String?
-  RolePermission RolePermission[]
+  id              String           @id @default(uuid())
+  key             String           @unique
+  description     String?
+  rolePermissions RolePermission[]
 }
 
 model Project {
-  id                     String           @id
+  id                     String           @id @default(uuid())
   name                   String
   description            String?
   budget                 Float?
@@ -959,25 +959,25 @@ model Project {
   donorReportingCurrency String?
   budgets                Budget[]
   documents              Document[]
-  DonorInvite            DonorInvite[]
+  donorInvites           DonorInvite[]
   expenses               Expense[]
   fundingSources         FundingSource[]
-  Tenant                 Tenant           @relation(fields: [tenantId], references: [id])
-  ProjectFunding         ProjectFunding[]
+  tenant                 Tenant           @relation(fields: [tenantId], references: [id])
+  projectFunding         ProjectFunding[]
 
   @@index([createdAt])
   @@index([tenantId])
 }
 
 model ProjectFunding {
-  id                 String           @id
+  id                 String           @id @default(uuid())
   projectId          String
   fundingAgreementId String
   allocatedAmount    Float
   notes              String?
   createdAt          DateTime         @default(now())
   updatedAt          DateTime
-  FundingAgreement   FundingAgreement @relation(fields: [fundingAgreementId], references: [id])
+  fundingAgreement   FundingAgreement @relation(fields: [fundingAgreementId], references: [id])
   project            Project          @relation(fields: [projectId], references: [id])
 
   @@unique([projectId, fundingAgreementId])
@@ -986,7 +986,7 @@ model ProjectFunding {
 }
 
 model RefreshToken {
-  id         String    @id
+  id         String    @id @default(uuid())
   userId     String
   tenantId   String
   tokenHash  String
@@ -997,8 +997,8 @@ model RefreshToken {
   userAgent  String?
   ip         String?
   createdAt  DateTime  @default(now())
-  Tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  User       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([family])
   @@index([tenantId])
@@ -1007,7 +1007,7 @@ model RefreshToken {
 }
 
 model RepaymentSchedule {
-  id                 String    @id
+  id                 String    @id @default(uuid())
   fundingAgreementId String?
   dueDate            DateTime
   amount             Float
@@ -1045,7 +1045,7 @@ model ReportShareLink {
   isRevoked       Boolean?        @default(false)
   viewCount       Int?            @default(0)
   createdAt       DateTime?       @default(now()) @db.Timestamp(6)
-  GeneratedReport GeneratedReport @relation(fields: [reportId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  generatedReport GeneratedReport @relation(fields: [reportId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([reportId], map: "idx_share_report")
   @@index([token], map: "idx_share_token")
@@ -1096,12 +1096,12 @@ model RiskRegisterEntry {
 }
 
 model Role {
-  id             String           @id
-  name           String
-  tenantId       String
-  Tenant         Tenant           @relation(fields: [tenantId], references: [id])
-  RolePermission RolePermission[]
-  UserRole       UserRole[]
+  id              String           @id @default(uuid())
+  name            String
+  tenantId        String
+  tenant          Tenant           @relation(fields: [tenantId], references: [id])
+  rolePermissions RolePermission[]
+  userRoles       UserRole[]
 
   @@unique([tenantId, name])
   @@index([tenantId])
@@ -1110,8 +1110,8 @@ model Role {
 model RolePermission {
   roleId       String
   permissionId String
-  Permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-  Role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@id([roleId, permissionId])
 }
@@ -1141,8 +1141,8 @@ model SavedReport {
   lastGeneratedAt   DateTime?         @db.Timestamp(6)
   createdAt         DateTime?         @default(now()) @db.Timestamp(6)
   updatedAt         DateTime?         @default(now()) @db.Timestamp(6)
-  DonorMember       DonorMember       @relation(fields: [donorMemberId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  DonorOrganisation DonorOrganisation @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  donorMember       DonorMember       @relation(fields: [donorMemberId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  donorOrganisation DonorOrganisation @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model ShareLink {
@@ -1160,15 +1160,15 @@ model ShareLink {
   viewCount         Int?              @default(0)
   lastViewedAt      DateTime?         @db.Timestamp(6)
   createdAt         DateTime?         @default(now()) @db.Timestamp(6)
-  DonorMember       DonorMember       @relation(fields: [donorMemberId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  DonorOrganisation DonorOrganisation @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  donorMember       DonorMember       @relation(fields: [donorMemberId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  donorOrganisation DonorOrganisation @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([donorOrgId], map: "idx_sharelink_donor")
   @@index([token], map: "idx_sharelink_token")
 }
 
 model Tenant {
-  id                   String             @id
+  id                   String             @id @default(uuid())
   name                 String
   slug                 String             @unique
   status               String             @default("active")
@@ -1190,32 +1190,32 @@ model Tenant {
   trialEndsAt          DateTime?
   notificationPrefs    Json?
   baseCurrency         String             @default("USD")
-  ApiKey               ApiKey[]
-  AuditLog             AuditLog[]
-  Budget               Budget[]
-  BundleJob            BundleJob[]
-  Document             Document[]
-  DonorInvite          DonorInvite[]
-  EngagementEvent      EngagementEvent[]
-  Expense              Expense[]
-  FundingAgreement     FundingAgreement[]
-  FundingSource        FundingSource[]
-  OcrJob               OcrJob[]
-  Project              Project[]
-  RefreshToken         RefreshToken[]
-  Role                 Role[]
-  TrustSeal            TrustSeal[]
-  User                 User[]
-  UserRole             UserRole[]
-  VerificationCase     VerificationCase[]
-  WorkflowTask         WorkflowTask[]
+  apiKeys              ApiKey[]
+  auditLogs            AuditLog[]
+  budgets              Budget[]
+  bundleJobs           BundleJob[]
+  documents            Document[]
+  donorInvites         DonorInvite[]
+  engagementEvents     EngagementEvent[]
+  expenses             Expense[]
+  fundingAgreements    FundingAgreement[]
+  fundingSources       FundingSource[]
+  ocrJobs              OcrJob[]
+  projects             Project[]
+  refreshTokens        RefreshToken[]
+  roles                Role[]
+  trustSeals           TrustSeal[]
+  users                User[]
+  userRoles            UserRole[]
+  verificationCases    VerificationCase[]
+  workflowTasks        WorkflowTask[]
 
   @@index([code])
   @@index([tenantType])
 }
 
 model TenantCounter {
-  id         String @id
+  id         String @id @default(uuid())
   tenantType String
   year       String
   count      Int    @default(0)
@@ -1224,7 +1224,7 @@ model TenantCounter {
 }
 
 model TrustSeal {
-  id                   String    @id
+  id                   String    @id @default(uuid())
   tenantId             String
   documentTitle        String
   documentType         String    @default("CERTIFICATE")
@@ -1274,7 +1274,7 @@ model TrustSeal {
   expenseId            String?
   documentId           String?
   caseId               String?
-  Tenant               Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant               Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([caseId])
   @@index([createdAt])
@@ -1288,7 +1288,7 @@ model TrustSeal {
 }
 
 model User {
-  id                String         @id
+  id                String         @id @default(uuid())
   email             String         @unique
   name              String
   password          String
@@ -1298,11 +1298,11 @@ model User {
   deletedAt         DateTime?
   preferredLanguage String?        @default("en")
   themePreference   String?        @default("system") @db.VarChar(10)
-  ApiKey            ApiKey[]
-  AuditLog          AuditLog[]
-  Document          Document[]
-  DonorInvite       DonorInvite[]
-  RefreshToken      RefreshToken[]
+  apiKeys           ApiKey[]
+  auditLogs         AuditLog[]
+  documents         Document[]
+  donorInvites      DonorInvite[]
+  refreshTokens     RefreshToken[]
   Tenant            Tenant         @relation(fields: [tenantId], references: [id])
   UserRole          UserRole[]
 
@@ -1310,7 +1310,7 @@ model User {
 }
 
 model UserPermissionCache {
-  id          String   @id
+  id          String   @id @default(uuid())
   userId      String
   tenantId    String
   permissions Json     @default("[]")
@@ -1322,20 +1322,20 @@ model UserPermissionCache {
 }
 
 model UserRole {
-  id       String @id
+  id       String @id @default(uuid())
   userId   String
   roleId   String
   tenantId String
   Role     Role   @relation(fields: [roleId], references: [id])
-  Tenant   Tenant @relation(fields: [tenantId], references: [id])
-  User     User   @relation(fields: [userId], references: [id])
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  user     User   @relation(fields: [userId], references: [id])
 
   @@unique([userId, roleId])
   @@index([tenantId])
 }
 
 model VerificationCase {
-  id               String      @id
+  id               String      @id @default(uuid())
   tenantId         String
   name             String
   clientName       String
@@ -1346,9 +1346,9 @@ model VerificationCase {
   overallRiskScore Int?
   createdAt        DateTime    @default(now())
   updatedAt        DateTime
-  BundleJob        BundleJob[]
-  OcrJob           OcrJob[]
-  Tenant           Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  bundleJobs       BundleJob[]
+  ocrJobs          OcrJob[]
+  tenant           Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([caseType])
   @@index([createdAt])
@@ -1401,7 +1401,7 @@ model WBProjectComponent {
 }
 
 model Webhook {
-  id              String            @id
+  id              String            @id @default(uuid())
   tenantId        String
   url             String
   secret          String
@@ -1410,14 +1410,14 @@ model Webhook {
   description     String?
   createdAt       DateTime          @default(now())
   updatedAt       DateTime
-  WebhookDelivery WebhookDelivery[]
+  webhookDeliveries WebhookDelivery[]
 
   @@index([active])
   @@index([tenantId])
 }
 
 model WebhookDelivery {
-  id           String    @id
+  id           String    @id @default(uuid())
   webhookId    String
   tenantId     String
   event        String
@@ -1429,7 +1429,7 @@ model WebhookDelivery {
   nextRetryAt  DateTime?
   deliveredAt  DateTime?
   createdAt    DateTime  @default(now())
-  Webhook      Webhook   @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  webhook      Webhook   @relation(fields: [webhookId], references: [id], onDelete: Cascade)
 
   @@index([nextRetryAt])
   @@index([status])
@@ -1438,18 +1438,18 @@ model WebhookDelivery {
 }
 
 model WorkflowComment {
-  id           String       @id
+  id           String       @id @default(uuid())
   taskId       String
   userId       String
   comment      String
   createdAt    DateTime     @default(now())
-  WorkflowTask WorkflowTask @relation(fields: [taskId], references: [id])
+  workflowTask WorkflowTask @relation(fields: [taskId], references: [id])
 
   @@index([taskId])
 }
 
 model WorkflowTask {
-  id              String            @id
+  id              String            @id @default(uuid())
   tenantId        String
   type            String
   status          String            @default("pending")
@@ -1462,8 +1462,8 @@ model WorkflowTask {
   createdAt       DateTime          @default(now())
   updatedAt       DateTime
   resolvedAt      DateTime?
-  WorkflowComment WorkflowComment[]
-  Tenant          Tenant            @relation(fields: [tenantId], references: [id])
+  comments        WorkflowComment[]
+  tenant          Tenant            @relation(fields: [tenantId], references: [id])
 
   @@index([assignedTo])
   @@index([entityId])

@@ -66,9 +66,11 @@ router.get('/donor/funding/:agreementId', donorAuth, async (req, res) => {
   try {
     const { agreementId } = req.params
     const tranches = await prisma.$queryRawUnsafe(`
-      SELECT * FROM "DisbursementTranche"
-      WHERE "fundingAgreementId" = $1
-      ORDER BY "trancheNumber" ASC
+      SELECT dt.*, d.name as "evidenceName", d."fileUrl" as "evidenceFileUrl", d."sha256Hash" as "evidenceHash"
+      FROM "DisbursementTranche" dt
+      LEFT JOIN "Document" d ON d.id = dt."evidenceDocumentId"
+      WHERE dt."fundingAgreementId" = $1
+      ORDER BY dt."trancheNumber" ASC
     `, agreementId)
     res.json({ tranches })
   } catch (err) {
@@ -142,6 +144,20 @@ router.put('/ngo/:trancheId/conditions-met', authenticate, tenantScope, upload.s
         const sha256Hash = computeSHA256(req.file.buffer)
         const { fileUrl, key } = await uploadToS3(req.file.buffer, req.file.originalname, req.user.tenantId, 'conditions')
 
+        // Resolve actual projectId — tranche.projectId may be a budgetId
+        let docProjectId = null
+        try {
+          const projCheck = await prisma.project.findUnique({ where: { id: tranche.projectId }, select: { id: true } })
+          if (projCheck) {
+            docProjectId = projCheck.id
+          } else {
+            const budgetCheck = await prisma.$queryRawUnsafe(
+              `SELECT "projectId" FROM "Budget" WHERE id = $1::uuid`, tranche.projectId
+            )
+            if (budgetCheck.length > 0) docProjectId = budgetCheck[0].projectId
+          }
+        } catch {}
+
         document = await prisma.document.create({
           data: {
             name: `Conditions Evidence — Tranche #${tranche.trancheNumber}`,
@@ -153,7 +169,7 @@ router.put('/ngo/:trancheId/conditions-met', authenticate, tenantScope, upload.s
             fileType: req.file.originalname.split('.').pop()?.toLowerCase() || null,
             fileSize: req.file.size,
             sha256Hash,
-            projectId: tranche.projectId || null,
+            projectId: docProjectId,
             tenantId: req.user.tenantId,
             uploadedById: req.user.id,
           }

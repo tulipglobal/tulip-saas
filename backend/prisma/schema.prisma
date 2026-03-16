@@ -322,7 +322,7 @@ model Document {
   expense                    Expense?  @relation(fields: [expenseId], references: [id])
   project                    Project?  @relation(fields: [projectId], references: [id])
   tenant                     Tenant    @relation(fields: [tenantId], references: [id])
-  user                       User?     @relation(fields: [uploadedById], references: [id])
+  uploadedBy                 User?     @relation(fields: [uploadedById], references: [id])
 
   @@index([expenseId])
   @@index([expiryDate])
@@ -650,6 +650,7 @@ model FundingAgreement {
   tenant               Tenant                @relation(fields: [tenantId], references: [id])
   grantConditions      GrantCondition[]
   projectFunding       ProjectFunding[]
+  repayments           RepaymentSchedule[]
 
   @@index([budgetId])
   @@index([donorId])
@@ -1029,6 +1030,7 @@ model RepaymentSchedule {
   submittedBy        String?
   confirmedBy        String?
   confirmedAt        DateTime? @db.Timestamp(6)
+  fundingAgreement   FundingAgreement? @relation(fields: [fundingAgreementId], references: [id])
 
   @@index([dueDate])
   @@index([fundingAgreementId])

@@ -658,7 +658,7 @@ export default function BudgetDetailPage() {
                   </select>
                 ) : (
                   <input value={newFunding.donorName} onChange={e => setNewFunding(p => ({ ...p, donorName: e.target.value }))}
-                    placeholder="e.g. USAID, World Bank" className={inputCls} />
+                    placeholder="e.g. World Bank, EU Commission" className={inputCls} />
                 )}
               </div>
               <div>

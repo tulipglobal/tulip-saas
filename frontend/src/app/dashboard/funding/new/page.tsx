@@ -151,7 +151,7 @@ export default function NewFundingPage() {
         <div>
           <label className={labelCls}>Title *</label>
           <input value={form.title} onChange={e => set('title', e.target.value)}
-            placeholder="e.g. USAID Clean Water Grant 2026" className={inputCls} />
+            placeholder="e.g. Clean Water Grant 2026" className={inputCls} />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -268,7 +268,7 @@ export default function NewFundingPage() {
 
           {funderOption === 'external' && (
             <input value={form.funderName} onChange={e => set('funderName', e.target.value)}
-              placeholder="e.g. World Bank, USAID, EU Commission" className={inputCls} />
+              placeholder="e.g. World Bank, EU Commission, DFID" className={inputCls} />
           )}
         </div>
 

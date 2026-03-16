@@ -605,45 +605,6 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* USAID Settings */}
-        <div>
-          <h4 className="text-xs font-semibold text-[var(--tulip-forest)]/60 uppercase tracking-wide mb-3">USAID Settings</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Federal Agency Name</label>
-              <input className={inputClass} value={grantConfig.federalAgencyName} onChange={e => setGrantField('federalAgencyName', e.target.value)} placeholder="e.g. USAID" />
-            </div>
-            <div>
-              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Organisational Element</label>
-              <input className={inputClass} value={grantConfig.organizationalElement} onChange={e => setGrantField('organizationalElement', e.target.value)} placeholder="e.g. Bureau for Global Health" />
-            </div>
-            <div>
-              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Basis of Accounting</label>
-              <div className="flex gap-2">
-                {['Cash', 'Accrual'].map(basis => (
-                  <button key={basis} type="button"
-                    onClick={() => setGrantField('basisOfAccounting', basis)}
-                    className={`flex-1 py-2.5 rounded-lg text-sm font-medium border transition-all ${
-                      grantConfig.basisOfAccounting === basis
-                        ? 'bg-[var(--tulip-gold)]/20 border-[var(--tulip-gold)]/40 text-[var(--tulip-forest)]'
-                        : 'bg-[var(--tulip-sage)] border-[var(--tulip-sage-dark)] text-[var(--tulip-forest)]/60 hover:border-[var(--tulip-sage-dark)]'
-                    }`}>
-                    {basis}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Indirect Expense Type</label>
-              <input className={inputClass} value={grantConfig.indirectExpenseType} onChange={e => setGrantField('indirectExpenseType', e.target.value)} placeholder="e.g. Provisional" />
-            </div>
-            <div>
-              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Indirect Expense Rate (%)</label>
-              <input className={inputClass} type="number" step="0.01" value={grantConfig.indirectExpenseRate} onChange={e => setGrantField('indirectExpenseRate', e.target.value)} placeholder="e.g. 10" />
-            </div>
-          </div>
-        </div>
-
         {/* EU Settings */}
         <div>
           <h4 className="text-xs font-semibold text-[var(--tulip-forest)]/60 uppercase tracking-wide mb-3">EU Settings</h4>

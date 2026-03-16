@@ -43,16 +43,6 @@ interface ShareLink {
   views: number
 }
 
-interface SF425Data {
-  projectName: string
-  dateRange: string
-  fundingAgreement: string
-  totalAuthorized: number
-  expendituresThisPeriod: number
-  approvedExpenses: number
-  lineItems: Record<string, number>
-}
-
 interface WBData {
   projectName: string
   components: { name: string; budget: number; spent: number }[]
@@ -65,7 +55,7 @@ interface WBData {
 
 const REPORT_TYPES = {
   standard: ['Monthly', 'Quarterly', 'Interim', 'Closing', 'Annual'],
-  institutional: ['USAID SF-425', 'EU Financial', 'DFID Review', 'World Bank'],
+  institutional: ['EU Financial', 'DFID Review', 'World Bank'],
 }
 
 const TYPE_COLORS: Record<string, string> = {
@@ -74,7 +64,6 @@ const TYPE_COLORS: Record<string, string> = {
   Annual: 'bg-green-100 text-green-700',
   Interim: 'bg-amber-100 text-amber-700',
   Closing: 'bg-red-100 text-red-700',
-  'USAID SF-425': 'bg-indigo-100 text-indigo-700',
   'EU Financial': 'bg-blue-100 text-blue-700',
   'DFID Review': 'bg-teal-100 text-teal-700',
   'World Bank': 'bg-slate-100 text-slate-700',
@@ -151,23 +140,6 @@ export default function ReportsPage() {
   const [genSuccess, setGenSuccess] = useState<Report | null>(null)
 
   // Wizards
-  const [sf425Open, setSf425Open] = useState(false)
-  const [sf425Step, setSf425Step] = useState(1)
-  const [sf425Data, setSf425Data] = useState<SF425Data | null>(null)
-  const [sf425Org, setSf425Org] = useState({
-    federalAgency: '', orgElement: '', ein: '', recipientAccount: '',
-    accountingBasis: 'accrual' as 'cash' | 'accrual',
-    indirectType: '', indirectRate: '', saveForFuture: true,
-  })
-  const [sf425Grant, setSf425Grant] = useState({
-    grantNumber: '', reportType: 'Quarterly', unliquidated: '',
-    programIncomeReceived: '', programIncomeExpended: '', remarks: '',
-  })
-  const [sf425Cert, setSf425Cert] = useState({
-    fullName: '', title: '', phone: '', email: '', date: new Date().toISOString().split('T')[0],
-  })
-  const [sf425Result, setSf425Result] = useState<Report | null>(null)
-
   const [wbOpen, setWbOpen] = useState(false)
   const [wbStep, setWbStep] = useState(1)
   const [wbData, setWbData] = useState<WBData | null>(null)
@@ -295,60 +267,6 @@ export default function ReportsPage() {
   }
 
   /* ---------------------------------------------------------------- */
-  /*  SF-425 wizard handlers                                           */
-  /* ---------------------------------------------------------------- */
-
-  const openSF425 = async () => {
-    setSf425Open(true)
-    setSf425Step(1)
-    setSf425Result(null)
-    try {
-      const res = await apiGet(`/api/ngo/reports/sf425/prefill${genProjectId ? `?projectId=${genProjectId}` : ''}`)
-      if (res.ok) setSf425Data(await res.json())
-      // Try loading saved config
-      const cfgRes = await apiGet('/api/ngo/grant-reporting-config')
-      if (cfgRes.ok) {
-        const cfg = await cfgRes.json()
-        if (cfg) {
-          setSf425Org(prev => ({
-            ...prev,
-            federalAgency: cfg.federalAgency || '',
-            orgElement: cfg.orgElement || '',
-            ein: cfg.ein || '',
-            recipientAccount: cfg.recipientAccount || '',
-            accountingBasis: cfg.accountingBasis || 'accrual',
-            indirectType: cfg.indirectType || '',
-            indirectRate: cfg.indirectRate || '',
-          }))
-        }
-      }
-    } catch { /* silent */ }
-  }
-
-  const generateSF425 = async () => {
-    setGenerating(true)
-    setGenError('')
-    try {
-      const res = await apiPost('/api/ngo/reports/generate/usaid-sf-425', {
-        projectId: genProjectId,
-        org: sf425Org,
-        grant: sf425Grant,
-        certification: sf425Cert,
-      })
-      if (res.ok) {
-        const data = await res.json()
-        setSf425Result(data)
-        setSf425Step(5)
-        fetchReports()
-      } else {
-        const err = await res.json().catch(() => ({}))
-        setGenError(err.message || 'Failed to generate SF-425')
-      }
-    } catch { /* silent */ }
-    setGenerating(false)
-  }
-
-  /* ---------------------------------------------------------------- */
   /*  World Bank wizard handlers                                       */
   /* ---------------------------------------------------------------- */
 
@@ -461,7 +379,6 @@ export default function ReportsPage() {
   /* ---------------------------------------------------------------- */
 
   const templates = [
-    { name: 'USAID SF-425', desc: 'Federal Financial Report for USAID-funded projects. Includes expenditure tracking, unliquidated obligations, and program income.', action: openSF425 },
     { name: 'EU Financial Statement', desc: 'Financial statement for EU-funded grants. Covers eligible costs, co-financing, and VAT declarations.', action: () => { setSelectedReportType('EU Financial'); setGenerateOpen(true) } },
     { name: 'DFID Annual Review', desc: 'Annual review template for DFID/FCDO programs. Includes output indicators, value for money, and risk assessment.', action: () => { setSelectedReportType('DFID Review'); setGenerateOpen(true) } },
     { name: 'World Bank IFR', desc: 'Interim Financial Report for World Bank projects. Covers sources and uses of funds by component and category.', action: openWorldBank },
@@ -548,7 +465,6 @@ export default function ReportsPage() {
                       <button
                         key={type}
                         onClick={() => {
-                          if (type === 'USAID SF-425') { openSF425(); return }
                           if (type === 'World Bank') { openWorldBank(); return }
                           setSelectedReportType(type)
                           setGenError('')
@@ -567,7 +483,7 @@ export default function ReportsPage() {
                 </div>
 
                 {/* Form fields based on selected type */}
-                {selectedReportType && !['USAID SF-425', 'World Bank'].includes(selectedReportType) && (
+                {selectedReportType && !['World Bank'].includes(selectedReportType) && (
                   <div className="mt-5 p-4 bg-[var(--tulip-sage)]/50 rounded-lg border border-[var(--tulip-sage-dark)]">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Project */}
@@ -885,211 +801,6 @@ export default function ReportsPage() {
               </div>
             </div>
           ))}
-        </div>
-      )}
-
-      {/* ============================================================ */}
-      {/*  SF-425 WIZARD MODAL                                          */}
-      {/* ============================================================ */}
-      {sf425Open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setSf425Open(false)}>
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-          <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-[var(--tulip-cream)] rounded-2xl shadow-2xl border border-[var(--tulip-sage-dark)]"
-            onClick={e => e.stopPropagation()}>
-            {/* Header */}
-            <div className="sticky top-0 flex items-center justify-between px-6 py-4 border-b border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)] z-10">
-              <div>
-                <h2 className="text-lg font-bold text-[var(--tulip-forest)]">USAID SF-425 Report</h2>
-                <p className="text-xs text-[var(--tulip-forest)]/50">Step {sf425Step} of 5</p>
-              </div>
-              <button onClick={() => setSf425Open(false)} className="p-1.5 rounded-md hover:bg-[var(--tulip-sage)] transition-colors">
-                <X size={18} className="text-[var(--tulip-forest)]/60" />
-              </button>
-            </div>
-
-            {/* Progress bar */}
-            <div className="h-1 bg-[var(--tulip-sage)]">
-              <div className="h-full bg-[var(--tulip-forest)] transition-all" style={{ width: `${(sf425Step / 5) * 100}%` }} />
-            </div>
-
-            <div className="p-6">
-              {/* Step 1 — Review Sealayer Data */}
-              {sf425Step === 1 && (
-                <div>
-                  <h3 className="text-sm font-semibold text-[var(--tulip-forest)] mb-4">Review Sealayer Data</h3>
-                  {sf425Data ? (
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-2 gap-3">
-                        <InfoField label="Project" value={sf425Data.projectName} />
-                        <InfoField label="Period" value={sf425Data.dateRange} />
-                        <InfoField label="Funding Agreement" value={sf425Data.fundingAgreement} />
-                        <InfoField label="Total Authorized" value={formatCurrency(sf425Data.totalAuthorized)} />
-                        <InfoField label="Expenditures This Period" value={formatCurrency(sf425Data.expendituresThisPeriod)} />
-                        <InfoField label="Approved Expenses" value={sf425Data.approvedExpenses.toString()} />
-                      </div>
-                      <div className="mt-4 p-3 rounded-lg bg-green-50 border border-green-200 text-green-800 text-xs flex items-center gap-2">
-                        <Shield size={14} /> These figures are blockchain-verified by Sealayer
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 text-sm text-[var(--tulip-forest)]/50">
-                      <Loader2 size={14} className="animate-spin" /> Loading data...
-                    </div>
-                  )}
-                  <div className="mt-6 flex justify-end">
-                    <button onClick={() => setSf425Step(2)} className="px-5 py-2.5 rounded-lg bg-[var(--tulip-forest)] text-[var(--tulip-cream)] text-sm font-medium hover:bg-[var(--tulip-forest)]/90 flex items-center gap-2">
-                      Continue <ArrowRight size={14} />
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Step 2 — Organisation Details */}
-              {sf425Step === 2 && (
-                <div>
-                  <h3 className="text-sm font-semibold text-[var(--tulip-forest)] mb-4">Organisation Details</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormInput label="Federal Agency" value={sf425Org.federalAgency} onChange={v => setSf425Org(p => ({ ...p, federalAgency: v }))} />
-                    <FormInput label="Organizational Element" value={sf425Org.orgElement} onChange={v => setSf425Org(p => ({ ...p, orgElement: v }))} />
-                    <FormInput label="EIN" value={sf425Org.ein} onChange={v => setSf425Org(p => ({ ...p, ein: v }))} />
-                    <FormInput label="Recipient Account Number" value={sf425Org.recipientAccount} onChange={v => setSf425Org(p => ({ ...p, recipientAccount: v }))} />
-                  </div>
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-[var(--tulip-forest)] mb-2">Basis of Accounting</label>
-                    <div className="flex gap-2">
-                      {(['cash', 'accrual'] as const).map(basis => (
-                        <button key={basis} onClick={() => setSf425Org(p => ({ ...p, accountingBasis: basis }))}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all ${
-                            sf425Org.accountingBasis === basis ? 'bg-[var(--tulip-forest)] text-[var(--tulip-cream)]' : 'bg-[var(--tulip-sage)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage-dark)]'
-                          }`}>
-                          {basis}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <FormInput label="Indirect Expense Type" value={sf425Org.indirectType} onChange={v => setSf425Org(p => ({ ...p, indirectType: v }))} />
-                    <FormInput label="Indirect Expense Rate (%)" value={sf425Org.indirectRate} onChange={v => setSf425Org(p => ({ ...p, indirectRate: v }))} />
-                  </div>
-                  <label className="flex items-center gap-2 mt-4 text-sm text-[var(--tulip-forest)]/70 cursor-pointer">
-                    <input type="checkbox" checked={sf425Org.saveForFuture} onChange={e => setSf425Org(p => ({ ...p, saveForFuture: e.target.checked }))}
-                      className="rounded border-[var(--tulip-sage-dark)]" />
-                    Save for future reports
-                  </label>
-                  <WizardNav onBack={() => setSf425Step(1)} onNext={() => setSf425Step(3)} />
-                </div>
-              )}
-
-              {/* Step 3 — Grant Details */}
-              {sf425Step === 3 && (
-                <div>
-                  <h3 className="text-sm font-semibold text-[var(--tulip-forest)] mb-4">Grant Details</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormInput label="Federal Grant Number *" value={sf425Grant.grantNumber} onChange={v => setSf425Grant(p => ({ ...p, grantNumber: v }))} required />
-                    <div>
-                      <label className="block text-sm font-medium text-[var(--tulip-forest)] mb-1">Report Type</label>
-                      <select value={sf425Grant.reportType} onChange={e => setSf425Grant(p => ({ ...p, reportType: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)] text-sm text-[var(--tulip-forest)] focus:outline-none focus:ring-2 focus:ring-[var(--tulip-forest)]/20">
-                        <option>Annual</option><option>Quarterly</option><option>Final</option>
-                      </select>
-                    </div>
-                    <FormInput label="Unliquidated Obligations ($)" value={sf425Grant.unliquidated} onChange={v => setSf425Grant(p => ({ ...p, unliquidated: v }))} type="number" />
-                    <FormInput label="Program Income Received ($)" value={sf425Grant.programIncomeReceived} onChange={v => setSf425Grant(p => ({ ...p, programIncomeReceived: v }))} type="number" />
-                    <FormInput label="Program Income Expended ($)" value={sf425Grant.programIncomeExpended} onChange={v => setSf425Grant(p => ({ ...p, programIncomeExpended: v }))} type="number" />
-                  </div>
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-[var(--tulip-forest)] mb-1">Remarks</label>
-                    <textarea value={sf425Grant.remarks} onChange={e => setSf425Grant(p => ({ ...p, remarks: e.target.value }))} rows={3}
-                      className="w-full px-3 py-2 rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)] text-sm text-[var(--tulip-forest)] focus:outline-none focus:ring-2 focus:ring-[var(--tulip-forest)]/20 resize-none" />
-                  </div>
-                  <WizardNav onBack={() => setSf425Step(2)} onNext={() => setSf425Step(4)} />
-                </div>
-              )}
-
-              {/* Step 4 — Review & Certify */}
-              {sf425Step === 4 && (
-                <div>
-                  <h3 className="text-sm font-semibold text-[var(--tulip-forest)] mb-4">Review & Certify</h3>
-                  {sf425Data && (
-                    <div className="mb-4 p-4 bg-[var(--tulip-sage)]/50 rounded-lg border border-[var(--tulip-sage-dark)] space-y-2 text-xs text-[var(--tulip-forest)]">
-                      <h4 className="font-semibold text-sm mb-2">SF-425 Line Items</h4>
-                      {Object.entries(sf425Data.lineItems || {}).map(([key, val]) => (
-                        <div key={key} className="flex justify-between py-1 border-b border-[var(--tulip-sage-dark)]/30">
-                          <span className="text-[var(--tulip-forest)]/70">{key}</span>
-                          <span className="font-medium">{formatCurrency(val)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  <div className="p-4 bg-[var(--tulip-sage)]/50 rounded-lg border border-[var(--tulip-sage-dark)]">
-                    <h4 className="text-sm font-semibold text-[var(--tulip-forest)] mb-3">Certification</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormInput label="Full Name *" value={sf425Cert.fullName} onChange={v => setSf425Cert(p => ({ ...p, fullName: v }))} required />
-                      <FormInput label="Title *" value={sf425Cert.title} onChange={v => setSf425Cert(p => ({ ...p, title: v }))} required />
-                      <FormInput label="Phone *" value={sf425Cert.phone} onChange={v => setSf425Cert(p => ({ ...p, phone: v }))} required />
-                      <FormInput label="Email *" value={sf425Cert.email} onChange={v => setSf425Cert(p => ({ ...p, email: v }))} type="email" required />
-                    </div>
-                    <div className="mt-3">
-                      <InfoField label="Date" value={sf425Cert.date} />
-                    </div>
-                    <p className="mt-3 text-xs text-[var(--tulip-forest)]/60 leading-relaxed">
-                      By signing this report, I certify to the best of my knowledge and belief that the report is true, complete, and accurate,
-                      and the expenditures, disbursements and cash receipts are for the purposes and objectives set forth in the terms and conditions
-                      of the Federal award.
-                    </p>
-                  </div>
-                  <div className="mt-6 flex items-center justify-between">
-                    <button onClick={() => setSf425Step(3)} className="px-4 py-2.5 rounded-lg border border-[var(--tulip-sage-dark)] text-sm font-medium text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] transition-all flex items-center gap-2">
-                      <ArrowLeft size={14} /> Back
-                    </button>
-                    <button onClick={generateSF425} disabled={generating || !sf425Cert.fullName || !sf425Grant.grantNumber}
-                      className="px-5 py-2.5 rounded-lg bg-[var(--tulip-forest)] text-[var(--tulip-cream)] text-sm font-medium hover:bg-[var(--tulip-forest)]/90 transition-all disabled:opacity-50 flex items-center gap-2">
-                      {generating ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
-                      Generate SF-425 Report
-                    </button>
-                  </div>
-                  {genError && <p className="mt-3 text-sm text-red-600 flex items-center gap-2"><AlertCircle size={14} /> {genError}</p>}
-                </div>
-              )}
-
-              {/* Step 5 — Done */}
-              {sf425Step === 5 && sf425Result && (
-                <div className="text-center py-4">
-                  <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-                    <Check size={28} className="text-green-600" />
-                  </div>
-                  <h3 className="text-lg font-bold text-[var(--tulip-forest)]">SF-425 Report Generated</h3>
-                  <p className="text-sm text-[var(--tulip-forest)]/60 mt-1">Your report has been created and sealed.</p>
-
-                  <div className="flex items-center justify-center gap-3 mt-6">
-                    {sf425Result.downloadUrl && (
-                      <a href={sf425Result.downloadUrl}
-                        className="px-4 py-2.5 rounded-lg bg-[var(--tulip-forest)] text-[var(--tulip-cream)] text-sm font-medium hover:bg-[var(--tulip-forest)]/90 flex items-center gap-2">
-                        <Download size={14} /> Download PDF
-                      </a>
-                    )}
-                    <button onClick={() => openShare(sf425Result!)}
-                      className="px-4 py-2.5 rounded-lg border border-[var(--tulip-sage-dark)] text-sm font-medium text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] flex items-center gap-2">
-                      <Link2 size={14} /> Share Link
-                    </button>
-                    <button onClick={() => { setSf425Step(1); setSf425Result(null) }}
-                      className="px-4 py-2.5 rounded-lg border border-[var(--tulip-sage-dark)] text-sm font-medium text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] flex items-center gap-2">
-                      <RefreshCw size={14} /> Generate Another
-                    </button>
-                  </div>
-
-                  {(sf425Result.sha256 || sf425Result.polygonTx) && (
-                    <div className="mt-6 p-4 bg-[var(--tulip-sage)]/50 rounded-lg border border-[var(--tulip-sage-dark)] text-left text-xs space-y-2">
-                      <h4 className="font-semibold text-sm text-[var(--tulip-forest)]">Seal Details</h4>
-                      {sf425Result.sha256 && <InfoField label="SHA-256" value={sf425Result.sha256} />}
-                      {sf425Result.anchorDate && <InfoField label="Anchor Date" value={formatDate(sf425Result.anchorDate)} />}
-                      {sf425Result.polygonTx && <InfoField label="Polygon TX" value={sf425Result.polygonTx} />}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
         </div>
       )}
 

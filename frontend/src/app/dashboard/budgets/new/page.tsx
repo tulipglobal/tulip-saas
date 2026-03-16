@@ -157,8 +157,7 @@ function NewBudgetInner() {
 
     const validFunding = fundingSources.filter(f => {
       if (!f.sourceType || !Number(f.amount)) return false
-      if (f.sourceType === 'Impact Investment') return f.donorMode === 'existing' ? !!f.donorOrgId : !!f.donorName
-      return !!f.donorName
+      return f.donorMode === 'existing' ? !!f.donorOrgId : !!f.donorName
     })
 
     setSaving(true)
@@ -183,13 +182,14 @@ function NewBudgetInner() {
           donorName: f.donorMode === 'existing' ? (donorOrgs.find(o => o.id === f.donorOrgId)?.name || '') : f.donorName.trim(),
           amount: Number(f.amount),
           currency: f.currency,
+          donorOrgId: f.donorMode === 'existing' ? f.donorOrgId : null,
+          funderType: f.donorMode === 'existing' ? 'PORTAL' : 'EXTERNAL',
           ...(f.sourceType === 'Impact Investment' && {
             interestRate: f.interestRate ? Number(f.interestRate) : null,
             interestType: f.interestType || 'FIXED',
             termMonths: f.termMonths ? Number(f.termMonths) : null,
             gracePeriodMonths: f.gracePeriodMonths ? Number(f.gracePeriodMonths) : null,
             autoGenerateSchedule: f.autoGenerateSchedule,
-            donorOrgId: f.donorMode === 'existing' ? f.donorOrgId : null,
           }),
         }))
       })
@@ -382,37 +382,26 @@ function NewBudgetInner() {
                     </select>
                   </div>
                   <div>
-                    {fs.sourceType === 'Impact Investment' ? (
-                      <>
-                        <label className="text-xs text-[#183a1d]/60 mb-1 block">Investor *</label>
-                        <div className="flex rounded-lg overflow-hidden border border-[#c8d6c0] mb-2">
-                          {(['existing', 'external'] as const).map(m => (
-                            <button key={m} type="button" onClick={() => { updateFunding(fs.key, 'donorMode', m); updateFunding(fs.key, 'donorOrgId', ''); updateFunding(fs.key, 'donorName', '') }}
-                              className="flex-1 px-3 py-1.5 text-[11px] font-medium transition-all"
-                              style={{ background: fs.donorMode === m ? '#183a1d' : '#e1eedd', color: fs.donorMode === m ? '#fefbe9' : '#183a1d' }}>
-                              {m === 'existing' ? 'Existing Donor' : 'External Investor'}
-                            </button>
-                          ))}
-                        </div>
-                        {fs.donorMode === 'existing' ? (
-                          <select value={fs.donorOrgId} onChange={e => { updateFunding(fs.key, 'donorOrgId', e.target.value); const org = donorOrgs.find(o => o.id === e.target.value); updateFunding(fs.key, 'donorName', org?.name || '') }}
-                            className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] outline-none focus:border-[#f6c453] transition-all">
-                            <option value="">Select donor org...</option>
-                            {donorOrgs.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
-                          </select>
-                        ) : (
-                          <input value={fs.donorName} onChange={e => updateFunding(fs.key, 'donorName', e.target.value)}
-                            placeholder="Investor name (no portal access)"
-                            className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all" />
-                        )}
-                      </>
+                    <label className="text-xs text-[#183a1d]/60 mb-1 block">Funded By *</label>
+                    <div className="flex rounded-lg overflow-hidden border border-[#c8d6c0] mb-2">
+                      {(['existing', 'external'] as const).map(m => (
+                        <button key={m} type="button" onClick={() => { updateFunding(fs.key, 'donorMode', m); updateFunding(fs.key, 'donorOrgId', ''); updateFunding(fs.key, 'donorName', '') }}
+                          className="flex-1 px-3 py-1.5 text-[11px] font-medium transition-all"
+                          style={{ background: fs.donorMode === m ? '#183a1d' : '#e1eedd', color: fs.donorMode === m ? '#fefbe9' : '#183a1d' }}>
+                          {m === 'existing' ? 'Existing Donor' : 'Other'}
+                        </button>
+                      ))}
+                    </div>
+                    {fs.donorMode === 'existing' ? (
+                      <select value={fs.donorOrgId} onChange={e => { updateFunding(fs.key, 'donorOrgId', e.target.value); const org = donorOrgs.find(o => o.id === e.target.value); updateFunding(fs.key, 'donorName', org?.name || '') }}
+                        className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] outline-none focus:border-[#f6c453] transition-all">
+                        <option value="">Select donor org...</option>
+                        {donorOrgs.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
+                      </select>
                     ) : (
-                      <>
-                        <label className="text-xs text-[#183a1d]/60 mb-1 block">Donor Name *</label>
-                        <input value={fs.donorName} onChange={e => updateFunding(fs.key, 'donorName', e.target.value)}
-                          placeholder="e.g. USAID, Gates Foundation"
-                          className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all" />
-                      </>
+                      <input value={fs.donorName} onChange={e => updateFunding(fs.key, 'donorName', e.target.value)}
+                        placeholder="Funder name (no portal access)"
+                        className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all" />
                     )}
                   </div>
                 </div>

@@ -28,8 +28,8 @@ async function exportUserData(userId, tenantId) {
       name:      true,
       tenantId:  true,
       createdAt: true,
-      roles: {
-        include: { role: { select: { name: true } } }
+      UserRole: {
+        include: { Role: { select: { name: true } } }
       }
     }
   })

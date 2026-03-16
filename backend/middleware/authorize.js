@@ -5,10 +5,10 @@ module.exports = (...allowedRoles) => {
     try {
       const userRoles = await prisma.userRole.findMany({
         where: { userId: req.user.userId },
-        include: { role: true }
+        include: { Role: true }
       })
 
-      const roleNames = userRoles.map(ur => ur.role.name)
+      const roleNames = userRoles.map(ur => ur.Role.name)
 
       const hasRole = allowedRoles.some(role =>
         roleNames.includes(role)

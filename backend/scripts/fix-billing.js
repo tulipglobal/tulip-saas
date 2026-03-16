@@ -8,7 +8,7 @@ const prisma = require('../lib/client')
 async function fix() {
   const user = await prisma.user.findFirst({
     where: { email: 'benzerbright@gmail.com' },
-    include: { tenant: { select: { id: true, name: true, plan: true, planStatus: true, stripeSubscriptionId: true, stripeCustomerId: true, trialEndsAt: true } } }
+    include: { Tenant: { select: { id: true, name: true, plan: true, planStatus: true, stripeSubscriptionId: true, stripeCustomerId: true, trialEndsAt: true } } }
   })
 
   if (!user) {
@@ -17,7 +17,7 @@ async function fix() {
   }
 
   console.log('Found user:', user.email)
-  console.log('Current tenant state:', JSON.stringify(user.tenant, null, 2))
+  console.log('Current tenant state:', JSON.stringify(user.Tenant, null, 2))
 
   const updated = await prisma.tenant.update({
     where: { id: user.tenantId },

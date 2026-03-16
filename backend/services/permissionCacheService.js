@@ -20,10 +20,10 @@ async function buildCache(userId, tenantId) {
   const userRoles = await prisma.userRole.findMany({
     where: { userId, tenantId },
     include: {
-      role: {
+      Role: {
         include: {
-          permissions: {
-            include: { permission: true }
+          RolePermission: {
+            include: { Permission: true }
           }
         }
       }
@@ -33,8 +33,8 @@ async function buildCache(userId, tenantId) {
   // Flatten to unique permission keys
   const permissionSet = new Set()
   for (const ur of userRoles) {
-    for (const rp of ur.role.permissions) {
-      permissionSet.add(rp.permission.key)
+    for (const rp of ur.Role.RolePermission) {
+      permissionSet.add(rp.Permission.key)
     }
   }
 

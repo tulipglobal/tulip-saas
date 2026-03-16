@@ -60,10 +60,10 @@ router.post('/', donorAuth, async (req, res) => {
       : null
 
     const [link] = await prisma.$queryRawUnsafe(
-      `INSERT INTO "ShareLink" (id, token, "projectId", "donorOrgId", "createdById", "expiresAt", "viewCount", "isActive", "createdAt", "updatedAt")
-       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, 0, true, NOW(), NOW())
+      `INSERT INTO "ShareLink" (id, token, "projectId", "donorOrgId", "expiresAt", "viewCount", "isActive", "createdAt", "updatedAt")
+       VALUES (gen_random_uuid(), $1, $2, $3, $4, 0, true, NOW(), NOW())
        RETURNING id, token, "expiresAt", "createdAt"`,
-      token, projectId, donorOrgId, donorMemberId, expiresAt
+      token, projectId, donorOrgId, expiresAt
     )
 
     res.status(201).json({

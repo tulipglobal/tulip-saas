@@ -171,6 +171,38 @@ router.get('/ngo/funding/:agreementId', authenticate, tenantScope, async (req, r
       WHERE "fundingAgreementId" = $1 AND "tenantId" = $2
       ORDER BY "trancheNumber" ASC
     `, agreementId, req.user.tenantId)
+
+    // Get total project expenses for utilisation calculation
+    if (tranches.length > 0) {
+      const projectId = tranches[0].projectId
+      try {
+        // Resolve actual projectId (may be a budgetId)
+        let realProjectId = projectId
+        const projCheck = await prisma.project.findUnique({ where: { id: projectId }, select: { id: true } }).catch(() => null)
+        if (!projCheck) {
+          const budgetCheck = await prisma.$queryRawUnsafe(
+            `SELECT "projectId" FROM "Budget" WHERE id = $1::uuid`, projectId
+          ).catch(() => [])
+          if (budgetCheck.length > 0) realProjectId = budgetCheck[0].projectId
+        }
+        const spentAgg = await prisma.expense.aggregate({
+          where: { projectId: realProjectId },
+          _sum: { amount: true }
+        })
+        const totalExpenseSpent = Number(spentAgg._sum.amount || 0)
+        // Distribute utilisation across released tranches proportionally
+        let remaining = totalExpenseSpent
+        for (const t of tranches) {
+          const amt = Number(t.amount) || 0
+          if (t.status === 'RELEASED' || t.status === 'UTILISED') {
+            const used = Math.min(remaining, amt)
+            t.utilisedAmount = used
+            remaining -= used
+          }
+        }
+      } catch {}
+    }
+
     res.json({ tranches })
   } catch (err) {
     console.error('NGO get tranches error:', err)

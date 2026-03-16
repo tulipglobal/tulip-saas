@@ -549,7 +549,7 @@ export default function NewExpensePage() {
                 <option value="">{t('common.selectBudget')}</option>
                 {filteredBudgets.map(b => (
                   <option key={b.id} value={b.id}>
-                    {b.name} ({b.status}) — Remaining: ${(b.totalApproved - (b.totalSpent || 0)).toLocaleString()}
+                    {b.name} ({b.status}) — Budget Remaining: ${(b.totalApproved - (b.totalSpent || 0)).toLocaleString()}{disbursementInfo?.hasDisbursements ? ` · Disbursed Available: $${disbursementInfo.available.toLocaleString()}` : ''}
                   </option>
                 ))}
               </select>

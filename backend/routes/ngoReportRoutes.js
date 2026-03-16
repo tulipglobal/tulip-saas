@@ -18,11 +18,18 @@ router.get('/:reportId/download', async (req, res) => {
     const { reportId } = req.params
     const tenantId = req.user.tenantId
     const rows = await prisma.$queryRawUnsafe(
-      `SELECT "fileKey", name FROM "GeneratedReport" WHERE id = $1 AND "tenantId"::text = $2`,
+      `SELECT "fileKey", "fileUrl", name FROM "GeneratedReport" WHERE id = $1 AND "tenantId"::text = $2`,
       reportId, tenantId
     )
-    if (!rows.length || !rows[0].fileKey) return res.status(404).json({ error: 'Report file not found' })
-    const url = await getPresignedUrlFromKey(rows[0].fileKey, 3600)
+    if (!rows.length) return res.status(404).json({ error: 'Report not found' })
+    // Extract actual S3 key from fileUrl if fileKey doesn't match (legacy bug fix)
+    let key = rows[0].fileKey
+    if (rows[0].fileUrl) {
+      const match = rows[0].fileUrl.match(/\.amazonaws\.com\/(.+)$/)
+      if (match) key = decodeURIComponent(match[1])
+    }
+    if (!key) return res.status(404).json({ error: 'Report file not found' })
+    const url = await getPresignedUrlFromKey(key, 3600)
     res.json({ url, fileName: rows[0].name })
   } catch (err) {
     console.error('Download report error:', err)

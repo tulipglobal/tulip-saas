@@ -165,9 +165,8 @@ class ReportEngine {
 
   async uploadAndSave(buffer, reportId, tenantId, reportData) {
     const hash = computeSHA256(buffer)
-    const fileKey = `reports/${tenantId}/${reportId}.pdf`
 
-    const { fileUrl } = await uploadToS3(buffer, `${reportId}.pdf`, tenantId, 'reports')
+    const { fileUrl, key: fileKey } = await uploadToS3(buffer, `${reportId}.pdf`, tenantId, 'reports')
 
     // Update GeneratedReport record
     await prisma.$executeRawUnsafe(`

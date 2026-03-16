@@ -176,6 +176,9 @@ exports.create = async (req, res) => {
               currency: f.currency || 'USD',
               agreementFileKey: f.agreementFileKey || null,
               agreementHash: f.agreementHash || null,
+              donorOrgId: f.donorOrgId || null,
+              funderName: f.donorName,
+              funderType: f.funderType || (f.donorOrgId ? 'PORTAL' : 'EXTERNAL'),
             }))
           }
         })
@@ -191,6 +194,70 @@ exports.create = async (req, res) => {
       tenantId: req.user.tenantId,
       details: { name, lineCount: lines.length, fundingSourceCount: (fundingSources || []).length }
     })
+
+    // Auto-grant DonorProjectAccess for any PORTAL donors
+    if (fundingSources && fundingSources.length > 0) {
+      for (const f of fundingSources) {
+        const fDonorOrgId = f.donorOrgId
+        const ft = f.funderType || (fDonorOrgId ? 'PORTAL' : 'EXTERNAL')
+        if (fDonorOrgId && ft === 'PORTAL') {
+          try {
+            const existing = await prisma.$queryRawUnsafe(
+              `SELECT id FROM "DonorProjectAccess" WHERE "donorOrgId" = $1 AND "projectId" = $2::uuid LIMIT 1`,
+              fDonorOrgId, projectId
+            )
+            if (existing.length === 0) {
+              await prisma.$executeRawUnsafe(
+                `INSERT INTO "DonorProjectAccess" ("donorOrgId", "projectId", "tenantId", "grantedBy")
+                 VALUES ($1, $2::uuid, $3, $4)`,
+                fDonorOrgId, projectId, req.user.tenantId, req.user.id
+              )
+            } else {
+              await prisma.$executeRawUnsafe(
+                `UPDATE "DonorProjectAccess" SET "revokedAt" = NULL WHERE "donorOrgId" = $1 AND "projectId" = $2::uuid`,
+                fDonorOrgId, projectId
+              )
+            }
+            console.log('[auto-grant] Budget create: granted DonorProjectAccess for donorOrgId:', fDonorOrgId, 'projectId:', projectId)
+          } catch (accessErr) {
+            console.error('Auto-grant DonorProjectAccess on budget create:', accessErr.message)
+          }
+
+          // Auto-create FundingAgreement + ProjectFunding so donor can see it and create tranches
+          try {
+            const agreement = await prisma.fundingAgreement.create({
+              data: {
+                tenantId: req.user.tenantId,
+                budgetId: budget.id,
+                title: `${f.donorName} — ${f.sourceType}`,
+                type: 'GRANT',
+                totalAmount: Number(f.amount),
+                currency: f.currency || 'USD',
+                status: 'ACTIVE',
+                sourceType: f.sourceType,
+                sourceSubType: f.sourceSubType || null,
+                grantorName: f.donorName,
+                donorOrgId: fDonorOrgId,
+                funderName: f.donorName,
+                funderType: 'PORTAL',
+                startDate: periodFrom ? new Date(periodFrom) : null,
+                endDate: periodTo ? new Date(periodTo) : null,
+              }
+            })
+            await prisma.projectFunding.create({
+              data: {
+                projectId,
+                fundingAgreementId: agreement.id,
+                allocatedAmount: Number(f.amount),
+              }
+            })
+            console.log('[auto-create] FundingAgreement created:', agreement.id, 'for donor:', fDonorOrgId)
+          } catch (agErr) {
+            console.error('Auto-create FundingAgreement on budget create:', agErr.message)
+          }
+        }
+      }
+    }
 
     // Create ImpactInvestment records for Impact Investment funding sources
     if (fundingSources && fundingSources.length > 0) {
@@ -453,6 +520,45 @@ exports.addFundingSource = async (req, res) => {
         }
       } catch (accessErr) {
         console.error('Auto-grant DonorProjectAccess on budget funding:', accessErr.message)
+      }
+
+      // Auto-create FundingAgreement + ProjectFunding so donor can see it and create tranches
+      try {
+        const budgetForAg = await prisma.$queryRawUnsafe(
+          `SELECT "projectId", "periodFrom", "periodTo" FROM "Budget" WHERE id = $1::uuid`, req.params.id
+        )
+        const bRec = budgetForAg[0] || {}
+        const agreement = await prisma.fundingAgreement.create({
+          data: {
+            tenantId: req.user.tenantId,
+            budgetId: req.params.id,
+            title: `${donorName} — ${sourceType}`,
+            type: 'GRANT',
+            totalAmount: Number(amount),
+            currency: currency || 'USD',
+            status: 'ACTIVE',
+            sourceType,
+            sourceSubType: sourceSubType || null,
+            grantorName: donorName,
+            donorOrgId: reqDonorOrgId,
+            funderName: donorName,
+            funderType: 'PORTAL',
+            startDate: bRec.periodFrom || null,
+            endDate: bRec.periodTo || null,
+          }
+        })
+        if (bRec.projectId) {
+          await prisma.projectFunding.create({
+            data: {
+              projectId: bRec.projectId,
+              fundingAgreementId: agreement.id,
+              allocatedAmount: Number(amount),
+            }
+          })
+        }
+        console.log('[auto-create] FundingAgreement created:', agreement.id, 'for donor:', reqDonorOrgId)
+      } catch (agErr) {
+        console.error('Auto-create FundingAgreement on addFundingSource:', agErr.message)
       }
     }
 

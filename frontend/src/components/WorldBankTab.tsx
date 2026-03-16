@@ -14,6 +14,8 @@ interface WBComponent {
   actualThisPeriod: number
   cumulativeActual: number
   currency: string
+  fileName: string | null
+  fileKey: string | null
   createdAt: string
 }
 
@@ -102,6 +104,19 @@ export default function WorldBankTab({ projectId }: { projectId: string }) {
     if (res.ok) fetchData()
   }
 
+  const handleUploadComponentFile = async (componentId: string, file: File) => {
+    const res = await apiUpload(`/api/ngo/wb-components/${componentId}/upload`, file)
+    if (res.ok) fetchData()
+  }
+
+  const handleViewComponentFile = async (componentId: string) => {
+    const res = await apiGet(`/api/ngo/wb-components/${componentId}/file`)
+    if (res.ok) {
+      const data = await res.json()
+      window.open(data.url, '_blank')
+    }
+  }
+
   const handleUploadContractFile = async (contractId: string, file: File) => {
     const res = await apiUpload(`/api/ngo/wb-contracts/${contractId}/upload`, file)
     if (res.ok) fetchData()
@@ -170,6 +185,17 @@ export default function WorldBankTab({ projectId }: { projectId: string }) {
                       <td className="px-4 py-3 text-xs text-[var(--tulip-forest)]/60">{comp.currency}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
+                          {comp.fileKey ? (
+                            <button onClick={() => handleViewComponentFile(comp.id)} className="text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] transition-colors" title={`View: ${comp.fileName}`}>
+                              <Paperclip size={14} />
+                            </button>
+                          ) : (
+                            <label className="cursor-pointer text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] transition-colors" title="Upload File">
+                              <Upload size={14} />
+                              <input type="file" className="hidden" accept=".pdf,.doc,.docx,.xlsx,.xls,.jpg,.jpeg,.png,.csv"
+                                onChange={e => { if (e.target.files?.[0]) handleUploadComponentFile(comp.id, e.target.files[0]) }} />
+                            </label>
+                          )}
                           <button onClick={() => setEditingActuals(comp)} className="text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] transition-colors" title="Update Actuals">
                             <Edit2 size={14} />
                           </button>
@@ -269,9 +295,15 @@ export default function WorldBankTab({ projectId }: { projectId: string }) {
       {/* Add Component Modal */}
       {showAddComponent && (
         <Modal title="Add Component" onClose={() => setShowAddComponent(false)}>
-          <ComponentForm onSave={async (data) => {
+          <ComponentForm onSave={async (data, file) => {
             const res = await apiPost(`/api/ngo/projects/${projectId}/wb-components`, data)
-            if (res.ok) { fetchData(); setShowAddComponent(false) }
+            if (res.ok) {
+              const created = await res.json()
+              if (file && created.component?.id) {
+                await apiUpload(`/api/ngo/wb-components/${created.component.id}/upload`, file)
+              }
+              fetchData(); setShowAddComponent(false)
+            }
           }} onCancel={() => setShowAddComponent(false)} />
         </Modal>
       )}
@@ -279,9 +311,14 @@ export default function WorldBankTab({ projectId }: { projectId: string }) {
       {/* Update Actuals Modal */}
       {editingActuals && (
         <Modal title={`Update Actuals — ${editingActuals.name}`} onClose={() => setEditingActuals(null)}>
-          <ActualsForm initial={editingActuals} onSave={async (data) => {
+          <ActualsForm initial={editingActuals} onSave={async (data, file) => {
             const res = await apiPut(`/api/ngo/wb-components/${editingActuals.id}`, data)
-            if (res.ok) { fetchData(); setEditingActuals(null) }
+            if (res.ok) {
+              if (file) {
+                await apiUpload(`/api/ngo/wb-components/${editingActuals.id}/upload`, file)
+              }
+              fetchData(); setEditingActuals(null)
+            }
           }} onCancel={() => setEditingActuals(null)} />
         </Modal>
       )}
@@ -338,17 +375,18 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
 
 // ── Component Form (Add) ───────────────────────────────────────────────────
 
-function ComponentForm({ onSave, onCancel }: { onSave: (data: any) => Promise<void>; onCancel: () => void }) {
+function ComponentForm({ onSave, onCancel }: { onSave: (data: any, file?: File) => Promise<void>; onCancel: () => void }) {
   const [name, setName] = useState('')
   const [wbBudget, setWbBudget] = useState('')
   const [govBudget, setGovBudget] = useState('')
   const [currency, setCurrency] = useState('USD')
+  const [file, setFile] = useState<File | null>(null)
   const [saving, setSaving] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
-    await onSave({ name, wbBudget: +wbBudget || 0, govBudget: +govBudget || 0, currency })
+    await onSave({ name, wbBudget: +wbBudget || 0, govBudget: +govBudget || 0, currency }, file || undefined)
     setSaving(false)
   }
 
@@ -378,6 +416,22 @@ function ComponentForm({ onSave, onCancel }: { onSave: (data: any) => Promise<vo
           {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
       </div>
+      <div>
+        <label className="text-xs font-medium text-[var(--tulip-forest)]/70 block mb-1">Supporting Document</label>
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border border-dashed border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] hover:border-[var(--tulip-gold)] transition-colors w-full">
+            <Upload size={14} className="text-[var(--tulip-forest)]/50" />
+            <span className="text-sm text-[var(--tulip-forest)]/60">{file ? file.name : 'Upload document (PDF, DOC, XLSX, etc.)'}</span>
+            <input type="file" className="hidden" accept=".pdf,.doc,.docx,.xlsx,.xls,.jpg,.jpeg,.png,.csv"
+              onChange={e => { if (e.target.files?.[0]) setFile(e.target.files[0]) }} />
+          </label>
+          {file && (
+            <button type="button" onClick={() => setFile(null)} className="text-[var(--tulip-forest)]/40 hover:text-red-500">
+              <X size={14} />
+            </button>
+          )}
+        </div>
+      </div>
       <div className="flex justify-end gap-3 pt-2">
         <button type="button" onClick={onCancel} className="px-4 py-2 text-sm rounded-lg border border-[var(--tulip-sage-dark)] text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] transition-all">Cancel</button>
         <button type="submit" disabled={saving} className="px-4 py-2 text-sm rounded-lg bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)] text-[var(--tulip-forest)] font-medium transition-all disabled:opacity-50">
@@ -390,15 +444,16 @@ function ComponentForm({ onSave, onCancel }: { onSave: (data: any) => Promise<vo
 
 // ── Actuals Form (Update) ──────────────────────────────────────────────────
 
-function ActualsForm({ initial, onSave, onCancel }: { initial: WBComponent; onSave: (data: any) => Promise<void>; onCancel: () => void }) {
+function ActualsForm({ initial, onSave, onCancel }: { initial: WBComponent; onSave: (data: any, file?: File) => Promise<void>; onCancel: () => void }) {
   const [actualThisPeriod, setActualThisPeriod] = useState(String(initial.actualThisPeriod || ''))
   const [cumulativeActual, setCumulativeActual] = useState(String(initial.cumulativeActual || ''))
+  const [file, setFile] = useState<File | null>(null)
   const [saving, setSaving] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
-    await onSave({ actualThisPeriod: +actualThisPeriod || 0, cumulativeActual: +cumulativeActual || 0 })
+    await onSave({ actualThisPeriod: +actualThisPeriod || 0, cumulativeActual: +cumulativeActual || 0 }, file || undefined)
     setSaving(false)
   }
 
@@ -413,6 +468,34 @@ function ActualsForm({ initial, onSave, onCancel }: { initial: WBComponent; onSa
         <label className="text-xs font-medium text-[var(--tulip-forest)]/70 block mb-1">Cumulative Actual</label>
         <input type="number" step="0.01" value={cumulativeActual} onChange={e => setCumulativeActual(e.target.value)}
           className="w-full rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] text-sm text-[var(--tulip-forest)] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--tulip-gold)]/50" />
+      </div>
+      <div>
+        <label className="text-xs font-medium text-[var(--tulip-forest)]/70 block mb-1">Supporting Document</label>
+        {initial.fileName && !file ? (
+          <div className="flex items-center gap-2 text-sm text-[var(--tulip-forest)]/70 px-3 py-2 rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]">
+            <Paperclip size={14} />
+            <span className="truncate">{initial.fileName}</span>
+            <label className="ml-auto cursor-pointer text-xs text-[var(--tulip-gold)] hover:text-[var(--tulip-orange)]">
+              Replace
+              <input type="file" className="hidden" accept=".pdf,.doc,.docx,.xlsx,.xls,.jpg,.jpeg,.png,.csv"
+                onChange={e => { if (e.target.files?.[0]) setFile(e.target.files[0]) }} />
+            </label>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <label className="flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border border-dashed border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] hover:border-[var(--tulip-gold)] transition-colors w-full">
+              <Upload size={14} className="text-[var(--tulip-forest)]/50" />
+              <span className="text-sm text-[var(--tulip-forest)]/60">{file ? file.name : 'Upload document'}</span>
+              <input type="file" className="hidden" accept=".pdf,.doc,.docx,.xlsx,.xls,.jpg,.jpeg,.png,.csv"
+                onChange={e => { if (e.target.files?.[0]) setFile(e.target.files[0]) }} />
+            </label>
+            {file && (
+              <button type="button" onClick={() => setFile(null)} className="text-[var(--tulip-forest)]/40 hover:text-red-500">
+                <X size={14} />
+              </button>
+            )}
+          </div>
+        )}
       </div>
       <div className="flex justify-end gap-3 pt-2">
         <button type="button" onClick={onCancel} className="px-4 py-2 text-sm rounded-lg border border-[var(--tulip-sage-dark)] text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] transition-all">Cancel</button>

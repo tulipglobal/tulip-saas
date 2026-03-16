@@ -99,6 +99,51 @@ router.delete('/wb-components/:componentId', async (req, res) => {
   }
 })
 
+// POST /api/ngo/wb-components/:componentId/upload — upload component file
+router.post('/wb-components/:componentId/upload', upload.single('file'), async (req, res) => {
+  try {
+    const { componentId } = req.params
+    const tenantId = req.user.tenantId
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' })
+
+    const existing = await prisma.$queryRawUnsafe(
+      `SELECT id FROM "WBProjectComponent" WHERE id = $1 AND "tenantId" = $2`,
+      componentId, tenantId
+    )
+    if (!existing.length) return res.status(404).json({ error: 'Component not found' })
+
+    const { fileUrl, key } = await uploadToS3(req.file.buffer, req.file.originalname, tenantId, 'wb-components')
+
+    await prisma.$executeRawUnsafe(
+      `UPDATE "WBProjectComponent" SET "fileKey" = $1, "fileUrl" = $2, "fileName" = $3, "updatedAt" = NOW() WHERE id = $4 AND "tenantId" = $5`,
+      key, fileUrl, req.file.originalname, componentId, tenantId
+    )
+
+    res.json({ fileUrl, fileName: req.file.originalname, fileKey: key })
+  } catch (err) {
+    console.error('Upload component file error:', err)
+    res.status(500).json({ error: 'Failed to upload file' })
+  }
+})
+
+// GET /api/ngo/wb-components/:componentId/file — get presigned URL for component file
+router.get('/wb-components/:componentId/file', async (req, res) => {
+  try {
+    const { componentId } = req.params
+    const tenantId = req.user.tenantId
+    const rows = await prisma.$queryRawUnsafe(
+      `SELECT "fileKey", "fileName" FROM "WBProjectComponent" WHERE id = $1 AND "tenantId" = $2`,
+      componentId, tenantId
+    )
+    if (!rows.length || !rows[0].fileKey) return res.status(404).json({ error: 'No file attached' })
+    const url = await getPresignedUrlFromKey(rows[0].fileKey, 3600)
+    res.json({ url, fileName: rows[0].fileName })
+  } catch (err) {
+    console.error('Get component file error:', err)
+    res.status(500).json({ error: 'Failed to get file' })
+  }
+})
+
 // GET /api/ngo/projects/:projectId/wb-contracts
 router.get('/projects/:projectId/wb-contracts', async (req, res) => {
   try {

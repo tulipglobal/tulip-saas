@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { apiGet, apiPost } from '@/lib/api'
 import { formatMoney } from '@/lib/currencies'
 
@@ -115,6 +116,7 @@ function CovenantBadge({ status, count }: { status: string; count: number }) {
 
 /* ── main page ── */
 export default function InvestmentsPage() {
+  const t = useTranslations('ngoInvestments')
   const [investments, setInvestments] = useState<Investment[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedSchedule, setExpandedSchedule] = useState<Set<string>>(new Set())
@@ -253,22 +255,22 @@ export default function InvestmentsPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>
-          Investment Monitoring
+          {t('title')}
         </h1>
         <p className="text-[var(--tulip-forest)]/60 text-sm mt-1">
-          Track repayment schedules, drawdowns and covenants
+          {t('subtitle')}
         </p>
       </div>
 
       {/* Loading */}
       {loading && (
-        <div className="p-12 text-center text-[var(--tulip-forest)]/40 text-sm">Loading investments...</div>
+        <div className="p-12 text-center text-[var(--tulip-forest)]/40 text-sm">{t('loading')}</div>
       )}
 
       {/* Empty */}
       {!loading && investments.length === 0 && (
         <div className="rounded-xl border border-[var(--tulip-sage-dark)] p-12 text-center" style={{ background: 'var(--tulip-sage)' }}>
-          <p className="text-[var(--tulip-forest)]/40 text-sm">No investments found</p>
+          <p className="text-[var(--tulip-forest)]/40 text-sm">{t('noInvestments')}</p>
         </div>
       )}
 
@@ -295,18 +297,18 @@ export default function InvestmentsPage() {
             <div className="p-5 space-y-5">
               {/* Facility summary */}
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-[var(--tulip-forest)]/40 font-medium mb-2">Facility Summary</div>
+                <div className="text-[10px] uppercase tracking-wider text-[var(--tulip-forest)]/40 font-medium mb-2">{t('facilitySummary')}</div>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="rounded-lg border border-[var(--tulip-sage-dark)] p-3" style={{ background: 'var(--tulip-sage)' }}>
-                    <div className="text-xs text-[var(--tulip-forest)]/50 mb-0.5">Total Facility</div>
+                    <div className="text-xs text-[var(--tulip-forest)]/50 mb-0.5">{t('totalFacility')}</div>
                     <div className="text-sm font-bold text-[var(--tulip-forest)]">{fmtCurrency(inv.totalFacility, inv.currency)}</div>
                   </div>
                   <div className="rounded-lg border border-[var(--tulip-sage-dark)] p-3" style={{ background: 'var(--tulip-sage)' }}>
-                    <div className="text-xs text-[var(--tulip-forest)]/50 mb-0.5">Drawn Down</div>
+                    <div className="text-xs text-[var(--tulip-forest)]/50 mb-0.5">{t('drawnDown')}</div>
                     <div className="text-sm font-bold text-[var(--tulip-forest)]">{fmtCurrency(inv.drawnDown, inv.currency)}</div>
                   </div>
                   <div className="rounded-lg border border-[var(--tulip-sage-dark)] p-3" style={{ background: 'var(--tulip-sage)' }}>
-                    <div className="text-xs text-[var(--tulip-forest)]/50 mb-0.5">Remaining</div>
+                    <div className="text-xs text-[var(--tulip-forest)]/50 mb-0.5">{t('remaining')}</div>
                     <div className="text-sm font-bold text-[var(--tulip-forest)]">{fmtCurrency(remaining, inv.currency)}</div>
                   </div>
                 </div>
@@ -314,11 +316,11 @@ export default function InvestmentsPage() {
 
               {/* Repayment status */}
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-[var(--tulip-forest)]/40 font-medium mb-2">Repayment Status</div>
+                <div className="text-[10px] uppercase tracking-wider text-[var(--tulip-forest)]/40 font-medium mb-2">{t('repaymentStatus')}</div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {/* Next due */}
                   <div className="rounded-lg border border-[var(--tulip-sage-dark)] p-3" style={{ background: 'var(--tulip-sage)' }}>
-                    <div className="text-xs text-[var(--tulip-forest)]/50 mb-0.5">Next Due</div>
+                    <div className="text-xs text-[var(--tulip-forest)]/50 mb-0.5">{t('nextDue')}</div>
                     {inv.repaymentSummary.nextRepayment ? (
                       <>
                         <div className="text-sm font-bold text-[var(--tulip-forest)]">
@@ -329,26 +331,26 @@ export default function InvestmentsPage() {
                         </div>
                       </>
                     ) : (
-                      <div className="text-sm text-[var(--tulip-forest)]/40">None</div>
+                      <div className="text-sm text-[var(--tulip-forest)]/40">{t('none')}</div>
                     )}
                   </div>
                   {/* Overdue */}
                   <div className="rounded-lg border border-[var(--tulip-sage-dark)] p-3" style={{ background: 'var(--tulip-sage)' }}>
-                    <div className="text-xs text-[var(--tulip-forest)]/50 mb-0.5">Overdue</div>
+                    <div className="text-xs text-[var(--tulip-forest)]/50 mb-0.5">{t('overdue')}</div>
                     <div className={`text-sm font-bold ${inv.repaymentSummary.overdueCount > 0 ? 'text-red-600' : 'text-[var(--tulip-forest)]'}`}>
-                      {inv.repaymentSummary.overdueCount} payment{inv.repaymentSummary.overdueCount !== 1 ? 's' : ''}
+                      {inv.repaymentSummary.overdueCount} {inv.repaymentSummary.overdueCount !== 1 ? t('paymentPlural') : t('paymentSingular')}
                     </div>
                   </div>
                   {/* Paid to date */}
                   <div className="rounded-lg border border-[var(--tulip-sage-dark)] p-3" style={{ background: 'var(--tulip-sage)' }}>
-                    <div className="text-xs text-[var(--tulip-forest)]/50 mb-0.5">Paid to Date</div>
+                    <div className="text-xs text-[var(--tulip-forest)]/50 mb-0.5">{t('paidToDate')}</div>
                     <div className="text-sm font-bold text-[var(--tulip-forest)]">
                       {fmtCurrency(inv.repaymentSummary.totalPaid, inv.currency)}
                     </div>
                     <div className="mt-1.5 h-1.5 rounded-full bg-[var(--tulip-sage-dark)] overflow-hidden">
                       <div className="h-full rounded-full bg-[var(--tulip-forest)] transition-all" style={{ width: `${paidPct}%` }} />
                     </div>
-                    <div className="text-[10px] text-[var(--tulip-forest)]/40 mt-0.5">{paidPct}% of facility</div>
+                    <div className="text-[10px] text-[var(--tulip-forest)]/40 mt-0.5">{t('ofFacility', { pct: paidPct })}</div>
                   </div>
                 </div>
               </div>
@@ -356,7 +358,7 @@ export default function InvestmentsPage() {
               {/* Covenant health */}
               {inv.covenants.length > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider text-[var(--tulip-forest)]/40 font-medium mb-2">Covenant Health</div>
+                  <div className="text-[10px] uppercase tracking-wider text-[var(--tulip-forest)]/40 font-medium mb-2">{t('covenantHealth')}</div>
                   <div className="flex flex-wrap gap-2 mb-3">
                     {counts.OK > 0 && <CovenantBadge status="OK" count={counts.OK} />}
                     {counts.WARNING > 0 && <CovenantBadge status="WARNING" count={counts.WARNING} />}
@@ -388,19 +390,19 @@ export default function InvestmentsPage() {
                                 onClick={() => updateCovenantStatus(cov.id, 'OK')}
                                 className="px-3 py-1 rounded-md text-xs font-medium bg-green-100 text-green-700 border border-green-300 hover:bg-green-200 transition-colors"
                               >
-                                Mark OK
+                                {t('markOk')}
                               </button>
                               <button
                                 onClick={() => updateCovenantStatus(cov.id, 'WARNING')}
                                 className="px-3 py-1 rounded-md text-xs font-medium bg-amber-100 text-amber-700 border border-amber-300 hover:bg-amber-200 transition-colors"
                               >
-                                Mark Warning
+                                {t('markWarning')}
                               </button>
                               <button
                                 onClick={() => updateCovenantStatus(cov.id, 'BREACH')}
                                 className="px-3 py-1 rounded-md text-xs font-medium bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 transition-colors"
                               >
-                                Mark Breach
+                                {t('markBreach')}
                               </button>
                             </div>
                           </div>
@@ -414,16 +416,16 @@ export default function InvestmentsPage() {
               {/* Drawdown pipeline */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <div className="text-[10px] uppercase tracking-wider text-[var(--tulip-forest)]/40 font-medium">Drawdown Pipeline</div>
+                  <div className="text-[10px] uppercase tracking-wider text-[var(--tulip-forest)]/40 font-medium">{t('drawdownPipeline')}</div>
                   <button
                     onClick={() => { setDrawdownModal(inv); setDdAmount(''); setDdPurpose('') }}
                     className="px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--tulip-forest)] border border-[var(--tulip-sage-dark)] hover:bg-[var(--tulip-sage)] transition-colors"
                   >
-                    + Request Drawdown
+                    {t('requestDrawdown')}
                   </button>
                 </div>
                 {inv.drawdowns.length === 0 ? (
-                  <p className="text-xs text-[var(--tulip-forest)]/40">No drawdowns yet</p>
+                  <p className="text-xs text-[var(--tulip-forest)]/40">{t('noDrawdowns')}</p>
                 ) : (
                   <div className="space-y-1.5">
                     {inv.drawdowns.map(dd => (
@@ -448,7 +450,7 @@ export default function InvestmentsPage() {
                   onClick={() => toggleSchedule(inv.id)}
                   className="text-xs font-medium text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] transition-colors underline underline-offset-2"
                 >
-                  {expandedSchedule.has(inv.id) ? 'Hide Schedule' : 'View Full Schedule'}
+                  {expandedSchedule.has(inv.id) ? t('hideSchedule') : t('viewFullSchedule')}
                 </button>
                 {expandedSchedule.has(inv.id) && (inv.schedule || []).length > 0 && (
                   <div className="mt-3 rounded-lg border border-[var(--tulip-sage-dark)] overflow-hidden" style={{ background: 'var(--tulip-sage)' }}>
@@ -456,13 +458,13 @@ export default function InvestmentsPage() {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-[var(--tulip-sage-dark)] text-[10px] text-[var(--tulip-forest)]/40 uppercase tracking-wider">
-                          <th className="text-left px-3 py-2 font-medium">#</th>
-                          <th className="text-left px-3 py-2 font-medium">Due Date</th>
-                          <th className="text-right px-3 py-2 font-medium">Principal</th>
-                          <th className="text-right px-3 py-2 font-medium">Interest</th>
-                          <th className="text-right px-3 py-2 font-medium">Total Due</th>
-                          <th className="text-right px-3 py-2 font-medium">Paid</th>
-                          <th className="text-center px-3 py-2 font-medium">Status</th>
+                          <th className="text-left px-3 py-2 font-medium">{t('scheduleHash')}</th>
+                          <th className="text-left px-3 py-2 font-medium">{t('dueDate')}</th>
+                          <th className="text-right px-3 py-2 font-medium">{t('principal')}</th>
+                          <th className="text-right px-3 py-2 font-medium">{t('interest')}</th>
+                          <th className="text-right px-3 py-2 font-medium">{t('totalDue')}</th>
+                          <th className="text-right px-3 py-2 font-medium">{t('paid')}</th>
+                          <th className="text-center px-3 py-2 font-medium">{t('status')}</th>
                           <th className="text-right px-3 py-2 font-medium"></th>
                         </tr>
                       </thead>
@@ -483,7 +485,7 @@ export default function InvestmentsPage() {
                                 row.status === 'OVERDUE' ? 'bg-red-100 text-red-700 border-red-300' :
                                 'bg-gray-100 text-gray-500 border-gray-300'
                               }`}>
-                                {row.status === 'SUBMITTED' ? 'Awaiting Confirmation' : row.status}
+                                {row.status === 'SUBMITTED' ? t('awaitingConfirmation') : row.status}
                               </span>
                             </td>
                             <td className="px-3 py-2 text-right">
@@ -492,7 +494,7 @@ export default function InvestmentsPage() {
                                   onClick={() => { setPaymentModal({ investmentId: inv.id, instalment: row, currency: inv.currency }); setPaymentAmount(String(parseFloat(String(row.totalDue)) || row.amount)) }}
                                   className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-[var(--tulip-forest)] text-[var(--tulip-cream)] hover:bg-[var(--tulip-forest)]/90 transition-colors"
                                 >
-                                  Record Payment
+                                  {t('recordPayment')}
                                 </button>
                               )}
                             </td>
@@ -504,7 +506,7 @@ export default function InvestmentsPage() {
                   </div>
                 )}
                 {expandedSchedule.has(inv.id) && (inv.schedule || []).length === 0 && (
-                  <p className="mt-2 text-xs text-[var(--tulip-forest)]/40">No schedule entries</p>
+                  <p className="mt-2 text-xs text-[var(--tulip-forest)]/40">{t('noScheduleEntries')}</p>
                 )}
               </div>
             </div>
@@ -521,15 +523,15 @@ export default function InvestmentsPage() {
             onClick={e => e.stopPropagation()}
           >
             <h3 className="text-lg font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>
-              Request Drawdown
+              {t('requestDrawdownTitle')}
             </h3>
             <p className="text-xs text-[var(--tulip-forest)]/50">
-              {drawdownModal.projectName} &mdash; remaining: {fmtCurrency(drawdownModal.totalFacility - drawdownModal.drawnDown, drawdownModal.currency)}
+              {drawdownModal.projectName} &mdash; {t('remaining').toLowerCase()}: {fmtCurrency(drawdownModal.totalFacility - drawdownModal.drawnDown, drawdownModal.currency)}
             </p>
 
             {/* Amount */}
             <div>
-              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">Amount</label>
+              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">{t('amount')}</label>
               <input
                 type="number"
                 min={0}
@@ -543,7 +545,7 @@ export default function InvestmentsPage() {
 
             {/* Currency */}
             <div>
-              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">Currency</label>
+              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">{t('currency')}</label>
               <input
                 type="text"
                 value={drawdownModal.currency}
@@ -554,12 +556,12 @@ export default function InvestmentsPage() {
 
             {/* Purpose */}
             <div>
-              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">Purpose <span className="text-red-500">*</span></label>
+              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">{t('purpose')} <span className="text-red-500">*</span></label>
               <textarea
                 value={ddPurpose}
                 onChange={e => setDdPurpose(e.target.value)}
                 rows={3}
-                placeholder="Describe the purpose of this drawdown..."
+                placeholder={t('purposePlaceholder')}
                 className="w-full rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/30 outline-none focus:border-[var(--tulip-forest)]/40 resize-none"
               />
             </div>
@@ -570,14 +572,14 @@ export default function InvestmentsPage() {
                 onClick={() => setDrawdownModal(null)}
                 className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-forest)]/60 border border-[var(--tulip-sage-dark)] hover:bg-[var(--tulip-sage)] transition-colors"
               >
-                Cancel
+                {t('cancel')}
               </button>
               <button
                 onClick={submitDrawdown}
                 disabled={ddSubmitting || !ddAmount || !ddPurpose.trim()}
                 className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-cream)] bg-[var(--tulip-forest)] hover:bg-[var(--tulip-forest)]/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
-                {ddSubmitting ? 'Submitting...' : 'Submit Request'}
+                {ddSubmitting ? t('submitting') : t('submitRequest')}
               </button>
             </div>
           </div>
@@ -593,18 +595,18 @@ export default function InvestmentsPage() {
             onClick={e => e.stopPropagation()}
           >
             <h3 className="text-lg font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>
-              Record Payment
+              {t('recordPaymentTitle')}
             </h3>
             <div className="rounded-lg border border-[var(--tulip-sage-dark)] p-3" style={{ background: 'var(--tulip-sage)' }}>
-              <p className="text-xs text-[var(--tulip-forest)]/50">Instalment #{paymentModal.instalment.instalmentNumber}</p>
+              <p className="text-xs text-[var(--tulip-forest)]/50">{t('instalmentNumber', { num: paymentModal.instalment.instalmentNumber })}</p>
               <p className="text-sm font-bold text-[var(--tulip-forest)]">
-                Total Due: {fmtCurrency(parseFloat(String(paymentModal.instalment.totalDue)) || paymentModal.instalment.amount, paymentModal.currency)}
+                {t('totalDueLabel', { amount: fmtCurrency(parseFloat(String(paymentModal.instalment.totalDue)) || paymentModal.instalment.amount, paymentModal.currency) })}
               </p>
             </div>
 
             {/* Amount */}
             <div>
-              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">Payment Amount</label>
+              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">{t('paymentAmount')}</label>
               <input
                 type="number"
                 min={0}
@@ -618,7 +620,7 @@ export default function InvestmentsPage() {
 
             {/* Proof file */}
             <div>
-              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">Payment Proof (receipt, transfer confirmation, etc.)</label>
+              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">{t('paymentProof')}</label>
               <input
                 ref={paymentFileRef}
                 type="file"
@@ -633,12 +635,12 @@ export default function InvestmentsPage() {
 
             {/* Notes */}
             <div>
-              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">Notes</label>
+              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">{t('notes')}</label>
               <textarea
                 value={paymentNotes}
                 onChange={e => setPaymentNotes(e.target.value)}
                 rows={2}
-                placeholder="Payment reference, bank details, etc."
+                placeholder={t('notesPlaceholder')}
                 className="w-full rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/30 outline-none focus:border-[var(--tulip-forest)]/40 resize-none"
               />
             </div>
@@ -649,14 +651,14 @@ export default function InvestmentsPage() {
                 onClick={() => { setPaymentModal(null); setPaymentFile(null); setPaymentNotes('') }}
                 className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-forest)]/60 border border-[var(--tulip-sage-dark)] hover:bg-[var(--tulip-sage)] transition-colors"
               >
-                Cancel
+                {t('cancel')}
               </button>
               <button
                 onClick={submitPayment}
                 disabled={paymentSubmitting || !paymentAmount}
                 className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-cream)] bg-[var(--tulip-forest)] hover:bg-[var(--tulip-forest)]/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
-                {paymentSubmitting ? 'Submitting...' : 'Submit Payment'}
+                {paymentSubmitting ? t('submitting') : t('submitPayment')}
               </button>
             </div>
           </div>

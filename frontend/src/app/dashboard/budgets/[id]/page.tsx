@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { useParams } from 'next/navigation'
 import { apiGet, apiPut, apiPost, apiDelete } from '@/lib/api'
 import Link from 'next/link'
@@ -113,20 +114,21 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function FundingBadge({ totalApproved, totalFunded }: { totalApproved: number; totalFunded: number }) {
+  const t = useTranslations('budgetDetail')
   if (totalApproved <= 0) return null
   if (totalFunded >= totalApproved) return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border font-medium bg-green-400/10 text-green-400 border-green-400/20">
-      <CheckCircle size={10} /> Fully Funded
+      <CheckCircle size={10} /> {t('fullyFunded')}
     </span>
   )
   if (totalFunded > 0) return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border font-medium bg-yellow-400/10 text-yellow-400 border-yellow-400/20">
-      <AlertTriangle size={10} /> Partially Funded
+      <AlertTriangle size={10} /> {t('partiallyFunded')}
     </span>
   )
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border font-medium bg-red-400/10 text-red-400 border-red-400/20">
-      Unfunded
+      {t('unfunded')}
     </span>
   )
 }
@@ -138,6 +140,7 @@ function formatDate(d: string) {
 const inputCls = "w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] transition-all [&>option]:bg-[var(--tulip-sage)]"
 
 export default function BudgetDetailPage() {
+  const t = useTranslations('budgetDetail')
   const { id } = useParams<{ id: string }>()
   const [budget, setBudget] = useState<BudgetDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -411,8 +414,8 @@ export default function BudgetDetailPage() {
   const allTranches = Object.entries(tranches).flatMap(([agId, list]) => list.map(t => ({ ...t, _agreementId: agId })))
   const allConditions = Object.entries(conditions).flatMap(([agId, list]) => list.map(c => ({ ...c, _agreementId: agId })))
 
-  if (loading) return <div className="p-8 text-center text-[var(--tulip-forest)]/40">Loading...</div>
-  if (!budget) return <div className="p-8 text-center text-[var(--tulip-forest)]/40">Budget not found</div>
+  if (loading) return <div className="p-8 text-center text-[var(--tulip-forest)]/40">{t('loading')}</div>
+  if (!budget) return <div className="p-8 text-center text-[var(--tulip-forest)]/40">{t('notFound')}</div>
 
   const fundingPct = budget.totalApproved > 0 ? Math.round((budget.totalFunded / budget.totalApproved) * 100) : 0
   const spentPct = budget.totalApproved > 0 ? Math.round((budget.totalSpent / budget.totalApproved) * 100) : 0
@@ -459,10 +462,10 @@ export default function BudgetDetailPage() {
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total Budget Required', value: formatMoney(budget.totalApproved, budget.lines?.[0]?.currency || 'USD'), color: 'text-[var(--tulip-forest)]' },
-          { label: 'Total Funded', value: formatMoney(budget.totalFunded, budget.lines?.[0]?.currency || 'USD'), sub: `${fundingPct}%`, color: isFullyFunded ? 'text-green-400' : 'text-yellow-400' },
-          { label: 'Total Spent', value: formatMoney(budget.totalSpent, budget.lines?.[0]?.currency || 'USD'), sub: `${spentPct}%`, color: 'text-orange-400' },
-          { label: 'Remaining', value: formatMoney(budget.remaining, budget.lines?.[0]?.currency || 'USD'), color: budget.remaining >= 0 ? 'text-green-400' : 'text-red-400' },
+          { label: t('totalBudgetRequired'), value: formatMoney(budget.totalApproved, budget.lines?.[0]?.currency || 'USD'), color: 'text-[var(--tulip-forest)]' },
+          { label: t('totalFunded'), value: formatMoney(budget.totalFunded, budget.lines?.[0]?.currency || 'USD'), sub: `${fundingPct}%`, color: isFullyFunded ? 'text-green-400' : 'text-yellow-400' },
+          { label: t('totalSpent'), value: formatMoney(budget.totalSpent, budget.lines?.[0]?.currency || 'USD'), sub: `${spentPct}%`, color: 'text-orange-400' },
+          { label: t('remaining'), value: formatMoney(budget.remaining, budget.lines?.[0]?.currency || 'USD'), color: budget.remaining >= 0 ? 'text-green-400' : 'text-red-400' },
         ].map(({ label, value, sub, color }) => (
           <div key={label} className="rounded-xl border border-[var(--tulip-sage-dark)] px-5 py-4" style={{ background: 'var(--tulip-sage)' }}>
             <div className={`text-lg font-bold ${color}`} style={{ fontFamily: 'Inter, sans-serif' }}>
@@ -529,11 +532,11 @@ export default function BudgetDetailPage() {
         return (
           <div className="rounded-xl border border-[var(--tulip-sage-dark)] overflow-hidden" style={{ background: 'var(--tulip-sage)' }}>
             <div className="px-5 py-3 border-b border-[var(--tulip-sage-dark)] flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-[var(--tulip-forest)]/70 uppercase tracking-wide">Budget vs Actual</h2>
-              <span className="text-xs text-[var(--tulip-forest)]/40">{budget.lines.length} line{budget.lines.length !== 1 ? 's' : ''}</span>
+              <h2 className="text-sm font-semibold text-[var(--tulip-forest)]/70 uppercase tracking-wide">{t('budgetVsActual')}</h2>
+              <span className="text-xs text-[var(--tulip-forest)]/40">{budget.lines.length !== 1 ? t('lineCountPlural', { count: budget.lines.length }) : t('lineCount', { count: budget.lines.length })}</span>
             </div>
             <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-4 px-5 py-2 border-b border-[var(--tulip-sage-dark)] text-xs text-[var(--tulip-forest)]/40 uppercase tracking-wide">
-              <span>Category</span><span>Approved</span><span>Spent</span><span>Remaining</span><span>Usage</span>
+              <span>{t('category')}</span><span>{t('approved')}</span><span>{t('spent')}</span><span>{t('remaining')}</span><span>{t('usage')}</span>
             </div>
 
             {/* CapEx section */}
@@ -541,13 +544,13 @@ export default function BudgetDetailPage() {
               <>
                 <div className="px-5 py-2 border-b border-[var(--tulip-sage-dark)] bg-[#EFF6FF]/40">
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#EFF6FF] text-[#1D4ED8] border border-[#1D4ED8]/20">
-                    CapEx — Capital Expenditure
+                    {t('capexLabel')}
                   </span>
                 </div>
                 <div className="divide-y divide-[var(--tulip-sage-dark)]">
                   {capexLines.map(renderLineRow)}
                 </div>
-                {renderSubtotal('CapEx Subtotal', capexApproved, capexSpent, capexRemaining)}
+                {renderSubtotal(t('capexSubtotal'), capexApproved, capexSpent, capexRemaining)}
               </>
             )}
 
@@ -556,20 +559,20 @@ export default function BudgetDetailPage() {
               <>
                 <div className="px-5 py-2 border-b border-[var(--tulip-sage-dark)] bg-[#F3F4F6]/40">
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#F3F4F6] text-[#4B5563] border border-[#4B5563]/20">
-                    OpEx — Operating Expenditure
+                    {t('opexLabel')}
                   </span>
                 </div>
                 <div className="divide-y divide-[var(--tulip-sage-dark)]">
                   {opexLines.map(renderLineRow)}
                 </div>
-                {renderSubtotal('OpEx Subtotal', opexApproved, opexSpent, opexRemaining)}
+                {renderSubtotal(t('opexSubtotal'), opexApproved, opexSpent, opexRemaining)}
               </>
             )}
 
             {/* Grand Total */}
             {(capexLines.length > 0 && opexLines.length > 0) && (
               <div className="px-5 py-3 lg:grid lg:grid-cols-[2fr_1fr_1fr_1fr_1fr] lg:gap-4 lg:items-center bg-[var(--tulip-forest)]/5 border-t-2 border-[var(--tulip-forest)]/20">
-                <div className="text-sm font-bold text-[var(--tulip-forest)] uppercase tracking-wide">Grand Total</div>
+                <div className="text-sm font-bold text-[var(--tulip-forest)] uppercase tracking-wide">{t('grandTotal')}</div>
                 <div className="text-sm text-[var(--tulip-forest)] font-bold">{formatMoney(grandApproved, budgetCurrency)}</div>
                 <div className="text-sm text-orange-500 font-bold">{formatMoney(grandSpent, budgetCurrency)}</div>
                 <div className={`text-sm font-bold ${grandRemaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatMoney(grandRemaining, budgetCurrency)}</div>
@@ -584,21 +587,21 @@ export default function BudgetDetailPage() {
       <div className="rounded-xl border border-[var(--tulip-sage-dark)] overflow-hidden" style={{ background: 'var(--tulip-sage)' }}>
         <div className="px-5 py-3 border-b border-[var(--tulip-sage-dark)] flex items-center justify-between">
           <h2 className="text-sm font-semibold text-[var(--tulip-forest)]/70 uppercase tracking-wide flex items-center gap-2">
-            <Banknote size={14} /> Funding Sources
+            <Banknote size={14} /> {t('fundingSources')}
           </h2>
           <div className="flex items-center gap-3">
             <FundingBadge totalApproved={budget.totalApproved} totalFunded={budget.totalFunded} />
             <button onClick={() => setShowAddFunding(true)}
               className="flex items-center gap-1 text-xs text-cyan-400 hover:text-cyan-300 transition-colors">
-              <Plus size={12} /> Add
+              <Plus size={12} /> {t('add')}
             </button>
           </div>
         </div>
 
         {budget.fundingSources.length === 0 && !showAddFunding ? (
           <div className="px-5 py-6 text-center text-[var(--tulip-forest)]/40 text-sm">
-            No funding sources yet.{' '}
-            <button onClick={() => setShowAddFunding(true)} className="text-cyan-400 hover:text-cyan-300">Add one</button>
+            {t('noFundingSources')}{' '}
+            <button onClick={() => setShowAddFunding(true)} className="text-cyan-400 hover:text-cyan-300">{t('addOne')}</button>
           </div>
         ) : (
           <div className="divide-y divide-[var(--tulip-sage-dark)]">
@@ -627,45 +630,45 @@ export default function BudgetDetailPage() {
           <div className="px-5 py-4 border-t border-[var(--tulip-sage-dark)] space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <div>
-                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Source Type *</label>
+                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">{t('sourceType')} *</label>
                 <select value={newFunding.sourceType} onChange={e => setNewFunding(p => ({ ...p, sourceType: e.target.value, sourceSubType: '' }))}
                   className={inputCls}>
-                  <option value="">Select...</option>
+                  <option value="">{t('select')}</option>
                   {FUNDING_SOURCE_TYPE_KEYS.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Sub-Type</label>
+                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">{t('subType')}</label>
                 <select value={newFunding.sourceSubType} onChange={e => setNewFunding(p => ({ ...p, sourceSubType: e.target.value }))}
                   disabled={subTypes.length === 0} className={inputCls + ' disabled:opacity-40'}>
-                  <option value="">Select...</option>
+                  <option value="">{t('select')}</option>
                   {subTypes.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Funded By *</label>
+                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">{t('fundedBy')} *</label>
                 <div className="flex rounded-lg overflow-hidden border border-[var(--tulip-sage-dark)] mb-2">
                   {(['existing', 'external'] as const).map(m => (
                     <button key={m} onClick={() => { setDonorMode(m); setNewFunding(p => ({ ...p, donorOrgId: '', donorName: '' })) }}
                       className="flex-1 px-3 py-1.5 text-[11px] font-medium transition-all"
                       style={{ background: donorMode === m ? 'var(--tulip-forest)' : 'var(--tulip-sage)', color: donorMode === m ? 'var(--tulip-cream)' : 'var(--tulip-forest)' }}>
-                      {m === 'existing' ? 'Existing Donor' : 'Other'}
+                      {m === 'existing' ? t('existingDonor') : t('other')}
                     </button>
                   ))}
                 </div>
                 {donorMode === 'existing' ? (
                   <select value={newFunding.donorOrgId} onChange={e => setNewFunding(p => ({ ...p, donorOrgId: e.target.value }))}
                     className={inputCls}>
-                    <option value="">Select donor org...</option>
+                    <option value="">{t('selectDonorOrg')}</option>
                     {donorOrgs.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
                   </select>
                 ) : (
                   <input value={newFunding.donorName} onChange={e => setNewFunding(p => ({ ...p, donorName: e.target.value }))}
-                    placeholder="e.g. World Bank, EU Commission" className={inputCls} />
+                    placeholder={t('donorPlaceholder')} className={inputCls} />
                 )}
               </div>
               <div>
-                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Amount *</label>
+                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">{t('amount')} *</label>
                 <div className="flex gap-1.5">
                   <CurrencySelect compact value={newFunding.currency} onChange={v => setNewFunding(p => ({ ...p, currency: v }))} />
                   <input type="number" min="0" step="0.01" value={newFunding.amount}
@@ -677,13 +680,13 @@ export default function BudgetDetailPage() {
             {newFunding.sourceType === 'Impact Investment' && (
               <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                 <div>
-                  <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Interest Rate (% p.a.)</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">{t('interestRate')}</label>
                   <input type="number" min="0" step="0.01" value={newFunding.interestRate}
-                    onChange={e => setNewFunding(p => ({ ...p, interestRate: e.target.value }))} placeholder="e.g. 5.5"
+                    onChange={e => setNewFunding(p => ({ ...p, interestRate: e.target.value }))} placeholder={t('interestRatePlaceholder')}
                     className={inputCls} />
                 </div>
                 <div>
-                  <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Interest Type</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">{t('interestType')}</label>
                   <div className="flex rounded-lg overflow-hidden border border-[var(--tulip-sage-dark)]">
                     {(['FIXED', 'VARIABLE'] as const).map(t => (
                       <button key={t} onClick={() => setNewFunding(p => ({ ...p, interestType: t }))}
@@ -695,28 +698,28 @@ export default function BudgetDetailPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Grace Period (months)</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">{t('gracePeriod')}</label>
                   <input type="number" min="0" value={newFunding.gracePeriodMonths}
-                    onChange={e => setNewFunding(p => ({ ...p, gracePeriodMonths: e.target.value }))} placeholder="e.g. 6"
+                    onChange={e => setNewFunding(p => ({ ...p, gracePeriodMonths: e.target.value }))} placeholder={t('gracePeriodPlaceholder')}
                     className={inputCls} />
                 </div>
                 <div>
-                  <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Term (months)</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">{t('term')}</label>
                   <input type="number" min="1" value={newFunding.termMonths}
-                    onChange={e => setNewFunding(p => ({ ...p, termMonths: e.target.value }))} placeholder="e.g. 24"
+                    onChange={e => setNewFunding(p => ({ ...p, termMonths: e.target.value }))} placeholder={t('termPlaceholder')}
                     className={inputCls} />
                 </div>
               </div>
             )}
             {newFunding.sourceType === 'Impact Investment' && Number(newFunding.termMonths) > 0 && (
               <div>
-                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Auto-generate repayment schedule</label>
+                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">{t('autoGenerateSchedule')}</label>
                 <div className="flex rounded-lg overflow-hidden border border-[var(--tulip-sage-dark)] w-fit">
                   {([true, false] as const).map(v => (
                     <button key={String(v)} onClick={() => setNewFunding(p => ({ ...p, autoGenerateSchedule: v }))}
                       className="px-4 py-1.5 text-xs font-medium transition-all"
                       style={{ background: newFunding.autoGenerateSchedule === v ? 'var(--tulip-forest)' : 'var(--tulip-sage)', color: newFunding.autoGenerateSchedule === v ? 'var(--tulip-cream)' : 'var(--tulip-forest)' }}>
-                      {v ? 'Yes' : 'No'}
+                      {v ? t('yes') : t('no')}
                     </button>
                   ))}
                 </div>
@@ -725,9 +728,9 @@ export default function BudgetDetailPage() {
             <div className="flex items-center gap-2">
               <button onClick={handleAddFunding} disabled={addingFunding || !newFunding.sourceType || !newFunding.amount || (donorMode === 'existing' ? !newFunding.donorOrgId : !newFunding.donorName)}
                 className="px-4 py-1.5 rounded-lg text-xs font-medium text-[var(--tulip-forest)] disabled:opacity-40 transition-all bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)]">
-                {addingFunding ? 'Adding...' : 'Add Source'}
+                {addingFunding ? t('adding') : t('addSource')}
               </button>
-              <button onClick={() => setShowAddFunding(false)} className="px-4 py-1.5 text-xs text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]/70">Cancel</button>
+              <button onClick={() => setShowAddFunding(false)} className="px-4 py-1.5 text-xs text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]/70">{t('cancel')}</button>
             </div>
           </div>
         )}
@@ -739,12 +742,12 @@ export default function BudgetDetailPage() {
           }`}>
             <div className="flex items-center gap-2">
               {isFullyFunded
-                ? <><CheckCircle size={14} className="text-green-400" /><span className="text-green-400 font-medium">Fully Funded</span></>
-                : <><AlertTriangle size={14} className="text-yellow-400" /><span className="text-yellow-400 font-medium">Gap: ${fundingGap.toLocaleString()}</span></>
+                ? <><CheckCircle size={14} className="text-green-400" /><span className="text-green-400 font-medium">{t('fullyFunded')}</span></>
+                : <><AlertTriangle size={14} className="text-yellow-400" /><span className="text-yellow-400 font-medium">{t('fundingGap', { gap: fundingGap.toLocaleString() })}</span></>
               }
             </div>
             <span className="text-xs text-[var(--tulip-forest)]/60">
-              Required ${budget.totalApproved.toLocaleString()} · Funded ${budget.totalFunded.toLocaleString()}
+              {t('fundingRequired', { required: budget.totalApproved.toLocaleString(), funded: budget.totalFunded.toLocaleString() })}
             </span>
           </div>
         )}
@@ -754,13 +757,13 @@ export default function BudgetDetailPage() {
       <div className="rounded-xl border border-[var(--tulip-sage-dark)] overflow-hidden" style={{ background: 'var(--tulip-sage)' }}>
         <div className="px-5 py-3 border-b border-[var(--tulip-sage-dark)] flex items-center justify-between">
           <h2 className="text-sm font-semibold text-[var(--tulip-forest)]/70 uppercase tracking-wide flex items-center gap-2">
-            <Receipt size={14} /> Expenses
+            <Receipt size={14} /> {t('expenses')}
           </h2>
-          <span className="text-xs text-[var(--tulip-forest)]/40">{budget.expenses.length} expense{budget.expenses.length !== 1 ? 's' : ''}</span>
+          <span className="text-xs text-[var(--tulip-forest)]/40">{budget.expenses.length !== 1 ? t('expenseCountPlural', { count: budget.expenses.length }) : t('expenseCount', { count: budget.expenses.length })}</span>
         </div>
         {budget.expenses.length === 0 ? (
           <div className="px-5 py-6 text-center text-[var(--tulip-forest)]/40 text-sm">
-            No expenses recorded against this budget yet.
+            {t('noExpenses')}
           </div>
         ) : (
           <div className="divide-y divide-[var(--tulip-sage-dark)]">
@@ -769,7 +772,7 @@ export default function BudgetDetailPage() {
                 <div>
                   <div className="text-sm text-[var(--tulip-forest)]">{e.description}</div>
                   <div className="text-xs text-[var(--tulip-forest)]/40">
-                    {e.project.name} · {e.category ?? 'Uncategorised'}
+                    {e.project.name} · {e.category ?? t('uncategorised')}
                     {e.subCategory && ` / ${e.subCategory}`}
                     <span className="ml-2">{formatDate(e.createdAt)}</span>
                   </div>
@@ -789,10 +792,10 @@ export default function BudgetDetailPage() {
             className="w-full px-5 py-3 border-b border-[var(--tulip-sage-dark)] flex items-center justify-between hover:bg-[var(--tulip-sage-dark)]/20 transition-all"
           >
             <h2 className="text-sm font-semibold text-[var(--tulip-forest)]/70 uppercase tracking-wide flex items-center gap-2">
-              <CheckCircle size={14} /> Grant Conditions
+              <CheckCircle size={14} /> {t('grantConditions')}
             </h2>
             <div className="flex items-center gap-3">
-              <span className="text-xs text-[var(--tulip-forest)]/40">{allTranches.length} disbursement{allTranches.length !== 1 ? 's' : ''}</span>
+              <span className="text-xs text-[var(--tulip-forest)]/40">{allTranches.length !== 1 ? t('disbursementCountPlural', { count: allTranches.length }) : t('disbursementCount', { count: allTranches.length })}</span>
               {tranchesExpanded ? <ChevronUp size={14} className="text-[var(--tulip-forest)]/40" /> : <ChevronDown size={14} className="text-[var(--tulip-forest)]/40" />}
             </div>
           </button>
@@ -809,15 +812,15 @@ export default function BudgetDetailPage() {
                   <div className="px-5 py-3 border-b border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)]/50">
                     <div className="grid grid-cols-3 gap-4 text-xs text-center">
                       <div>
-                        <span className="text-[var(--tulip-forest)]/40 block">Total Tranched</span>
+                        <span className="text-[var(--tulip-forest)]/40 block">{t('totalTranched')}</span>
                         <span className="font-semibold text-[var(--tulip-forest)]">{allTranches[0]?.currency || 'USD'} {totalAmount.toLocaleString()}</span>
                       </div>
                       <div>
-                        <span className="text-green-600 block">Released</span>
+                        <span className="text-green-600 block">{t('released')}</span>
                         <span className="font-semibold text-green-700">{allTranches[0]?.currency || 'USD'} {releasedAmount.toLocaleString()} ({releasedPct}%)</span>
                       </div>
                       <div>
-                        <span className="text-amber-600 block">Pending</span>
+                        <span className="text-amber-600 block">{t('pending')}</span>
                         <span className="font-semibold text-amber-700">{allTranches[0]?.currency || 'USD'} {pendingAmount.toLocaleString()}</span>
                       </div>
                     </div>
@@ -831,13 +834,13 @@ export default function BudgetDetailPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage-dark)]/30">
-                        <th className="text-left px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">Funding Agreement</th>
-                        <th className="text-left px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">Conditions</th>
-                        <th className="text-left px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">Planned Date</th>
-                        <th className="text-center px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">Status</th>
-                        <th className="text-right px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">Actual Release</th>
-                        <th className="text-center px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">Evidence</th>
-                        <th className="text-center px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">Action</th>
+                        <th className="text-left px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">{t('fundingAgreement')}</th>
+                        <th className="text-left px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">{t('conditions')}</th>
+                        <th className="text-left px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">{t('plannedDate')}</th>
+                        <th className="text-center px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">{t('status')}</th>
+                        <th className="text-right px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">{t('actualRelease')}</th>
+                        <th className="text-center px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">{t('evidence')}</th>
+                        <th className="text-center px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">{t('action')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[var(--tulip-sage-dark)]">
@@ -864,7 +867,7 @@ export default function BudgetDetailPage() {
                               {tranche.evidenceFileUrl ? (
                                 <a href={tranche.evidenceFileUrl} target="_blank" rel="noopener noreferrer"
                                   className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium bg-purple-500/10 text-purple-700 hover:bg-purple-500/20 transition-all">
-                                  <Upload size={10} /> {tranche.evidenceName || 'View'}
+                                  <Upload size={10} /> {tranche.evidenceName || t('view')}
                                 </a>
                               ) : '—'}
                             </td>
@@ -875,7 +878,7 @@ export default function BudgetDetailPage() {
                                     onClick={() => setShowConditionsModal({ trancheId: tranche.id, agreementId: tranche._agreementId })}
                                     className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] transition-all"
                                   >
-                                    <Check size={10} /> Confirm Met
+                                    <Check size={10} /> {t('confirmMet')}
                                   </button>
                                 )}
                                 {tranche.status !== 'PENDING' && !tranche.evidenceDocumentId && (
@@ -883,7 +886,7 @@ export default function BudgetDetailPage() {
                                     onClick={() => setShowEvidenceModal({ trancheId: tranche.id, agreementId: tranche._agreementId })}
                                     className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-medium bg-purple-500/10 text-purple-700 hover:bg-purple-500/20 transition-all"
                                   >
-                                    <Upload size={10} /> Attach Evidence
+                                    <Upload size={10} /> {t('attachEvidence')}
                                   </button>
                                 )}
                               </div>
@@ -908,8 +911,8 @@ export default function BudgetDetailPage() {
           <div className="relative bg-[var(--tulip-cream)] rounded-2xl border border-[var(--tulip-sage-dark)] shadow-xl w-full max-w-md mx-4">
             <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--tulip-sage-dark)]">
               <div>
-                <h3 className="text-base font-bold text-[var(--tulip-forest)]">Confirm Conditions Met</h3>
-                <p className="text-xs text-[var(--tulip-forest)]/50 mt-0.5">Upload supporting evidence and notify the donor</p>
+                <h3 className="text-base font-bold text-[var(--tulip-forest)]">{t('confirmConditionsTitle')}</h3>
+                <p className="text-xs text-[var(--tulip-forest)]/50 mt-0.5">{t('confirmConditionsSubtitle')}</p>
               </div>
               <button onClick={() => { setShowConditionsModal(null); setConditionsFile(null); setConditionsNotes('') }}
                 className="text-[var(--tulip-forest)]/40 hover:text-[var(--tulip-forest)] transition-all">
@@ -918,17 +921,17 @@ export default function BudgetDetailPage() {
             </div>
             <div className="px-5 py-4 space-y-4">
               <div>
-                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Notes</label>
+                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">{t('notes')}</label>
                 <textarea
                   value={conditionsNotes}
                   onChange={e => setConditionsNotes(e.target.value)}
                   rows={3}
-                  placeholder="Describe how conditions have been met..."
+                  placeholder={t('conditionsNotesPlaceholder')}
                   className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] transition-all resize-none"
                 />
               </div>
               <div>
-                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Supporting Document (optional)</label>
+                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">{t('supportingDocument')}</label>
                 <input
                   type="file"
                   accept=".pdf,.doc,.docx,.xlsx,.xls,.jpg,.jpeg,.png,.csv"
@@ -937,7 +940,7 @@ export default function BudgetDetailPage() {
                 />
                 {conditionsFile && (
                   <p className="text-xs text-[var(--tulip-forest)]/50 mt-1">
-                    {conditionsFile.name} ({(conditionsFile.size / 1024).toFixed(0)} KB) — will be hashed &amp; stored in Documents
+                    {conditionsFile.name} ({(conditionsFile.size / 1024).toFixed(0)} KB) — {t('fileHashedNote')}
                   </p>
                 )}
               </div>
@@ -948,11 +951,11 @@ export default function BudgetDetailPage() {
                   className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] disabled:opacity-50 transition-all"
                 >
                   <Check size={14} />
-                  {confirmingTranche === showConditionsModal.trancheId ? 'Submitting...' : 'Confirm & Notify Donor'}
+                  {confirmingTranche === showConditionsModal.trancheId ? t('loading') : t('confirmAndNotify')}
                 </button>
                 <button onClick={() => { setShowConditionsModal(null); setConditionsFile(null); setConditionsNotes('') }}
                   className="px-4 py-2 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage-dark)]/40 transition-all">
-                  Cancel
+                  {t('cancel')}
                 </button>
               </div>
             </div>
@@ -967,8 +970,8 @@ export default function BudgetDetailPage() {
           <div className="relative bg-[var(--tulip-cream)] rounded-2xl border border-[var(--tulip-sage-dark)] shadow-xl w-full max-w-md mx-4">
             <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--tulip-sage-dark)]">
               <div>
-                <h3 className="text-base font-bold text-[var(--tulip-forest)]">Attach Evidence</h3>
-                <p className="text-xs text-[var(--tulip-forest)]/50 mt-0.5">Upload a supporting document — it will be hashed and stored</p>
+                <h3 className="text-base font-bold text-[var(--tulip-forest)]">{t('attachEvidenceTitle')}</h3>
+                <p className="text-xs text-[var(--tulip-forest)]/50 mt-0.5">{t('attachEvidenceSubtitle')}</p>
               </div>
               <button onClick={() => { setShowEvidenceModal(null); setEvidenceFile(null); setEvidenceNotes('') }}
                 className="text-[var(--tulip-forest)]/40 hover:text-[var(--tulip-forest)] transition-all">
@@ -977,17 +980,17 @@ export default function BudgetDetailPage() {
             </div>
             <div className="px-5 py-4 space-y-4">
               <div>
-                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Notes (optional)</label>
+                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">{t('evidenceNotesLabel')}</label>
                 <textarea
                   value={evidenceNotes}
                   onChange={e => setEvidenceNotes(e.target.value)}
                   rows={2}
-                  placeholder="Describe the evidence..."
+                  placeholder={t('evidenceNotesPlaceholder')}
                   className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] transition-all resize-none"
                 />
               </div>
               <div>
-                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Evidence File</label>
+                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">{t('evidenceFileLabel')}</label>
                 <input
                   type="file"
                   accept=".pdf,.doc,.docx,.xlsx,.xls,.jpg,.jpeg,.png,.csv"
@@ -996,7 +999,7 @@ export default function BudgetDetailPage() {
                 />
                 {evidenceFile && (
                   <p className="text-xs text-[var(--tulip-forest)]/50 mt-1">
-                    {evidenceFile.name} ({(evidenceFile.size / 1024).toFixed(0)} KB) — will be hashed &amp; stored in Documents
+                    {evidenceFile.name} ({(evidenceFile.size / 1024).toFixed(0)} KB) — {t('fileHashedNote')}
                   </p>
                 )}
               </div>
@@ -1007,11 +1010,11 @@ export default function BudgetDetailPage() {
                   className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 transition-all"
                 >
                   <Upload size={14} />
-                  {uploadingEvidence ? 'Uploading...' : 'Upload & Notify Donor'}
+                  {uploadingEvidence ? t('uploading') : t('uploadAndNotify')}
                 </button>
                 <button onClick={() => { setShowEvidenceModal(null); setEvidenceFile(null); setEvidenceNotes('') }}
                   className="px-4 py-2 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage-dark)]/40 transition-all">
-                  Cancel
+                  {t('cancel')}
                 </button>
               </div>
             </div>
@@ -1026,7 +1029,7 @@ export default function BudgetDetailPage() {
           <div className="relative bg-[var(--tulip-cream)] rounded-2xl border border-[var(--tulip-sage-dark)] shadow-xl w-full max-w-md mx-4">
             <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--tulip-sage-dark)]">
               <div>
-                <h3 className="text-base font-bold text-[var(--tulip-forest)]">Report Breach</h3>
+                <h3 className="text-base font-bold text-[var(--tulip-forest)]">{t('reportBreach')}</h3>
                 <p className="text-xs text-[var(--tulip-forest)]/50 mt-0.5">{breachModal.title}</p>
               </div>
               <button onClick={() => { setBreachModal(null); setBreachNote(''); setBreachSuccess(false) }}
@@ -1038,16 +1041,16 @@ export default function BudgetDetailPage() {
               {breachSuccess ? (
                 <div className="text-center py-4">
                   <CheckCircle size={32} className="mx-auto text-green-500 mb-2" />
-                  <p className="text-sm text-[var(--tulip-forest)] font-medium">Donor has been notified of this condition breach.</p>
+                  <p className="text-sm text-[var(--tulip-forest)] font-medium">{t('breachNotified')}</p>
                 </div>
               ) : (
                 <>
-                  <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Describe the breach situation</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">{t('breachDescriptionLabel')}</label>
                   <textarea
                     value={breachNote}
                     onChange={e => setBreachNote(e.target.value)}
                     rows={4}
-                    placeholder="Explain what happened and any corrective actions planned..."
+                    placeholder={t('breachPlaceholder')}
                     className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] transition-all resize-none"
                   />
                   <div className="flex items-center gap-3 mt-4">
@@ -1057,11 +1060,11 @@ export default function BudgetDetailPage() {
                       className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 transition-all"
                     >
                       <AlertTriangle size={14} />
-                      {breachSubmitting ? 'Submitting...' : 'Submit'}
+                      {breachSubmitting ? t('loading') : t('reportBreach')}
                     </button>
                     <button onClick={() => { setBreachModal(null); setBreachNote(''); setBreachSuccess(false) }}
                       className="px-4 py-2 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage-dark)]/40 transition-all">
-                      Cancel
+                      {t('cancel')}
                     </button>
                   </div>
                 </>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { apiGet, apiPost, apiDelete } from '@/lib/api'
 import {
   ArrowLeft, Banknote, Calendar, Users, FolderOpen,
@@ -71,6 +72,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function FundingDetailPage() {
+  const t = useTranslations('fundingDetail')
   const params = useParams()
   const id = params?.id as string
 
@@ -131,8 +133,8 @@ export default function FundingDetailPage() {
   if (!agreement) return (
     <div className="flex flex-col items-center justify-center min-h-screen text-[var(--tulip-forest)]/70 gap-4">
       <Banknote size={48} className="text-[var(--tulip-forest)]/30" />
-      <p>Funding agreement not found</p>
-      <Link href="/dashboard/funding" className="text-cyan-400 hover:text-cyan-300 text-sm">← Back to Funding</Link>
+      <p>{t('notFound')}</p>
+      <Link href="/dashboard/funding" className="text-cyan-400 hover:text-cyan-300 text-sm">← {t('backToFunding')}</Link>
     </div>
   )
 
@@ -146,7 +148,7 @@ export default function FundingDetailPage() {
   return (
     <div className="p-6 max-w-5xl mx-auto animate-fade-up">
       <Link href="/dashboard/funding" className="inline-flex items-center gap-2 text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] text-sm mb-6 transition-colors">
-        <ArrowLeft size={14} /> Back to Funding
+        <ArrowLeft size={14} /> {t('backToFunding')}
       </Link>
 
       {/* Header */}
@@ -161,7 +163,7 @@ export default function FundingDetailPage() {
               <TypeBadge type={agreement.type} />
               <StatusBadge status={agreement.status} />
               <span className="text-[var(--tulip-forest)]/40 text-xs flex items-center gap-1">
-                <Calendar size={11} /> Created {new Date(agreement.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                <Calendar size={11} /> {t('created', { date: new Date(agreement.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) })}
               </span>
             </div>
           </div>
@@ -171,11 +173,11 @@ export default function FundingDetailPage() {
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-4">
-          <p className="text-[var(--tulip-forest)]/60 text-xs mb-1">Total Amount</p>
+          <p className="text-[var(--tulip-forest)]/60 text-xs mb-1">{t('totalAmount')}</p>
           <p className="text-[var(--tulip-forest)] font-semibold text-lg">{agreement.currency} {agreement.totalAmount.toLocaleString()}</p>
         </div>
         <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-4">
-          <p className="text-[var(--tulip-forest)]/60 text-xs mb-1">Spent</p>
+          <p className="text-[var(--tulip-forest)]/60 text-xs mb-1">{t('spent')}</p>
           <p className="text-[var(--tulip-forest)] font-semibold text-lg">{agreement.currency} {agreement.spent.toLocaleString()}</p>
           <div className="mt-2 h-1.5 rounded-full bg-[var(--tulip-sage)] overflow-hidden">
             <div className="h-full rounded-full" style={{
@@ -183,14 +185,14 @@ export default function FundingDetailPage() {
               background: pct > 90 ? '#f87171' : pct > 70 ? '#fbbf24' : '#34d399'
             }} />
           </div>
-          <p className="text-xs text-[var(--tulip-forest)]/40 mt-1">{pct}% utilised</p>
+          <p className="text-xs text-[var(--tulip-forest)]/40 mt-1">{t('utilised', { pct })}</p>
         </div>
         <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-4">
-          <p className="text-[var(--tulip-forest)]/60 text-xs mb-1">Allocated to Projects</p>
+          <p className="text-[var(--tulip-forest)]/60 text-xs mb-1">{t('allocatedToProjects')}</p>
           <p className="text-[var(--tulip-forest)] font-semibold text-lg">{agreement.currency} {allocated.toLocaleString()}</p>
         </div>
         <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-4">
-          <p className="text-[var(--tulip-forest)]/60 text-xs mb-1">Expenses</p>
+          <p className="text-[var(--tulip-forest)]/60 text-xs mb-1">{t('expenses')}</p>
           <p className="text-[var(--tulip-forest)] font-semibold text-lg">{agreement._count.expenses}</p>
         </div>
       </div>
@@ -200,24 +202,24 @@ export default function FundingDetailPage() {
         <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-5 mb-8">
           <div className="flex items-center gap-2 mb-3">
             <Users size={16} className="text-[var(--tulip-forest)]/60" />
-            <h2 className="text-sm font-medium text-[var(--tulip-forest)]/60 uppercase tracking-wide">Donor</h2>
+            <h2 className="text-sm font-medium text-[var(--tulip-forest)]/60 uppercase tracking-wide">{t('donor')}</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <p className="text-xs text-[var(--tulip-forest)]/40 mb-0.5">Name</p>
+              <p className="text-xs text-[var(--tulip-forest)]/40 mb-0.5">{t('donorName')}</p>
               <p className="text-sm text-[var(--tulip-forest)]">{agreement.donor.name}</p>
             </div>
             <div>
-              <p className="text-xs text-[var(--tulip-forest)]/40 mb-0.5">Organisation</p>
+              <p className="text-xs text-[var(--tulip-forest)]/40 mb-0.5">{t('organisation')}</p>
               <p className="text-sm text-[var(--tulip-forest)]">{agreement.donor.organisationName}</p>
             </div>
             <div>
-              <p className="text-xs text-[var(--tulip-forest)]/40 mb-0.5">Type</p>
+              <p className="text-xs text-[var(--tulip-forest)]/40 mb-0.5">{t('type')}</p>
               <p className="text-sm text-[var(--tulip-forest)] capitalize">{agreement.donor.type.toLowerCase()}</p>
             </div>
             {agreement.donor.email && (
               <div>
-                <p className="text-xs text-[var(--tulip-forest)]/40 mb-0.5">Email</p>
+                <p className="text-xs text-[var(--tulip-forest)]/40 mb-0.5">{t('email')}</p>
                 <p className="text-sm text-[var(--tulip-forest)]">{agreement.donor.email}</p>
               </div>
             )}
@@ -228,30 +230,30 @@ export default function FundingDetailPage() {
       {/* Agreement details */}
       {(agreement.startDate || agreement.endDate || agreement.repayable || agreement.notes) && (
         <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-5 mb-8">
-          <h2 className="text-sm font-medium text-[var(--tulip-forest)]/60 uppercase tracking-wide mb-3">Details</h2>
+          <h2 className="text-sm font-medium text-[var(--tulip-forest)]/60 uppercase tracking-wide mb-3">{t('details')}</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {agreement.startDate && (
               <div>
-                <p className="text-xs text-[var(--tulip-forest)]/40 mb-0.5">Start Date</p>
+                <p className="text-xs text-[var(--tulip-forest)]/40 mb-0.5">{t('startDate')}</p>
                 <p className="text-sm text-[var(--tulip-forest)]">{new Date(agreement.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
               </div>
             )}
             {agreement.endDate && (
               <div>
-                <p className="text-xs text-[var(--tulip-forest)]/40 mb-0.5">End Date</p>
+                <p className="text-xs text-[var(--tulip-forest)]/40 mb-0.5">{t('endDate')}</p>
                 <p className="text-sm text-[var(--tulip-forest)]">{new Date(agreement.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
               </div>
             )}
             {agreement.repayable && (
               <div>
-                <p className="text-xs text-[var(--tulip-forest)]/40 mb-0.5">Interest Rate</p>
+                <p className="text-xs text-[var(--tulip-forest)]/40 mb-0.5">{t('interestRate')}</p>
                 <p className="text-sm text-[var(--tulip-forest)]">{agreement.interestRate ?? 0}%</p>
               </div>
             )}
           </div>
           {agreement.notes && (
             <div className="mt-3">
-              <p className="text-xs text-[var(--tulip-forest)]/40 mb-0.5">Notes</p>
+              <p className="text-xs text-[var(--tulip-forest)]/40 mb-0.5">{t('notes')}</p>
               <p className="text-sm text-[var(--tulip-forest)]/70">{agreement.notes}</p>
             </div>
           )}
@@ -262,31 +264,31 @@ export default function FundingDetailPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-[var(--tulip-forest)] flex items-center gap-2">
-            <FolderOpen size={18} className="text-[var(--tulip-forest)]/60" /> Linked Projects
+            <FolderOpen size={18} className="text-[var(--tulip-forest)]/60" /> {t('linkedProjects')}
           </h2>
           <button onClick={() => setShowLinkProject(!showLinkProject)}
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] border border-[var(--tulip-sage-dark)] hover:border-[var(--tulip-sage-dark)] transition-all">
-            <Plus size={14} /> Link Project
+            <Plus size={14} /> {t('linkProject')}
           </button>
         </div>
 
         {showLinkProject && (
           <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-4 mb-4 flex items-end gap-3">
             <div className="flex-1">
-              <label className="block text-xs text-[var(--tulip-forest)]/40 mb-1">Project</label>
+              <label className="block text-xs text-[var(--tulip-forest)]/40 mb-1">{t('project')}</label>
               <select value={linkProjectId} onChange={e => setLinkProjectId(e.target.value)} className={inputCls}>
-                <option value="">Select project</option>
+                <option value="">{t('selectProject')}</option>
                 {availableProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </div>
             <div className="w-40">
-              <label className="block text-xs text-[var(--tulip-forest)]/40 mb-1">Allocated Amount</label>
+              <label className="block text-xs text-[var(--tulip-forest)]/40 mb-1">{t('allocatedAmount')}</label>
               <input type="number" step="0.01" value={linkAmount} onChange={e => setLinkAmount(e.target.value)}
                 placeholder="0.00" className={inputCls} />
             </div>
             <button onClick={linkProject}
               className="px-4 py-2.5 rounded-lg text-sm font-medium text-[var(--tulip-forest)] shrink-0 bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)] transition-all">
-              Link
+              {t('link')}
             </button>
           </div>
         )}
@@ -295,15 +297,15 @@ export default function FundingDetailPage() {
           {agreement.projectFunding.length === 0 ? (
             <div className="flex flex-col items-center py-12 text-[var(--tulip-forest)]/40 gap-2">
               <FolderOpen size={28} className="text-[var(--tulip-forest)]/30" />
-              <p className="text-sm">No projects linked to this agreement</p>
+              <p className="text-sm">{t('noProjectsLinked')}</p>
             </div>
           ) : (
             <table className="w-full">
               <thead>
                 <tr className="border-b border-[var(--tulip-sage-dark)]">
-                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">PROJECT</th>
-                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">STATUS</th>
-                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">ALLOCATED</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('thProject')}</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('thStatus')}</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('thAllocated')}</th>
                   <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3"></th>
                 </tr>
               </thead>
@@ -340,28 +342,28 @@ export default function FundingDetailPage() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-[var(--tulip-forest)] flex items-center gap-2">
-              <Calendar size={18} className="text-[var(--tulip-forest)]/60" /> Repayment Schedule
+              <Calendar size={18} className="text-[var(--tulip-forest)]/60" /> {t('repaymentSchedule')}
             </h2>
             <button onClick={() => setShowAddRepayment(!showAddRepayment)}
               className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] border border-[var(--tulip-sage-dark)] hover:border-[var(--tulip-sage-dark)] transition-all">
-              <Plus size={14} /> Add Repayment
+              <Plus size={14} /> {t('addRepayment')}
             </button>
           </div>
 
           {showAddRepayment && (
             <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-4 mb-4 flex items-end gap-3">
               <div className="flex-1">
-                <label className="block text-xs text-[var(--tulip-forest)]/40 mb-1">Due Date</label>
+                <label className="block text-xs text-[var(--tulip-forest)]/40 mb-1">{t('dueDate')}</label>
                 <input type="date" value={repaymentDate} onChange={e => setRepaymentDate(e.target.value)} className={inputCls} />
               </div>
               <div className="w-40">
-                <label className="block text-xs text-[var(--tulip-forest)]/40 mb-1">Amount</label>
+                <label className="block text-xs text-[var(--tulip-forest)]/40 mb-1">{t('amount')}</label>
                 <input type="number" step="0.01" value={repaymentAmount} onChange={e => setRepaymentAmount(e.target.value)}
                   placeholder="0.00" className={inputCls} />
               </div>
               <button onClick={addRepayment}
                 className="px-4 py-2.5 rounded-lg text-sm font-medium text-[var(--tulip-forest)] shrink-0 bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)] transition-all">
-                Add
+                {t('add')}
               </button>
             </div>
           )}
@@ -370,16 +372,16 @@ export default function FundingDetailPage() {
             {agreement.repayments.length === 0 ? (
               <div className="flex flex-col items-center py-12 text-[var(--tulip-forest)]/40 gap-2">
                 <Calendar size={28} className="text-[var(--tulip-forest)]/30" />
-                <p className="text-sm">No repayments scheduled</p>
+                <p className="text-sm">{t('noRepayments')}</p>
               </div>
             ) : (
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-[var(--tulip-sage-dark)]">
-                    <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">DUE DATE</th>
-                    <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">AMOUNT</th>
-                    <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">STATUS</th>
-                    <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">PAID AT</th>
+                    <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('thDueDate')}</th>
+                    <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('thAmount')}</th>
+                    <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('thRepayStatus')}</th>
+                    <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('thPaidAt')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -393,11 +395,11 @@ export default function FundingDetailPage() {
                       </td>
                       <td className="px-4 py-3">
                         {r.status === 'PAID' ? (
-                          <span className="flex items-center gap-1 text-emerald-400 text-xs"><CheckCircle size={12} /> Paid</span>
+                          <span className="flex items-center gap-1 text-emerald-400 text-xs"><CheckCircle size={12} /> {t('paid')}</span>
                         ) : r.status === 'OVERDUE' ? (
-                          <span className="flex items-center gap-1 text-red-400 text-xs"><AlertCircle size={12} /> Overdue</span>
+                          <span className="flex items-center gap-1 text-red-400 text-xs"><AlertCircle size={12} /> {t('overdue')}</span>
                         ) : (
-                          <span className="flex items-center gap-1 text-yellow-400 text-xs"><Clock size={12} /> Pending</span>
+                          <span className="flex items-center gap-1 text-yellow-400 text-xs"><Clock size={12} /> {t('pending')}</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-xs text-[var(--tulip-forest)]/40">

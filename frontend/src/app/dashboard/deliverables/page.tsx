@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { apiGet, apiPost } from '@/lib/api'
 import { FileCheck, X, AlertTriangle, Clock, CheckCircle2, Send, Loader2, Upload, Paperclip, Trash2 } from 'lucide-react'
 
@@ -66,6 +67,7 @@ function deadlineColor(deadline: string, status: string): string {
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 export default function DeliverablesPage() {
+  const t = useTranslations('deliverables')
   const [requests, setRequests] = useState<DeliverableRequest[]>([])
   const [counts, setCounts] = useState<DeliverableCounts>({ all: 0, open: 0, rework: 0, overdue: 0, confirmed: 0 })
   const [activeTab, setActiveTab] = useState<Tab>('All')
@@ -159,7 +161,7 @@ export default function DeliverablesPage() {
         documentIds,
       })
       if (res.ok) {
-        setToast(`Submitted to ${submitModal.donorOrgName}`)
+        setToast(t('submittedTo', { name: submitModal.donorOrgName }))
         setSubmitModal(null)
         fetchData()
         setTimeout(() => setToast(''), 4000)
@@ -185,8 +187,8 @@ export default function DeliverablesPage() {
             <FileCheck size={20} style={{ color: 'var(--tulip-forest)' }} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold" style={{ color: 'var(--tulip-forest)' }}>Deliverable Requests</h1>
-            <p className="text-sm" style={{ color: 'var(--tulip-forest)', opacity: 0.6 }}>Documents and reports requested by your donors</p>
+            <h1 className="text-2xl font-bold" style={{ color: 'var(--tulip-forest)' }}>{t('title')}</h1>
+            <p className="text-sm" style={{ color: 'var(--tulip-forest)', opacity: 0.6 }}>{t('subtitle')}</p>
           </div>
         </div>
       </div>
@@ -226,7 +228,7 @@ export default function DeliverablesPage() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-20 rounded-xl border" style={{ background: 'var(--tulip-sage)', borderColor: 'var(--tulip-sage-dark)' }}>
           <FileCheck size={40} className="mx-auto mb-3" style={{ color: 'var(--tulip-forest)', opacity: 0.3 }} />
-          <p className="text-sm" style={{ color: 'var(--tulip-forest)', opacity: 0.5 }}>No deliverable requests found</p>
+          <p className="text-sm" style={{ color: 'var(--tulip-forest)', opacity: 0.5 }}>{t('noRequests')}</p>
         </div>
       ) : (
         <div className="rounded-xl border overflow-hidden" style={{ borderColor: 'var(--tulip-sage-dark)' }}>
@@ -234,12 +236,12 @@ export default function DeliverablesPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ background: 'var(--tulip-sage)' }}>
-                  <th className="text-left px-4 py-3 font-semibold" style={{ color: 'var(--tulip-forest)' }}>PROJECT</th>
-                  <th className="text-left px-4 py-3 font-semibold" style={{ color: 'var(--tulip-forest)' }}>REQUEST</th>
-                  <th className="text-left px-4 py-3 font-semibold" style={{ color: 'var(--tulip-forest)' }}>TYPE</th>
-                  <th className="text-left px-4 py-3 font-semibold" style={{ color: 'var(--tulip-forest)' }}>DEADLINE</th>
-                  <th className="text-left px-4 py-3 font-semibold" style={{ color: 'var(--tulip-forest)' }}>STATUS</th>
-                  <th className="text-left px-4 py-3 font-semibold" style={{ color: 'var(--tulip-forest)' }}>ACTION</th>
+                  <th className="text-left px-4 py-3 font-semibold" style={{ color: 'var(--tulip-forest)' }}>{t('thProject')}</th>
+                  <th className="text-left px-4 py-3 font-semibold" style={{ color: 'var(--tulip-forest)' }}>{t('thRequest')}</th>
+                  <th className="text-left px-4 py-3 font-semibold" style={{ color: 'var(--tulip-forest)' }}>{t('thType')}</th>
+                  <th className="text-left px-4 py-3 font-semibold" style={{ color: 'var(--tulip-forest)' }}>{t('thDeadline')}</th>
+                  <th className="text-left px-4 py-3 font-semibold" style={{ color: 'var(--tulip-forest)' }}>{t('thStatus')}</th>
+                  <th className="text-left px-4 py-3 font-semibold" style={{ color: 'var(--tulip-forest)' }}>{t('thAction')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -289,12 +291,12 @@ export default function DeliverablesPage() {
                             style={{ background: 'var(--tulip-gold)', color: 'var(--tulip-forest)' }}
                           >
                             <Send size={12} />
-                            Submit
+                            {t('submit')}
                           </button>
                         ) : (
                           <span className="flex items-center gap-1 text-xs" style={{ color: 'var(--tulip-forest)', opacity: 0.4 }}>
                             <CheckCircle2 size={14} />
-                            Done
+                            {t('done')}
                           </span>
                         )}
                       </td>
@@ -318,7 +320,7 @@ export default function DeliverablesPage() {
           >
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: 'var(--tulip-sage-dark)', background: 'var(--tulip-sage)' }}>
-              <h2 className="text-lg font-bold" style={{ color: 'var(--tulip-forest)' }}>Submit Deliverable</h2>
+              <h2 className="text-lg font-bold" style={{ color: 'var(--tulip-forest)' }}>{t('submitDeliverable')}</h2>
               <button onClick={() => setSubmitModal(null)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[var(--tulip-sage-dark)] transition-colors">
                 <X size={16} style={{ color: 'var(--tulip-forest)' }} />
               </button>
@@ -327,21 +329,21 @@ export default function DeliverablesPage() {
             <div className="px-6 py-5 space-y-5">
               {/* Donor Request Info (read-only) */}
               <div className="rounded-xl p-4 space-y-2" style={{ background: 'var(--tulip-sage)', border: '1px solid var(--tulip-sage-dark)' }}>
-                <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--tulip-forest)', opacity: 0.5 }}>Donor Request</p>
+                <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--tulip-forest)', opacity: 0.5 }}>{t('donorRequest')}</p>
                 <p className="text-sm font-semibold" style={{ color: 'var(--tulip-forest)' }}>{submitModal.title}</p>
                 <p className="text-sm" style={{ color: 'var(--tulip-forest)', opacity: 0.7 }}>{submitModal.description}</p>
                 <div className="flex items-center gap-4 pt-1">
                   <span className="text-xs" style={{ color: 'var(--tulip-forest)', opacity: 0.5 }}>
-                    Deadline: {new Date(submitModal.deadline).toLocaleDateString()}
+                    {t('deadline', { date: new Date(submitModal.deadline).toLocaleDateString() })}
                   </span>
                   <span className="text-xs" style={{ color: 'var(--tulip-forest)', opacity: 0.5 }}>
-                    From: {submitModal.donorOrgName}
+                    {t('from', { name: submitModal.donorOrgName })}
                   </span>
                 </div>
                 {/* Show donor attachments if any */}
                 {submitModal.attachments && submitModal.attachments.length > 0 && (
                   <div className="pt-2 space-y-1">
-                    <p className="text-xs font-medium" style={{ color: 'var(--tulip-forest)', opacity: 0.5 }}>Reference files from donor:</p>
+                    <p className="text-xs font-medium" style={{ color: 'var(--tulip-forest)', opacity: 0.5 }}>{t('referenceFiles')}</p>
                     {submitModal.attachments.map((att, i) => (
                       <a key={i} href={att.url} target="_blank" rel="noopener noreferrer"
                         className="flex items-center gap-1.5 text-xs hover:underline" style={{ color: '#1e40af' }}>
@@ -357,7 +359,7 @@ export default function DeliverablesPage() {
                 <div className="rounded-xl p-4" style={{ background: '#fef3c7', border: '1px solid #fbbf24' }}>
                   <div className="flex items-center gap-2 mb-1">
                     <AlertTriangle size={14} style={{ color: '#92400e' }} />
-                    <p className="text-xs font-semibold" style={{ color: '#92400e' }}>Rework Requested</p>
+                    <p className="text-xs font-semibold" style={{ color: '#92400e' }}>{t('reworkRequested')}</p>
                   </div>
                   <p className="text-sm" style={{ color: '#92400e' }}>{submitModal.reworkNote}</p>
                 </div>
@@ -365,11 +367,11 @@ export default function DeliverablesPage() {
 
               {/* Submission Note */}
               <div>
-                <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--tulip-forest)' }}>Submission Note</label>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--tulip-forest)' }}>{t('submissionNote')}</label>
                 <textarea
                   value={submitNote}
                   onChange={e => setSubmitNote(e.target.value)}
-                  placeholder="Describe what you're submitting..."
+                  placeholder={t('submissionPlaceholder')}
                   rows={3}
                   className="w-full rounded-lg px-3 py-2 text-sm outline-none resize-none"
                   style={{ background: 'var(--tulip-sage)', border: '1px solid var(--tulip-sage-dark)', color: 'var(--tulip-forest)' }}
@@ -378,7 +380,7 @@ export default function DeliverablesPage() {
 
               {/* File Upload */}
               <div>
-                <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--tulip-forest)' }}>Attach Files</label>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--tulip-forest)' }}>{t('attachFiles')}</label>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -394,8 +396,8 @@ export default function DeliverablesPage() {
                   style={{ borderColor: 'var(--tulip-sage-dark)', background: 'var(--tulip-sage)' }}
                 >
                   <Upload size={20} style={{ color: 'var(--tulip-forest)', opacity: 0.4 }} />
-                  <span className="text-sm" style={{ color: 'var(--tulip-forest)', opacity: 0.6 }}>Click to browse files</span>
-                  <span className="text-xs" style={{ color: 'var(--tulip-forest)', opacity: 0.3 }}>PDF, Word, Excel, Images (max 20MB each)</span>
+                  <span className="text-sm" style={{ color: 'var(--tulip-forest)', opacity: 0.6 }}>{t('browseFiles')}</span>
+                  <span className="text-xs" style={{ color: 'var(--tulip-forest)', opacity: 0.3 }}>{t('fileTypes')}</span>
                 </button>
 
                 {/* Uploaded files list */}
@@ -430,7 +432,7 @@ export default function DeliverablesPage() {
                 className="px-4 py-2 rounded-lg text-sm font-medium transition-all hover:opacity-80"
                 style={{ background: 'var(--tulip-sage)', color: 'var(--tulip-forest)', border: '1px solid var(--tulip-sage-dark)' }}
               >
-                Cancel
+                {t('cancel')}
               </button>
               <button
                 onClick={handleSubmit}
@@ -439,7 +441,7 @@ export default function DeliverablesPage() {
                 style={{ background: 'var(--tulip-gold)', color: 'var(--tulip-forest)' }}
               >
                 {submitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-                {submitting ? 'Submitting...' : 'Submit'}
+                {submitting ? t('submitting') : t('submit')}
               </button>
             </div>
           </div>

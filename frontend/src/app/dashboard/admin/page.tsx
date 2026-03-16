@@ -7,6 +7,7 @@ import {
   Shield, Users, FileCheck, ShieldCheck, TrendingUp, Search,
   Flame, Clock, ArrowUpRight, BarChart3
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface Stats {
   totalTenants: number
@@ -71,6 +72,8 @@ const PLAN_COLORS: Record<string, string> = {
 }
 
 export default function AdminPage() {
+  const t = useTranslations('admin')
+  const tCommon = useTranslations('common')
   const router = useRouter()
   const [authorized, setAuthorized] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -143,22 +146,22 @@ export default function AdminPage() {
           <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[var(--tulip-gold)]">
             <Shield size={20} />
           </div>
-          Admin Dashboard
+          {t('title')}
         </h1>
-        <p className="text-sm text-[var(--tulip-forest)]/60 mt-1">Superadmin overview — customers, engagement, and hot leads</p>
+        <p className="text-sm text-[var(--tulip-forest)]/60 mt-1">{t('subtitle')}</p>
       </div>
 
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
           {[
-            { label: 'Total Tenants', value: stats.totalTenants, icon: Users },
-            { label: 'Docs Today', value: stats.docsToday, icon: FileCheck },
-            { label: 'Docs This Month', value: stats.docsMonth, icon: BarChart3 },
-            { label: 'Total Docs', value: stats.totalDocs, icon: FileCheck },
-            { label: 'Active Seals', value: stats.activeSeals, icon: ShieldCheck },
-            { label: 'Signups This Week', value: stats.signupsThisWeek, icon: TrendingUp },
-            { label: 'Total Bundles', value: stats.totalBundles, icon: BarChart3 },
+            { label: t('totalTenants'), value: stats.totalTenants, icon: Users },
+            { label: t('docsToday'), value: stats.docsToday, icon: FileCheck },
+            { label: t('docsThisMonth'), value: stats.docsMonth, icon: BarChart3 },
+            { label: t('totalDocs'), value: stats.totalDocs, icon: FileCheck },
+            { label: t('activeSeals'), value: stats.activeSeals, icon: ShieldCheck },
+            { label: t('signupsThisWeek'), value: stats.signupsThisWeek, icon: TrendingUp },
+            { label: t('totalBundles'), value: stats.totalBundles, icon: BarChart3 },
           ].map(({ label, value, icon: Icon }) => (
             <div key={label} className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-4">
               <div className="flex items-center gap-2 mb-2">
@@ -177,21 +180,21 @@ export default function AdminPage() {
           <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl">
             <div className="p-4 border-b border-[var(--tulip-sage-dark)]">
               <h2 className="font-semibold text-[var(--tulip-forest)] flex items-center gap-2 mb-3">
-                <Users size={16} /> Customers
+                <Users size={16} /> {t('customers')}
               </h2>
               <div className="flex flex-wrap gap-2">
                 <div className="flex items-center gap-2 bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-1.5 flex-1 min-w-[180px]">
                   <Search size={12} className="text-[var(--tulip-forest)]/40" />
-                  <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search..."
+                  <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('searchPlaceholder')}
                     className="bg-transparent text-xs text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none w-full" />
                 </div>
                 <select value={planFilter} onChange={e => setPlanFilter(e.target.value)}
                   className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-2 py-1.5 text-xs text-[var(--tulip-forest)] outline-none">
-                  <option value="">All Plans</option>
-                  <option value="FREE">Free</option>
-                  <option value="STARTER">Starter</option>
-                  <option value="PRO">Pro</option>
-                  <option value="ENTERPRISE">Enterprise</option>
+                  <option value="">{t('allPlans')}</option>
+                  <option value="FREE">{t('free')}</option>
+                  <option value="STARTER">{t('starter')}</option>
+                  <option value="PRO">{t('pro')}</option>
+                  <option value="ENTERPRISE">{t('enterprise')}</option>
                 </select>
               </div>
             </div>
@@ -199,17 +202,17 @@ export default function AdminPage() {
               <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b border-[var(--tulip-sage-dark)] text-[var(--tulip-forest)]/40 uppercase">
-                    <th className="text-left px-4 py-3 font-medium">Organisation</th>
-                    <th className="text-left px-4 py-3 font-medium">Email</th>
-                    <th className="text-left px-4 py-3 font-medium">Plan</th>
-                    <th className="text-left px-4 py-3 font-medium">Docs</th>
-                    <th className="text-left px-4 py-3 font-medium">Signup</th>
-                    <th className="text-left px-4 py-3 font-medium">Last Active</th>
+                    <th className="text-left px-4 py-3 font-medium">{t('organisation')}</th>
+                    <th className="text-left px-4 py-3 font-medium">{tCommon('email')}</th>
+                    <th className="text-left px-4 py-3 font-medium">{t('plan')}</th>
+                    <th className="text-left px-4 py-3 font-medium">{t('docs')}</th>
+                    <th className="text-left px-4 py-3 font-medium">{t('signup')}</th>
+                    <th className="text-left px-4 py-3 font-medium">{t('lastActive')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/[0.04]">
                   {customers.length === 0 ? (
-                    <tr><td colSpan={6} className="px-4 py-8 text-center text-[var(--tulip-forest)]/40">No customers found</td></tr>
+                    <tr><td colSpan={6} className="px-4 py-8 text-center text-[var(--tulip-forest)]/40">{t('noCustomers')}</td></tr>
                   ) : customers.map(c => (
                     <tr key={c.id} className="hover:bg-[var(--tulip-sage)] transition-colors">
                       <td className="px-4 py-3">
@@ -239,9 +242,9 @@ export default function AdminPage() {
             <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl">
               <div className="p-4 border-b border-[var(--tulip-sage-dark)]">
                 <h2 className="font-semibold text-[var(--tulip-forest)] flex items-center gap-2">
-                  <Flame size={16} className="text-orange-400" /> Hot Leads
+                  <Flame size={16} className="text-orange-400" /> {t('hotLeads')}
                 </h2>
-                <p className="text-[10px] text-[var(--tulip-forest)]/40 mt-0.5">Free tenants with 3+ docs — ready to upgrade</p>
+                <p className="text-[10px] text-[var(--tulip-forest)]/40 mt-0.5">{t('hotLeadsDesc')}</p>
               </div>
               <div className="divide-y divide-white/[0.04]">
                 {hotLeads.slice(0, 10).map(lead => (
@@ -253,7 +256,7 @@ export default function AdminPage() {
                       <div className="text-xs font-medium text-[var(--tulip-forest)] truncate">{lead.name}</div>
                       <div className="text-[10px] text-[var(--tulip-forest)]/60 truncate">{lead.email}</div>
                     </div>
-                    <div className="text-xs font-bold text-orange-400">{lead.docsProcessed} docs</div>
+                    <div className="text-xs font-bold text-orange-400">{t('docsCount', { count: lead.docsProcessed })}</div>
                   </div>
                 ))}
               </div>
@@ -264,12 +267,12 @@ export default function AdminPage() {
           <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl">
             <div className="p-4 border-b border-[var(--tulip-sage-dark)]">
               <h2 className="font-semibold text-[var(--tulip-forest)] flex items-center gap-2">
-                <Clock size={16} /> Recent Engagement
+                <Clock size={16} /> {t('recentEngagement')}
               </h2>
             </div>
             <div className="divide-y divide-white/[0.04]">
               {events.length === 0 ? (
-                <div className="px-4 py-8 text-center text-[var(--tulip-forest)]/40 text-xs">No engagement events yet</div>
+                <div className="px-4 py-8 text-center text-[var(--tulip-forest)]/40 text-xs">{t('noEngagement')}</div>
               ) : events.map(e => {
                 const config = EVENT_LABELS[e.eventType] || { label: e.eventType, color: 'bg-[var(--tulip-sage)] text-[var(--tulip-forest)]/60' }
                 return (

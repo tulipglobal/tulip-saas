@@ -3,10 +3,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { apiGet } from '@/lib/api'
 import { Code2, Copy, Check, ExternalLink, Eye } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 const BADGE_SCRIPT_URL = 'https://tulipds.com/embed/badge.js'
 
-function CodeBlock({ code, label }: { code: string; label: string }) {
+function CodeBlock({ code, label, copiedLabel, copyLabel }: { code: string; label: string; copiedLabel: string; copyLabel: string }) {
   const [copied, setCopied] = useState(false)
   return (
     <div className="rounded-lg border border-[var(--tulip-sage-dark)] overflow-hidden">
@@ -16,7 +17,7 @@ function CodeBlock({ code, label }: { code: string; label: string }) {
           onClick={() => { navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
           className="flex items-center gap-1.5 text-xs text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] transition-colors"
         >
-          {copied ? <><Check size={12} className="text-green-400" /> Copied</> : <><Copy size={12} /> Copy</>}
+          {copied ? <><Check size={12} className="text-green-400" /> {copiedLabel}</> : <><Copy size={12} /> {copyLabel}</>}
         </button>
       </div>
       <pre className="p-4 text-sm text-[var(--tulip-forest)] overflow-x-auto bg-black/30">
@@ -27,6 +28,7 @@ function CodeBlock({ code, label }: { code: string; label: string }) {
 }
 
 export default function EmbedPage() {
+  const t = useTranslations('embed')
   const [documents, setDocuments] = useState<{ id: string; name: string; sha256Hash: string | null }[]>([])
   const [selectedHash, setSelectedHash] = useState('')
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
@@ -118,7 +120,7 @@ export default function EmbedPage() {
 
   const embedSnippet = selectedHash
     ? `<!-- Tulip DS Verification Badge -->\n<script src="${BADGE_SCRIPT_URL}"></script>\n<div data-tulip-badge="${selectedHash}"${theme !== 'light' ? ` data-tulip-theme="${theme}"` : ''}${size !== 'default' ? ` data-tulip-size="${size}"` : ''}></div>`
-    : '<!-- Select a document hash first -->'
+    : `<!-- ${t('selectHashFirst')} -->`
 
   const genericSnippet = `<!-- Tulip DS Verification Badge -->\n<script src="${BADGE_SCRIPT_URL}"></script>\n<div data-tulip-badge="YOUR_DOCUMENT_HASH"></div>`
 
@@ -126,47 +128,47 @@ export default function EmbedPage() {
     <div className="p-6 space-y-6 animate-fade-up max-w-4xl">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>Embed Badge</h1>
-        <p className="text-[var(--tulip-forest)]/60 text-sm mt-1">Add a verification badge to any website to prove your documents are blockchain-verified.</p>
+        <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('title')}</h1>
+        <p className="text-[var(--tulip-forest)]/60 text-sm mt-1">{t('subtitle')}</p>
       </div>
 
       {/* Quick start */}
       <div className="rounded-xl border border-[var(--tulip-sage-dark)] p-5 space-y-4 bg-[var(--tulip-sage)]">
         <div className="flex items-center gap-2">
           <Code2 size={18} className="text-[var(--tulip-forest)]" />
-          <h2 className="text-[var(--tulip-forest)] font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>Quick Start</h2>
+          <h2 className="text-[var(--tulip-forest)] font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>{t('quickStart')}</h2>
         </div>
-        <p className="text-[var(--tulip-forest)]/60 text-sm">Paste this snippet into any HTML page. Replace <code className="text-[var(--tulip-forest)]/70 bg-[var(--tulip-sage)] px-1.5 py-0.5 rounded text-xs">YOUR_DOCUMENT_HASH</code> with a SHA-256 hash from your verified documents.</p>
-        <CodeBlock code={genericSnippet} label="HTML" />
+        <p className="text-[var(--tulip-forest)]/60 text-sm">{t('quickStartDesc', { code: 'YOUR_DOCUMENT_HASH' })}</p>
+        <CodeBlock code={genericSnippet} label="HTML" copiedLabel={t('copied')} copyLabel={t('copy')} />
       </div>
 
       {/* Options */}
       <div className="rounded-xl border border-[var(--tulip-sage-dark)] p-5 space-y-4 bg-[var(--tulip-sage)]">
-        <h2 className="text-[var(--tulip-forest)] font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>Options</h2>
+        <h2 className="text-[var(--tulip-forest)] font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>{t('options')}</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--tulip-sage-dark)] text-left">
-                <th className="py-2 pr-4 text-[var(--tulip-forest)]/60 font-medium text-xs uppercase">Attribute</th>
-                <th className="py-2 pr-4 text-[var(--tulip-forest)]/60 font-medium text-xs uppercase">Values</th>
-                <th className="py-2 text-[var(--tulip-forest)]/60 font-medium text-xs uppercase">Description</th>
+                <th className="py-2 pr-4 text-[var(--tulip-forest)]/60 font-medium text-xs uppercase">{t('attribute')}</th>
+                <th className="py-2 pr-4 text-[var(--tulip-forest)]/60 font-medium text-xs uppercase">{t('values')}</th>
+                <th className="py-2 text-[var(--tulip-forest)]/60 font-medium text-xs uppercase">{t('descriptionCol')}</th>
               </tr>
             </thead>
             <tbody className="text-[var(--tulip-forest)]/70">
               <tr className="border-b border-[var(--tulip-sage-dark)]">
                 <td className="py-2.5 pr-4"><code className="text-xs bg-[var(--tulip-sage)] px-1.5 py-0.5 rounded">data-tulip-badge</code></td>
                 <td className="py-2.5 pr-4 text-xs">SHA-256 hash</td>
-                <td className="py-2.5 text-xs">The document or audit log hash to verify</td>
+                <td className="py-2.5 text-xs">{t('attrBadgeDesc')}</td>
               </tr>
               <tr className="border-b border-[var(--tulip-sage-dark)]">
                 <td className="py-2.5 pr-4"><code className="text-xs bg-[var(--tulip-sage)] px-1.5 py-0.5 rounded">data-tulip-theme</code></td>
                 <td className="py-2.5 text-xs"><code className="bg-[var(--tulip-sage)] px-1 rounded">light</code> | <code className="bg-[var(--tulip-sage)] px-1 rounded">dark</code></td>
-                <td className="py-2.5 text-xs">Badge colour scheme (default: light)</td>
+                <td className="py-2.5 text-xs">{t('attrThemeDesc')}</td>
               </tr>
               <tr>
                 <td className="py-2.5 pr-4"><code className="text-xs bg-[var(--tulip-sage)] px-1.5 py-0.5 rounded">data-tulip-size</code></td>
                 <td className="py-2.5 text-xs"><code className="bg-[var(--tulip-sage)] px-1 rounded">default</code> | <code className="bg-[var(--tulip-sage)] px-1 rounded">compact</code></td>
-                <td className="py-2.5 text-xs">Badge size variant</td>
+                <td className="py-2.5 text-xs">{t('attrSizeDesc')}</td>
               </tr>
             </tbody>
           </table>
@@ -177,42 +179,42 @@ export default function EmbedPage() {
       <div className="rounded-xl border border-[var(--tulip-sage-dark)] p-5 space-y-4 bg-[var(--tulip-sage)]">
         <div className="flex items-center gap-2">
           <Eye size={18} className="text-[var(--tulip-forest)]" />
-          <h2 className="text-[var(--tulip-forest)] font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>Live Preview</h2>
+          <h2 className="text-[var(--tulip-forest)] font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>{t('livePreview')}</h2>
         </div>
 
         {/* Controls */}
         <div className="flex flex-wrap gap-4">
           <div className="space-y-1.5">
-            <label className="text-xs text-[var(--tulip-forest)]/60 font-medium">Document</label>
+            <label className="text-xs text-[var(--tulip-forest)]/60 font-medium">{t('documentLabel')}</label>
             <select
               value={selectedHash}
               onChange={e => setSelectedHash(e.target.value)}
               className="block bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2 text-sm text-[var(--tulip-forest)] outline-none min-w-[200px]"
             >
-              {documents.length === 0 && <option value="">No verified documents</option>}
+              {documents.length === 0 && <option value="">{t('noVerifiedDocs')}</option>}
               {documents.map(doc => (
                 <option key={doc.id} value={doc.sha256Hash!}>
                   {doc.name} ({doc.sha256Hash!.slice(0, 12)}...)
                 </option>
               ))}
               <option value="0000000000000000000000000000000000000000000000000000000000000000">
-                Fake hash (unverified)
+                {t('fakeHash')}
               </option>
             </select>
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs text-[var(--tulip-forest)]/60 font-medium">Theme</label>
+            <label className="text-xs text-[var(--tulip-forest)]/60 font-medium">{t('themeLabel')}</label>
             <div className="flex gap-1">
-              {(['light', 'dark'] as const).map(t => (
-                <button key={t} onClick={() => setTheme(t)}
-                  className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${theme === t ? 'bg-[var(--tulip-gold)]/20 border-[var(--tulip-gold)]/40 text-[var(--tulip-forest)]' : 'bg-[var(--tulip-sage)] border-[var(--tulip-sage-dark)] text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]/70'}`}>
-                  {t.charAt(0).toUpperCase() + t.slice(1)}
+              {(['light', 'dark'] as const).map(th => (
+                <button key={th} onClick={() => setTheme(th)}
+                  className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${theme === th ? 'bg-[var(--tulip-gold)]/20 border-[var(--tulip-gold)]/40 text-[var(--tulip-forest)]' : 'bg-[var(--tulip-sage)] border-[var(--tulip-sage-dark)] text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]/70'}`}>
+                  {th.charAt(0).toUpperCase() + th.slice(1)}
                 </button>
               ))}
             </div>
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs text-[var(--tulip-forest)]/60 font-medium">Size</label>
+            <label className="text-xs text-[var(--tulip-forest)]/60 font-medium">{t('sizeLabel')}</label>
             <div className="flex gap-1">
               {(['default', 'compact'] as const).map(s => (
                 <button key={s} onClick={() => setSize(s)}
@@ -230,7 +232,7 @@ export default function EmbedPage() {
         </div>
 
         {/* Embed code for selected config */}
-        {selectedHash && <CodeBlock code={embedSnippet} label="Embed Code" />}
+        {selectedHash && <CodeBlock code={embedSnippet} label={t('embedCode')} copiedLabel={t('copied')} copyLabel={t('copy')} />}
       </div>
     </div>
   )

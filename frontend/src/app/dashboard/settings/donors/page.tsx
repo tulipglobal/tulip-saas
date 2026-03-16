@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { apiGet, apiPost, apiDelete, apiFetch } from '@/lib/api'
 import { UserPlus, ArrowLeft, Mail, Building2, FolderOpen, Clock, Settings, X, Check, AlertCircle, RefreshCw, Ban, Shield, MessageCircle } from 'lucide-react'
 
@@ -69,6 +70,7 @@ function ManageModal({
   onClose: () => void
   onSaved: () => void
 }) {
+  const t = useTranslations()
   const activeIds = donor.projects.filter(p => p.active).map(p => p.projectId)
   const [selected, setSelected] = useState<string[]>(activeIds)
   const [saving, setSaving] = useState(false)
@@ -98,7 +100,7 @@ function ManageModal({
       <div className="relative bg-[var(--tulip-cream)] rounded-2xl border border-[var(--tulip-sage-dark)] shadow-xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--tulip-sage-dark)]">
           <div>
-            <h3 className="text-base font-bold text-[var(--tulip-forest)]">Manage Projects</h3>
+            <h3 className="text-base font-bold text-[var(--tulip-forest)]">{t('donorSettings.manageProjectsTitle')}</h3>
             <p className="text-xs text-[var(--tulip-forest)]/50">{donor.email} — {donor.orgName}</p>
           </div>
           <button onClick={onClose} className="text-[var(--tulip-forest)]/40 hover:text-[var(--tulip-forest)] transition-all"><X size={18} /></button>
@@ -115,15 +117,15 @@ function ManageModal({
               <span className="text-sm text-[var(--tulip-forest)]">{p.name}</span>
             </label>
           ))}
-          {allProjects.length === 0 && <p className="text-sm text-[var(--tulip-forest)]/40">No projects found.</p>}
+          {allProjects.length === 0 && <p className="text-sm text-[var(--tulip-forest)]/40">{t('donorSettings.noProjects')}</p>}
         </div>
         <div className="flex items-center gap-3 px-5 py-4 border-t border-[var(--tulip-sage-dark)]">
           <button onClick={handleSave} disabled={saving}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] disabled:opacity-50 transition-all">
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? t('donorSettings.saving') : t('donorSettings.saveChanges')}
           </button>
           <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage-dark)]/40 transition-all">
-            Cancel
+            {t('donorSettings.cancel')}
           </button>
         </div>
       </div>
@@ -133,6 +135,7 @@ function ManageModal({
 
 // ── Main Page ─────────────────────────────────────────────────
 export default function DonorsPage() {
+  const t = useTranslations()
   const [donors, setDonors] = useState<ActiveDonor[]>([])
   const [invites, setInvites] = useState<Invite[]>([])
   const [allProjects, setAllProjects] = useState<Project[]>([])
@@ -182,22 +185,22 @@ export default function DonorsPage() {
   const handleResend = async (inviteId: string) => {
     const res = await apiPost('/api/donor/invite/resend', { inviteId })
     if (res.ok) {
-      setToast({ message: 'Invite resent', type: 'success' })
+      setToast({ message: t('donorSettings.inviteResent'), type: 'success' })
       fetchData()
     } else {
       const err = await res.json().catch(() => ({ error: 'Failed' }))
-      setToast({ message: err.error || 'Failed to resend', type: 'error' })
+      setToast({ message: err.error || t('donorSettings.failedToResend'), type: 'error' })
     }
   }
 
   const handleCancel = async (inviteId: string) => {
     const res = await apiPost('/api/donor/invite/cancel', { inviteId })
     if (res.ok) {
-      setToast({ message: 'Invite cancelled', type: 'success' })
+      setToast({ message: t('donorSettings.inviteCancelled'), type: 'success' })
       fetchData()
     } else {
       const err = await res.json().catch(() => ({ error: 'Failed' }))
-      setToast({ message: err.error || 'Failed to cancel', type: 'error' })
+      setToast({ message: err.error || t('donorSettings.failedToCancel'), type: 'error' })
     }
   }
 
@@ -206,7 +209,7 @@ export default function DonorsPage() {
     for (const p of activeProjects) {
       await apiDelete('/api/donor/access/remove', { donorEmail: donor.email, projectId: p.projectId })
     }
-    setToast({ message: 'All access revoked', type: 'success' })
+    setToast({ message: t('donorSettings.accessRevoked'), type: 'success' })
     fetchData()
   }
 
@@ -218,7 +221,7 @@ export default function DonorsPage() {
           donor={manageTarget}
           allProjects={allProjects}
           onClose={() => setManageTarget(null)}
-          onSaved={() => { setManageTarget(null); setToast({ message: 'Project access updated', type: 'success' }); fetchData() }}
+          onSaved={() => { setManageTarget(null); setToast({ message: t('donorSettings.accessUpdated'), type: 'success' }); fetchData() }}
         />
       )}
 
@@ -228,8 +231,8 @@ export default function DonorsPage() {
             <ArrowLeft size={18} />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>Donors</h1>
-            <p className="text-[var(--tulip-forest)]/60 text-sm mt-0.5">Manage donor access to your projects</p>
+            <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('donorSettings.title')}</h1>
+            <p className="text-[var(--tulip-forest)]/60 text-sm mt-0.5">{t('donorSettings.subtitle')}</p>
           </div>
         </div>
         <Link
@@ -237,21 +240,21 @@ export default function DonorsPage() {
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] transition-all"
         >
           <UserPlus size={14} />
-          Invite Donor
+          {t('donorSettings.inviteDonor')}
         </Link>
       </div>
 
       {loading ? (
-        <p className="text-[var(--tulip-forest)]/40 text-sm">Loading...</p>
+        <p className="text-[var(--tulip-forest)]/40 text-sm">{t('donorSettings.loading')}</p>
       ) : donors.length === 0 && pendingInvites.length === 0 ? (
         <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-8 py-12 bg-[var(--tulip-sage)] text-center">
           <UserPlus size={32} className="mx-auto text-[var(--tulip-forest)]/20 mb-3" />
-          <p className="text-[var(--tulip-forest)]/50 text-sm">No donors invited yet.</p>
+          <p className="text-[var(--tulip-forest)]/50 text-sm">{t('donorSettings.noDonorsYet')}</p>
           <Link
             href="/dashboard/settings/donors/invite"
             className="inline-block mt-4 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] transition-all"
           >
-            Invite your first donor
+            {t('donorSettings.inviteFirst')}
           </Link>
         </div>
       ) : (
@@ -261,7 +264,7 @@ export default function DonorsPage() {
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Shield size={16} className="text-[var(--tulip-forest)]/40" />
-                <h2 className="text-sm font-semibold text-[var(--tulip-forest)]/60 uppercase tracking-wide">Active Donors</h2>
+                <h2 className="text-sm font-semibold text-[var(--tulip-forest)]/60 uppercase tracking-wide">{t('donorSettings.activeDonors')}</h2>
                 <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">{donors.length}</span>
               </div>
 
@@ -282,7 +285,7 @@ export default function DonorsPage() {
                             <div className="flex items-center gap-1.5">
                               <p className="text-sm font-medium text-[var(--tulip-forest)] truncate">{donor.orgName || donor.name || donor.email}</p>
                               <span className={`text-[10px] ${onlineUsers.has(donor.orgId) ? 'text-green-600' : 'text-[var(--tulip-forest)]/30'}`}>
-                                {onlineUsers.has(donor.orgId) ? 'Online' : 'Offline'}
+                                {onlineUsers.has(donor.orgId) ? t('donorSettings.online') : t('donorSettings.offline')}
                               </span>
                             </div>
                             <p className="text-xs text-[var(--tulip-forest)]/50 truncate">{donor.email}</p>
@@ -293,20 +296,20 @@ export default function DonorsPage() {
                             onClick={() => openMessenger(donor.orgId)}
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-[var(--tulip-gold)]/40 text-[var(--tulip-forest)]/70 hover:bg-[var(--tulip-gold)]/10 hover:border-[var(--tulip-gold)] transition-all"
                           >
-                            <MessageCircle size={12} /> Message
+                            <MessageCircle size={12} /> {t('donorSettings.message')}
                           </button>
                           <button
                             onClick={() => setManageTarget(donor)}
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-[var(--tulip-sage-dark)] text-[var(--tulip-forest)]/70 hover:bg-[var(--tulip-sage-dark)]/40 transition-all"
                           >
-                            <Settings size={12} /> Manage Projects
+                            <Settings size={12} /> {t('donorSettings.manageProjects')}
                           </button>
                           {activeProjects.length > 0 && (
                             <button
                               onClick={() => handleRevokeAll(donor)}
                               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-600/70 hover:bg-red-400/10 hover:text-red-600 transition-all"
                             >
-                              <Ban size={12} /> Revoke All
+                              <Ban size={12} /> {t('donorSettings.revokeAll')}
                             </button>
                           )}
                         </div>
@@ -324,7 +327,7 @@ export default function DonorsPage() {
                       )}
                       {activeProjects.length === 0 && (
                         <div className="px-4 pb-3">
-                          <p className="text-xs text-[var(--tulip-forest)]/30 italic">All access revoked</p>
+                          <p className="text-xs text-[var(--tulip-forest)]/30 italic">{t('donorSettings.allAccessRevoked')}</p>
                         </div>
                       )}
                     </div>
@@ -339,7 +342,7 @@ export default function DonorsPage() {
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Clock size={16} className="text-[var(--tulip-forest)]/40" />
-                <h2 className="text-sm font-semibold text-[var(--tulip-forest)]/60 uppercase tracking-wide">Pending Invites</h2>
+                <h2 className="text-sm font-semibold text-[var(--tulip-forest)]/60 uppercase tracking-wide">{t('donorSettings.pendingInvites')}</h2>
                 <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">{pendingInvites.length}</span>
               </div>
 
@@ -348,14 +351,14 @@ export default function DonorsPage() {
                   <thead>
                     <tr className="border-b border-[var(--tulip-sage-dark)]">
                       <th className="text-left px-4 py-3 text-xs font-medium text-[var(--tulip-forest)]/40 uppercase tracking-wide">
-                        <div className="flex items-center gap-1.5"><Building2 size={12} /> Organisation</div>
+                        <div className="flex items-center gap-1.5"><Building2 size={12} /> {t('donorSettings.organisation')}</div>
                       </th>
                       <th className="text-left px-4 py-3 text-xs font-medium text-[var(--tulip-forest)]/40 uppercase tracking-wide">
-                        <div className="flex items-center gap-1.5"><Mail size={12} /> Email</div>
+                        <div className="flex items-center gap-1.5"><Mail size={12} /> {t('donorSettings.email')}</div>
                       </th>
-                      <th className="text-left px-4 py-3 text-xs font-medium text-[var(--tulip-forest)]/40 uppercase tracking-wide">Sent</th>
-                      <th className="text-left px-4 py-3 text-xs font-medium text-[var(--tulip-forest)]/40 uppercase tracking-wide">Expires</th>
-                      <th className="text-right px-4 py-3 text-xs font-medium text-[var(--tulip-forest)]/40 uppercase tracking-wide">Actions</th>
+                      <th className="text-left px-4 py-3 text-xs font-medium text-[var(--tulip-forest)]/40 uppercase tracking-wide">{t('donorSettings.sent')}</th>
+                      <th className="text-left px-4 py-3 text-xs font-medium text-[var(--tulip-forest)]/40 uppercase tracking-wide">{t('donorSettings.expires')}</th>
+                      <th className="text-right px-4 py-3 text-xs font-medium text-[var(--tulip-forest)]/40 uppercase tracking-wide">{t('donorSettings.actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -373,11 +376,11 @@ export default function DonorsPage() {
                           <div className="flex items-center justify-end gap-1.5">
                             <button onClick={() => handleResend(inv.id)}
                               className="flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium text-[var(--tulip-forest)]/60 hover:bg-[var(--tulip-sage-dark)]/40 transition-all">
-                              <RefreshCw size={11} /> Resend
+                              <RefreshCw size={11} /> {t('donorSettings.resend')}
                             </button>
                             <button onClick={() => handleCancel(inv.id)}
                               className="flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium text-red-600/60 hover:bg-red-400/10 hover:text-red-600 transition-all">
-                              <X size={11} /> Cancel
+                              <X size={11} /> {t('donorSettings.cancel')}
                             </button>
                           </div>
                         </td>

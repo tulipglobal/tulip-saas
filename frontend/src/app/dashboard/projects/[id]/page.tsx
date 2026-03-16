@@ -10,6 +10,7 @@ import TrustSealCard from '@/components/TrustSealCard'
 import RiskRegisterTab from '@/components/RiskRegisterTab'
 import WorldBankTab from '@/components/WorldBankTab'
 import { formatMoney } from '@/lib/currencies'
+import { useTranslations } from 'next-intl'
 import {
   ArrowLeft, FolderOpen, DollarSign, FileText, Activity,
   CheckCircle, Clock, XCircle, ExternalLink,
@@ -60,11 +61,11 @@ const budgetStatusColors: Record<string, string> = {
   ACTIVE: 'bg-emerald-500/20 text-emerald-400', CLOSED: 'bg-[var(--tulip-sage)] text-[var(--tulip-forest)]/40',
 }
 
-const anchorBadge = (status: string) => {
+const anchorBadge = (status: string, t: (key: string) => string) => {
   switch (status) {
-    case 'confirmed': return <span className="flex items-center gap-1 text-emerald-400 text-xs"><CheckCircle size={12} /> Confirmed</span>
-    case 'pending': return <span className="flex items-center gap-1 text-yellow-400 text-xs"><Clock size={12} /> Pending</span>
-    case 'failed': return <span className="flex items-center gap-1 text-red-400 text-xs"><XCircle size={12} /> Failed</span>
+    case 'confirmed': return <span className="flex items-center gap-1 text-emerald-400 text-xs"><CheckCircle size={12} /> {t('projectDetail.confirmed')}</span>
+    case 'pending': return <span className="flex items-center gap-1 text-yellow-400 text-xs"><Clock size={12} /> {t('projectDetail.pending')}</span>
+    case 'failed': return <span className="flex items-center gap-1 text-red-400 text-xs"><XCircle size={12} /> {t('projectDetail.failed')}</span>
     default: return <span className="flex items-center gap-1 text-[var(--tulip-forest)]/40 text-xs"><Clock size={12} /> —</span>
   }
 }
@@ -103,6 +104,7 @@ const RAG_STYLES: Record<string, { bg: string; text: string; label: string }> = 
 }
 
 export default function ProjectDetailPage() {
+  const t = useTranslations()
   const params = useParams()
   const id = params?.id as string
   const [project, setProject] = useState<Project | null>(null)
@@ -141,7 +143,7 @@ export default function ProjectDetailPage() {
       apiGet(`/api/expenses?projectId=${id}&limit=50`).then(r => r.ok ? r.json() : { data: [] }),
       apiGet(`/api/audit?limit=50`).then(r => r.ok ? r.json() : { data: [] }),
     ]).then(([proj, exp, aud]) => {
-      if (!proj) { setError('Project not found'); setLoading(false); return }
+      if (!proj) { setError(t('projectDetail.projectNotFound')); setLoading(false); return }
       setProject(proj)
       setLogframeGoal(proj.logframeGoal || '')
       setLogframePurpose(proj.logframePurpose || '')
@@ -158,7 +160,7 @@ export default function ProjectDetailPage() {
           .then(map => setSealMap(map))
           .catch(() => {})
       }
-    }).catch(() => { setError('Failed to load project'); setLoading(false) })
+    }).catch(() => { setError(t('projectDetail.failedToLoad')); setLoading(false) })
   }, [id])
 
   // Load logframe data when tab switches to logframe
@@ -221,7 +223,7 @@ export default function ProjectDetailPage() {
   }
 
   const handleDeleteOutput = async (outputId: string) => {
-    if (!confirm('Delete this output and all its indicators?')) return
+    if (!confirm(t('projectDetail.deleteOutputConfirm'))) return
     await apiDelete(`/api/ngo/logframe/outputs/${outputId}`)
     reloadLogframe()
   }
@@ -242,8 +244,8 @@ export default function ProjectDetailPage() {
       setShowAddIndicator(null)
       reloadLogframe()
     } else {
-      const d = await res.json().catch(() => ({ error: 'Failed to add indicator' }))
-      alert(d.error || 'Failed to add indicator')
+      const d = await res.json().catch(() => ({ error: t('projectDetail.failedAddIndicator') }))
+      alert(d.error || t('projectDetail.failedAddIndicator'))
     }
     setSavingIndicator(false)
   }
@@ -267,7 +269,7 @@ export default function ProjectDetailPage() {
   }
 
   const handleDeleteIndicator = async (indicatorId: string) => {
-    if (!confirm('Delete this indicator?')) return
+    if (!confirm(t('projectDetail.deleteIndicatorConfirm'))) return
     await apiDelete(`/api/ngo/logframe/indicators/${indicatorId}`)
     reloadLogframe()
   }
@@ -281,8 +283,8 @@ export default function ProjectDetailPage() {
   if (error || !project) return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-[var(--tulip-cream)] text-[var(--tulip-forest)]/70 gap-4">
       <FolderOpen size={48} className="text-[var(--tulip-forest)]/30" />
-      <p>{error || 'Project not found'}</p>
-      <Link href="/dashboard/projects" className="text-[var(--tulip-forest)] hover:text-[var(--tulip-gold)] text-sm">Back to Projects</Link>
+      <p>{error || t('projectDetail.projectNotFound')}</p>
+      <Link href="/dashboard/projects" className="text-[var(--tulip-forest)] hover:text-[var(--tulip-gold)] text-sm">{t('projectDetail.backToProjects')}</Link>
     </div>
   )
 
@@ -297,7 +299,7 @@ export default function ProjectDetailPage() {
   return (
     <div className="min-h-screen bg-[var(--tulip-cream)] text-[var(--tulip-forest)] p-6 max-w-6xl mx-auto">
       <Link href="/dashboard/projects" className="inline-flex items-center gap-2 text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] text-sm mb-6 transition-colors">
-        <ArrowLeft size={14} /> Back to Projects
+        <ArrowLeft size={14} /> {t('projectDetail.backToProjects')}
       </Link>
 
       {/* Header */}
@@ -314,35 +316,35 @@ export default function ProjectDetailPage() {
                 {project.status}
               </span>
               <span className="text-[var(--tulip-forest)]/40 text-xs flex items-center gap-1">
-                <Calendar size={11} /> Created {new Date(project.createdAt).toLocaleDateString()}
+                <Calendar size={11} /> {t('projectDetail.created', { date: new Date(project.createdAt).toLocaleDateString() })}
               </span>
             </div>
           </div>
         </div>
         <Link href={`/dashboard/budgets/new?projectId=${id}`}
           className="flex items-center gap-2 text-sm font-medium text-[var(--tulip-forest)] px-4 py-2 rounded-lg transition-all shrink-0 bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)]">
-          <Plus size={14} /> Create Budget
+          <Plus size={14} /> {t('projectDetail.createBudget')}
         </Link>
       </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-4">
-          <p className="text-[var(--tulip-forest)]/60 text-xs mb-1">Total Budget</p>
+          <p className="text-[var(--tulip-forest)]/60 text-xs mb-1">{t('projectDetail.totalBudget')}</p>
           <p className="text-[var(--tulip-forest)] font-semibold text-lg">{formatMoney(totalBudget, currency)}</p>
         </div>
         <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-4">
-          <p className="text-[var(--tulip-forest)]/60 text-xs mb-1">Total Funded</p>
+          <p className="text-[var(--tulip-forest)]/60 text-xs mb-1">{t('projectDetail.totalFunded')}</p>
           <p className={`font-semibold text-lg ${totalFunded >= totalBudget && totalBudget > 0 ? 'text-green-400' : 'text-yellow-400'}`}>
             {formatMoney(totalFunded, currency)}
           </p>
         </div>
         <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-4">
-          <p className="text-[var(--tulip-forest)]/60 text-xs mb-1">Total Spent</p>
+          <p className="text-[var(--tulip-forest)]/60 text-xs mb-1">{t('projectDetail.totalSpent')}</p>
           <p className="text-orange-400 font-semibold text-lg">{formatMoney(totalSpent, currency)}</p>
         </div>
         <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-4">
-          <p className="text-[var(--tulip-forest)]/60 text-xs mb-1">Remaining</p>
+          <p className="text-[var(--tulip-forest)]/60 text-xs mb-1">{t('projectDetail.remaining')}</p>
           <p className={`font-semibold text-lg ${remaining >= 0 ? 'text-green-400' : 'text-red-400'}`}>
             {formatMoney(remaining, currency)}
           </p>
@@ -352,13 +354,13 @@ export default function ProjectDetailPage() {
       {/* Tabs */}
       <div className="flex gap-1 mb-6 bg-[var(--tulip-sage)] p-1 rounded-lg w-fit">
         {([
-          { key: 'expenses' as TabKey, label: 'Expenses', count: expenses.length },
-          { key: 'documents' as TabKey, label: 'Documents', count: project.documents?.length ?? 0 },
-          { key: 'budgets' as TabKey, label: 'Budgets', count: project.budgets?.length ?? 0 },
-          { key: 'logframe' as TabKey, label: 'Logframe', count: logframeOutputs.length },
-          { key: 'risks' as TabKey, label: 'Risk Register' },
-          { key: 'worldbank' as TabKey, label: 'World Bank' },
-          { key: 'audit' as TabKey, label: 'Audit', count: audit.length },
+          { key: 'expenses' as TabKey, label: t('projectDetail.tabExpenses'), count: expenses.length },
+          { key: 'documents' as TabKey, label: t('projectDetail.tabDocuments'), count: project.documents?.length ?? 0 },
+          { key: 'budgets' as TabKey, label: t('projectDetail.tabBudgets'), count: project.budgets?.length ?? 0 },
+          { key: 'logframe' as TabKey, label: t('projectDetail.tabLogframe'), count: logframeOutputs.length },
+          { key: 'risks' as TabKey, label: t('projectDetail.tabRiskRegister') },
+          { key: 'worldbank' as TabKey, label: t('projectDetail.tabWorldBank') },
+          { key: 'audit' as TabKey, label: t('projectDetail.tabAudit'), count: audit.length },
         ]).map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
             className={`px-4 py-1.5 rounded-md text-sm transition-all ${tab === t.key ? 'bg-[var(--tulip-sage)] text-[var(--tulip-forest)]' : 'text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]'}`}>
@@ -373,18 +375,18 @@ export default function ProjectDetailPage() {
           {expenses.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-[var(--tulip-forest)]/40 gap-3">
               <DollarSign size={36} className="text-[var(--tulip-forest)]/30" />
-              <p className="text-sm">No expenses logged for this project</p>
-              <Link href="/dashboard/expenses/new" className="text-[var(--tulip-forest)] hover:text-[var(--tulip-gold)] text-xs">+ Log first expense</Link>
+              <p className="text-sm">{t('projectDetail.noExpenses')}</p>
+              <Link href="/dashboard/expenses/new" className="text-[var(--tulip-forest)] hover:text-[var(--tulip-gold)] text-xs">{t('projectDetail.logFirstExpense')}</Link>
             </div>
           ) : (
             <table className="w-full">
               <thead>
                 <tr className="border-b border-[var(--tulip-sage-dark)]">
-                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">DESCRIPTION</th>
-                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">AMOUNT</th>
-                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">HASH</th>
-                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">STATUS</th>
-                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">DATE</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('projectDetail.thDescription')}</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('projectDetail.thAmount')}</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('projectDetail.thHash')}</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('projectDetail.thStatus')}</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('projectDetail.thDate')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -395,7 +397,7 @@ export default function ProjectDetailPage() {
                     <td className="px-4 py-3">
                       {exp.dataHash ? <span className="text-xs font-mono text-[var(--tulip-forest)]/40">{exp.dataHash.slice(0, 12)}...</span> : <span className="text-xs text-[var(--tulip-forest)]/30">-</span>}
                     </td>
-                    <td className="px-4 py-3">{anchorBadge(exp.anchorStatus ?? '')}</td>
+                    <td className="px-4 py-3">{anchorBadge(exp.anchorStatus ?? '', t)}</td>
                     <td className="px-4 py-3 text-xs text-[var(--tulip-forest)]/40">{new Date(exp.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</td>
                   </tr>
                 ))}
@@ -415,17 +417,17 @@ export default function ProjectDetailPage() {
             {(!project.documents || project.documents.length === 0) ? (
               <div className="flex flex-col items-center justify-center py-12 text-[var(--tulip-forest)]/40 gap-2">
                 <FileText size={32} className="text-[var(--tulip-forest)]/30" />
-                <p className="text-sm">No documents yet - upload one above</p>
+                <p className="text-sm">{t('projectDetail.noDocuments')}</p>
               </div>
             ) : (
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-[var(--tulip-sage-dark)]">
-                    <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">NAME</th>
-                    <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">TYPE</th>
-                    <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">HASH</th>
-                    <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">SEAL</th>
-                    <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">DATE</th>
+                    <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('projectDetail.thName')}</th>
+                    <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('projectDetail.thType')}</th>
+                    <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('projectDetail.thHash')}</th>
+                    <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('projectDetail.thSeal')}</th>
+                    <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('projectDetail.thDate')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -462,18 +464,18 @@ export default function ProjectDetailPage() {
           {!hasBudgets ? (
             <div className="flex flex-col items-center justify-center py-16 text-[var(--tulip-forest)]/40 gap-3">
               <Wallet size={36} className="text-[var(--tulip-forest)]/30" />
-              <p className="text-sm">No budgets linked to this project</p>
-              <Link href={`/dashboard/budgets/new?projectId=${id}`} className="text-[var(--tulip-forest)] hover:text-[var(--tulip-gold)] text-xs">+ Create budget</Link>
+              <p className="text-sm">{t('projectDetail.noBudgets')}</p>
+              <Link href={`/dashboard/budgets/new?projectId=${id}`} className="text-[var(--tulip-forest)] hover:text-[var(--tulip-gold)] text-xs">{t('projectDetail.createBudgetLink')}</Link>
             </div>
           ) : (
             <table className="w-full">
               <thead>
                 <tr className="border-b border-[var(--tulip-sage-dark)]">
-                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">NAME</th>
-                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">STATUS</th>
-                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">PERIOD</th>
-                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">LINES</th>
-                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">TOTAL APPROVED</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('projectDetail.thName')}</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('projectDetail.thStatus')}</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('projectDetail.thPeriod')}</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('projectDetail.thLines')}</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('projectDetail.thTotalApproved')}</th>
                   <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3"></th>
                 </tr>
               </thead>
@@ -489,7 +491,7 @@ export default function ProjectDetailPage() {
                       <td className="px-4 py-3 text-xs text-[var(--tulip-forest)]/60">{new Date(b.periodFrom).toLocaleDateString()} - {new Date(b.periodTo).toLocaleDateString()}</td>
                       <td className="px-4 py-3 text-sm text-[var(--tulip-forest)]/60">{b.lines.length}</td>
                       <td className="px-4 py-3 text-sm text-[var(--tulip-forest)] font-medium">{formatMoney(total, currency)}</td>
-                      <td className="px-4 py-3"><Link href={`/dashboard/budgets/${b.id}`} className="text-[var(--tulip-forest)] hover:text-[var(--tulip-gold)] text-xs">View</Link></td>
+                      <td className="px-4 py-3"><Link href={`/dashboard/budgets/${b.id}`} className="text-[var(--tulip-forest)] hover:text-[var(--tulip-gold)] text-xs">{t('projectDetail.view')}</Link></td>
                     </tr>
                   )
                 })}
@@ -506,13 +508,13 @@ export default function ProjectDetailPage() {
           <div className="flex items-start justify-between">
             <div>
               <h2 className="text-lg font-semibold text-[var(--tulip-forest)] flex items-center gap-2">
-                <Target size={18} /> Logical Framework
+                <Target size={18} /> {t('projectDetail.logicalFramework')}
               </h2>
-              <p className="text-[var(--tulip-forest)]/60 text-sm mt-0.5">Track outputs, indicators and progress</p>
+              <p className="text-[var(--tulip-forest)]/60 text-sm mt-0.5">{t('projectDetail.logframeSubtitle')}</p>
             </div>
             <button onClick={() => setShowAddOutput(true)}
               className="flex items-center gap-2 text-sm font-medium text-[var(--tulip-forest)] px-4 py-2 rounded-lg bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)] transition-all">
-              <Plus size={14} /> Add Output
+              <Plus size={14} /> {t('projectDetail.addOutput')}
             </button>
           </div>
 
@@ -520,34 +522,34 @@ export default function ProjectDetailPage() {
           <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-5 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-medium text-[var(--tulip-forest)]/60 uppercase tracking-wide block mb-1.5">Goal</label>
+                <label className="text-xs font-medium text-[var(--tulip-forest)]/60 uppercase tracking-wide block mb-1.5">{t('projectDetail.goal')}</label>
                 <textarea
                   className="w-full bg-[var(--tulip-cream)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] resize-none"
                   rows={3}
                   value={logframeGoal}
                   onChange={e => setLogframeGoal(e.target.value)}
-                  placeholder="The high-level development impact the project contributes to..."
+                  placeholder={t('projectDetail.goalPlaceholder')}
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-[var(--tulip-forest)]/60 uppercase tracking-wide block mb-1.5">Purpose</label>
+                <label className="text-xs font-medium text-[var(--tulip-forest)]/60 uppercase tracking-wide block mb-1.5">{t('projectDetail.purpose')}</label>
                 <textarea
                   className="w-full bg-[var(--tulip-cream)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] resize-none"
                   rows={3}
                   value={logframePurpose}
                   onChange={e => setLogframePurpose(e.target.value)}
-                  placeholder="The specific outcome the project aims to achieve..."
+                  placeholder={t('projectDetail.purposePlaceholder')}
                 />
               </div>
             </div>
             <div>
-              <label className="text-xs font-medium text-[var(--tulip-forest)]/60 uppercase tracking-wide block mb-1.5">Assumptions</label>
+              <label className="text-xs font-medium text-[var(--tulip-forest)]/60 uppercase tracking-wide block mb-1.5">{t('projectDetail.assumptions')}</label>
               <textarea
                 className="w-full bg-[var(--tulip-cream)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] resize-none"
                 rows={3}
                 value={logframeAssumptions}
                 onChange={e => setLogframeAssumptions(e.target.value)}
-                placeholder="Key assumptions and external factors that must hold true for the project to succeed..."
+                placeholder={t('projectDetail.assumptionsPlaceholder')}
               />
             </div>
             <div className="flex items-center gap-3">
@@ -556,10 +558,10 @@ export default function ProjectDetailPage() {
                 disabled={savingGoalPurpose}
                 className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--tulip-forest)] text-[var(--tulip-cream)] hover:bg-[var(--tulip-forest)]/90 transition-all disabled:opacity-50"
               >
-                {savingGoalPurpose ? 'Saving...' : 'Save'}
+                {savingGoalPurpose ? t('projectDetail.saving') : t('projectDetail.save')}
               </button>
               {goalPurposeSaved && (
-                <span className="text-xs text-emerald-600 flex items-center gap-1"><CheckCircle size={13} /> Saved</span>
+                <span className="text-xs text-emerald-600 flex items-center gap-1"><CheckCircle size={13} /> {t('projectDetail.saved')}</span>
               )}
             </div>
           </div>
@@ -568,8 +570,8 @@ export default function ProjectDetailPage() {
           {logframeOutputs.length === 0 && (
             <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl flex flex-col items-center justify-center py-16 gap-3">
               <Target size={36} className="text-[var(--tulip-forest)]/30" />
-              <p className="text-[var(--tulip-forest)]/40 text-sm">No outputs defined yet</p>
-              <button onClick={() => setShowAddOutput(true)} className="text-[var(--tulip-forest)] hover:text-[var(--tulip-gold)] text-xs">+ Add your first output</button>
+              <p className="text-[var(--tulip-forest)]/40 text-sm">{t('projectDetail.noOutputs')}</p>
+              <button onClick={() => setShowAddOutput(true)} className="text-[var(--tulip-forest)] hover:text-[var(--tulip-gold)] text-xs">{t('projectDetail.addFirstOutput')}</button>
             </div>
           )}
 
@@ -580,15 +582,15 @@ export default function ProjectDetailPage() {
               <div className="px-5 py-3 border-b border-[var(--tulip-sage-dark)] bg-[var(--tulip-forest)]/5 flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-semibold text-[var(--tulip-forest)]">
-                    Output {output.outputNumber}: {output.title}
+                    {t('projectDetail.outputLabel', { number: output.outputNumber, title: output.title })}
                   </h3>
                   {output.description && <p className="text-xs text-[var(--tulip-forest)]/50 mt-0.5">{output.description}</p>}
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => setEditingOutput(output)} className="text-[var(--tulip-forest)]/40 hover:text-[var(--tulip-forest)] transition-colors" title="Edit">
+                  <button onClick={() => setEditingOutput(output)} className="text-[var(--tulip-forest)]/40 hover:text-[var(--tulip-forest)] transition-colors" title={t('common.edit')}>
                     <Edit3 size={13} />
                   </button>
-                  <button onClick={() => handleDeleteOutput(output.id)} className="text-[var(--tulip-forest)]/40 hover:text-red-500 transition-colors" title="Delete">
+                  <button onClick={() => handleDeleteOutput(output.id)} className="text-[var(--tulip-forest)]/40 hover:text-red-500 transition-colors" title={t('common.delete')}>
                     <Trash2 size={13} />
                   </button>
                 </div>
@@ -600,7 +602,7 @@ export default function ProjectDetailPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-[var(--tulip-sage-dark)]">
-                        {['Indicator', 'Baseline', 'Target', 'Actual', 'Unit', 'Method', 'Period', 'RAG', 'Notes', 'Action'].map(h => (
+                        {[t('projectDetail.thIndicator'), t('projectDetail.thBaseline'), t('projectDetail.thTarget'), t('projectDetail.thActual'), t('projectDetail.thUnit'), t('projectDetail.thMethod'), t('projectDetail.thPeriodLabel'), t('projectDetail.thRAG'), t('projectDetail.thNotes'), t('projectDetail.thAction')].map(h => (
                           <th key={h} className="text-left text-[10px] text-[var(--tulip-forest)]/40 font-normal px-3 py-2 uppercase tracking-wide whitespace-nowrap">{h}</th>
                         ))}
                       </tr>
@@ -626,7 +628,7 @@ export default function ProjectDetailPage() {
                             <td className="px-3 py-2.5">
                               <div className="flex items-center gap-1.5">
                                 <button onClick={() => { setUpdateIndicator(ind); setUpdateActual(ind.actualValue || ''); setUpdateRAG((ind.ragStatus || 'NOT_STARTED') as RAGStatus); setUpdateNotes(ind.notes || '') }}
-                                  className="text-[var(--tulip-forest)]/40 hover:text-[var(--tulip-forest)] text-xs font-medium">Update</button>
+                                  className="text-[var(--tulip-forest)]/40 hover:text-[var(--tulip-forest)] text-xs font-medium">{t('projectDetail.update')}</button>
                                 <button onClick={() => handleDeleteIndicator(ind.id)}
                                   className="text-[var(--tulip-forest)]/30 hover:text-red-500 transition-colors"><Trash2 size={11} /></button>
                               </div>
@@ -640,14 +642,14 @@ export default function ProjectDetailPage() {
               )}
 
               {output.indicators.length === 0 && (
-                <div className="px-5 py-4 text-center text-[var(--tulip-forest)]/40 text-xs">No indicators yet</div>
+                <div className="px-5 py-4 text-center text-[var(--tulip-forest)]/40 text-xs">{t('projectDetail.noIndicators')}</div>
               )}
 
               {/* Add indicator button */}
               <div className="px-5 py-2.5 border-t border-[var(--tulip-sage-dark)]">
                 <button onClick={() => setShowAddIndicator(output.id)}
                   className="text-xs text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] flex items-center gap-1 transition-colors">
-                  <Plus size={12} /> Add Indicator
+                  <Plus size={12} /> {t('projectDetail.addIndicator')}
                 </button>
               </div>
             </div>
@@ -657,27 +659,27 @@ export default function ProjectDetailPage() {
           {showAddOutput && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setShowAddOutput(false)}>
               <div className="bg-[var(--tulip-cream)] rounded-xl border border-[var(--tulip-sage-dark)] p-6 max-w-md w-full space-y-4 shadow-xl" onClick={e => e.stopPropagation()}>
-                <h3 className="text-lg font-bold text-[var(--tulip-forest)]">Add Output</h3>
+                <h3 className="text-lg font-bold text-[var(--tulip-forest)]">{t('projectDetail.addOutputModal')}</h3>
                 <div>
-                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Output Number</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('projectDetail.outputNumber')}</label>
                   <input className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] outline-none" value={logframeOutputs.length + 1} disabled />
                 </div>
                 <div>
-                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Title *</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('projectDetail.titleLabel')}</label>
                   <input className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)]"
-                    value={newOutput.title} onChange={e => setNewOutput(p => ({ ...p, title: e.target.value }))} placeholder="e.g. Improved water access in target communities" />
+                    value={newOutput.title} onChange={e => setNewOutput(p => ({ ...p, title: e.target.value }))} placeholder={t('projectDetail.titlePlaceholder')} />
                 </div>
                 <div>
-                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Description</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('projectDetail.descriptionLabel')}</label>
                   <textarea className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] resize-none"
-                    rows={3} value={newOutput.description} onChange={e => setNewOutput(p => ({ ...p, description: e.target.value }))} placeholder="Optional description..." />
+                    rows={3} value={newOutput.description} onChange={e => setNewOutput(p => ({ ...p, description: e.target.value }))} placeholder={t('projectDetail.descriptionPlaceholder')} />
                 </div>
                 <div className="flex items-center gap-3 pt-2">
                   <button onClick={handleAddOutput} disabled={savingOutput || !newOutput.title.trim()}
                     className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] disabled:opacity-50">
-                    {savingOutput ? 'Saving...' : 'Add Output'}
+                    {savingOutput ? t('projectDetail.saving') : t('projectDetail.addOutputBtn')}
                   </button>
-                  <button onClick={() => setShowAddOutput(false)} className="px-4 py-2 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]">Cancel</button>
+                  <button onClick={() => setShowAddOutput(false)} className="px-4 py-2 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]">{t('projectDetail.cancel')}</button>
                 </div>
               </div>
             </div>
@@ -687,23 +689,23 @@ export default function ProjectDetailPage() {
           {editingOutput && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setEditingOutput(null)}>
               <div className="bg-[var(--tulip-cream)] rounded-xl border border-[var(--tulip-sage-dark)] p-6 max-w-md w-full space-y-4 shadow-xl" onClick={e => e.stopPropagation()}>
-                <h3 className="text-lg font-bold text-[var(--tulip-forest)]">Edit Output</h3>
+                <h3 className="text-lg font-bold text-[var(--tulip-forest)]">{t('projectDetail.editOutputModal')}</h3>
                 <div>
-                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Title *</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('projectDetail.titleLabel')}</label>
                   <input className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] outline-none focus:border-[var(--tulip-gold)]"
                     value={editingOutput.title} onChange={e => setEditingOutput(p => p ? { ...p, title: e.target.value } : p)} />
                 </div>
                 <div>
-                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Description</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('projectDetail.descriptionLabel')}</label>
                   <textarea className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] outline-none focus:border-[var(--tulip-gold)] resize-none"
                     rows={3} value={editingOutput.description || ''} onChange={e => setEditingOutput(p => p ? { ...p, description: e.target.value } : p)} />
                 </div>
                 <div className="flex items-center gap-3 pt-2">
                   <button onClick={handleEditOutput} disabled={savingOutput || !editingOutput.title.trim()}
                     className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] disabled:opacity-50">
-                    {savingOutput ? 'Saving...' : 'Save Changes'}
+                    {savingOutput ? t('projectDetail.saving') : t('projectDetail.saveChanges')}
                   </button>
-                  <button onClick={() => setEditingOutput(null)} className="px-4 py-2 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]">Cancel</button>
+                  <button onClick={() => setEditingOutput(null)} className="px-4 py-2 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]">{t('projectDetail.cancel')}</button>
                 </div>
               </div>
             </div>
@@ -713,48 +715,48 @@ export default function ProjectDetailPage() {
           {showAddIndicator && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setShowAddIndicator(null)}>
               <div className="bg-[var(--tulip-cream)] rounded-xl border border-[var(--tulip-sage-dark)] p-6 max-w-lg w-full space-y-4 shadow-xl" onClick={e => e.stopPropagation()}>
-                <h3 className="text-lg font-bold text-[var(--tulip-forest)]">Add Indicator</h3>
+                <h3 className="text-lg font-bold text-[var(--tulip-forest)]">{t('projectDetail.addIndicatorModal')}</h3>
                 <div>
-                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Indicator *</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('projectDetail.indicatorLabel')}</label>
                   <textarea className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] resize-none"
                     rows={2} value={newIndicator.indicator} onChange={e => setNewIndicator(p => ({ ...p, indicator: e.target.value }))}
-                    placeholder="e.g. Number of households with access to clean water" />
+                    placeholder={t('projectDetail.indicatorPlaceholder')} />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Baseline Value</label>
+                    <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('projectDetail.baselineValue')}</label>
                     <input className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)]"
-                      value={newIndicator.baselineValue} onChange={e => setNewIndicator(p => ({ ...p, baselineValue: e.target.value }))} placeholder="e.g. 0" />
+                      value={newIndicator.baselineValue} onChange={e => setNewIndicator(p => ({ ...p, baselineValue: e.target.value }))} placeholder={t('projectDetail.baselinePlaceholder')} />
                   </div>
                   <div>
-                    <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Target Value *</label>
+                    <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('projectDetail.targetValue')}</label>
                     <input className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)]"
-                      value={newIndicator.targetValue} onChange={e => setNewIndicator(p => ({ ...p, targetValue: e.target.value }))} placeholder="e.g. 500" />
+                      value={newIndicator.targetValue} onChange={e => setNewIndicator(p => ({ ...p, targetValue: e.target.value }))} placeholder={t('projectDetail.targetPlaceholder')} />
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Unit</label>
+                    <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('projectDetail.unit')}</label>
                     <input className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)]"
-                      value={newIndicator.unit} onChange={e => setNewIndicator(p => ({ ...p, unit: e.target.value }))} placeholder="e.g. households" />
+                      value={newIndicator.unit} onChange={e => setNewIndicator(p => ({ ...p, unit: e.target.value }))} placeholder={t('projectDetail.unitPlaceholder')} />
                   </div>
                   <div>
-                    <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Measurement Method</label>
+                    <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('projectDetail.measurementMethod')}</label>
                     <input className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)]"
-                      value={newIndicator.measurementMethod} onChange={e => setNewIndicator(p => ({ ...p, measurementMethod: e.target.value }))} placeholder="e.g. Survey" />
+                      value={newIndicator.measurementMethod} onChange={e => setNewIndicator(p => ({ ...p, measurementMethod: e.target.value }))} placeholder={t('projectDetail.measurementMethodPlaceholder')} />
                   </div>
                   <div>
-                    <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Reporting Period</label>
+                    <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('projectDetail.reportingPeriod')}</label>
                     <input className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)]"
-                      value={newIndicator.reportingPeriod} onChange={e => setNewIndicator(p => ({ ...p, reportingPeriod: e.target.value }))} placeholder="e.g. Quarterly" />
+                      value={newIndicator.reportingPeriod} onChange={e => setNewIndicator(p => ({ ...p, reportingPeriod: e.target.value }))} placeholder={t('projectDetail.reportingPeriodPlaceholder')} />
                   </div>
                 </div>
                 <div className="flex items-center gap-3 pt-2">
                   <button onClick={() => handleAddIndicator(showAddIndicator)} disabled={savingIndicator || !newIndicator.indicator.trim() || !newIndicator.targetValue.trim()}
                     className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] disabled:opacity-50">
-                    {savingIndicator ? 'Saving...' : 'Add Indicator'}
+                    {savingIndicator ? t('projectDetail.saving') : t('projectDetail.addIndicatorBtn')}
                   </button>
-                  <button onClick={() => setShowAddIndicator(null)} className="px-4 py-2 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]">Cancel</button>
+                  <button onClick={() => setShowAddIndicator(null)} className="px-4 py-2 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]">{t('projectDetail.cancel')}</button>
                 </div>
               </div>
             </div>
@@ -764,18 +766,18 @@ export default function ProjectDetailPage() {
           {updateIndicator && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setUpdateIndicator(null)}>
               <div className="bg-[var(--tulip-cream)] rounded-xl border border-[var(--tulip-sage-dark)] p-6 max-w-md w-full space-y-4 shadow-xl" onClick={e => e.stopPropagation()}>
-                <h3 className="text-lg font-bold text-[var(--tulip-forest)]">Update Indicator</h3>
+                <h3 className="text-lg font-bold text-[var(--tulip-forest)]">{t('projectDetail.updateIndicatorModal')}</h3>
                 <div>
-                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Indicator</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('projectDetail.indicator')}</label>
                   <p className="text-sm text-[var(--tulip-forest)] bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5">{updateIndicator.indicator}</p>
                 </div>
                 <div>
-                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Actual Value</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('projectDetail.actualValue')}</label>
                   <input className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)]"
-                    value={updateActual} onChange={e => setUpdateActual(e.target.value)} placeholder="Enter current actual value" />
+                    value={updateActual} onChange={e => setUpdateActual(e.target.value)} placeholder={t('projectDetail.actualValuePlaceholder')} />
                 </div>
                 <div>
-                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-2">RAG Status</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-2">{t('projectDetail.ragStatus')}</label>
                   <div className="flex gap-2 flex-wrap">
                     {(Object.entries(RAG_STYLES) as [RAGStatus, typeof RAG_STYLES[string]][]).map(([key, style]) => (
                       <button key={key} onClick={() => setUpdateRAG(key)}
@@ -790,16 +792,16 @@ export default function ProjectDetailPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Notes</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('projectDetail.notes')}</label>
                   <textarea className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] resize-none"
-                    rows={2} value={updateNotes} onChange={e => setUpdateNotes(e.target.value)} placeholder="Optional notes..." />
+                    rows={2} value={updateNotes} onChange={e => setUpdateNotes(e.target.value)} placeholder={t('projectDetail.notesPlaceholder')} />
                 </div>
                 <div className="flex items-center gap-3 pt-2">
                   <button onClick={handleUpdateIndicator} disabled={savingUpdate}
                     className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] disabled:opacity-50">
-                    {savingUpdate ? 'Saving...' : 'Update'}
+                    {savingUpdate ? t('projectDetail.saving') : t('projectDetail.updateBtn')}
                   </button>
-                  <button onClick={() => setUpdateIndicator(null)} className="px-4 py-2 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]">Cancel</button>
+                  <button onClick={() => setUpdateIndicator(null)} className="px-4 py-2 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]">{t('projectDetail.cancel')}</button>
                 </div>
               </div>
             </div>
@@ -819,17 +821,17 @@ export default function ProjectDetailPage() {
           {audit.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-[var(--tulip-forest)]/40 gap-3">
               <Activity size={36} className="text-[var(--tulip-forest)]/30" />
-              <p className="text-sm">No audit entries for this project</p>
+              <p className="text-sm">{t('projectDetail.noAuditEntries')}</p>
             </div>
           ) : (
             <table className="w-full">
               <thead>
                 <tr className="border-b border-[var(--tulip-sage-dark)]">
-                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">ACTION</th>
-                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">HASH</th>
-                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">TX</th>
-                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">STATUS</th>
-                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">DATE</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('projectDetail.thAuditAction')}</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('projectDetail.thHash')}</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('projectDetail.thTx')}</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('projectDetail.thStatus')}</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">{t('projectDetail.thDate')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -845,7 +847,7 @@ export default function ProjectDetailPage() {
                           </a>
                         : <span className="text-xs text-[var(--tulip-forest)]/30">-</span>}
                     </td>
-                    <td className="px-4 py-3">{anchorBadge(entry.anchorStatus)}</td>
+                    <td className="px-4 py-3">{anchorBadge(entry.anchorStatus, t)}</td>
                     <td className="px-4 py-3 text-xs text-[var(--tulip-forest)]/40">{new Date(entry.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</td>
                   </tr>
                 ))}

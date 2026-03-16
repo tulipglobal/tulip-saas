@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { apiGet, apiPost } from '@/lib/api'
 
 /* ── types ── */
@@ -44,6 +45,7 @@ type TabKey = 'ALL' | 'REQUESTED' | 'APPROVED' | 'REJECTED' | 'DISBURSED'
 
 /* ── main page ── */
 export default function DrawdownsPage() {
+  const t = useTranslations('drawdowns')
   const [drawdowns, setDrawdowns] = useState<Drawdown[]>([])
   const [investmentOptions, setInvestmentOptions] = useState<InvestmentOption[]>([])
   const [loading, setLoading] = useState(true)
@@ -167,11 +169,11 @@ export default function DrawdownsPage() {
   const filtered = tab === 'ALL' ? drawdowns : drawdowns.filter(d => d.status === tab)
 
   const tabs: { key: TabKey; label: string }[] = [
-    { key: 'ALL', label: 'All' },
-    { key: 'REQUESTED', label: 'Requested' },
-    { key: 'APPROVED', label: 'Approved' },
-    { key: 'REJECTED', label: 'Rejected' },
-    { key: 'DISBURSED', label: 'Disbursed' },
+    { key: 'ALL', label: t('all') },
+    { key: 'REQUESTED', label: t('requested') },
+    { key: 'APPROVED', label: t('approved') },
+    { key: 'REJECTED', label: t('rejected') },
+    { key: 'DISBURSED', label: t('disbursed') },
   ]
 
   const selectedInvestment = investmentOptions.find(o => o.id === reqInvestmentId)
@@ -182,33 +184,33 @@ export default function DrawdownsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>
-            Drawdown Requests
+            {t('title')}
           </h1>
           <p className="text-[var(--tulip-forest)]/60 text-sm mt-1">
-            Request and track funding drawdowns from investors
+            {t('subtitle')}
           </p>
         </div>
         <button
           onClick={() => { setShowRequestModal(true); setReqInvestmentId(''); setReqAmount(''); setReqPurpose('') }}
           className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-cream)] bg-[var(--tulip-forest)] hover:bg-[var(--tulip-forest)]/90 transition-colors self-start"
         >
-          Request Drawdown
+          {t('requestDrawdown')}
         </button>
       </div>
 
       {/* Tabs */}
       <div className="flex gap-1 rounded-lg border border-[var(--tulip-sage-dark)] p-1 w-fit" style={{ background: 'var(--tulip-sage)' }}>
-        {tabs.map(t => (
+        {tabs.map(tb => (
           <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
+            key={tb.key}
+            onClick={() => setTab(tb.key)}
             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-              tab === t.key
+              tab === tb.key
                 ? 'bg-[var(--tulip-forest)] text-[var(--tulip-cream)]'
                 : 'text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] hover:bg-[#d5e5cc]'
             }`}
           >
-            {t.label}
+            {tb.label}
           </button>
         ))}
       </div>
@@ -217,21 +219,21 @@ export default function DrawdownsPage() {
       <div className="rounded-xl border border-[var(--tulip-sage-dark)] overflow-hidden" style={{ background: 'var(--tulip-sage)' }}>
         {/* Desktop header */}
         <div className="hidden lg:grid grid-cols-[1.2fr_1.2fr_1fr_1.5fr_90px_100px_100px_120px] gap-4 px-5 py-3 border-b border-[var(--tulip-sage-dark)] text-[10px] text-[var(--tulip-forest)]/40 uppercase tracking-wider font-medium">
-          <span>Project</span>
-          <span>Investor</span>
-          <span>Amount</span>
-          <span>Purpose</span>
-          <span>Status</span>
-          <span>Requested</span>
-          <span>Approved</span>
-          <span>Action</span>
+          <span>{t('thProject')}</span>
+          <span>{t('thInvestor')}</span>
+          <span>{t('thAmount')}</span>
+          <span>{t('thPurpose')}</span>
+          <span>{t('thStatus')}</span>
+          <span>{t('thRequested')}</span>
+          <span>{t('thApproved')}</span>
+          <span>{t('thAction')}</span>
         </div>
 
         {loading ? (
-          <div className="p-12 text-center text-[var(--tulip-forest)]/40 text-sm">Loading drawdowns...</div>
+          <div className="p-12 text-center text-[var(--tulip-forest)]/40 text-sm">{t('loading')}</div>
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center">
-            <p className="text-[var(--tulip-forest)]/40 text-sm">No drawdowns found</p>
+            <p className="text-[var(--tulip-forest)]/40 text-sm">{t('noDrawdowns')}</p>
           </div>
         ) : (
           <div className="divide-y divide-[var(--tulip-sage-dark)]">
@@ -248,21 +250,21 @@ export default function DrawdownsPage() {
                   <div className="text-xs text-[var(--tulip-forest)]/50">{fmtDate(dd.approvedAt)}</div>
                   <div>
                     {dd.status === 'REQUESTED' && (
-                      <span className="text-xs text-[var(--tulip-forest)]/40">Awaiting approval</span>
+                      <span className="text-xs text-[var(--tulip-forest)]/40">{t('awaitingApproval')}</span>
                     )}
                     {dd.status === 'APPROVED' && (
                       <button
                         onClick={() => { setUtilDrawdown(dd); setUtilAmount(''); setUtilNote('') }}
                         className="px-3 py-1 rounded-md text-xs font-medium bg-amber-100 text-amber-700 border border-amber-300 hover:bg-amber-200 transition-colors"
                       >
-                        Record Utilisation
+                        {t('recordUtilisation')}
                       </button>
                     )}
                     {dd.status === 'REJECTED' && (
-                      <span className="text-xs text-red-600">{dd.reason || 'Rejected'}</span>
+                      <span className="text-xs text-red-600">{dd.reason || t('rejectedLabel')}</span>
                     )}
                     {dd.status === 'DISBURSED' && (
-                      <span className="text-xs text-blue-600 underline underline-offset-2 cursor-pointer">View</span>
+                      <span className="text-xs text-blue-600 underline underline-offset-2 cursor-pointer">{t('view')}</span>
                     )}
                   </div>
                 </div>
@@ -281,21 +283,21 @@ export default function DrawdownsPage() {
                   <p className="text-xs text-[var(--tulip-forest)]/50">{dd.purpose}</p>
                   <div>
                     {dd.status === 'REQUESTED' && (
-                      <span className="text-xs text-[var(--tulip-forest)]/40">Awaiting approval</span>
+                      <span className="text-xs text-[var(--tulip-forest)]/40">{t('awaitingApproval')}</span>
                     )}
                     {dd.status === 'APPROVED' && (
                       <button
                         onClick={() => { setUtilDrawdown(dd); setUtilAmount(''); setUtilNote('') }}
                         className="px-3 py-1 rounded-md text-xs font-medium bg-amber-100 text-amber-700 border border-amber-300 hover:bg-amber-200 transition-colors"
                       >
-                        Record Utilisation
+                        {t('recordUtilisation')}
                       </button>
                     )}
                     {dd.status === 'REJECTED' && (
-                      <span className="text-xs text-red-600">{dd.reason || 'Rejected'}</span>
+                      <span className="text-xs text-red-600">{dd.reason || t('rejectedLabel')}</span>
                     )}
                     {dd.status === 'DISBURSED' && (
-                      <span className="text-xs text-blue-600 underline underline-offset-2 cursor-pointer">View</span>
+                      <span className="text-xs text-blue-600 underline underline-offset-2 cursor-pointer">{t('view')}</span>
                     )}
                   </div>
                 </div>
@@ -314,15 +316,15 @@ export default function DrawdownsPage() {
             onClick={e => e.stopPropagation()}
           >
             <h3 className="text-lg font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>
-              Request Drawdown
+              {t('requestModalTitle')}
             </h3>
 
             {/* Project / Investment select */}
             <div>
-              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">Project</label>
+              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">{t('project')}</label>
               {investmentOptions.length === 0 ? (
                 <div className="rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] px-3 py-3 text-sm text-[var(--tulip-forest)]/60">
-                  No active impact investments found. Create one via Budgets &rarr; Add Funding Source &rarr; Impact Investment.
+                  {t('noInvestments')}
                 </div>
               ) : (
                 <select
@@ -330,10 +332,10 @@ export default function DrawdownsPage() {
                   onChange={e => { setReqInvestmentId(e.target.value); setReqAmount('') }}
                   className="w-full rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] px-3 py-2 text-sm text-[var(--tulip-forest)] outline-none focus:border-[var(--tulip-forest)]/40"
                 >
-                  <option value="">Select a project...</option>
+                  <option value="">{t('selectProject')}</option>
                   {investmentOptions.map(o => (
                     <option key={o.id} value={o.id}>
-                      {o.projectName} (remaining: {o.currency} {o.remaining.toLocaleString()})
+                      {o.projectName} ({t('remaining')}: {o.currency} {o.remaining.toLocaleString()})
                     </option>
                   ))}
                 </select>
@@ -342,7 +344,7 @@ export default function DrawdownsPage() {
 
             {/* Amount */}
             <div>
-              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">Amount</label>
+              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">{t('amount')}</label>
               <input
                 type="number"
                 min={0}
@@ -356,7 +358,7 @@ export default function DrawdownsPage() {
 
             {/* Currency */}
             <div>
-              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">Currency</label>
+              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">{t('currency')}</label>
               <input
                 type="text"
                 value={selectedInvestment?.currency ?? ''}
@@ -367,12 +369,12 @@ export default function DrawdownsPage() {
 
             {/* Purpose */}
             <div>
-              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">Purpose <span className="text-red-500">*</span></label>
+              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">{t('purpose')} <span className="text-red-500">*</span></label>
               <textarea
                 value={reqPurpose}
                 onChange={e => setReqPurpose(e.target.value)}
                 rows={3}
-                placeholder="Describe the purpose of this drawdown..."
+                placeholder={t('purposePlaceholder')}
                 className="w-full rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/30 outline-none focus:border-[var(--tulip-forest)]/40 resize-none"
               />
             </div>
@@ -383,14 +385,14 @@ export default function DrawdownsPage() {
                 onClick={() => setShowRequestModal(false)}
                 className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-forest)]/60 border border-[var(--tulip-sage-dark)] hover:bg-[var(--tulip-sage)] transition-colors"
               >
-                Cancel
+                {t('cancel')}
               </button>
               <button
                 onClick={submitRequest}
                 disabled={reqSubmitting || !reqInvestmentId || !reqAmount || !reqPurpose.trim()}
                 className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-cream)] bg-[var(--tulip-forest)] hover:bg-[var(--tulip-forest)]/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
-                {reqSubmitting ? 'Submitting...' : 'Submit Request'}
+                {reqSubmitting ? t('submitting') : t('submitRequest')}
               </button>
             </div>
           </div>
@@ -406,28 +408,28 @@ export default function DrawdownsPage() {
             onClick={e => e.stopPropagation()}
           >
             <h3 className="text-lg font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>
-              Record Utilisation
+              {t('utilisationTitle')}
             </h3>
 
             {/* Drawdown details */}
             <div className="rounded-lg border border-[var(--tulip-sage-dark)] p-3 space-y-1" style={{ background: 'var(--tulip-sage)' }}>
               <div className="flex justify-between text-xs">
-                <span className="text-[var(--tulip-forest)]/50">Project</span>
+                <span className="text-[var(--tulip-forest)]/50">{t('project')}</span>
                 <span className="text-[var(--tulip-forest)] font-medium">{utilDrawdown.projectName}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-[var(--tulip-forest)]/50">Drawdown Amount</span>
+                <span className="text-[var(--tulip-forest)]/50">{t('drawdownAmount')}</span>
                 <span className="text-[var(--tulip-forest)] font-medium">{fmtCurrency(utilDrawdown.amount, utilDrawdown.currency)}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-[var(--tulip-forest)]/50">Purpose</span>
+                <span className="text-[var(--tulip-forest)]/50">{t('purpose')}</span>
                 <span className="text-[var(--tulip-forest)]">{utilDrawdown.purpose}</span>
               </div>
             </div>
 
             {/* Amount utilised */}
             <div>
-              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">Amount Utilised</label>
+              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">{t('amountUtilised')}</label>
               <input
                 type="number"
                 min={0}
@@ -441,12 +443,12 @@ export default function DrawdownsPage() {
 
             {/* Note */}
             <div>
-              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">Note</label>
+              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">{t('note')}</label>
               <textarea
                 value={utilNote}
                 onChange={e => setUtilNote(e.target.value)}
                 rows={3}
-                placeholder="Add a note about how the funds were used..."
+                placeholder={t('notePlaceholder')}
                 className="w-full rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/30 outline-none focus:border-[var(--tulip-forest)]/40 resize-none"
               />
             </div>
@@ -457,14 +459,14 @@ export default function DrawdownsPage() {
                 onClick={() => setUtilDrawdown(null)}
                 className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-forest)]/60 border border-[var(--tulip-sage-dark)] hover:bg-[var(--tulip-sage)] transition-colors"
               >
-                Cancel
+                {t('cancel')}
               </button>
               <button
                 onClick={submitUtilisation}
                 disabled={utilSubmitting || !utilAmount}
                 className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-cream)] bg-[var(--tulip-forest)] hover:bg-[var(--tulip-forest)]/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
-                {utilSubmitting ? 'Recording...' : 'Record Utilisation'}
+                {utilSubmitting ? t('recording') : t('recordUtilisationBtn')}
               </button>
             </div>
           </div>

@@ -9,6 +9,7 @@ import BlockchainStatusPill from '@/components/BlockchainStatusPill'
 import TrustSealCard from '@/components/TrustSealCard'
 import RiskRegisterTab from '@/components/RiskRegisterTab'
 import WorldBankTab from '@/components/WorldBankTab'
+import { formatMoney } from '@/lib/currencies'
 import {
   ArrowLeft, FolderOpen, DollarSign, FileText, Activity,
   CheckCircle, Clock, XCircle, ExternalLink,
@@ -32,6 +33,7 @@ interface Project {
   fundingSources: any[]; expenses: Expense[]; documents: Document[]
   budgetSummary: BudgetSummary | null; budgets: BudgetInfo[]
   logframeGoal?: string | null; logframePurpose?: string | null; logframeAssumptions?: string | null
+  baseCurrency?: string; donorReportingCurrency?: string | null
 }
 
 interface Expense {
@@ -290,6 +292,7 @@ export default function ProjectDetailPage() {
   const totalFunded = hasBudgets ? project.budgets.reduce((s, b) => s + (b.fundingSources || []).reduce((fs, f) => fs + f.amount, 0), 0) : 0
   const totalSpent = expenses.reduce((s, e) => s + e.amount, 0)
   const remaining = totalBudget - totalSpent
+  const currency = project.baseCurrency || 'USD'
 
   return (
     <div className="min-h-screen bg-[var(--tulip-cream)] text-[var(--tulip-forest)] p-6 max-w-6xl mx-auto">
@@ -326,22 +329,22 @@ export default function ProjectDetailPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-4">
           <p className="text-[var(--tulip-forest)]/60 text-xs mb-1">Total Budget</p>
-          <p className="text-[var(--tulip-forest)] font-semibold text-lg">${totalBudget.toLocaleString()}</p>
+          <p className="text-[var(--tulip-forest)] font-semibold text-lg">{formatMoney(totalBudget, currency)}</p>
         </div>
         <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-4">
           <p className="text-[var(--tulip-forest)]/60 text-xs mb-1">Total Funded</p>
           <p className={`font-semibold text-lg ${totalFunded >= totalBudget && totalBudget > 0 ? 'text-green-400' : 'text-yellow-400'}`}>
-            ${totalFunded.toLocaleString()}
+            {formatMoney(totalFunded, currency)}
           </p>
         </div>
         <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-4">
           <p className="text-[var(--tulip-forest)]/60 text-xs mb-1">Total Spent</p>
-          <p className="text-orange-400 font-semibold text-lg">${totalSpent.toLocaleString()}</p>
+          <p className="text-orange-400 font-semibold text-lg">{formatMoney(totalSpent, currency)}</p>
         </div>
         <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-4">
           <p className="text-[var(--tulip-forest)]/60 text-xs mb-1">Remaining</p>
           <p className={`font-semibold text-lg ${remaining >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-            ${remaining.toLocaleString()}
+            {formatMoney(remaining, currency)}
           </p>
         </div>
       </div>
@@ -485,7 +488,7 @@ export default function ProjectDetailPage() {
                       </td>
                       <td className="px-4 py-3 text-xs text-[var(--tulip-forest)]/60">{new Date(b.periodFrom).toLocaleDateString()} - {new Date(b.periodTo).toLocaleDateString()}</td>
                       <td className="px-4 py-3 text-sm text-[var(--tulip-forest)]/60">{b.lines.length}</td>
-                      <td className="px-4 py-3 text-sm text-[var(--tulip-forest)] font-medium">${total.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-sm text-[var(--tulip-forest)] font-medium">{formatMoney(total, currency)}</td>
                       <td className="px-4 py-3"><Link href={`/dashboard/budgets/${b.id}`} className="text-[var(--tulip-forest)] hover:text-[var(--tulip-gold)] text-xs">View</Link></td>
                     </tr>
                   )

@@ -7,6 +7,7 @@ import { Banknote, Search } from 'lucide-react'
 import BlockchainStatusPill from '@/components/BlockchainStatusPill'
 import TrustSealCard from '@/components/TrustSealCard'
 import { useTranslations } from 'next-intl'
+import { formatMoney } from '@/lib/currencies'
 
 interface FundingSource {
   id: string
@@ -83,7 +84,7 @@ export default function FundingPage() {
       {filtered.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-5 py-4" style={{ background: 'var(--tulip-sage)' }}>
-            <div className="text-xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>${totalFunding.toLocaleString()}</div>
+            <div className="text-xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>{formatMoney(totalFunding, 'USD')}</div>
             <div className="text-xs text-[var(--tulip-forest)]/60 mt-1">{t('funding.totalFunding')}</div>
           </div>
           <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-5 py-4" style={{ background: 'var(--tulip-sage)' }}>

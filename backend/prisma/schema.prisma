@@ -6,148 +6,30 @@ datasource db {
   provider = "postgresql"
 }
 
-model Tenant {
-  id                 String             @id @default(uuid())
-  name               String
-  slug               String             @unique
-  status             String             @default("active")
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
-  code               String             @unique
-  sequence           Int
-  tenantType         String             @default("NGO")
-  description        String?
-  country            String?
-  website            String?
-  registrationNumber String?
-  logoUrl            String?
-  completedSetup     Boolean            @default(false)
-  stripeCustomerId     String?          @unique
-  stripeSubscriptionId String?
-  plan                 String           @default("FREE")
-  planStatus           String           @default("active")
-  trialEndsAt          DateTime?
-  baseCurrency         String           @default("USD")
-  notificationPrefs    Json?
-  apiKeys            ApiKey[]
-  ocrJobs  OcrJob[]
-  bundleJobs BundleJob[]
-  verificationCases VerificationCase[]
-  trustSeals         TrustSeal[]
-  engagementEvents   EngagementEvent[]
-  auditLogs          AuditLog[]
-  documents          Document[]
-  expenses           Expense[]
-  fundingSources     FundingSource[]
-  projects           Project[]
-  refreshTokens      RefreshToken[]
-  roles              Role[]
-  users              User[]
-  userRoles          UserRole[]
-  fundingAgreements  FundingAgreement[]
-  donorInvites       DonorInvite[]
-  workflowTasks      WorkflowTask[]
-  budgets            Budget[]
-
-  @@index([code])
-  @@index([tenantType])
-}
-
-model TenantCounter {
-  id         String @id @default(uuid())
-  tenantType String
-  year       String
-  count      Int    @default(0)
-
-  @@unique([tenantType, year])
-}
-
-model User {
-  id                String         @id @default(uuid())
-  email             String         @unique
-  name              String
-  password          String
-  tenantId          String
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
-  deletedAt         DateTime?
-  preferredLanguage String         @default("en")
-  apiKeys           ApiKey[]       @relation("ApiKeyCreator")
-  auditLogs         AuditLog[]
-  uploadedDocuments Document[]
-  refreshTokens     RefreshToken[]
-  tenant            Tenant         @relation(fields: [tenantId], references: [id])
-  roles             UserRole[]
-  donorInvites      DonorInvite[]
-
-  @@index([tenantId])
-}
-
-model Role {
-  id          String           @id @default(uuid())
-  name        String
-  tenantId    String
-  tenant      Tenant           @relation(fields: [tenantId], references: [id])
-  permissions RolePermission[]
-  users       UserRole[]
-
-  @@unique([tenantId, name])
-  @@index([tenantId])
-}
-
-model Permission {
-  id          String           @id @default(uuid())
-  key         String           @unique
-  description String?
-  roles       RolePermission[]
-}
-
-model RolePermission {
-  roleId       String
-  permissionId String
-  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-
-  @@id([roleId, permissionId])
-}
-
-model UserPermissionCache {
-  id          String   @id @default(uuid())
-  userId      String
-  tenantId    String
-  permissions Json     @default("[]")
-  updatedAt   DateTime @updatedAt
-
-  @@unique([userId, tenantId])
-  @@index([userId])
-  @@index([tenantId])
-}
-
 model ApiKey {
-  id          String    @id @default(uuid())
+  id          String        @id
   tenantId    String
   createdBy   String
   name        String
-  prefix      String    @unique
+  prefix      String        @unique
   keyHash     String
   permissions String[]
   lastUsedAt  DateTime?
   expiresAt   DateTime?
   revokedAt   DateTime?
-  createdAt   DateTime  @default(now())
-  creator     User      @relation("ApiKeyCreator", fields: [createdBy], references: [id])
-  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt   DateTime      @default(now())
+  User        User          @relation(fields: [createdBy], references: [id])
+  Tenant      Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ApiUsageLog ApiUsageLog[]
+  OcrJob      OcrJob[]
 
-  ocrJobs    OcrJob[]
-  usageLogs  ApiUsageLog[]
-  @@index([tenantId])
   @@index([createdBy])
+  @@index([tenantId])
 }
 
 model ApiUsageLog {
-  id           String   @id @default(uuid())
+  id           String   @id
   apiKeyId     String
-  apiKey       ApiKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
   tenantId     String
   endpoint     String
   method       String   @default("POST")
@@ -155,242 +37,16 @@ model ApiUsageLog {
   responseTime Int      @default(0)
   errorMessage String?
   createdAt    DateTime @default(now())
+  ApiKey       ApiKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
 
   @@index([apiKeyId])
-  @@index([tenantId])
   @@index([createdAt])
   @@index([endpoint])
-}
-
-model RefreshToken {
-  id         String    @id @default(uuid())
-  userId     String
-  tenantId   String
-  tokenHash  String
-  family     String
-  expiresAt  DateTime
-  revokedAt  DateTime?
-  replacedBy String?
-  userAgent  String?
-  ip         String?
-  createdAt  DateTime  @default(now())
-  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
   @@index([tenantId])
-  @@index([family])
-  @@index([tokenHash])
-}
-
-model Webhook {
-  id          String            @id @default(uuid())
-  tenantId    String
-  url         String
-  secret      String
-  events      String[]
-  active      Boolean           @default(true)
-  description String?
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  deliveries  WebhookDelivery[]
-
-  @@index([tenantId])
-  @@index([active])
-}
-
-model WebhookDelivery {
-  id           String    @id @default(uuid())
-  webhookId    String
-  tenantId     String
-  event        String
-  payload      Json
-  status       String    @default("pending")
-  statusCode   Int?
-  responseBody String?
-  attempts     Int       @default(0)
-  nextRetryAt  DateTime?
-  deliveredAt  DateTime?
-  createdAt    DateTime  @default(now())
-  webhook      Webhook   @relation(fields: [webhookId], references: [id], onDelete: Cascade)
-
-  @@index([webhookId])
-  @@index([tenantId])
-  @@index([status])
-  @@index([nextRetryAt])
-}
-
-model UserRole {
-  id       String @id @default(uuid())
-  userId   String
-  roleId   String
-  tenantId String
-  role     Role   @relation(fields: [roleId], references: [id])
-  tenant   Tenant @relation(fields: [tenantId], references: [id])
-  user     User   @relation(fields: [userId], references: [id])
-
-  @@unique([userId, roleId])
-  @@index([tenantId])
-}
-
-model Project {
-  id             String           @id @default(uuid())
-  name           String
-  description    String?
-  budget         Float?
-  tenantId       String
-  startDate      DateTime?
-  endDate        DateTime?
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  status         String           @default("active")
-  logframeGoal        String?
-  logframePurpose     String?
-  logframeAssumptions String?
-  documents      Document[]
-  expenses       Expense[]
-  fundingSources FundingSource[]
-  budgets        Budget[]
-  tenant         Tenant           @relation(fields: [tenantId], references: [id])
-  projectFunding ProjectFunding[]
-  donorInvites   DonorInvite[]
-
-  @@index([tenantId])
-  @@index([createdAt])
-}
-
-// @deprecated — use FundingAgreement instead. Kept for backward compatibility.
-model FundingSource {
-  id          String    @id @default(uuid())
-  name        String
-  fundingType String
-  amount      Float
-  currency    String
-  projectId   String
-  tenantId    String
-  donorOrgId  String?
-  funderName  String?
-  funderType  String?   @default("EXTERNAL")
-  createdAt   DateTime  @default(now())
-  expenses    Expense[]
-  project     Project   @relation(fields: [projectId], references: [id])
-  tenant      Tenant    @relation(fields: [tenantId], references: [id])
-
-  @@index([tenantId])
-  @@index([projectId])
-  @@index([fundingType])
-  @@index([donorOrgId])
-}
-
-model Expense {
-  id                 String            @id @default(uuid())
-  description        String
-  amount             Float
-  currency           String
-  projectId          String
-  fundingSourceId    String?
-  fundingAgreementId String?
-  budgetId           String?
-  budgetLineId       String?
-  tenantId           String
-  approvalStatus     String            @default("pending_review")
-  expenseType        String?           // CAPEX or OPEX
-  expenditureType    String            @default("OPEX") // CAPEX or OPEX
-  category           String?
-  subCategory        String?
-  vendor             String?
-  receiptFileKey     String?
-  receiptHash        String?
-  receiptSealId      String?
-  ocrAmount          Float?
-  ocrVendor          String?
-  ocrDate            String?
-  amountMismatch     Boolean           @default(false)
-  vendorMismatch     Boolean           @default(false)
-  dateMismatch       Boolean           @default(false)
-  mismatchNote       String?
-  fraudRiskScore     Int?
-  fraudRiskLevel     String?
-  fraudSignals       Json?
-  approvalNote       String?
-  approvedBy         String?
-  approvedAt         DateTime?
-  voided         Boolean           @default(false)
-  voidedAt       DateTime?
-  voidedReason   String?
-  voidedBy       String?
-  createdAt          DateTime          @default(now())
-  documents          Document[]
-  fundingSource      FundingSource?    @relation(fields: [fundingSourceId], references: [id])
-  fundingAgreement   FundingAgreement? @relation("ExpenseFundingAgreement", fields: [fundingAgreementId], references: [id])
-  budget             Budget?           @relation("ExpenseBudget", fields: [budgetId], references: [id])
-  budgetLine         BudgetLine?       @relation("ExpenseBudgetLine", fields: [budgetLineId], references: [id])
-  project            Project           @relation(fields: [projectId], references: [id])
-  tenant             Tenant            @relation(fields: [tenantId], references: [id])
-
-  @@index([tenantId])
-  @@index([projectId])
-  @@index([fundingSourceId])
-  @@index([fundingAgreementId])
-  @@index([budgetId])
-  @@index([budgetLineId])
-  @@index([createdAt])
-  @@index([expenseType])
-}
-
-model Document {
-  id                    String    @id @default(uuid())
-  name                  String
-  description           String?
-  documentType          String?
-  documentLevel         String    @default("project")
-  category              String?
-  expiryDate            DateTime?
-  expiryAlertSent30     Boolean   @default(false)
-  expiryAlertSent7      Boolean   @default(false)
-  expiryAlertSent1      Boolean   @default(false)
-  fileUrl               String
-  fileType              String?
-  fileSize              Int?
-  sha256Hash            String?
-  ocrFingerprint             String?
-  isDuplicate                Boolean   @default(false)
-  duplicateOfId              String?
-  duplicateOfName            String?
-  crossTenantDuplicate       Boolean   @default(false)
-  pHash                      String?
-  isVisualDuplicate          Boolean   @default(false)
-  visualDuplicateOfId        String?
-  visualDuplicateOfName      String?
-  crossTenantVisualDuplicate Boolean   @default(false)
-  duplicateConfidence        String?
-  duplicateMethod            String?
-  fraudRiskScore             Int?
-  fraudRiskLevel             String?
-  fraudSignals               Json?
-  expenseId                  String?
-  projectId             String?
-  tenantId              String
-  uploadedById          String?
-  approvalStatus        String    @default("approved")
-  uploadedAt            DateTime  @default(now())
-  expense               Expense?  @relation(fields: [expenseId], references: [id])
-  project               Project?  @relation(fields: [projectId], references: [id])
-  tenant                Tenant    @relation(fields: [tenantId], references: [id])
-  uploadedBy            User?     @relation(fields: [uploadedById], references: [id])
-
-  @@index([tenantId])
-  @@index([projectId])
-  @@index([expenseId])
-  @@index([uploadedById])
-  @@index([sha256Hash])
-  @@index([ocrFingerprint])
-  @@index([pHash])
-  @@index([expiryDate])
 }
 
 model AuditLog {
-  id              String    @id @default(uuid())
+  id              String    @id
   action          String
   entityType      String
   entityId        String
@@ -409,20 +65,277 @@ model AuditLog {
   timestampToken  String?
   timestampedAt   DateTime?
   tsaUrl          String?
-  tenant          Tenant    @relation(fields: [tenantId], references: [id])
-  user            User?     @relation(fields: [userId], references: [id])
+  Tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  User            User?     @relation(fields: [userId], references: [id])
 
-  @@index([tenantId])
-  @@index([createdAt])
-  @@index([userId])
-  @@index([batchId])
   @@index([anchorStatus])
+  @@index([batchId])
+  @@index([createdAt])
+  @@index([tenantId])
+  @@index([userId])
 }
 
-// ─── Phase 6.5: Donor & Funding Model ──────────────────────
+model Budget {
+  id                  String                @id
+  tenantId            String
+  name                String
+  periodFrom          DateTime
+  periodTo            DateTime
+  status              String                @default("DRAFT")
+  notes               String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime
+  projectId           String?
+  Project             Project?              @relation(fields: [projectId], references: [id])
+  Tenant              Tenant                @relation(fields: [tenantId], references: [id])
+  BudgetFundingSource BudgetFundingSource[]
+  BudgetLine          BudgetLine[]
+  Expense             Expense[]
+  FundingAgreement    FundingAgreement[]
+
+  @@index([periodFrom, periodTo])
+  @@index([projectId])
+  @@index([status])
+  @@index([tenantId])
+}
+
+model BudgetAlert {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId  String
+  donorOrgId String
+  threshold  Int
+  sentAt     DateTime? @default(now()) @db.Timestamp(6)
+
+  @@unique([projectId, donorOrgId, threshold])
+}
+
+model BudgetFundingSource {
+  id                 String             @id
+  budgetId           String
+  sourceType         String
+  sourceSubType      String?
+  donorName          String
+  amount             Float
+  currency           String             @default("USD")
+  agreementFileKey   String?
+  agreementHash      String?
+  createdAt          DateTime           @default(now())
+  donorOrgId         String?
+  funderType         String?            @default("EXTERNAL") @db.VarChar(20)
+  funderName         String?
+  fundingAgreementId String?
+  Budget             Budget             @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  DonorOrganisation  DonorOrganisation? @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([budgetId])
+}
+
+model BudgetLine {
+  id             String    @id
+  budgetId       String
+  expenseType    String
+  category       String
+  subCategory    String?
+  description    String?
+  approvedAmount Float
+  currency       String    @default("USD")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime
+  Budget         Budget    @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  Expense        Expense[]
+
+  @@index([budgetId])
+  @@index([expenseType])
+}
+
+model BundleJob {
+  id                String            @id
+  tenantId          String
+  name              String
+  status            String            @default("pending")
+  fileCount         Int               @default(0)
+  completedCount    Int               @default(0)
+  overallRiskScore  Int?
+  overallRiskLevel  String?
+  crossAnalysisJson Json?
+  masterReportS3    String?
+  bundleHash        String?
+  anchorTxHash      String?
+  anchoredAt        DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime
+  caseId            String?
+  VerificationCase  VerificationCase? @relation(fields: [caseId], references: [id])
+  Tenant            Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  OcrJob            OcrJob[]
+
+  @@index([caseId])
+  @@index([createdAt])
+  @@index([status])
+  @@index([tenantId])
+}
+
+model CallSession {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conversationId String       @db.Uuid
+  callerId       String
+  callerType     String       @db.VarChar(10)
+  callerName     String       @db.VarChar(100)
+  receiverId     String?
+  receiverType   String?      @db.VarChar(10)
+  status         String       @default("RINGING") @db.VarChar(20)
+  startedAt      DateTime?    @db.Timestamp(6)
+  endedAt        DateTime?    @db.Timestamp(6)
+  createdAt      DateTime?    @default(now()) @db.Timestamp(6)
+  Conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Conversation {
+  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId          String
+  donorOrgId        String
+  lastMessageAt     DateTime?         @db.Timestamp(6)
+  createdAt         DateTime?         @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime?         @default(now()) @db.Timestamp(6)
+  CallSession       CallSession[]
+  DonorOrganisation DonorOrganisation @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Message           Message[]
+
+  @@unique([tenantId, donorOrgId])
+  @@index([donorOrgId], map: "idx_conversation_donor")
+  @@index([tenantId], map: "idx_conversation_tenant")
+}
+
+model Covenant {
+  id               String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  investmentId     String           @db.Uuid
+  description      String
+  metric           String?          @db.VarChar(100)
+  threshold        String?          @db.VarChar(100)
+  checkFrequency   String?          @default("MONTHLY") @db.VarChar(20)
+  lastCheckedAt    DateTime?        @db.Timestamp(6)
+  status           String           @default("OK") @db.VarChar(20)
+  createdAt        DateTime?        @default(now()) @db.Timestamp(6)
+  updatedAt        DateTime?        @default(now()) @db.Timestamp(6)
+  ImpactInvestment ImpactInvestment @relation(fields: [investmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([investmentId], map: "idx_covenant_investment")
+}
+
+model DeliverableRequest {
+  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId             String
+  tenantId              String
+  donorOrgId            String
+  donorMemberId         String
+  title                 String                  @db.VarChar(200)
+  description           String?
+  requestType           String                  @default("REPORT") @db.VarChar(40)
+  deadline              DateTime                @db.Timestamp(6)
+  status                String                  @default("OPEN") @db.VarChar(20)
+  reworkNote            String?
+  confirmedAt           DateTime?               @db.Timestamp(6)
+  createdAt             DateTime?               @default(now()) @db.Timestamp(6)
+  updatedAt             DateTime?               @default(now()) @db.Timestamp(6)
+  attachments           String?
+  DeliverableSubmission DeliverableSubmission[]
+
+  @@index([projectId], map: "idx_deliverable_project")
+  @@index([tenantId], map: "idx_deliverable_tenant")
+  @@index([donorOrgId], map: "idx_delreq_donor")
+  @@index([projectId], map: "idx_delreq_project")
+}
+
+model DeliverableSubmission {
+  id                 String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  requestId          String             @db.Uuid
+  submittedBy        String
+  note               String?
+  documentIds        String[]           @default([])
+  submittedAt        DateTime?          @default(now()) @db.Timestamp(6)
+  version            Int                @default(1)
+  DeliverableRequest DeliverableRequest @relation(fields: [requestId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([requestId], map: "idx_delsub_request")
+}
+
+model DisbursementTranche {
+  id                 String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  fundingAgreementId String
+  projectId          String
+  tenantId           String
+  trancheNumber      Int
+  amount             Decimal          @db.Decimal
+  currency           String           @default("USD") @db.VarChar(10)
+  releaseConditions  String?
+  plannedReleaseDate DateTime?        @db.Timestamp(6)
+  actualReleaseDate  DateTime?        @db.Timestamp(6)
+  utilisedAmount     Decimal?         @default(0) @db.Decimal
+  status             String           @default("PENDING") @db.VarChar(20)
+  conditionsMetAt    DateTime?        @db.Timestamp(6)
+  conditionsMetBy    String?
+  notes              String?
+  createdAt          DateTime?        @default(now()) @db.Timestamp(6)
+  updatedAt          DateTime?        @default(now()) @db.Timestamp(6)
+  evidenceDocumentId String?
+  FundingAgreement   FundingAgreement @relation(fields: [fundingAgreementId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([fundingAgreementId], map: "idx_tranche_agreement")
+}
+
+model Document {
+  id                         String    @id
+  name                       String
+  fileUrl                    String
+  fileType                   String?
+  projectId                  String?
+  tenantId                   String
+  uploadedById               String?
+  uploadedAt                 DateTime  @default(now())
+  description                String?
+  documentLevel              String    @default("project")
+  documentType               String?
+  expenseId                  String?
+  fileSize                   Int?
+  sha256Hash                 String?
+  category                   String?
+  expiryAlertSent1           Boolean   @default(false)
+  expiryAlertSent30          Boolean   @default(false)
+  expiryAlertSent7           Boolean   @default(false)
+  expiryDate                 DateTime?
+  approvalStatus             String    @default("approved")
+  crossTenantDuplicate       Boolean   @default(false)
+  duplicateOfId              String?
+  duplicateOfName            String?
+  isDuplicate                Boolean   @default(false)
+  ocrFingerprint             String?
+  crossTenantVisualDuplicate Boolean   @default(false)
+  isVisualDuplicate          Boolean   @default(false)
+  pHash                      String?
+  visualDuplicateOfId        String?
+  visualDuplicateOfName      String?
+  duplicateConfidence        String?
+  duplicateMethod            String?
+  fraudRiskScore             Int?
+  fraudRiskLevel             String?
+  fraudSignals               Json?
+  Expense                    Expense?  @relation(fields: [expenseId], references: [id])
+  Project                    Project?  @relation(fields: [projectId], references: [id])
+  Tenant                     Tenant    @relation(fields: [tenantId], references: [id])
+  User                       User?     @relation(fields: [uploadedById], references: [id])
+
+  @@index([expenseId])
+  @@index([expiryDate])
+  @@index([ocrFingerprint])
+  @@index([pHash])
+  @@index([projectId])
+  @@index([sha256Hash])
+  @@index([tenantId])
+  @@index([uploadedById])
+}
 
 model Donor {
-  id                 String             @id @default(uuid())
+  id                 String             @id
   name               String
   organisationName   String?
   type               String             @default("FOUNDATION")
@@ -432,94 +345,16 @@ model Donor {
   registrationNumber String?
   logoUrl            String?
   createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
-  donorUsers         DonorUser[]
-  fundingAgreements  FundingAgreement[]
+  updatedAt          DateTime
+  DonorUser          DonorUser[]
+  FundingAgreement   FundingAgreement[]
 
-  @@index([type])
   @@index([email])
-}
-
-model DonorUser {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  passwordHash String
-  donorId      String
-  firstName    String
-  lastName     String
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  donor        Donor    @relation(fields: [donorId], references: [id])
-
-  @@index([donorId])
-}
-
-model FundingAgreement {
-  id             String              @id @default(uuid())
-  donorId        String?
-  tenantId       String
-  budgetId       String?
-  title          String
-  type           String              @default("GRANT")
-  totalAmount    Float
-  currency       String              @default("USD")
-  startDate      DateTime?
-  endDate        DateTime?
-  interestRate   Float?
-  repayable      Boolean             @default(false)
-  status         String              @default("DRAFT")
-  notes          String?
-  sourceType     String?             // Own Funds, Government Grant, etc.
-  sourceSubType  String?             // Restricted Grant, Program Grant, etc.
-  grantorName    String?
-  grantRef       String?
-  grantFrom      DateTime?
-  grantTo        DateTime?
-  restricted     Boolean             @default(false)
-  capexBudget    Float               @default(0)
-  opexBudget     Float               @default(0)
-  donorOrgId     String?
-  funderName     String?
-  funderType     String?             @default("EXTERNAL") // PORTAL or EXTERNAL
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
-  donor          Donor?              @relation(fields: [donorId], references: [id])
-  tenant         Tenant              @relation(fields: [tenantId], references: [id])
-  budget         Budget?             @relation("BudgetFunding", fields: [budgetId], references: [id])
-  repayments     RepaymentSchedule[]
-  projectFunding ProjectFunding[]
-  expenses       Expense[]           @relation("ExpenseFundingAgreement")
-
-  @@index([donorId])
-  @@index([tenantId])
-  @@index([budgetId])
-  @@index([status])
   @@index([type])
-  @@index([sourceType])
-  @@index([donorOrgId])
-  @@index([funderType])
-}
-
-model RepaymentSchedule {
-  id                 String           @id @default(uuid())
-  fundingAgreementId String
-  dueDate            DateTime
-  amount             Float
-  status             String           @default("PENDING")
-  paidAt             DateTime?
-  notes              String?
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
-  fundingAgreement   FundingAgreement @relation(fields: [fundingAgreementId], references: [id])
-
-  @@index([fundingAgreementId])
-  @@index([status])
-  @@index([dueDate])
 }
 
 model DonorInvite {
-  id              String   @id @default(uuid())
+  id              String   @id
   token           String   @unique
   email           String
   invitedByUserId String
@@ -529,307 +364,1109 @@ model DonorInvite {
   status          String   @default("PENDING")
   expiresAt       DateTime
   createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  invitedBy       User     @relation(fields: [invitedByUserId], references: [id])
-  tenant          Tenant   @relation(fields: [tenantId], references: [id])
-  project         Project? @relation(fields: [projectId], references: [id])
+  updatedAt       DateTime
+  User            User     @relation(fields: [invitedByUserId], references: [id])
+  Project         Project? @relation(fields: [projectId], references: [id])
+  Tenant          Tenant   @relation(fields: [tenantId], references: [id])
 
-  @@index([token])
-  @@index([tenantId])
   @@index([email])
   @@index([status])
+  @@index([tenantId])
+  @@index([token])
+}
+
+model DonorMember {
+  id                String             @id @default(dbgenerated("(gen_random_uuid())::text"))
+  email             String             @unique
+  name              String?
+  passwordHash      String
+  donorOrgId        String?
+  preferredLanguage String?            @default("en")
+  lastLoginAt       DateTime?          @db.Timestamp(6)
+  createdAt         DateTime?          @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime?          @default(now()) @db.Timestamp(6)
+  themePreference   String?            @default("system") @db.VarChar(10)
+  DonorOrganisation DonorOrganisation? @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  SavedReport       SavedReport[]
+  ShareLink         ShareLink[]
+}
+
+model DonorNotification {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  donorMemberId String
+  donorOrgId    String
+  alertType     String    @db.VarChar(60)
+  title         String    @db.VarChar(200)
+  body          String
+  entityType    String?   @db.VarChar(40)
+  entityId      String?
+  projectId     String?
+  isRead        Boolean   @default(false)
+  readAt        DateTime? @db.Timestamp(6)
+  emailSent     Boolean   @default(false)
+  emailSentAt   DateTime? @db.Timestamp(6)
+  createdAt     DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([donorMemberId], map: "idx_notif_member")
+  @@index([donorOrgId], map: "idx_notif_org")
+  @@index([donorMemberId, isRead], map: "idx_notif_read")
+}
+
+model DonorNotificationPref {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  donorMemberId String
+  alertType     String    @db.VarChar(60)
+  emailEnabled  Boolean   @default(true)
+  inAppEnabled  Boolean   @default(true)
+  createdAt     DateTime? @default(now()) @db.Timestamp(6)
+  updatedAt     DateTime? @default(now()) @db.Timestamp(6)
+
+  @@unique([donorMemberId, alertType])
+}
+
+model DonorOrganisation {
+  id                  String                @id @default(dbgenerated("(gen_random_uuid())::text"))
+  name                String
+  type                String?               @default("FOUNDATION")
+  country             String?
+  website             String?
+  createdAt           DateTime?             @default(now()) @db.Timestamp(6)
+  updatedAt           DateTime?             @default(now()) @db.Timestamp(6)
+  BudgetFundingSource BudgetFundingSource[]
+  Conversation        Conversation[]
+  DonorMember         DonorMember[]
+  DonorProjectAccess  DonorProjectAccess[]
+  FundingAgreement    FundingAgreement[]
+  FundingSource       FundingSource[]
+  GeneratedReport     GeneratedReport[]
+  GrantCondition      GrantCondition[]
+  SavedReport         SavedReport[]
+  ShareLink           ShareLink[]
+}
+
+model DonorProjectAccess {
+  id                String             @id @default(dbgenerated("(gen_random_uuid())::text"))
+  donorOrgId        String?
+  projectId         String
+  tenantId          String
+  grantedBy         String
+  grantedAt         DateTime?          @default(now()) @db.Timestamp(6)
+  revokedAt         DateTime?          @db.Timestamp(6)
+  DonorOrganisation DonorOrganisation? @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([donorOrgId, projectId])
+}
+
+model DonorUser {
+  id           String   @id
+  email        String   @unique
+  passwordHash String
+  donorId      String
+  firstName    String
+  lastName     String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime
+  Donor        Donor    @relation(fields: [donorId], references: [id])
+
+  @@index([donorId])
+}
+
+model Drawdown {
+  id                String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  investmentId      String           @db.Uuid
+  requestDate       DateTime         @default(now()) @db.Timestamp(6)
+  approvedDate      DateTime?        @db.Timestamp(6)
+  approvedBy        String?          @db.Uuid
+  amount            Decimal          @db.Decimal
+  currency          String           @db.VarChar(10)
+  purpose           String?
+  status            String           @default("REQUESTED") @db.VarChar(20)
+  sealId            String?          @db.Uuid
+  utilisationAmount Decimal?         @default(0) @db.Decimal
+  utilisationSealId String?          @db.Uuid
+  createdAt         DateTime?        @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime?        @default(now()) @db.Timestamp(6)
+  requestedBy       String?          @db.Uuid
+  rejectionReason   String?
+  ImpactInvestment  ImpactInvestment @relation(fields: [investmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([investmentId], map: "idx_drawdown_investment")
+}
+
+model EngagementEvent {
+  id        String   @id
+  tenantId  String
+  userId    String?
+  eventType String
+  metadata  Json?
+  createdAt DateTime @default(now())
+  Tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([eventType])
+  @@index([tenantId])
+}
+
+model ExchangeRate {
+  id             String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  baseCurrency   String
+  targetCurrency String
+  rate           Float
+  month          String
+  source         String
+  fetchedAt      DateTime? @default(now())
+  lockedAt       DateTime?
+  lockedByUserId String?
+  sealTxHash     String?
+  sealedAt       DateTime?
+  createdAt      DateTime? @default(now())
+
+  @@unique([baseCurrency, targetCurrency, month])
+  @@index([month])
+  @@index([baseCurrency, targetCurrency], map: "ExchangeRate_pair_idx")
+}
+
+model Expense {
+  id                 String            @id
+  description        String
+  amount             Float
+  currency           String
+  projectId          String
+  fundingSourceId    String?
+  tenantId           String
+  createdAt          DateTime          @default(now())
+  fundingAgreementId String?
+  approvalStatus     String            @default("pending_review")
+  category           String?
+  expenseType        String?
+  subCategory        String?
+  budgetId           String?
+  budgetLineId       String?
+  receiptFileKey     String?
+  receiptHash        String?
+  receiptSealId      String?
+  vendor             String?
+  ocrAmount          Float?
+  ocrVendor          String?
+  ocrDate            String?
+  amountMismatch     Boolean           @default(false)
+  vendorMismatch     Boolean           @default(false)
+  dateMismatch       Boolean           @default(false)
+  mismatchNote       String?
+  fraudRiskScore     Int?
+  fraudRiskLevel     String?
+  fraudSignals       Json?
+  voided             Boolean           @default(false)
+  voidedAt           DateTime?
+  voidedBy           String?
+  voidedReason       String?
+  approvalNote       String?
+  approvedAt         DateTime?
+  approvedBy         String?
+  expenditureType    String?           @default("OPEX") @db.VarChar(10)
+  Document           Document[]
+  Budget             Budget?           @relation(fields: [budgetId], references: [id])
+  BudgetLine         BudgetLine?       @relation(fields: [budgetLineId], references: [id])
+  FundingAgreement   FundingAgreement? @relation(fields: [fundingAgreementId], references: [id])
+  FundingSource      FundingSource?    @relation(fields: [fundingSourceId], references: [id])
+  Project            Project           @relation(fields: [projectId], references: [id])
+  Tenant             Tenant            @relation(fields: [tenantId], references: [id])
+
+  @@index([budgetId])
+  @@index([budgetLineId])
+  @@index([createdAt])
+  @@index([expenseType])
+  @@index([fundingAgreementId])
+  @@index([fundingSourceId])
+  @@index([projectId])
+  @@index([tenantId])
+}
+
+model ExpenseChallenge {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  expenseId     String    @db.Uuid
+  projectId     String    @db.Uuid
+  donorOrgId    String    @db.Uuid
+  donorMemberId String    @db.Uuid
+  note          String
+  status        String    @default("OPEN") @db.VarChar(20)
+  createdAt     DateTime? @default(now()) @db.Timestamp(6)
+  updatedAt     DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([donorOrgId], map: "idx_challenge_donor")
+  @@index([expenseId], map: "idx_challenge_expense")
+  @@index([projectId], map: "idx_challenge_project")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model ExpenseChallengeResponse {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  challengeId           String    @db.Uuid
+  respondedBy           String    @db.Uuid
+  respondedByType       String    @db.VarChar(10)
+  note                  String
+  action                String?   @db.VarChar(20)
+  resubmittedDocumentId String?   @db.Uuid
+  createdAt             DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([challengeId], map: "idx_challenge_response")
+}
+
+model FundingAgreement {
+  id                  String                @id
+  donorId             String?
+  tenantId            String
+  title               String
+  type                String                @default("GRANT")
+  totalAmount         Float
+  currency            String                @default("USD")
+  startDate           DateTime?
+  endDate             DateTime?
+  interestRate        Float?
+  repayable           Boolean               @default(false)
+  status              String                @default("DRAFT")
+  notes               String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime
+  capexBudget         Float                 @default(0)
+  grantFrom           DateTime?
+  grantRef            String?
+  grantTo             DateTime?
+  grantorName         String?
+  opexBudget          Float                 @default(0)
+  restricted          Boolean               @default(false)
+  sourceSubType       String?
+  sourceType          String?
+  budgetId            String?
+  donorOrgId          String?
+  funderName          String?               @db.VarChar(200)
+  funderType          String?               @default("EXTERNAL") @db.VarChar(20)
+  DisbursementTranche DisbursementTranche[]
+  Expense             Expense[]
+  Budget              Budget?               @relation(fields: [budgetId], references: [id])
+  Donor               Donor?                @relation(fields: [donorId], references: [id])
+  DonorOrganisation   DonorOrganisation?    @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Tenant              Tenant                @relation(fields: [tenantId], references: [id])
+  GrantCondition      GrantCondition[]
+  ProjectFunding      ProjectFunding[]
+
+  @@index([budgetId])
+  @@index([donorId])
+  @@index([sourceType])
+  @@index([status])
+  @@index([tenantId])
+  @@index([type])
+}
+
+model FundingSource {
+  id                String             @id
+  name              String
+  fundingType       String
+  amount            Float
+  currency          String
+  projectId         String
+  tenantId          String
+  createdAt         DateTime           @default(now())
+  donorOrgId        String?
+  funderName        String?            @db.VarChar(200)
+  funderType        String?            @default("EXTERNAL") @db.VarChar(20)
+  Expense           Expense[]
+  DonorOrganisation DonorOrganisation? @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Project           Project            @relation(fields: [projectId], references: [id])
+  Tenant            Tenant             @relation(fields: [tenantId], references: [id])
+
+  @@index([fundingType])
+  @@index([projectId])
+  @@index([tenantId])
+}
+
+model GeneratedReport {
+  id                String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId          String             @db.Uuid
+  projectId         String?            @db.Uuid
+  donorOrgId        String?
+  reportType        String             @db.VarChar(30)
+  name              String             @db.VarChar(200)
+  dateRangeFrom     DateTime?          @db.Timestamp(6)
+  dateRangeTo       DateTime?          @db.Timestamp(6)
+  reportConfig      Json?
+  fileKey           String?            @db.VarChar(500)
+  fileUrl           String?            @db.VarChar(500)
+  fileSizeBytes     Int?
+  hash              String?            @db.VarChar(64)
+  sealId            String?            @db.Uuid
+  polygonTx         String?            @db.VarChar(100)
+  generatedBy       String?            @db.Uuid
+  generatedByType   String?            @db.VarChar(10)
+  status            String?            @default("GENERATING") @db.VarChar(20)
+  errorMessage      String?
+  createdAt         DateTime?          @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime?          @default(now()) @db.Timestamp(6)
+  DonorOrganisation DonorOrganisation? @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  ReportShareLink   ReportShareLink[]
+
+  @@index([projectId], map: "idx_gen_report_project")
+  @@index([tenantId], map: "idx_gen_report_tenant")
+  @@index([tenantId], map: "idx_report_tenant")
+  @@index([reportType], map: "idx_report_type")
+}
+
+model GrantCondition {
+  id                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  fundingAgreementId String
+  projectId          String
+  tenantId           String
+  donorOrgId         String
+  title              String            @db.VarChar(200)
+  description        String?
+  conditionType      String            @default("MANUAL") @db.VarChar(30)
+  status             String            @default("ACTIVE") @db.VarChar(20)
+  breachNote         String?
+  metAt              DateTime?         @db.Timestamp(6)
+  checkedAt          DateTime?         @db.Timestamp(6)
+  createdAt          DateTime?         @default(now()) @db.Timestamp(6)
+  updatedAt          DateTime?         @default(now()) @db.Timestamp(6)
+  DonorOrganisation  DonorOrganisation @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  FundingAgreement   FundingAgreement  @relation(fields: [fundingAgreementId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([fundingAgreementId], map: "idx_condition_agreement")
+}
+
+model GrantReportingConfig {
+  id                      String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId                String    @unique @db.Uuid
+  legalName               String?   @db.VarChar(200)
+  registeredAddress       String?
+  country                 String?   @db.VarChar(100)
+  ein                     String?   @db.VarChar(50)
+  vatNumber               String?   @db.VarChar(50)
+  charityRegNumber        String?   @db.VarChar(100)
+  legalRepName            String?   @db.VarChar(100)
+  legalRepTitle           String?   @db.VarChar(100)
+  legalRepEmail           String?   @db.VarChar(200)
+  legalRepPhone           String?   @db.VarChar(50)
+  federalAgencyName       String?   @db.VarChar(200)
+  organizationalElement   String?   @db.VarChar(200)
+  basisOfAccounting       String?   @default("ACCRUAL") @db.VarChar(10)
+  indirectExpenseType     String?   @db.VarChar(100)
+  indirectExpenseRate     Decimal?  @db.Decimal
+  ueiNumber               String?   @db.VarChar(50)
+  euIndirectCostRate      Decimal?  @default(7) @db.Decimal
+  designatedBankName      String?   @db.VarChar(200)
+  designatedAccountNumber String?   @db.VarChar(100)
+  designatedBankAddress   String?
+  createdAt               DateTime? @default(now()) @db.Timestamp(6)
+  updatedAt               DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ImpactEvidence {
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  milestoneId     String          @db.Uuid
+  documentId      String
+  uploadedBy      String
+  uploadedAt      DateTime?       @default(now()) @db.Timestamp(6)
+  ImpactMilestone ImpactMilestone @relation(fields: [milestoneId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model ImpactInvestment {
+  id                 String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  donorOrgId         String     @db.Uuid
+  fundingAgreementId String?    @db.Uuid
+  projectId          String     @db.Uuid
+  tenantId           String     @db.Uuid
+  investmentType     String     @default("LOAN") @db.VarChar(20)
+  totalFacility      Decimal    @db.Decimal
+  currency           String     @default("USD") @db.VarChar(10)
+  interestRate       Decimal?   @db.Decimal
+  interestType       String?    @default("FIXED") @db.VarChar(10)
+  gracePeriodMonths  Int?       @default(0)
+  termMonths         Int?
+  startDate          DateTime   @db.Timestamp(6)
+  maturityDate       DateTime?  @db.Timestamp(6)
+  drawnDown          Decimal    @default(0) @db.Decimal
+  status             String     @default("ACTIVE") @db.VarChar(20)
+  notes              String?
+  createdAt          DateTime?  @default(now()) @db.Timestamp(6)
+  updatedAt          DateTime?  @default(now()) @db.Timestamp(6)
+  createdBy          String?    @db.Uuid
+  Covenant           Covenant[]
+  Drawdown           Drawdown[]
+
+  @@index([donorOrgId], map: "idx_investment_donor")
+  @@index([projectId], map: "idx_investment_project")
+}
+
+model ImpactMilestone {
+  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId             String
+  tenantId              String
+  title                 String                  @db.VarChar(200)
+  description           String?
+  category              String                  @default("CUSTOM") @db.VarChar(40)
+  targetValue           Decimal                 @db.Decimal
+  targetUnit            String                  @db.VarChar(50)
+  targetDate            DateTime                @db.Timestamp(6)
+  currentValue          Decimal                 @default(0) @db.Decimal
+  status                String                  @default("ON_TRACK") @db.VarChar(20)
+  createdAt             DateTime?               @default(now()) @db.Timestamp(6)
+  updatedAt             DateTime?               @default(now()) @db.Timestamp(6)
+  ImpactEvidence        ImpactEvidence[]
+  ImpactMilestoneUpdate ImpactMilestoneUpdate[]
+
+  @@index([projectId], map: "idx_milestone_project")
+  @@index([tenantId], map: "idx_milestone_tenant")
+}
+
+model ImpactMilestoneUpdate {
+  id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  milestoneId         String          @db.Uuid
+  reportedBy          String
+  previousValue       Decimal         @db.Decimal
+  newValue            Decimal         @db.Decimal
+  note                String?
+  evidenceDocumentIds String[]        @default([])
+  reportedAt          DateTime?       @default(now()) @db.Timestamp(6)
+  ImpactMilestone     ImpactMilestone @relation(fields: [milestoneId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([milestoneId], map: "idx_milestone_update")
+}
+
+model LogframeIndicator {
+  id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  outputId          String         @db.Uuid
+  projectId         String         @db.Uuid
+  tenantId          String         @db.Uuid
+  indicator         String         @db.VarChar(300)
+  baselineValue     String?        @db.VarChar(100)
+  targetValue       String         @db.VarChar(100)
+  actualValue       String?        @db.VarChar(100)
+  unit              String?        @db.VarChar(50)
+  measurementMethod String?
+  ragStatus         String         @default("GREY") @db.VarChar(10)
+  reportingPeriod   String?        @db.VarChar(50)
+  notes             String?
+  lastUpdatedAt     DateTime?      @db.Timestamp(6)
+  createdAt         DateTime?      @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime?      @default(now()) @db.Timestamp(6)
+  LogframeOutput    LogframeOutput @relation(fields: [outputId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([outputId], map: "idx_indicator_output")
+}
+
+model LogframeOutput {
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId         String              @db.Uuid
+  tenantId          String              @db.Uuid
+  outputNumber      Int
+  title             String              @db.VarChar(200)
+  description       String?
+  createdAt         DateTime?           @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime?           @default(now()) @db.Timestamp(6)
+  LogframeIndicator LogframeIndicator[]
+
+  @@index([projectId], map: "idx_logframe_project")
+}
+
+model Message {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conversationId String       @db.Uuid
+  senderType     String       @db.VarChar(10)
+  senderId       String
+  senderName     String       @db.VarChar(100)
+  content        String?
+  messageType    String       @default("TEXT") @db.VarChar(10)
+  fileUrl        String?      @db.VarChar(500)
+  fileName       String?      @db.VarChar(200)
+  fileSize       Int?
+  callDuration   Int?
+  callStatus     String?      @db.VarChar(20)
+  isRead         Boolean?     @default(false)
+  readAt         DateTime?    @db.Timestamp(6)
+  expiresAt      DateTime?    @default(dbgenerated("(now() + '90 days'::interval)")) @db.Timestamp(6)
+  createdAt      DateTime?    @default(now()) @db.Timestamp(6)
+  Conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([conversationId], map: "idx_message_conversation")
+  @@index([expiresAt], map: "idx_message_expires")
+}
+
+model OcrJob {
+  id               String            @id
+  tenantId         String
+  status           String            @default("pending")
+  fileType         String
+  fileSize         Int
+  rawText          String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime
+  anchorTxHash     String?
+  anchoredAt       DateTime?
+  apiKeyId         String?
+  assessmentNotes  String?
+  assessmentResult String?
+  assessmentScore  Int?
+  confidence       Float?
+  detectedLanguage String?
+  documentType     String?
+  flags            Json?
+  hashValue        String?
+  normalisedJson   Json?
+  normalisedPdfS3  String?
+  originalFilename String
+  proofBundleS3    String?
+  s3Key            String
+  bundleJobId      String?
+  caseId           String?
+  ocrFingerprint   String?
+  pHash            String?
+  ApiKey           ApiKey?           @relation(fields: [apiKeyId], references: [id])
+  BundleJob        BundleJob?        @relation(fields: [bundleJobId], references: [id])
+  VerificationCase VerificationCase? @relation(fields: [caseId], references: [id])
+  Tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([bundleJobId])
+  @@index([caseId])
+  @@index([createdAt])
+  @@index([ocrFingerprint])
+  @@index([pHash])
+  @@index([status])
+  @@index([tenantId])
+}
+
+model Permission {
+  id             String           @id
+  key            String           @unique
+  description    String?
+  RolePermission RolePermission[]
+}
+
+model Project {
+  id                     String           @id
+  name                   String
+  description            String?
+  budget                 Float?
+  tenantId               String
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime
+  status                 String           @default("active")
+  endDate                DateTime?
+  startDate              DateTime?
+  logframeGoal           String?
+  logframePurpose        String?
+  logframeAssumptions    String?
+  baseCurrency           String?          @default("USD")
+  donorReportingCurrency String?
+  Budget                 Budget[]
+  Document               Document[]
+  DonorInvite            DonorInvite[]
+  Expense                Expense[]
+  FundingSource          FundingSource[]
+  Tenant                 Tenant           @relation(fields: [tenantId], references: [id])
+  ProjectFunding         ProjectFunding[]
+
+  @@index([createdAt])
+  @@index([tenantId])
 }
 
 model ProjectFunding {
-  id                 String           @id @default(uuid())
+  id                 String           @id
   projectId          String
   fundingAgreementId String
   allocatedAmount    Float
   notes              String?
   createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
-  project            Project          @relation(fields: [projectId], references: [id])
-  fundingAgreement   FundingAgreement @relation(fields: [fundingAgreementId], references: [id])
+  updatedAt          DateTime
+  FundingAgreement   FundingAgreement @relation(fields: [fundingAgreementId], references: [id])
+  Project            Project          @relation(fields: [projectId], references: [id])
 
   @@unique([projectId, fundingAgreementId])
-  @@index([projectId])
   @@index([fundingAgreementId])
+  @@index([projectId])
 }
 
-model WorkflowTask {
-  id          String            @id @default(uuid())
-  tenantId    String
-  type        String
-  status      String            @default("pending")
-  title       String
-  description String?
-  assignedTo  String?
-  submittedBy String
-  entityId    String
-  entityType  String
-  comments    WorkflowComment[]
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  resolvedAt  DateTime?
-  tenant      Tenant            @relation(fields: [tenantId], references: [id])
+model RefreshToken {
+  id         String    @id
+  userId     String
+  tenantId   String
+  tokenHash  String
+  family     String
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  replacedBy String?
+  userAgent  String?
+  ip         String?
+  createdAt  DateTime  @default(now())
+  Tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  User       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([family])
+  @@index([tenantId])
+  @@index([tokenHash])
+  @@index([userId])
+}
+
+model RepaymentSchedule {
+  id                 String    @id
+  fundingAgreementId String?
+  dueDate            DateTime
+  amount             Float
+  status             String    @default("PENDING")
+  paidAt             DateTime?
+  notes              String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime
+  investmentId       String?   @db.Uuid
+  instalmentNumber   Int?
+  principalDue       Decimal?  @default(0) @db.Decimal
+  interestDue        Decimal?  @default(0) @db.Decimal
+  totalDue           Decimal?  @default(0) @db.Decimal
+  paidAmount         Decimal?  @db.Decimal
+  paidDate           DateTime? @db.Timestamp(6)
+  proofDocumentId    String?
+  paymentNotes       String?
+  submittedAt        DateTime? @db.Timestamp(6)
+  submittedBy        String?
+  confirmedBy        String?
+  confirmedAt        DateTime? @db.Timestamp(6)
+
+  @@index([dueDate])
+  @@index([fundingAgreementId])
+  @@index([status])
+  @@index([investmentId], map: "idx_repaymentschedule_investmentid")
+}
+
+model ReportShareLink {
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reportId        String          @db.Uuid
+  token           String          @unique @db.VarChar(64)
+  createdBy       String          @db.Uuid
+  expiresAt       DateTime        @db.Timestamp(6)
+  isRevoked       Boolean?        @default(false)
+  viewCount       Int?            @default(0)
+  createdAt       DateTime?       @default(now()) @db.Timestamp(6)
+  GeneratedReport GeneratedReport @relation(fields: [reportId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([reportId], map: "idx_share_report")
+  @@index([token], map: "idx_share_token")
+}
+
+model RiskRegister {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId      String    @db.Uuid
+  tenantId       String    @db.Uuid
+  riskNumber     Int       @default(1)
+  description    String
+  category       String    @default("OTHER")
+  likelihood     Int       @default(3)
+  impact         Int       @default(3)
+  mitigation     String?
+  owner          String?
+  reviewDate     DateTime? @db.Date
+  notes          String?
+  status         String    @default("OPEN")
+  lastReviewedAt DateTime? @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([projectId], map: "idx_riskregister_project")
+  @@index([tenantId], map: "idx_riskregister_tenant")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model RiskRegisterEntry {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId      String    @db.Uuid
+  tenantId       String    @db.Uuid
+  riskNumber     Int
+  description    String
+  category       String    @default("OPERATIONAL") @db.VarChar(50)
+  likelihood     Int
+  impact         Int
+  mitigation     String
+  owner          String?   @db.VarChar(100)
+  status         String    @default("OPEN") @db.VarChar(20)
+  reviewDate     DateTime? @db.Timestamp(6)
+  lastReviewedAt DateTime? @db.Timestamp(6)
+  notes          String?
+  createdAt      DateTime? @default(now()) @db.Timestamp(6)
+  updatedAt      DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([projectId], map: "idx_risk_project")
+}
+
+model Role {
+  id             String           @id
+  name           String
+  tenantId       String
+  Tenant         Tenant           @relation(fields: [tenantId], references: [id])
+  RolePermission RolePermission[]
+  UserRole       UserRole[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  Permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  Role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model SSOConfig {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId     String    @unique
+  provider     String    @db.VarChar(20)
+  isEnabled    Boolean?  @default(false)
+  entryPoint   String?   @db.VarChar(500)
+  issuer       String?   @db.VarChar(500)
+  cert         String?
+  clientId     String?   @db.VarChar(200)
+  clientSecret String?   @db.VarChar(200)
+  callbackUrl  String?   @db.VarChar(500)
+  metadataUrl  String?   @db.VarChar(500)
+  createdAt    DateTime? @default(now()) @db.Timestamp(6)
+  updatedAt    DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model SavedReport {
+  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  donorOrgId        String
+  donorMemberId     String
+  name              String            @db.VarChar(200)
+  reportConfig      Json
+  lastGeneratedAt   DateTime?         @db.Timestamp(6)
+  createdAt         DateTime?         @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime?         @default(now()) @db.Timestamp(6)
+  DonorMember       DonorMember       @relation(fields: [donorMemberId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  DonorOrganisation DonorOrganisation @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model ShareLink {
+  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  token             String            @unique @db.VarChar(64)
+  donorOrgId        String
+  donorMemberId     String
+  projectId         String
+  linkType          String            @default("PROJECT") @db.VarChar(20)
+  entityId          String?
+  expiresAt         DateTime          @db.Timestamp(6)
+  expiryDays        Int?              @default(7)
+  isRevoked         Boolean?          @default(false)
+  revokedAt         DateTime?         @db.Timestamp(6)
+  viewCount         Int?              @default(0)
+  lastViewedAt      DateTime?         @db.Timestamp(6)
+  createdAt         DateTime?         @default(now()) @db.Timestamp(6)
+  DonorMember       DonorMember       @relation(fields: [donorMemberId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  DonorOrganisation DonorOrganisation @relation(fields: [donorOrgId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([donorOrgId], map: "idx_sharelink_donor")
+  @@index([token], map: "idx_sharelink_token")
+}
+
+model Tenant {
+  id                   String             @id
+  name                 String
+  slug                 String             @unique
+  status               String             @default("active")
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime
+  code                 String             @unique
+  sequence             Int
+  tenantType           String             @default("NGO")
+  completedSetup       Boolean            @default(false)
+  country              String?
+  description          String?
+  logoUrl              String?
+  registrationNumber   String?
+  website              String?
+  plan                 String             @default("FREE")
+  planStatus           String             @default("active")
+  stripeCustomerId     String?            @unique
+  stripeSubscriptionId String?
+  trialEndsAt          DateTime?
+  notificationPrefs    Json?
+  baseCurrency         String             @default("USD")
+  ApiKey               ApiKey[]
+  AuditLog             AuditLog[]
+  Budget               Budget[]
+  BundleJob            BundleJob[]
+  Document             Document[]
+  DonorInvite          DonorInvite[]
+  EngagementEvent      EngagementEvent[]
+  Expense              Expense[]
+  FundingAgreement     FundingAgreement[]
+  FundingSource        FundingSource[]
+  OcrJob               OcrJob[]
+  Project              Project[]
+  RefreshToken         RefreshToken[]
+  Role                 Role[]
+  TrustSeal            TrustSeal[]
+  User                 User[]
+  UserRole             UserRole[]
+  VerificationCase     VerificationCase[]
+  WorkflowTask         WorkflowTask[]
+
+  @@index([code])
+  @@index([tenantType])
+}
+
+model TenantCounter {
+  id         String @id
+  tenantType String
+  year       String
+  count      Int    @default(0)
+
+  @@unique([tenantType, year])
+}
+
+model TrustSeal {
+  id                   String    @id
+  tenantId             String
+  documentTitle        String
+  documentType         String    @default("CERTIFICATE")
+  issuedTo             String
+  issuedToEmail        String?
+  issuedBy             String
+  metadata             Json?
+  rawHash              String
+  anchorTxHash         String?
+  anchoredAt           DateTime?
+  blockNumber          Int?
+  qrCodeUrl            String?
+  status               String    @default("issued")
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime
+  fileType             String?
+  s3Key                String?
+  anchorLastRetryAt    DateTime?
+  anchorRetryCount     Int       @default(0)
+  apiKeyId             String?
+  ipAddress            String?
+  issuerReference      String?
+  pageHashes           Json?
+  ocrFingerprint       String?
+  fraudRiskScore       Int?
+  fraudRiskLevel       String?
+  fraudSignals         Json?
+  sourceType           String?
+  ocrRawText           String?
+  ocrAmount            Float?
+  ocrVendor            String?
+  ocrDate              String?
+  ocrConfidence        Float?
+  ocrEngine            String?
+  amountMismatch       Boolean   @default(false)
+  vendorMismatch       Boolean   @default(false)
+  dateMismatch         Boolean   @default(false)
+  mismatchNote         String?
+  isDuplicate          Boolean   @default(false)
+  duplicateOfId        String?
+  duplicateOfName      String?
+  crossTenantDuplicate Boolean   @default(false)
+  duplicateConfidence  String?
+  duplicateMethod      String?
+  isVisualDuplicate    Boolean   @default(false)
+  pHash                String?
+  expenseId            String?
+  documentId           String?
+  caseId               String?
+  Tenant               Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([caseId])
+  @@index([createdAt])
+  @@index([documentId])
+  @@index([expenseId])
+  @@index([ocrFingerprint])
+  @@index([rawHash])
+  @@index([status])
+  @@index([tenantId])
+  @@index([tenantId], map: "idx_seal_tenant")
+}
+
+model User {
+  id                String         @id
+  email             String         @unique
+  name              String
+  password          String
+  tenantId          String
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime
+  deletedAt         DateTime?
+  preferredLanguage String?        @default("en")
+  themePreference   String?        @default("system") @db.VarChar(10)
+  ApiKey            ApiKey[]
+  AuditLog          AuditLog[]
+  Document          Document[]
+  DonorInvite       DonorInvite[]
+  RefreshToken      RefreshToken[]
+  Tenant            Tenant         @relation(fields: [tenantId], references: [id])
+  UserRole          UserRole[]
 
   @@index([tenantId])
-  @@index([status])
-  @@index([entityId])
-  @@index([assignedTo])
 }
 
-model WorkflowComment {
-  id        String       @id @default(uuid())
-  taskId    String
-  userId    String
-  comment   String
-  createdAt DateTime     @default(now())
-  task      WorkflowTask @relation(fields: [taskId], references: [id])
+model UserPermissionCache {
+  id          String   @id
+  userId      String
+  tenantId    String
+  permissions Json     @default("[]")
+  updatedAt   DateTime
 
-  @@index([taskId])
+  @@unique([userId, tenantId])
+  @@index([tenantId])
+  @@index([userId])
+}
+
+model UserRole {
+  id       String @id
+  userId   String
+  roleId   String
+  tenantId String
+  Role     Role   @relation(fields: [roleId], references: [id])
+  Tenant   Tenant @relation(fields: [tenantId], references: [id])
+  User     User   @relation(fields: [userId], references: [id])
+
+  @@unique([userId, roleId])
+  @@index([tenantId])
 }
 
 model VerificationCase {
-  id               String      @id @default(uuid())
+  id               String      @id
   tenantId         String
-  tenant           Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   name             String
   clientName       String
   clientEmail      String?
   caseType         String      @default("OTHER")
   status           String      @default("OPEN")
-  shareToken       String      @unique @default(uuid())
+  shareToken       String      @unique
   overallRiskScore Int?
-  ocrJobs          OcrJob[]
-  bundleJobs       BundleJob[]
   createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  updatedAt        DateTime
+  BundleJob        BundleJob[]
+  OcrJob           OcrJob[]
+  Tenant           Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
-  @@index([tenantId])
-  @@index([status])
   @@index([caseType])
+  @@index([createdAt])
   @@index([shareToken])
-  @@index([createdAt])
-}
-
-model OcrJob {
-  id               String    @id @default(uuid())
-  tenantId         String
-  tenant           Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  apiKeyId         String?
-  apiKey           ApiKey?   @relation(fields: [apiKeyId], references: [id])
-  originalFilename String
-  fileType         String
-  fileSize         Int
-  s3Key            String
-  detectedLanguage String?
-  status           String    @default("pending")
-  rawText          String?   @db.Text
-  confidence       Float?
-  documentType     String?
-  normalisedJson   Json?
-  normalisedPdfS3  String?
-  assessmentScore  Int?
-  assessmentResult String?
-  assessmentNotes  String?   @db.Text
-  flags            Json?
-  hashValue        String?
-  ocrFingerprint   String?
-  pHash            String?
-  anchorTxHash     String?
-  anchoredAt       DateTime?
-  proofBundleS3    String?
-  bundleJobId      String?
-  bundleJob        BundleJob? @relation(fields: [bundleJobId], references: [id])
-  caseId           String?
-  verificationCase VerificationCase? @relation(fields: [caseId], references: [id])
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-
-  @@index([tenantId])
   @@index([status])
-  @@index([createdAt])
-  @@index([bundleJobId])
-  @@index([caseId])
-  @@index([ocrFingerprint])
-  @@index([pHash])
+  @@index([tenantId])
 }
 
-model BundleJob {
-  id               String    @id @default(uuid())
-  tenantId         String
-  tenant           Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  name             String
-  status           String    @default("pending")
-  fileCount        Int       @default(0)
-  completedCount   Int       @default(0)
-  overallRiskScore Int?
-  overallRiskLevel String?
-  crossAnalysisJson Json?
-  masterReportS3   String?
-  bundleHash       String?
-  anchorTxHash     String?
-  anchoredAt       DateTime?
-  ocrJobs          OcrJob[]
-  caseId           String?
-  verificationCase VerificationCase? @relation(fields: [caseId], references: [id])
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+model WBProcurementContract {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId         String    @db.Uuid
+  tenantId          String    @db.Uuid
+  description       String    @db.VarChar(300)
+  procurementMethod String    @db.VarChar(10)
+  estimatedCost     Decimal   @db.Decimal
+  actualCost        Decimal?  @db.Decimal
+  currency          String    @default("USD") @db.VarChar(10)
+  status            String    @default("PLANNED") @db.VarChar(20)
+  notes             String?
+  contractDate      DateTime? @db.Timestamp(6)
+  completionDate    DateTime? @db.Timestamp(6)
+  createdAt         DateTime? @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime? @default(now()) @db.Timestamp(6)
+  fileKey           String?
+  fileUrl           String?
+  fileName          String?
 
+  @@index([projectId], map: "idx_wb_contract_project")
+  @@index([tenantId], map: "idx_wb_contract_tenant")
+}
+
+model WBProjectComponent {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId        String    @db.Uuid
+  tenantId         String    @db.Uuid
+  name             String    @db.VarChar(200)
+  wbBudget         Decimal   @default(0) @db.Decimal
+  govBudget        Decimal   @default(0) @db.Decimal
+  actualThisPeriod Decimal   @default(0) @db.Decimal
+  cumulativeActual Decimal   @default(0) @db.Decimal
+  currency         String    @default("USD") @db.VarChar(10)
+  createdAt        DateTime? @default(now()) @db.Timestamp(6)
+  updatedAt        DateTime? @default(now()) @db.Timestamp(6)
+  fileKey          String?
+  fileUrl          String?
+  fileName         String?
+
+  @@index([projectId], map: "idx_wb_component_project")
+  @@index([tenantId], map: "idx_wb_component_tenant")
+}
+
+model Webhook {
+  id              String            @id
+  tenantId        String
+  url             String
+  secret          String
+  events          String[]
+  active          Boolean           @default(true)
+  description     String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime
+  WebhookDelivery WebhookDelivery[]
+
+  @@index([active])
   @@index([tenantId])
+}
+
+model WebhookDelivery {
+  id           String    @id
+  webhookId    String
+  tenantId     String
+  event        String
+  payload      Json
+  status       String    @default("pending")
+  statusCode   Int?
+  responseBody String?
+  attempts     Int       @default(0)
+  nextRetryAt  DateTime?
+  deliveredAt  DateTime?
+  createdAt    DateTime  @default(now())
+  Webhook      Webhook   @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+
+  @@index([nextRetryAt])
   @@index([status])
-  @@index([createdAt])
-  @@index([caseId])
+  @@index([tenantId])
+  @@index([webhookId])
 }
 
-model TrustSeal {
-  id               String    @id @default(uuid())
-  tenantId         String
-  tenant           Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  documentTitle    String
-  documentType     String    @default("CERTIFICATE")
-  issuedTo         String
-  issuedToEmail    String?
-  issuedBy         String
-  metadata         Json?
-  rawHash          String
-  pageHashes       Json?
-  s3Key            String?
-  fileType         String?
-  anchorTxHash     String?
-  anchoredAt       DateTime?
-  blockNumber      Int?
-  qrCodeUrl        String?
-  status           String    @default("issued")
-  issuerReference  String?
-  apiKeyId         String?
-  ipAddress        String?
-  anchorRetryCount Int       @default(0)
-  anchorLastRetryAt DateTime?
-  ocrFingerprint   String?
-  fraudRiskScore   Int?
-  fraudRiskLevel   String?
-  fraudSignals     Json?
-  sourceType       String?
+model WorkflowComment {
+  id           String       @id
+  taskId       String
+  userId       String
+  comment      String
+  createdAt    DateTime     @default(now())
+  WorkflowTask WorkflowTask @relation(fields: [taskId], references: [id])
 
-  // OCR fields
-  ocrRawText          String?   @db.Text
-  ocrAmount           Float?
-  ocrVendor           String?
-  ocrDate             String?
-  ocrConfidence       Float?
-  ocrEngine           String?
+  @@index([taskId])
+}
 
-  // Mismatch fields
-  amountMismatch      Boolean   @default(false)
-  vendorMismatch      Boolean   @default(false)
-  dateMismatch        Boolean   @default(false)
-  mismatchNote        String?
+model WorkflowTask {
+  id              String            @id
+  tenantId        String
+  type            String
+  status          String            @default("pending")
+  title           String
+  description     String?
+  assignedTo      String?
+  submittedBy     String
+  entityId        String
+  entityType      String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime
+  resolvedAt      DateTime?
+  WorkflowComment WorkflowComment[]
+  Tenant          Tenant            @relation(fields: [tenantId], references: [id])
 
-  // Duplicate detection fields
-  isDuplicate         Boolean   @default(false)
-  duplicateOfId       String?
-  duplicateOfName     String?
-  crossTenantDuplicate Boolean  @default(false)
-  duplicateConfidence String?
-  duplicateMethod     String?
-  isVisualDuplicate   Boolean   @default(false)
-  pHash               String?
-
-  // Entity reference fields
-  expenseId           String?
-  documentId          String?
-  caseId              String?
-
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-
-  @@index([tenantId])
-  @@index([rawHash])
+  @@index([assignedTo])
+  @@index([entityId])
   @@index([status])
-  @@index([createdAt])
-  @@index([ocrFingerprint])
-  @@index([expenseId])
-  @@index([documentId])
-  @@index([caseId])
-}
-
-model EngagementEvent {
-  id        String   @id @default(uuid())
-  tenantId  String
-  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  userId    String?
-  eventType String
-  metadata  Json?
-  createdAt DateTime @default(now())
-
   @@index([tenantId])
-  @@index([eventType])
-  @@index([createdAt])
-}
-
-// ─── Feature 1B: Budgeting ─────────────────────────────────
-
-model Budget {
-  id          String       @id @default(uuid())
-  tenantId    String
-  projectId   String?
-  name        String
-  periodFrom  DateTime
-  periodTo    DateTime
-  status      String       @default("DRAFT") // DRAFT, APPROVED, ACTIVE, CLOSED
-  notes       String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  tenant      Tenant       @relation(fields: [tenantId], references: [id])
-  project     Project?     @relation(fields: [projectId], references: [id])
-  lines       BudgetLine[]
-  fundingSources BudgetFundingSource[]
-  fundingAgreements FundingAgreement[] @relation("BudgetFunding")
-  expenses    Expense[]    @relation("ExpenseBudget")
-
-  @@index([tenantId])
-  @@index([projectId])
-  @@index([status])
-  @@index([periodFrom, periodTo])
-}
-
-model BudgetLine {
-  id             String   @id @default(uuid())
-  budgetId       String
-  expenseType    String   // CAPEX or OPEX
-  category       String
-  subCategory    String?
-  description    String?
-  approvedAmount Float
-  currency       String   @default("USD")
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  budget         Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
-  expenses       Expense[] @relation("ExpenseBudgetLine")
-
-  @@index([budgetId])
-  @@index([expenseType])
-}
-
-model BudgetFundingSource {
-  id                 String   @id @default(uuid())
-  budgetId           String
-  sourceType         String
-  sourceSubType      String?
-  donorName          String
-  amount             Float
-  currency           String   @default("USD")
-  agreementFileKey   String?
-  agreementHash      String?
-  fundingAgreementId String?
-  donorOrgId         String?
-  funderName         String?
-  funderType         String?  @default("EXTERNAL")
-  createdAt          DateTime @default(now())
-  budget             Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
-
-  @@index([budgetId])
-  @@index([donorOrgId])
 }

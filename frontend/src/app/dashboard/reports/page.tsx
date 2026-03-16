@@ -8,6 +8,7 @@ import {
   Shield, Link2
 } from 'lucide-react'
 import { apiGet, apiPost } from '@/lib/api'
+import { formatMoney } from '@/lib/currencies'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -105,7 +106,7 @@ function formatDate(dateStr: string): string {
 }
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(amount)
+  return formatMoney(amount, 'USD')
 }
 
 /* ------------------------------------------------------------------ */

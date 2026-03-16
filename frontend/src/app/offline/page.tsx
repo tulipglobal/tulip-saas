@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { WifiOff, RefreshCw } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function OfflinePage() {
+  const t = useTranslations();
   const [pendingCount, setPendingCount] = useState(0);
 
   useEffect(() => {
@@ -21,17 +23,17 @@ export default function OfflinePage() {
 
         <div>
           <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>
-            You&apos;re offline
+            {t('offlinePage.title')}
           </h1>
           <p className="text-[var(--tulip-forest)]/60 mt-2">
-            Your data is saved locally and will sync when you reconnect.
+            {t('offlinePage.description')}
           </p>
         </div>
 
         {pendingCount > 0 && (
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-100 text-amber-700 text-sm font-medium">
             <RefreshCw size={14} />
-            {pendingCount} item{pendingCount !== 1 ? 's' : ''} pending sync
+            {t('offlinePage.pendingSync', { count: pendingCount })}
           </div>
         )}
 
@@ -40,12 +42,12 @@ export default function OfflinePage() {
             href="/"
             className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-medium text-[var(--tulip-forest)] bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)] transition-colors"
           >
-            Back to Home
+            {t('offlinePage.backToHome')}
           </Link>
         </div>
 
         <p className="text-xs text-[var(--tulip-forest)]/40">
-          You can still add expenses while offline — they&apos;ll be automatically sealed when you reconnect.
+          {t('offlinePage.offlineHint')}
         </p>
       </div>
     </div>

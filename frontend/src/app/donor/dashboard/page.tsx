@@ -9,6 +9,7 @@ import {
   Calendar, ExternalLink, Search, Hash, Link2, Eye,
   Banknote, FolderOpen, ChevronDown, ChevronUp
 } from 'lucide-react'
+import { formatMoney } from '@/lib/currencies'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -245,16 +246,16 @@ function AgreementCard({ agreement, documents, token }: {
               <div className="grid grid-cols-3 gap-2 mb-3">
                 <div className="rounded-lg border border-[var(--tulip-sage-dark)]/50 px-3 py-2 bg-[var(--tulip-sage)]">
                   <div className="text-[10px] text-[var(--tulip-forest)]/40">{t('budgeted')}</div>
-                  <div className="text-sm font-bold text-[var(--tulip-forest)]">${agreement.budget.totalApproved.toLocaleString()}</div>
+                  <div className="text-sm font-bold text-[var(--tulip-forest)]">{formatMoney(agreement.budget.totalApproved, agreement.currency)}</div>
                 </div>
                 <div className="rounded-lg border border-[var(--tulip-sage-dark)]/50 px-3 py-2 bg-[var(--tulip-sage)]">
                   <div className="text-[10px] text-[var(--tulip-forest)]/40">{t('spent')}</div>
-                  <div className="text-sm font-bold text-orange-400">${agreement.budget.totalSpent.toLocaleString()}</div>
+                  <div className="text-sm font-bold text-orange-400">{formatMoney(agreement.budget.totalSpent, agreement.currency)}</div>
                 </div>
                 <div className="rounded-lg border border-[var(--tulip-sage-dark)]/50 px-3 py-2 bg-[var(--tulip-sage)]">
                   <div className="text-[10px] text-[var(--tulip-forest)]/40">{t('remaining')}</div>
                   <div className={`text-sm font-bold ${(agreement.budget.totalApproved - agreement.budget.totalSpent) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                    ${(agreement.budget.totalApproved - agreement.budget.totalSpent).toLocaleString()}
+                    {formatMoney(agreement.budget.totalApproved - agreement.budget.totalSpent, agreement.currency)}
                   </div>
                 </div>
               </div>
@@ -522,16 +523,16 @@ function DonorIEStatement({ token }: { token: string }) {
       <div className="grid grid-cols-3 gap-3 mb-3">
         <div className="rounded-lg border border-[var(--tulip-sage-dark)] px-3 py-3" style={{ background: 'var(--tulip-sage)' }}>
           <div className="text-[10px] text-[var(--tulip-forest)]/40 mb-0.5">{t('income')}</div>
-          <div className="text-sm font-bold text-emerald-400">${data.income.total.toLocaleString()}</div>
+          <div className="text-sm font-bold text-emerald-400">{formatMoney(data.income.total, 'USD')}</div>
         </div>
         <div className="rounded-lg border border-[var(--tulip-sage-dark)] px-3 py-3" style={{ background: 'var(--tulip-sage)' }}>
           <div className="text-[10px] text-[var(--tulip-forest)]/40 mb-0.5">{t('expenditure')}</div>
-          <div className="text-sm font-bold text-orange-400">${data.expenditure.total.toLocaleString()}</div>
+          <div className="text-sm font-bold text-orange-400">{formatMoney(data.expenditure.total, 'USD')}</div>
         </div>
         <div className="rounded-lg border border-[var(--tulip-sage-dark)] px-3 py-3" style={{ background: 'var(--tulip-sage)' }}>
           <div className="text-[10px] text-[var(--tulip-forest)]/40 mb-0.5">{t('balance')}</div>
           <div className={`text-sm font-bold ${data.netBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-            ${data.netBalance.toLocaleString()}
+            {formatMoney(data.netBalance, 'USD')}
           </div>
         </div>
       </div>
@@ -544,7 +545,7 @@ function DonorIEStatement({ token }: { token: string }) {
             {data.income.bySource.map(s => (
               <div key={s.sourceType} className="flex items-center justify-between py-0.5">
                 <span className="text-xs text-[var(--tulip-forest)]/60">{s.sourceType}</span>
-                <span className="text-xs text-[var(--tulip-forest)]/40">${s.total.toLocaleString()}</span>
+                <span className="text-xs text-[var(--tulip-forest)]/40">{formatMoney(s.total, 'USD')}</span>
               </div>
             ))}
           </div>
@@ -554,12 +555,12 @@ function DonorIEStatement({ token }: { token: string }) {
             <div className="px-4 py-3 border-b border-[var(--tulip-sage-dark)]/50">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-medium text-purple-400">CapEx</span>
-                <span className="text-xs text-[var(--tulip-forest)]/60">${data.expenditure.capex.total.toLocaleString()}</span>
+                <span className="text-xs text-[var(--tulip-forest)]/60">{formatMoney(data.expenditure.capex.total, 'USD')}</span>
               </div>
               {data.expenditure.capex.byCategory.map(c => (
                 <div key={c.category} className="flex items-center justify-between pl-3 py-0.5">
                   <span className="text-[11px] text-[var(--tulip-forest)]/40">{c.category}</span>
-                  <span className="text-[11px] text-[var(--tulip-forest)]/30">${c.total.toLocaleString()}</span>
+                  <span className="text-[11px] text-[var(--tulip-forest)]/30">{formatMoney(c.total, 'USD')}</span>
                 </div>
               ))}
             </div>
@@ -570,12 +571,12 @@ function DonorIEStatement({ token }: { token: string }) {
             <div className="px-4 py-3 border-b border-[var(--tulip-sage-dark)]/50">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-medium text-cyan-400">OpEx</span>
-                <span className="text-xs text-[var(--tulip-forest)]/60">${data.expenditure.opex.total.toLocaleString()}</span>
+                <span className="text-xs text-[var(--tulip-forest)]/60">{formatMoney(data.expenditure.opex.total, 'USD')}</span>
               </div>
               {data.expenditure.opex.byCategory.map(c => (
                 <div key={c.category} className="flex items-center justify-between pl-3 py-0.5">
                   <span className="text-[11px] text-[var(--tulip-forest)]/40">{c.category}</span>
-                  <span className="text-[11px] text-[var(--tulip-forest)]/30">${c.total.toLocaleString()}</span>
+                  <span className="text-[11px] text-[var(--tulip-forest)]/30">{formatMoney(c.total, 'USD')}</span>
                 </div>
               ))}
             </div>

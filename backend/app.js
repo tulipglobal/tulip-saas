@@ -98,6 +98,7 @@ const grantReportingRoutes = require('./routes/grantReportingRoutes')
 const wbRoutes = require('./routes/wbRoutes')
 const ngoReportRoutes = require('./routes/ngoReportRoutes')
 const reportPublicRoutes = require('./routes/reportPublicRoutes')
+const exchangeRateRoutes = require('./routes/exchangeRateRoutes')
 
 app.get('/', (req, res) => res.send('Tulip API Running'))
 
@@ -176,6 +177,7 @@ app.use('/api/ngo/grant-reporting-config', apiLimiter, authenticate, tenantScope
 app.use('/api/ngo', apiLimiter, wbRoutes)
 app.use('/api/ngo/reports', apiLimiter, authenticate, tenantScope, ngoReportRoutes)
 app.use('/api/public/reports', apiLimiter, reportPublicRoutes)
+app.use('/api/exchange-rates', apiLimiter, authenticate, tenantScope, exchangeRateRoutes)
 
 app.use((err, req, res, next) => {
   logger.error('Unhandled error', { error: err.message, path: req.path })

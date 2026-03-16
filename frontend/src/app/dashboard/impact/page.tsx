@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { apiGet, apiPost } from '@/lib/api'
 import { BarChart3, Plus, X, CheckCircle2, Loader2, TrendingUp, Target } from 'lucide-react'
 

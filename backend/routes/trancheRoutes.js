@@ -13,6 +13,8 @@ const tenantScope = require('../middleware/tenantScope')
 const { createNotification, notifyDonorOrgsForProject } = require('../services/donorNotificationService')
 const { uploadToS3, computeSHA256, getPresignedUrl } = require('../lib/s3Upload')
 const { createAuditLog } = require('../services/auditService')
+const { getRate } = require('../services/exchangeRateService')
+const { getMonthKey } = require('../lib/currencyUtils')
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } })
 
@@ -132,19 +134,66 @@ router.put('/donor/:trancheId/release', donorAuth, async (req, res) => {
       }
     } catch {}
 
-    // Notify NGO
+    // Convert tranche amount from donor currency to project base currency
     try {
-      const agreement = await prisma.fundingAgreement.findFirst({ where: { id: tranche.fundingAgreementId }, select: { tenantId: true, title: true } })
-      if (agreement?.tenantId) {
+      const agreement = await prisma.fundingAgreement.findFirst({
+        where: { id: tranche.fundingAgreementId },
+        select: { tenantId: true, title: true, currency: true }
+      })
+
+      if (agreement) {
+        // Find the project to get its baseCurrency
+        const project = await prisma.$queryRawUnsafe(
+          `SELECT "baseCurrency" FROM "Project" WHERE id = $1`, tranche.projectId
+        ).catch(() => [])
+
+        const projectBaseCurrency = project[0]?.baseCurrency || 'USD'
+        const trancheCurrency = tranche.currency || agreement.currency || 'USD'
+        const month = getMonthKey(tranche.actualReleaseDate || new Date())
+
+        if (trancheCurrency !== projectBaseCurrency) {
+          const rate = await getRate(trancheCurrency, projectBaseCurrency, month)
+          if (rate) {
+            const convertedAmount = Number(tranche.amount) * rate
+            await prisma.$executeRawUnsafe(`
+              UPDATE "DisbursementTranche"
+              SET "convertedAmount" = $1, "conversionRate" = $2, "conversionMonth" = $3,
+                  "conversionLocked" = true, "baseCurrencyAmount" = $1
+              WHERE id = $4::uuid
+            `, convertedAmount, rate, month, tranche.id)
+            tranche.convertedAmount = convertedAmount
+            tranche.conversionRate = rate
+            tranche.conversionMonth = month
+          }
+        } else {
+          // Same currency — no conversion needed
+          await prisma.$executeRawUnsafe(`
+            UPDATE "DisbursementTranche"
+            SET "baseCurrencyAmount" = amount, "conversionRate" = 1, "conversionLocked" = true
+            WHERE id = $1::uuid
+          `, tranche.id)
+        }
+
+        // Audit log
         await createAuditLog({
           action: 'tranche.released',
           entityType: 'DisbursementTranche',
           entityId: tranche.id,
           tenantId: agreement.tenantId,
-          details: { trancheNumber: tranche.trancheNumber, amount: tranche.amount, releasedBy: 'donor' }
-        })
+          details: {
+            trancheNumber: tranche.trancheNumber,
+            amount: tranche.amount,
+            currency: trancheCurrency,
+            convertedAmount: tranche.convertedAmount,
+            baseCurrency: projectBaseCurrency,
+            conversionRate: tranche.conversionRate,
+            releasedBy: 'donor'
+          }
+        }).catch(() => {})
       }
-    } catch {}
+    } catch (convErr) {
+      console.error('Tranche conversion error (non-blocking):', convErr.message)
+    }
 
     res.json({ tranche })
   } catch (err) {

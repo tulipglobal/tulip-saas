@@ -4,8 +4,10 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Shield, Mail, Lock, Eye, EyeOff } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 export default function DonorLoginPage() {
+  const t = useTranslations('donorLogin')
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -39,7 +41,7 @@ export default function DonorLoginPage() {
       }
 
       if (!data.token) {
-        setError('No token in response')
+        setError(t('noToken'))
         setLoading(false)
         return
       }
@@ -49,7 +51,7 @@ export default function DonorLoginPage() {
       router.push('/donor/dashboard')
     } catch (err) {
       console.error('[donor-login] error:', err)
-      setError('Unable to connect to server. Check browser console for details.')
+      setError(t('connectError'))
     } finally {
       setLoading(false)
     }
@@ -69,10 +71,10 @@ export default function DonorLoginPage() {
             <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: 'var(--tulip-forest)' }}>
               tulip<span style={{ color: 'var(--tulip-gold)' }}>ds</span>
             </span>
-            <span className="text-[var(--tulip-forest)]/30 text-sm ml-1">| Donor Portal</span>
+            <span className="text-[var(--tulip-forest)]/30 text-sm ml-1">| {t('donorPortal')}</span>
           </Link>
           <Link href="/login" className="text-[var(--tulip-forest)]/60 text-sm hover:text-[var(--tulip-forest)]/70 transition-colors">
-            NGO Login
+            {t('ngoLogin')}
           </Link>
         </div>
       </nav>
@@ -88,10 +90,10 @@ export default function DonorLoginPage() {
               <Shield className="w-7 h-7 text-[var(--tulip-forest)]" />
             </div>
             <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>
-              Donor Portal
+              {t('title')}
             </h1>
             <p className="text-[var(--tulip-forest)]/60 text-sm mt-2">
-              Sign in to view your funded projects and verified documents
+              {t('subtitle')}
             </p>
           </div>
 
@@ -105,14 +107,14 @@ export default function DonorLoginPage() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-[var(--tulip-forest)]/60 text-xs font-medium uppercase tracking-wider mb-1.5 block">Email</label>
+              <label className="text-[var(--tulip-forest)]/60 text-xs font-medium uppercase tracking-wider mb-1.5 block">{t('emailLabel')}</label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--tulip-forest)]/30" />
                 <input
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="donor@example.com"
+                  placeholder={t('emailPlaceholder')}
                   required
                   className="w-full pl-11 pr-4 py-3 rounded-xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/30 transition-all"
                 />
@@ -120,14 +122,14 @@ export default function DonorLoginPage() {
             </div>
 
             <div>
-              <label className="text-[var(--tulip-forest)]/60 text-xs font-medium uppercase tracking-wider mb-1.5 block">Password</label>
+              <label className="text-[var(--tulip-forest)]/60 text-xs font-medium uppercase tracking-wider mb-1.5 block">{t('passwordLabel')}</label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--tulip-forest)]/30" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder="Enter your password"
+                  placeholder={t('passwordPlaceholder')}
                   required
                   className="w-full pl-11 pr-11 py-3 rounded-xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/30 transition-all"
                 />
@@ -143,13 +145,13 @@ export default function DonorLoginPage() {
               style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
               {loading
                 ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                : 'Sign in as Donor'
+                : t('signInButton')
               }
             </button>
           </form>
 
           <p className="text-center text-[var(--tulip-forest)]/30 text-xs mt-6">
-            <Link href="/donor" className="text-emerald-400 hover:underline">Back to Donor Portal</Link>
+            <Link href="/donor" className="text-emerald-400 hover:underline">{t('backToPortal')}</Link>
           </p>
         </div>
       </div>
@@ -157,7 +159,7 @@ export default function DonorLoginPage() {
       {/* Footer */}
       <footer className="border-t border-[var(--tulip-sage-dark)] py-4">
         <p className="text-center text-[var(--tulip-forest)]/30 text-xs">
-          Tulip DS &middot; Bright Bytes Technology &middot; Dubai, UAE
+          {t('footer')}
         </p>
       </footer>
     </div>

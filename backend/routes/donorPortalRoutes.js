@@ -3008,4 +3008,23 @@ router.get('/reports/:reportId/download', donorAuth, async (req, res) => {
   }
 })
 
+// ── Exchange Rates (donor view) ──────────────────────────────
+router.get('/exchange-rates', donorAuth, async (req, res) => {
+  try {
+    const { month, projectId } = req.query
+    let rates
+    if (projectId) {
+      const { getRatesForProject } = require('../services/exchangeRateService')
+      rates = await getRatesForProject(projectId)
+    } else {
+      const { getRatesForMonth } = require('../services/exchangeRateService')
+      rates = await getRatesForMonth(month || new Date().toISOString().slice(0, 7))
+    }
+    res.json({ rates })
+  } catch (err) {
+    console.error('Exchange rate fetch error:', err)
+    res.status(500).json({ error: 'Failed to fetch exchange rates' })
+  }
+})
+
 module.exports = router

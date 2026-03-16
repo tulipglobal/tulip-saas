@@ -155,8 +155,15 @@ exports.getProject = async (req, res) => {
 exports.createProject = async (req, res) => {
   try {
     const db = tenantClient(req.user.tenantId)
-    const { name, description, budget, startDate, endDate } = req.body
+    const { name, description, budget, startDate, endDate, baseCurrency, donorReportingCurrency } = req.body
     if (!name) return res.status(400).json({ error: 'name is required' })
+
+    // Default baseCurrency to tenant's baseCurrency if not provided
+    let projectBaseCurrency = baseCurrency || 'USD'
+    if (!baseCurrency) {
+      const tenant = await prisma.tenant.findUnique({ where: { id: req.user.tenantId }, select: { baseCurrency: true } })
+      if (tenant?.baseCurrency) projectBaseCurrency = tenant.baseCurrency
+    }
 
     const project = await db.project.create({
       data: {
@@ -164,6 +171,8 @@ exports.createProject = async (req, res) => {
         budget: budget ? parseFloat(budget) : null,
         startDate: startDate ? new Date(startDate) : null,
         endDate: endDate ? new Date(endDate) : null,
+        baseCurrency: projectBaseCurrency,
+        donorReportingCurrency: donorReportingCurrency || null,
       }
     })
     await createAuditLog({ action: 'PROJECT_CREATED', entityType: 'Project', entityId: project.id, userId: req.user.id, tenantId: req.user.tenantId }).catch(() => {})
@@ -181,7 +190,7 @@ exports.updateProject = async (req, res) => {
     const existing = await db.project.findFirst({ where: { id: req.params.id } })
     if (!existing) return res.status(404).json({ error: 'Project not found' })
 
-    const { name, description, budget, status, startDate, endDate, logframeGoal, logframePurpose, logframeAssumptions } = req.body
+    const { name, description, budget, status, startDate, endDate, logframeGoal, logframePurpose, logframeAssumptions, baseCurrency, donorReportingCurrency } = req.body
     const project = await db.project.update({
       where: { id: req.params.id },
       data: {
@@ -194,6 +203,8 @@ exports.updateProject = async (req, res) => {
         ...(logframeGoal        !== undefined && { logframeGoal }),
         ...(logframePurpose     !== undefined && { logframePurpose }),
         ...(logframeAssumptions !== undefined && { logframeAssumptions }),
+        ...(baseCurrency        !== undefined && { baseCurrency }),
+        ...(donorReportingCurrency !== undefined && { donorReportingCurrency: donorReportingCurrency || null }),
       }
     })
     res.json(project)

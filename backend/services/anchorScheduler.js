@@ -378,6 +378,34 @@ function startAnchorScheduler() {
   logger.info('Auto monthly reports scheduled (1st of month, 6am UTC)')
   logger.info('Auto quarterly reports scheduled (1st of quarter, 7am UTC)')
   logger.info('Auto annual reports scheduled (1st January, 8am UTC)')
+
+  // Exchange rate fetch — 1st of every month at 00:01 UTC
+  cron.schedule('1 0 1 * *', async () => {
+    logger.info('[exchange-rates] Fetching monthly exchange rates...')
+    try {
+      const { fetchMonthlyRates } = require('./exchangeRateService')
+      const month = new Date().toISOString().slice(0, 7)
+      const result = await fetchMonthlyRates(month)
+      logger.info('[exchange-rates] Complete', result)
+    } catch (err) {
+      logger.error('[exchange-rates] Failed', { error: err.message })
+    }
+  })
+  logger.info('Exchange rate fetch scheduled (1st of month, 00:01 UTC)')
+
+  // Exchange rate blockchain seal — 1st of every month at 12:00 UTC (after rates fetched at 00:01)
+  cron.schedule('0 12 1 * *', async () => {
+    logger.info('[rate-seal] Sealing monthly exchange rates to blockchain...')
+    try {
+      const { sealMonthlyRates } = require('./exchangeRateSealService')
+      const month = new Date().toISOString().slice(0, 7)
+      const result = await sealMonthlyRates(month)
+      logger.info('[rate-seal] Complete', result)
+    } catch (err) {
+      logger.error('[rate-seal] Failed', { error: err.message })
+    }
+  })
+  logger.info('Exchange rate seal scheduled (1st of month, 12:00 UTC)')
 }
 
 module.exports = { startAnchorScheduler }

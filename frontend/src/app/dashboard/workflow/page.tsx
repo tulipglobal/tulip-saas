@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { apiGet, apiPost, apiPatch } from '@/lib/api'
 import { CheckCircle2, XCircle, Clock, MessageSquare, Send, ChevronDown, ChevronUp, ListFilter, X, AlertTriangle, DollarSign, Shield } from 'lucide-react'
 
@@ -33,42 +34,38 @@ interface Summary {
   rejected: number
 }
 
-const STATUS_TABS = [
-  { key: '', label: 'All' },
-  { key: 'pending', label: 'Pending' },
-  { key: 'in_review', label: 'In Review' },
-  { key: 'approved', label: 'Approved' },
-  { key: 'rejected', label: 'Rejected' },
-]
+const STATUS_TAB_KEYS = ['', 'pending', 'in_review', 'approved', 'rejected'] as const
 
 function StatusBadge({ status }: { status: string }) {
+  const t = useTranslations('workflow')
   const map: Record<string, string> = {
     pending: 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20',
     in_review: 'bg-[var(--tulip-gold)]/10 text-[var(--tulip-forest)] border-[var(--tulip-gold)]/30',
     approved: 'bg-green-400/10 text-green-400 border-green-400/20',
     rejected: 'bg-red-400/10 text-red-400 border-red-400/20',
   }
-  const labels: Record<string, string> = {
-    pending: 'Pending', in_review: 'In Review', approved: 'Approved', rejected: 'Rejected',
+  const labelKeys: Record<string, string> = {
+    pending: 'statusPending', in_review: 'statusInReview', approved: 'statusApproved', rejected: 'statusRejected',
   }
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border font-medium ${map[status] ?? map.pending}`}>
-      {labels[status] ?? status}
+      {labelKeys[status] ? t(labelKeys[status]) : status}
     </span>
   )
 }
 
 function TypeBadge({ type }: { type: string }) {
+  const t = useTranslations('workflow')
   const map: Record<string, string> = {
     document_approval: 'bg-indigo-400/10 text-indigo-400',
     expense_approval: 'bg-cyan-400/10 text-cyan-400',
   }
-  const labels: Record<string, string> = {
-    document_approval: 'Document', expense_approval: 'Expense',
+  const labelKeys: Record<string, string> = {
+    document_approval: 'typeDocument', expense_approval: 'typeExpense',
   }
   return (
     <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${map[type] ?? 'bg-[var(--tulip-sage)] text-[var(--tulip-forest)]/60'}`}>
-      {labels[type] ?? type}
+      {labelKeys[type] ? t(labelKeys[type]) : type}
     </span>
   )
 }
@@ -100,18 +97,20 @@ interface ExpenseDetail {
 }
 
 function RiskBadge({ score, level }: { score?: number | null; level?: string | null }) {
+  const t = useTranslations('workflow')
   if (!score || !level || level === 'LOW') return null
   const styles: Record<string, string> = {
     CRITICAL: 'bg-red-800 text-white', HIGH: 'bg-orange-500 text-white', MEDIUM: 'bg-yellow-500 text-white',
   }
   return (
     <span className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${styles[level] || ''}`}>
-      {level} RISK &bull; {score}
+      {level} {t('risk')} &bull; {score}
     </span>
   )
 }
 
 function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void }) {
+  const t = useTranslations('workflow')
   const [expanded, setExpanded] = useState(false)
   const [comment, setComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -129,7 +128,7 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
 
   const handleStatus = async (status: string) => {
     if (status === 'rejected' && !comment.trim()) {
-      alert('Please add a reason for rejection in the comment field')
+      alert(t('rejectionReasonRequired'))
       return
     }
     setSubmitting(true)
@@ -177,7 +176,7 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
             <StatusBadge status={task.status} />
           </div>
           <div className="flex items-center gap-3 mt-1 text-xs text-[var(--tulip-forest)]/60">
-            {task.submitter && <span>by {task.submitter.name}</span>}
+            {task.submitter && <span>{t('by')} {task.submitter.name}</span>}
             <span>{new Date(task.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
             {task.comments.length > 0 && (
               <span className="flex items-center gap-1"><MessageSquare size={10} /> {task.comments.length}</span>
@@ -199,40 +198,40 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
           {task.entityType === 'expense' && expense && (
             <div className="rounded-lg border border-[var(--tulip-sage-dark)] p-4 space-y-4 bg-[var(--tulip-cream)]/50">
               <div className="flex items-center gap-2 text-xs text-[var(--tulip-forest)]/40 uppercase tracking-wide font-medium">
-                <DollarSign size={12} /> Expense Details
+                <DollarSign size={12} /> {t('expenseDetails')}
               </div>
 
               {/* Full expense details */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div>
-                  <div className="text-[10px] text-[var(--tulip-forest)]/40 uppercase">Amount</div>
+                  <div className="text-[10px] text-[var(--tulip-forest)]/40 uppercase">{t('amount')}</div>
                   <div className="text-sm font-bold text-[var(--tulip-forest)]">{expense.currency} {expense.amount.toLocaleString()}</div>
                 </div>
                 {expense.vendor && (
                   <div>
-                    <div className="text-[10px] text-[var(--tulip-forest)]/40 uppercase">Vendor</div>
+                    <div className="text-[10px] text-[var(--tulip-forest)]/40 uppercase">{t('vendor')}</div>
                     <div className="text-sm text-[var(--tulip-forest)]">{expense.vendor}</div>
                   </div>
                 )}
                 <div>
-                  <div className="text-[10px] text-[var(--tulip-forest)]/40 uppercase">Date</div>
+                  <div className="text-[10px] text-[var(--tulip-forest)]/40 uppercase">{t('date')}</div>
                   <div className="text-sm text-[var(--tulip-forest)]">{new Date(expense.expenseDate || expense.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
                 </div>
                 {expense.project && (
                   <div>
-                    <div className="text-[10px] text-[var(--tulip-forest)]/40 uppercase">Project</div>
+                    <div className="text-[10px] text-[var(--tulip-forest)]/40 uppercase">{t('project')}</div>
                     <div className="text-sm text-[var(--tulip-forest)]">{expense.project.name}</div>
                   </div>
                 )}
                 {expense.category && (
                   <div>
-                    <div className="text-[10px] text-[var(--tulip-forest)]/40 uppercase">Category</div>
+                    <div className="text-[10px] text-[var(--tulip-forest)]/40 uppercase">{t('category')}</div>
                     <div className="text-sm text-[var(--tulip-forest)]">{expense.category}</div>
                   </div>
                 )}
                 {expense.notes && (
                   <div className="col-span-2 sm:col-span-3">
-                    <div className="text-[10px] text-[var(--tulip-forest)]/40 uppercase">Notes</div>
+                    <div className="text-[10px] text-[var(--tulip-forest)]/40 uppercase">{t('notes')}</div>
                     <div className="text-sm text-[var(--tulip-forest)]">{expense.notes}</div>
                   </div>
                 )}
@@ -241,33 +240,33 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
               {/* OCR vs Submitted comparison */}
               {(expense.ocrAmount != null || expense.ocrVendor || expense.ocrDate) && (
                 <div className="rounded-lg border border-[var(--tulip-sage-dark)] overflow-hidden">
-                  <div className="text-[10px] text-[var(--tulip-forest)]/40 uppercase tracking-wide font-medium px-3 py-2 bg-[var(--tulip-sage)]/50">OCR Extracted vs Submitted</div>
+                  <div className="text-[10px] text-[var(--tulip-forest)]/40 uppercase tracking-wide font-medium px-3 py-2 bg-[var(--tulip-sage)]/50">{t('ocrVsSubmitted')}</div>
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="border-b border-[var(--tulip-sage-dark)]">
-                        <th className="text-left px-3 py-1.5 text-[var(--tulip-forest)]/40 font-normal">Field</th>
-                        <th className="text-left px-3 py-1.5 text-[var(--tulip-forest)]/40 font-normal">OCR Read</th>
-                        <th className="text-left px-3 py-1.5 text-[var(--tulip-forest)]/40 font-normal">Submitted</th>
+                        <th className="text-left px-3 py-1.5 text-[var(--tulip-forest)]/40 font-normal">{t('field')}</th>
+                        <th className="text-left px-3 py-1.5 text-[var(--tulip-forest)]/40 font-normal">{t('ocrRead')}</th>
+                        <th className="text-left px-3 py-1.5 text-[var(--tulip-forest)]/40 font-normal">{t('submitted')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {expense.ocrAmount != null && (
                         <tr className={`border-b border-[var(--tulip-sage-dark)] ${expense.amountMismatch ? 'bg-amber-50' : ''}`}>
-                          <td className="px-3 py-1.5 text-[var(--tulip-forest)]/60">Amount</td>
+                          <td className="px-3 py-1.5 text-[var(--tulip-forest)]/60">{t('amount')}</td>
                           <td className="px-3 py-1.5 text-[var(--tulip-forest)]">{expense.ocrAmount.toLocaleString()}</td>
                           <td className={`px-3 py-1.5 ${expense.amountMismatch ? 'text-amber-700 font-bold' : 'text-[var(--tulip-forest)]'}`}>{expense.amount.toLocaleString()}</td>
                         </tr>
                       )}
                       {expense.ocrVendor && (
                         <tr className={`border-b border-[var(--tulip-sage-dark)] ${expense.vendorMismatch ? 'bg-amber-50' : ''}`}>
-                          <td className="px-3 py-1.5 text-[var(--tulip-forest)]/60">Vendor</td>
+                          <td className="px-3 py-1.5 text-[var(--tulip-forest)]/60">{t('vendor')}</td>
                           <td className="px-3 py-1.5 text-[var(--tulip-forest)]">{expense.ocrVendor}</td>
                           <td className={`px-3 py-1.5 ${expense.vendorMismatch ? 'text-amber-700 font-bold' : 'text-[var(--tulip-forest)]'}`}>{expense.vendor || '—'}</td>
                         </tr>
                       )}
                       {expense.ocrDate && (
                         <tr className={`${expense.dateMismatch ? 'bg-amber-50' : ''}`}>
-                          <td className="px-3 py-1.5 text-[var(--tulip-forest)]/60">Date</td>
+                          <td className="px-3 py-1.5 text-[var(--tulip-forest)]/60">{t('date')}</td>
                           <td className="px-3 py-1.5 text-[var(--tulip-forest)]">{expense.ocrDate}</td>
                           <td className={`px-3 py-1.5 ${expense.dateMismatch ? 'text-amber-700 font-bold' : 'text-[var(--tulip-forest)]'}`}>{expense.expenseDate || new Date(expense.createdAt).toISOString().split('T')[0]}</td>
                         </tr>
@@ -288,7 +287,7 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
                 }`}>
                   <AlertTriangle size={14} className="shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-medium">{expense.fraudRiskLevel === 'HIGH' || expense.fraudRiskLevel === 'CRITICAL' ? 'High Risk' : expense.fraudRiskLevel === 'MEDIUM' ? 'Medium Risk' : 'Info'}:</span>{' '}
+                    <span className="font-medium">{expense.fraudRiskLevel === 'HIGH' || expense.fraudRiskLevel === 'CRITICAL' ? t('highRisk') : expense.fraudRiskLevel === 'MEDIUM' ? t('mediumRisk') : t('info')}:</span>{' '}
                     {signal}
                   </div>
                 </div>
@@ -298,26 +297,26 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
               {expense.amountMismatch && (
                 <div className="rounded-lg px-4 py-3 text-sm flex items-start gap-2 border-l-4 bg-amber-50 border-amber-500 text-amber-800">
                   <AlertTriangle size={14} className="shrink-0 mt-0.5" />
-                  <div><span className="font-medium">Medium Risk:</span> Amount mismatch — OCR read <strong>{expense.ocrAmount?.toLocaleString()}</strong>, submitted as <strong>{expense.amount.toLocaleString()}</strong></div>
+                  <div><span className="font-medium">{t('mediumRisk')}:</span> {t('amountMismatch', { ocrAmount: expense.ocrAmount?.toLocaleString() ?? '', submittedAmount: expense.amount.toLocaleString() })}</div>
                 </div>
               )}
               {expense.vendorMismatch && (
                 <div className="rounded-lg px-4 py-3 text-sm flex items-start gap-2 border-l-4 bg-blue-50 border-blue-500 text-blue-800">
                   <AlertTriangle size={14} className="shrink-0 mt-0.5" />
-                  <div><span className="font-medium">Info:</span> Vendor name differs — OCR read &quot;{expense.ocrVendor}&quot;, submitted as &quot;{expense.vendor}&quot;</div>
+                  <div><span className="font-medium">{t('info')}:</span> {t('vendorMismatch', { ocrVendor: expense.ocrVendor ?? '', submittedVendor: expense.vendor ?? '' })}</div>
                 </div>
               )}
               {expense.dateMismatch && (
                 <div className="rounded-lg px-4 py-3 text-sm flex items-start gap-2 border-l-4 bg-amber-50 border-amber-500 text-amber-800">
                   <AlertTriangle size={14} className="shrink-0 mt-0.5" />
-                  <div><span className="font-medium">Medium Risk:</span> Date mismatch — OCR read {expense.ocrDate}</div>
+                  <div><span className="font-medium">{t('mediumRisk')}:</span> {t('dateMismatch', { ocrDate: expense.ocrDate ?? '' })}</div>
                 </div>
               )}
 
               {/* Invoice preview */}
               {expense.receiptUrl && (
                 <div>
-                  <div className="text-[10px] text-[var(--tulip-forest)]/40 uppercase mb-2">Invoice / Receipt</div>
+                  <div className="text-[10px] text-[var(--tulip-forest)]/40 uppercase mb-2">{t('invoiceReceipt')}</div>
                   {expense.receiptFileKey?.match(/\.(jpg|jpeg|png)$/i) ? (
                     <a href={expense.receiptUrl} target="_blank" rel="noopener noreferrer" className="block">
                       <img src={expense.receiptUrl} alt="Receipt" className="max-w-xs max-h-48 rounded-lg border border-[var(--tulip-sage-dark)] hover:shadow-lg transition-shadow cursor-pointer" />
@@ -325,35 +324,35 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
                   ) : (
                     <a href={expense.receiptUrl} target="_blank" rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)]/70 transition-colors">
-                      <Shield size={14} /> View Invoice (PDF)
+                      <Shield size={14} /> {t('viewInvoicePdf')}
                     </a>
                   )}
                 </div>
               )}
 
               {expense.fraudRiskScore != null && (
-                <div className="text-[10px] text-[var(--tulip-forest)]/30">Fraud score: {expense.fraudRiskScore}/100 ({expense.fraudRiskLevel})</div>
+                <div className="text-[10px] text-[var(--tulip-forest)]/30">{t('fraudScore', { score: expense.fraudRiskScore, level: expense.fraudRiskLevel })}</div>
               )}
             </div>
           )}
           {task.entityType === 'expense' && loadingExpense && (
-            <div className="text-xs text-[var(--tulip-forest)]/40 animate-pulse">Loading expense details...</div>
+            <div className="text-xs text-[var(--tulip-forest)]/40 animate-pulse">{t('loadingExpenseDetails')}</div>
           )}
 
           {task.assignee && (
-            <div className="text-xs text-[var(--tulip-forest)]/60">Assigned to: <span className="text-[var(--tulip-forest)]/70">{task.assignee.name}</span></div>
+            <div className="text-xs text-[var(--tulip-forest)]/60">{t('assignedTo')}: <span className="text-[var(--tulip-forest)]/70">{task.assignee.name}</span></div>
           )}
 
           {task.resolvedAt && (
             <div className="text-xs text-[var(--tulip-forest)]/60">
-              Resolved: {new Date(task.resolvedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
+              {t('resolved')}: {new Date(task.resolvedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
             </div>
           )}
 
           {/* Comments */}
           {task.comments.length > 0 && (
             <div className="space-y-2">
-              <div className="text-xs text-[var(--tulip-forest)]/40 uppercase tracking-wide font-medium">Comments</div>
+              <div className="text-xs text-[var(--tulip-forest)]/40 uppercase tracking-wide font-medium">{t('comments')}</div>
               {task.comments.map(c => (
                 <div key={c.id} className="rounded-lg bg-[var(--tulip-sage)] px-3 py-2">
                   <div className="flex items-center gap-2 mb-1">
@@ -371,7 +370,7 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
             <input
               value={comment}
               onChange={e => setComment(e.target.value)}
-              placeholder={canAct ? 'Add a comment (required for rejection)...' : 'Add a comment...'}
+              placeholder={canAct ? t('commentPlaceholderRequired') : t('commentPlaceholder')}
               className="flex-1 bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-sage-dark)]"
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !canAct) handleComment() }}
             />
@@ -385,17 +384,17 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
             <div className="flex items-center gap-2 pt-1">
               <button onClick={() => handleStatus('approved')} disabled={submitting}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-all disabled:opacity-50">
-                <CheckCircle2 size={14} /> Approve{task.entityType === 'expense' ? ' & Seal' : ''}
+                <CheckCircle2 size={14} /> {task.entityType === 'expense' ? t('approveAndSeal') : t('approve')}
               </button>
               <button onClick={() => handleStatus('rejected')} disabled={submitting || !comment.trim()}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition-all disabled:opacity-50"
-                title={!comment.trim() ? 'Add a rejection reason in the comment field first' : ''}>
-                <XCircle size={14} /> Reject
+                title={!comment.trim() ? t('rejectionReasonRequired') : ''}>
+                <XCircle size={14} /> {t('reject')}
               </button>
               {task.status === 'pending' && (
                 <button onClick={() => handleStatus('in_review')} disabled={submitting}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--tulip-gold)]/10 text-[var(--tulip-forest)] border border-[var(--tulip-gold)]/30 hover:bg-[var(--tulip-gold)]/20 transition-all disabled:opacity-50">
-                  <Clock size={13} /> Mark In Review
+                  <Clock size={13} /> {t('markInReview')}
                 </button>
               )}
             </div>
@@ -407,6 +406,7 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
 }
 
 export default function WorkflowPage() {
+  const t = useTranslations('workflow')
   const [tasks, setTasks] = useState<WorkflowTask[]>([])
   const [summary, setSummary] = useState<Summary>({ pending: 0, inReview: 0, approved: 0, rejected: 0 })
   const [loading, setLoading] = useState(true)
@@ -431,8 +431,8 @@ export default function WorkflowPage() {
   return (
     <div className="p-4 md:p-6 space-y-6 animate-fade-up">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>Workflow</h1>
-        <p className="text-[var(--tulip-forest)]/60 text-sm mt-1">Approval tasks for documents & expenses</p>
+        <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('title')}</h1>
+        <p className="text-[var(--tulip-forest)]/60 text-sm mt-1">{t('subtitle')}</p>
       </div>
 
       {/* Summary cards */}

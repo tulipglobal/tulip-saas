@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { apiGet } from '@/lib/api'
+import { formatMoney } from '@/lib/currencies'
 import {
   Shield, FileText, Banknote, Receipt, Download,
   BarChart3, Activity, Users as UsersIcon
@@ -212,8 +213,8 @@ async function generateImpactReport() {
     { label: 'Documents Verified', value: docsTotal.toString() },
     { label: 'Expenses Tracked', value: expensesTotal.toString() },
     { label: 'Audit Records', value: auditTotal.toString() },
-    { label: 'Total Funding', value: `$${totalFunding.toLocaleString()}` },
-    { label: 'Total Spent', value: `$${totalSpent.toLocaleString()}` },
+    { label: 'Total Funding', value: formatMoney(totalFunding, 'USD') },
+    { label: 'Total Spent', value: formatMoney(totalSpent, 'USD') },
   ]
   let sy = 150
   for (let i = 0; i < stats.length; i += 2) {
@@ -247,13 +248,13 @@ async function generateImpactReport() {
       doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...DARK)
       doc.text(p.name.length > 35 ? p.name.slice(0, 35) + '...' : p.name, 22, y)
       doc.setTextColor(...GREY)
-      doc.text(p.status, 90, y); doc.text(p.budget ? `$${p.budget.toLocaleString()}` : '—', 115, y)
+      doc.text(p.status, 90, y); doc.text(p.budget ? formatMoney(p.budget, 'USD') : '—', 115, y)
       doc.text(String(p._count?.expenses ?? 0), 145, y); doc.text(String(p._count?.documents ?? 0), 170, y)
       y += 7
     }
     y += 5; doc.setDrawColor(226, 232, 240); doc.line(20, y, W - 20, y); y += 8
     doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(...DARK)
-    doc.text(`Total Project Budget: $${totalBudget.toLocaleString()}`, 22, y)
+    doc.text(`Total Project Budget: ${formatMoney(totalBudget, 'USD')}`, 22, y)
     doc.text(`${projects.length} projects`, W - 22, y, { align: 'right' })
   }
   addFooter(2, totalPages)
@@ -276,7 +277,7 @@ async function generateImpactReport() {
     }
     y += 5; doc.setDrawColor(226, 232, 240); doc.line(20, y, W - 20, y); y += 8
     doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(...DARK)
-    doc.text(`Total Funding: $${totalFunding.toLocaleString()}`, 22, y)
+    doc.text(`Total Funding: ${formatMoney(totalFunding, 'USD')}`, 22, y)
     const utilPct = totalFunding > 0 ? Math.round((totalSpent / totalFunding) * 100) : 0
     doc.text(`Utilisation: ${utilPct}%`, W - 22, y, { align: 'right' })
   }
@@ -402,14 +403,14 @@ function IEStatement() {
         doc.setTextColor(...BLUE)
         doc.text(source.sourceType, 25, y)
         doc.setTextColor(...DARK)
-        doc.text(`$${source.total.toLocaleString()}`, W - 20, y, { align: 'right' })
+        doc.text(formatMoney(source.total, 'USD'), W - 20, y, { align: 'right' })
         y += 6
         for (const item of source.items) {
           doc.setFont('helvetica', 'normal')
           doc.setFontSize(9)
           doc.setTextColor(...GREY)
           doc.text(item.title, 30, y)
-          doc.text(`$${item.totalAmount.toLocaleString()}`, W - 25, y, { align: 'right' })
+          doc.text(formatMoney(item.totalAmount, 'USD'), W - 25, y, { align: 'right' })
           y += 5
         }
         y += 2
@@ -420,7 +421,7 @@ function IEStatement() {
       doc.setFontSize(12)
       doc.setTextColor(...DARK)
       doc.text('Total Income', 25, y)
-      doc.text(`$${data.income.total.toLocaleString()}`, W - 20, y, { align: 'right' }); y += 12
+      doc.text(formatMoney(data.income.total, 'USD'), W - 20, y, { align: 'right' }); y += 12
 
       // Expenditure section
       doc.setFont('helvetica', 'bold')
@@ -434,11 +435,11 @@ function IEStatement() {
         doc.setTextColor(139, 92, 246)
         doc.text('Capital Expenditure (CapEx)', 25, y)
         doc.setTextColor(...DARK)
-        doc.text(`$${data.expenditure.capex.total.toLocaleString()}`, W - 20, y, { align: 'right' }); y += 6
+        doc.text(formatMoney(data.expenditure.capex.total, 'USD'), W - 20, y, { align: 'right' }); y += 6
         for (const cat of data.expenditure.capex.byCategory) {
           doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...GREY)
           doc.text(cat.category, 30, y)
-          doc.text(`$${cat.total.toLocaleString()}`, W - 25, y, { align: 'right' }); y += 5
+          doc.text(formatMoney(cat.total, 'USD'), W - 25, y, { align: 'right' }); y += 5
         }
         y += 3
       }
@@ -450,11 +451,11 @@ function IEStatement() {
         doc.setTextColor(6, 182, 212)
         doc.text('Operating Expenditure (OpEx)', 25, y)
         doc.setTextColor(...DARK)
-        doc.text(`$${data.expenditure.opex.total.toLocaleString()}`, W - 20, y, { align: 'right' }); y += 6
+        doc.text(formatMoney(data.expenditure.opex.total, 'USD'), W - 20, y, { align: 'right' }); y += 6
         for (const cat of data.expenditure.opex.byCategory) {
           doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...GREY)
           doc.text(cat.category, 30, y)
-          doc.text(`$${cat.total.toLocaleString()}`, W - 25, y, { align: 'right' }); y += 5
+          doc.text(formatMoney(cat.total, 'USD'), W - 25, y, { align: 'right' }); y += 5
         }
         y += 3
       }
@@ -464,7 +465,7 @@ function IEStatement() {
       doc.setFontSize(12)
       doc.setTextColor(...DARK)
       doc.text('Total Expenditure', 25, y)
-      doc.text(`$${data.expenditure.total.toLocaleString()}`, W - 20, y, { align: 'right' }); y += 12
+      doc.text(formatMoney(data.expenditure.total, 'USD'), W - 20, y, { align: 'right' }); y += 12
 
       // Net Balance
       doc.setFillColor(240, 249, 255)
@@ -474,7 +475,7 @@ function IEStatement() {
       const balColor = data.netBalance >= 0 ? [5, 150, 105] as const : [239, 68, 68] as const
       doc.setTextColor(balColor[0], balColor[1], balColor[2])
       doc.text('NET BALANCE', 28, y + 10)
-      doc.text(`$${data.netBalance.toLocaleString()}`, W - 28, y + 10, { align: 'right' })
+      doc.text(formatMoney(data.netBalance, 'USD'), W - 28, y + 10, { align: 'right' })
 
       doc.save(`ie-statement-${now.toISOString().slice(0, 10)}.pdf`)
     } catch (e) { console.error('PDF export failed:', e) }
@@ -516,20 +517,20 @@ function IEStatement() {
             <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-5 py-4" style={{ background: 'var(--tulip-sage)' }}>
               <div className="text-xs text-[var(--tulip-forest)]/60 mb-1">{t('analytics.totalIncome')}</div>
               <div className="text-xl font-bold text-emerald-400" style={{ fontFamily: 'Inter, sans-serif' }}>
-                ${data.income.total.toLocaleString()}
+                {formatMoney(data.income.total, 'USD')}
               </div>
             </div>
             <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-5 py-4" style={{ background: 'var(--tulip-sage)' }}>
               <div className="text-xs text-[var(--tulip-forest)]/60 mb-1">{t('analytics.totalExpenditure')}</div>
               <div className="text-xl font-bold text-orange-400" style={{ fontFamily: 'Inter, sans-serif' }}>
-                ${data.expenditure.total.toLocaleString()}
+                {formatMoney(data.expenditure.total, 'USD')}
               </div>
             </div>
             <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-5 py-4" style={{ background: 'var(--tulip-sage)' }}>
               <div className="text-xs text-[var(--tulip-forest)]/60 mb-1">{t('analytics.netBalance')}</div>
               <div className={`text-xl font-bold ${data.netBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}
                 style={{ fontFamily: 'Inter, sans-serif' }}>
-                ${data.netBalance.toLocaleString()}
+                {formatMoney(data.netBalance, 'USD')}
               </div>
             </div>
           </div>
@@ -547,12 +548,12 @@ function IEStatement() {
                   <div key={source.sourceType} className="px-5 py-3">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-medium text-[var(--tulip-forest)]">{source.sourceType}</span>
-                      <span className="text-sm font-bold text-[var(--tulip-forest)]">${source.total.toLocaleString()}</span>
+                      <span className="text-sm font-bold text-[var(--tulip-forest)]">{formatMoney(source.total, 'USD')}</span>
                     </div>
                     {source.items.map((item: { id: string; title: string; totalAmount: number }) => (
                       <div key={item.id} className="flex items-center justify-between pl-4 py-0.5">
                         <span className="text-xs text-[var(--tulip-forest)]/60">{item.title}</span>
-                        <span className="text-xs text-[var(--tulip-forest)]/40">${item.totalAmount.toLocaleString()}</span>
+                        <span className="text-xs text-[var(--tulip-forest)]/40">{formatMoney(item.totalAmount, 'USD')}</span>
                       </div>
                     ))}
                   </div>
@@ -560,7 +561,7 @@ function IEStatement() {
                 <div className="px-5 py-3 bg-emerald-400/5">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-bold text-emerald-400">{t('analytics.totalIncome')}</span>
-                    <span className="text-sm font-bold text-emerald-400">${data.income.total.toLocaleString()}</span>
+                    <span className="text-sm font-bold text-emerald-400">{formatMoney(data.income.total, 'USD')}</span>
                   </div>
                 </div>
               </div>
@@ -578,12 +579,12 @@ function IEStatement() {
                 <div className="px-5 py-3">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-purple-400">{t('analytics.capex')}</span>
-                    <span className="text-sm font-bold text-[var(--tulip-forest)]">${data.expenditure.capex.total.toLocaleString()}</span>
+                    <span className="text-sm font-bold text-[var(--tulip-forest)]">{formatMoney(data.expenditure.capex.total, 'USD')}</span>
                   </div>
                   {data.expenditure.capex.byCategory.map(cat => (
                     <div key={cat.category} className="flex items-center justify-between pl-4 py-0.5">
                       <span className="text-xs text-[var(--tulip-forest)]/60">{cat.category}</span>
-                      <span className="text-xs text-[var(--tulip-forest)]/40">${cat.total.toLocaleString()}</span>
+                      <span className="text-xs text-[var(--tulip-forest)]/40">{formatMoney(cat.total, 'USD')}</span>
                     </div>
                   ))}
                 </div>
@@ -594,12 +595,12 @@ function IEStatement() {
                 <div className="px-5 py-3">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-cyan-400">{t('analytics.opex')}</span>
-                    <span className="text-sm font-bold text-[var(--tulip-forest)]">${data.expenditure.opex.total.toLocaleString()}</span>
+                    <span className="text-sm font-bold text-[var(--tulip-forest)]">{formatMoney(data.expenditure.opex.total, 'USD')}</span>
                   </div>
                   {data.expenditure.opex.byCategory.map(cat => (
                     <div key={cat.category} className="flex items-center justify-between pl-4 py-0.5">
                       <span className="text-xs text-[var(--tulip-forest)]/60">{cat.category}</span>
-                      <span className="text-xs text-[var(--tulip-forest)]/40">${cat.total.toLocaleString()}</span>
+                      <span className="text-xs text-[var(--tulip-forest)]/40">{formatMoney(cat.total, 'USD')}</span>
                     </div>
                   ))}
                 </div>
@@ -610,7 +611,7 @@ function IEStatement() {
                 <div className="px-5 py-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-[var(--tulip-forest)]/60">{t('analytics.otherUncategorised')}</span>
-                    <span className="text-sm font-bold text-[var(--tulip-forest)]">${data.expenditure.other.total.toLocaleString()}</span>
+                    <span className="text-sm font-bold text-[var(--tulip-forest)]">{formatMoney(data.expenditure.other.total, 'USD')}</span>
                   </div>
                 </div>
               )}
@@ -622,7 +623,7 @@ function IEStatement() {
               <div className="px-5 py-3 bg-orange-400/5">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-bold text-orange-400">{t('analytics.totalExpenditure')}</span>
-                  <span className="text-sm font-bold text-orange-400">${data.expenditure.total.toLocaleString()}</span>
+                  <span className="text-sm font-bold text-orange-400">{formatMoney(data.expenditure.total, 'USD')}</span>
                 </div>
               </div>
             </div>
@@ -634,7 +635,7 @@ function IEStatement() {
               <span className="text-base font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('analytics.netBalance')}</span>
               <span className={`text-xl font-bold ${data.netBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}
                 style={{ fontFamily: 'Inter, sans-serif' }}>
-                ${data.netBalance.toLocaleString()}
+                {formatMoney(data.netBalance, 'USD')}
               </span>
             </div>
           </div>
@@ -850,8 +851,8 @@ export default function AnalyticsPage() {
           {[
             { labelKey: 'totalDocuments', value: data.totals.totalDocuments, icon: FileText, color: 'text-indigo-400', bg: 'rgba(99,102,241,0.10)' },
             { labelKey: 'verified', value: data.totals.totalVerified, icon: Shield, color: 'text-emerald-400', bg: 'rgba(16,185,129,0.10)' },
-            { labelKey: 'fundingReceived', value: `$${data.totals.totalFundingReceived.toLocaleString()}`, icon: Banknote, color: 'text-[var(--tulip-forest)]', bg: 'rgba(59,130,246,0.10)' },
-            { labelKey: 'expensesLabel', value: `$${data.totals.totalExpenses.toLocaleString()}`, icon: Receipt, color: 'text-orange-400', bg: 'rgba(249,115,22,0.10)' },
+            { labelKey: 'fundingReceived', value: formatMoney(data.totals.totalFundingReceived, 'USD'), icon: Banknote, color: 'text-[var(--tulip-forest)]', bg: 'rgba(59,130,246,0.10)' },
+            { labelKey: 'expensesLabel', value: formatMoney(data.totals.totalExpenses, 'USD'), icon: Receipt, color: 'text-orange-400', bg: 'rgba(249,115,22,0.10)' },
           ].map(({ labelKey, value, icon: Icon, color, bg }) => (
             <div key={labelKey} className="rounded-xl border border-[var(--tulip-sage-dark)] px-4 py-4" style={{ background: 'var(--tulip-sage)' }}>
               <div className="flex items-center gap-2 mb-2">
@@ -965,7 +966,7 @@ export default function AnalyticsPage() {
                     <div key={cat.category} className="flex items-center gap-2 text-xs">
                       <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: DONUT_COLORS[i % DONUT_COLORS.length] }} />
                       <span className="text-[var(--tulip-forest)]/60">{cat.category}</span>
-                      <span className="text-[var(--tulip-forest)]/40">${cat.amount.toLocaleString()}</span>
+                      <span className="text-[var(--tulip-forest)]/40">{formatMoney(cat.amount, 'USD')}</span>
                     </div>
                   ))}
                 </div>

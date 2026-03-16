@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save, CheckCircle } from 'lucide-react'
 import DocumentUploadSection from '@/components/DocumentUploadSection'
+import CurrencySelect from '@/components/CurrencySelect'
 import { useTranslations } from 'next-intl'
 
 export default function NewProjectPage() {
@@ -16,7 +17,8 @@ export default function NewProjectPage() {
   const [savedProjectId, setSavedProjectId] = useState<string | null>(null)
   const [form, setForm] = useState({
     name: '', description: '', status: 'active',
-    startDate: '', endDate: ''
+    startDate: '', endDate: '',
+    baseCurrency: 'USD', donorReportingCurrency: '',
   })
 
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
@@ -31,6 +33,8 @@ export default function NewProjectPage() {
         status: form.status,
         ...(form.startDate && { startDate: form.startDate }),
         ...(form.endDate && { endDate: form.endDate }),
+        baseCurrency: form.baseCurrency || 'USD',
+        ...(form.donorReportingCurrency && { donorReportingCurrency: form.donorReportingCurrency }),
       })
       if (res.ok) {
         const data = await res.json()
@@ -94,6 +98,19 @@ export default function NewProjectPage() {
               <div>
                 <label className={labelCls}>{t('projects.endDate')}</label>
                 <input type="date" value={form.endDate} onChange={e => set('endDate', e.target.value)} className={inputCls} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelCls}>Base Currency</label>
+                <p className="text-xs text-[var(--tulip-forest)]/40 mb-1">Used for all expenses and budgets</p>
+                <CurrencySelect value={form.baseCurrency} onChange={v => set('baseCurrency', v)} />
+              </div>
+              <div>
+                <label className={labelCls}>Donor Reporting Currency</label>
+                <p className="text-xs text-[var(--tulip-forest)]/40 mb-1">Used for donor-facing views and reports</p>
+                <CurrencySelect value={form.donorReportingCurrency} onChange={v => set('donorReportingCurrency', v)} />
               </div>
             </div>
 

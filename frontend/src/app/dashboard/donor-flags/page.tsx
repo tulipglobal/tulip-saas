@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { apiGet, apiPost } from '@/lib/api'
 import { Flag, Check, AlertCircle, Clock, ChevronDown, X, Send } from 'lucide-react'
 
@@ -13,9 +14,9 @@ function fmtDate(d: string | Date | null | undefined): string {
     + ' ' + dt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })
 }
 
-function timeAgo(d: string | Date): string {
+function timeAgo(d: string | Date, t: (key: string) => string): string {
   const diff = Math.floor((Date.now() - new Date(d).getTime()) / 1000)
-  if (diff < 60) return 'just now'
+  if (diff < 60) return t('donorFlags.justNow')
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
   if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`
@@ -49,6 +50,7 @@ function Toast({ message, type, onClose }: { message: string; type: 'success' | 
 
 // ── Status pill ──
 function StatusPill({ status }: { status: string }) {
+  const t = useTranslations()
   const map: Record<string, string> = {
     OPEN: 'bg-amber-100 text-amber-700 border-amber-200',
     RESPONDED: 'bg-blue-100 text-blue-700 border-blue-200',
@@ -57,13 +59,14 @@ function StatusPill({ status }: { status: string }) {
   }
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${map[status] || map.OPEN}`}>
-      {status === 'CONFIRMED' ? 'Resolved' : status}
+      {status === 'CONFIRMED' ? t('donorFlags.resolved') : status}
     </span>
   )
 }
 
 // ── Respond Modal ──
 function RespondModal({ challenge, onClose, onSuccess }: { challenge: Challenge; onClose: () => void; onSuccess: (msg: string) => void }) {
+  const t = useTranslations()
   const [action, setAction] = useState<'EXPLAIN' | 'VOID_REQUESTED'>('EXPLAIN')
   const [note, setNote] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -81,7 +84,7 @@ function RespondModal({ challenge, onClose, onSuccess }: { challenge: Challenge;
     try {
       const r = await apiPost(`/api/ngo/donor-challenges/${challenge.id}/respond`, { note: note.trim(), action })
       if (r.ok) {
-        onSuccess(`Response sent to ${challenge.donorOrg?.name || 'donor'}`)
+        onSuccess(t('donorFlags.responseSent', { donor: challenge.donorOrg?.name || t('donorFlags.donor') }))
         onClose()
       }
     } catch { /* ignore */ }
@@ -93,17 +96,17 @@ function RespondModal({ challenge, onClose, onSuccess }: { challenge: Challenge;
       <div ref={modalRef} className="bg-[var(--tulip-cream)] rounded-2xl border border-[var(--tulip-sage-dark)] shadow-xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col overflow-hidden">
         {/* Header */}
         <div className="px-6 py-4 border-b border-[var(--tulip-sage-dark)] flex items-center justify-between">
-          <h2 className="text-lg font-bold text-[var(--tulip-forest)]">Respond to Donor Flag</h2>
+          <h2 className="text-lg font-bold text-[var(--tulip-forest)]">{t('donorFlags.respondTitle')}</h2>
           <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[var(--tulip-sage)] text-[var(--tulip-forest)]"><X size={18} /></button>
         </div>
 
         <div className="overflow-y-auto p-6 space-y-5">
           {/* Donor's flag */}
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide mb-2 text-[var(--tulip-forest)]/60">The donor&apos;s flag</p>
+            <p className="text-xs font-medium uppercase tracking-wide mb-2 text-[var(--tulip-forest)]/60">{t('donorFlags.donorFlag')}</p>
             <div className="rounded-xl px-4 py-3 bg-amber-50 border border-amber-200">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-semibold text-amber-700">{challenge.donorOrg?.name || 'Donor'}</span>
+                <span className="text-xs font-semibold text-amber-700">{challenge.donorOrg?.name || t('donorFlags.donor')}</span>
                 <span className="text-xs text-[var(--tulip-forest)]/50">{fmtDate(challenge.createdAt)}</span>
               </div>
               <p className="text-sm text-[var(--tulip-forest)]">{challenge.note}</p>
@@ -113,13 +116,13 @@ function RespondModal({ challenge, onClose, onSuccess }: { challenge: Challenge;
           {/* Previous responses */}
           {challenge.responses.length > 0 && (
             <div>
-              <p className="text-xs font-medium uppercase tracking-wide mb-2 text-[var(--tulip-forest)]/60">Previous responses</p>
+              <p className="text-xs font-medium uppercase tracking-wide mb-2 text-[var(--tulip-forest)]/60">{t('donorFlags.previousResponses')}</p>
               <div className="space-y-2">
                 {challenge.responses.map(r => (
                   <div key={r.id} className="rounded-xl px-4 py-3 border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-semibold text-[var(--tulip-forest)]">
-                        {r.respondedByType === 'NGO' ? 'Your response' : 'Donor'} — {r.action === 'EXPLAIN' ? 'Explanation' : r.action === 'VOID_REQUESTED' ? 'Void offered' : r.action === 'CONFIRM' ? 'Confirmed' : r.action === 'ESCALATE' ? 'Re-flagged' : r.action}
+                        {r.respondedByType === 'NGO' ? t('donorFlags.ngoResponse') : t('donorFlags.donor')} — {r.action === 'EXPLAIN' ? t('donorFlags.explanation') : r.action === 'VOID_REQUESTED' ? t('donorFlags.voidOffered') : r.action === 'CONFIRM' ? t('donorFlags.confirmed') : r.action === 'ESCALATE' ? t('donorFlags.reFlagged') : r.action}
                       </span>
                       <span className="text-xs text-[var(--tulip-forest)]/50">{fmtDate(r.createdAt)}</span>
                     </div>
@@ -132,7 +135,7 @@ function RespondModal({ challenge, onClose, onSuccess }: { challenge: Challenge;
 
           {/* Your response */}
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide mb-3 text-[var(--tulip-forest)]/60">Your response</p>
+            <p className="text-xs font-medium uppercase tracking-wide mb-3 text-[var(--tulip-forest)]/60">{t('donorFlags.yourResponse')}</p>
 
             <div className="space-y-3">
               <label className="flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all"
@@ -140,8 +143,8 @@ function RespondModal({ challenge, onClose, onSuccess }: { challenge: Challenge;
                 <input type="radio" name="action" checked={action === 'EXPLAIN'} onChange={() => setAction('EXPLAIN')}
                   className="mt-0.5 accent-[var(--tulip-gold)]" />
                 <div>
-                  <p className="text-sm font-medium text-[var(--tulip-forest)]">Provide explanation</p>
-                  <p className="text-xs text-[var(--tulip-forest)]/60">I will keep this expense and explain why it is valid</p>
+                  <p className="text-sm font-medium text-[var(--tulip-forest)]">{t('donorFlags.provideExplanation')}</p>
+                  <p className="text-xs text-[var(--tulip-forest)]/60">{t('donorFlags.explainDesc')}</p>
                 </div>
               </label>
 
@@ -150,15 +153,15 @@ function RespondModal({ challenge, onClose, onSuccess }: { challenge: Challenge;
                 <input type="radio" name="action" checked={action === 'VOID_REQUESTED'} onChange={() => setAction('VOID_REQUESTED')}
                   className="mt-0.5 accent-[var(--tulip-gold)]" />
                 <div>
-                  <p className="text-sm font-medium text-[var(--tulip-forest)]">Offer to void</p>
-                  <p className="text-xs text-[var(--tulip-forest)]/60">I will remove this expense from the project</p>
+                  <p className="text-sm font-medium text-[var(--tulip-forest)]">{t('donorFlags.offerToVoid')}</p>
+                  <p className="text-xs text-[var(--tulip-forest)]/60">{t('donorFlags.voidDesc')}</p>
                 </div>
               </label>
             </div>
 
             <textarea value={note} onChange={e => setNote(e.target.value.slice(0, 500))} rows={3}
               className="w-full mt-3 bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] transition-all"
-              placeholder="Your response to the donor..." />
+              placeholder={t('donorFlags.responsePlaceholder')} />
             <div className="flex justify-between mt-1">
               <span className="text-xs text-[var(--tulip-forest)]/40">{note.length}/500</span>
             </div>
@@ -167,11 +170,11 @@ function RespondModal({ challenge, onClose, onSuccess }: { challenge: Challenge;
 
         {/* Footer */}
         <div className="px-6 py-4 border-t border-[var(--tulip-sage-dark)] flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] transition-all">Cancel</button>
+          <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] transition-all">{t('donorFlags.cancel')}</button>
           <button onClick={handleSubmit} disabled={submitting || !note.trim()}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] disabled:opacity-50 transition-all">
             <Send size={14} />
-            {submitting ? 'Sending...' : 'Send Response'}
+            {submitting ? t('donorFlags.sending') : t('donorFlags.sendResponse')}
           </button>
         </div>
       </div>
@@ -181,6 +184,7 @@ function RespondModal({ challenge, onClose, onSuccess }: { challenge: Challenge;
 
 // ── Main Page ──
 export default function DonorFlagsPage() {
+  const t = useTranslations()
   const [challenges, setChallenges] = useState<Challenge[]>([])
   const [counts, setCounts] = useState<Counts>({ open: 0, responded: 0, escalated: 0, confirmed: 0 })
   const [loading, setLoading] = useState(true)
@@ -209,12 +213,12 @@ export default function DonorFlagsPage() {
   })
 
   const tabs = [
-    { key: 'active', label: 'Active', count: counts.open + counts.escalated },
-    { key: 'all', label: 'All', count: null },
-    { key: 'OPEN', label: 'Open', count: counts.open },
-    { key: 'RESPONDED', label: 'Responded', count: counts.responded },
-    { key: 'ESCALATED', label: 'Escalated', count: counts.escalated },
-    { key: 'CONFIRMED', label: 'Resolved', count: counts.confirmed },
+    { key: 'active', label: t('donorFlags.active'), count: counts.open + counts.escalated },
+    { key: 'all', label: t('donorFlags.all'), count: null },
+    { key: 'OPEN', label: t('donorFlags.open'), count: counts.open },
+    { key: 'RESPONDED', label: t('donorFlags.responded'), count: counts.responded },
+    { key: 'ESCALATED', label: t('donorFlags.escalated'), count: counts.escalated },
+    { key: 'CONFIRMED', label: t('donorFlags.resolved'), count: counts.confirmed },
   ]
 
   if (loading) {
@@ -231,26 +235,26 @@ export default function DonorFlagsPage() {
     <div className="p-4 md:p-6 space-y-6 animate-fade-up">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-[var(--tulip-forest)]">Donor Flags</h1>
-        <p className="text-sm text-[var(--tulip-forest)]/60 mt-1">Expenses flagged by your donors for review</p>
+        <h1 className="text-2xl font-bold text-[var(--tulip-forest)]">{t('donorFlags.title')}</h1>
+        <p className="text-sm text-[var(--tulip-forest)]/60 mt-1">{t('donorFlags.subtitle')}</p>
       </div>
 
       {/* Summary stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-4 py-3 bg-[var(--tulip-sage)]">
-          <p className="text-xs text-[var(--tulip-forest)]/60">Open</p>
+          <p className="text-xs text-[var(--tulip-forest)]/60">{t('donorFlags.open')}</p>
           <p className="text-xl font-bold text-amber-600">{counts.open}</p>
         </div>
         <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-4 py-3 bg-[var(--tulip-sage)]">
-          <p className="text-xs text-[var(--tulip-forest)]/60">Responded</p>
+          <p className="text-xs text-[var(--tulip-forest)]/60">{t('donorFlags.responded')}</p>
           <p className="text-xl font-bold text-blue-600">{counts.responded}</p>
         </div>
         <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-4 py-3 bg-[var(--tulip-sage)]">
-          <p className="text-xs text-[var(--tulip-forest)]/60">Escalated</p>
+          <p className="text-xs text-[var(--tulip-forest)]/60">{t('donorFlags.escalated')}</p>
           <p className="text-xl font-bold text-red-600">{counts.escalated}</p>
         </div>
         <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-4 py-3 bg-[var(--tulip-sage)]">
-          <p className="text-xs text-[var(--tulip-forest)]/60">Resolved</p>
+          <p className="text-xs text-[var(--tulip-forest)]/60">{t('donorFlags.resolved')}</p>
           <p className="text-xl font-bold text-green-600">{counts.confirmed}</p>
         </div>
       </div>
@@ -275,20 +279,20 @@ export default function DonorFlagsPage() {
         {filtered.length === 0 ? (
           <div className="px-6 py-12 text-center">
             <Flag size={32} className="mx-auto mb-3 text-[var(--tulip-forest)]/20" />
-            <p className="text-sm text-[var(--tulip-forest)]/50">No flags in this category.</p>
+            <p className="text-sm text-[var(--tulip-forest)]/50">{t('donorFlags.noFlags')}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--tulip-sage-dark)]">
-                  <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/50">Project</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/50">Expense</th>
-                  <th className="text-right px-4 py-3 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/50">Amount</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/50">Donor Org</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/50">Flagged</th>
-                  <th className="text-center px-4 py-3 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/50">Status</th>
-                  <th className="text-center px-4 py-3 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/50">Action</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/50">{t('donorFlags.project')}</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/50">{t('donorFlags.expense')}</th>
+                  <th className="text-right px-4 py-3 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/50">{t('donorFlags.amount')}</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/50">{t('donorFlags.donorOrg')}</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/50">{t('donorFlags.flagged')}</th>
+                  <th className="text-center px-4 py-3 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/50">{t('donorFlags.status')}</th>
+                  <th className="text-center px-4 py-3 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/50">{t('donorFlags.action')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -303,17 +307,17 @@ export default function DonorFlagsPage() {
                       {c.expense?.currency || 'USD'} {(c.expense?.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </td>
                     <td className="px-4 py-3 text-[var(--tulip-forest)]">{c.donorOrg?.name || '—'}</td>
-                    <td className="px-4 py-3 text-[var(--tulip-forest)]/70" title={fmtDate(c.createdAt)}>{timeAgo(c.createdAt)}</td>
+                    <td className="px-4 py-3 text-[var(--tulip-forest)]/70" title={fmtDate(c.createdAt)}>{timeAgo(c.createdAt, t)}</td>
                     <td className="px-4 py-3 text-center"><StatusPill status={c.status} /></td>
                     <td className="px-4 py-3 text-center">
                       {['OPEN', 'ESCALATED'].includes(c.status) ? (
                         <button onClick={() => setRespondChallenge(c)}
                           className="px-3 py-1 rounded-lg text-xs font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] transition-all">
-                          Respond
+                          {t('donorFlags.respond')}
                         </button>
                       ) : (
                         <button onClick={() => setRespondChallenge(c)}
-                          className="text-xs text-[var(--tulip-forest)]/50 hover:underline">View</button>
+                          className="text-xs text-[var(--tulip-forest)]/50 hover:underline">{t('donorFlags.view')}</button>
                       )}
                     </td>
                   </tr>

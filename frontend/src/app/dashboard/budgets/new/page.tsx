@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { apiGet, apiPost } from '@/lib/api'
 import { ArrowLeft, Plus, Trash2, AlertTriangle, CheckCircle } from 'lucide-react'
@@ -8,6 +9,7 @@ import Link from 'next/link'
 import { getCategoriesForType, FUNDING_SOURCE_TYPES, FUNDING_SOURCE_TYPE_KEYS } from '@/lib/ngo-categories'
 import type { ExpenseType } from '@/lib/ngo-categories'
 import CurrencySelect from '@/components/CurrencySelect'
+import { formatMoney } from '@/lib/currencies'
 
 interface BudgetLineForm {
   key: string
@@ -268,9 +270,9 @@ function NewBudgetInner() {
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold text-[var(--tulip-forest)]/70 uppercase tracking-wide">Budget Lines</h2>
           <div className="flex items-center gap-4 text-xs">
-            <span className="text-purple-400">CapEx: ${totalCapex.toLocaleString()}</span>
-            <span className="text-cyan-400">OpEx: ${totalOpex.toLocaleString()}</span>
-            <span className="text-[var(--tulip-forest)] font-medium">Total: ${totalBudget.toLocaleString()}</span>
+            <span className="text-purple-400">CapEx: {formatMoney(totalCapex, lines[0]?.currency || 'USD')}</span>
+            <span className="text-cyan-400">OpEx: {formatMoney(totalOpex, lines[0]?.currency || 'USD')}</span>
+            <span className="text-[var(--tulip-forest)] font-medium">Total: {formatMoney(totalBudget, lines[0]?.currency || 'USD')}</span>
           </div>
         </div>
 
@@ -486,12 +488,12 @@ function NewBudgetInner() {
             <div className="flex items-center gap-3 text-sm">
               {isFullyFunded
                 ? <><CheckCircle size={16} className="text-green-400" /><span className="text-green-400 font-medium">Fully Funded</span></>
-                : <><AlertTriangle size={16} className="text-yellow-400" /><span className="text-yellow-400 font-medium">Gap: ${fundingGap.toLocaleString()}</span></>
+                : <><AlertTriangle size={16} className="text-yellow-400" /><span className="text-yellow-400 font-medium">Gap: {formatMoney(fundingGap, lines[0]?.currency || 'USD')}</span></>
               }
             </div>
             <div className="flex items-center gap-4 text-xs text-[var(--tulip-forest)]/60">
-              <span>Required: <span className="text-[var(--tulip-forest)] font-medium">${totalBudget.toLocaleString()}</span></span>
-              <span>Funded: <span className="text-[var(--tulip-forest)] font-medium">${totalFunded.toLocaleString()}</span></span>
+              <span>Required: <span className="text-[var(--tulip-forest)] font-medium">{formatMoney(totalBudget, lines[0]?.currency || 'USD')}</span></span>
+              <span>Funded: <span className="text-[var(--tulip-forest)] font-medium">{formatMoney(totalFunded, lines[0]?.currency || 'USD')}</span></span>
             </div>
           </div>
         )}

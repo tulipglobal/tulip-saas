@@ -5,6 +5,7 @@ import { apiGet } from '@/lib/api'
 import Link from 'next/link'
 import { BarChart3, Plus, Search } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { formatMoney } from '@/lib/currencies'
 
 interface BudgetLine {
   id: string
@@ -86,8 +87,8 @@ export default function BudgetsPage() {
       {filtered.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { label: t('budgets.totalBudgeted'), value: `$${totalBudgeted.toLocaleString()}` },
-            { label: t('budgets.totalSpent'), value: `$${totalSpent.toLocaleString()}` },
+            { label: t('budgets.totalBudgeted'), value: formatMoney(totalBudgeted, 'USD') },
+            { label: t('budgets.totalSpent'), value: formatMoney(totalSpent, 'USD') },
             { label: t('budgets.utilisation'), value: totalBudgeted > 0 ? `${Math.round((totalSpent / totalBudgeted) * 100)}%` : '0%' },
           ].map(({ label, value }) => (
             <div key={label} className="rounded-xl border border-[var(--tulip-sage-dark)] px-5 py-4"
@@ -139,7 +140,7 @@ export default function BudgetsPage() {
                     <div className="flex flex-wrap items-center gap-2 mt-2 lg:hidden">
                       <StatusBadge status={b.status} />
                       <span className="text-xs text-[var(--tulip-forest)]/60">{formatDate(b.periodFrom)} – {formatDate(b.periodTo)}</span>
-                      <span className="text-sm font-medium text-[var(--tulip-forest)]">${b.totalApproved.toLocaleString()}</span>
+                      <span className="text-sm font-medium text-[var(--tulip-forest)]">{formatMoney(b.totalApproved, b.lines?.[0]?.currency || 'USD')}</span>
                     </div>
                     <div className="flex items-center gap-2 mt-2 lg:hidden">
                       <div className="flex-1 h-1.5 rounded-full bg-[var(--tulip-sage)] overflow-hidden">
@@ -158,7 +159,7 @@ export default function BudgetsPage() {
                     {capexLines} CapEx · {opexLines} OpEx
                   </div>
                   <div className="hidden lg:block text-sm font-medium text-[var(--tulip-forest)]">
-                    ${b.totalApproved.toLocaleString()}
+                    {formatMoney(b.totalApproved, b.lines?.[0]?.currency || 'USD')}
                   </div>
                   <div className="hidden lg:block"><StatusBadge status={b.status} /></div>
                   <div className="hidden lg:flex items-center gap-2">

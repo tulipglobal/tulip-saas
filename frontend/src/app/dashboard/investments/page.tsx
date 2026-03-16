@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { apiGet, apiPost } from '@/lib/api'
+import { formatMoney } from '@/lib/currencies'
 
 /* ── types ── */
 interface Covenant {
@@ -233,7 +234,7 @@ export default function InvestmentsPage() {
 
   /* ── helpers ── */
   function fmtCurrency(amount: number, currency: string) {
-    return `${currency} ${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    return formatMoney(amount, currency)
   }
 
   function fmtDate(iso: string) {

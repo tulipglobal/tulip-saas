@@ -2,8 +2,11 @@
 
 import Link from 'next/link'
 import { Shield, FileCheck, Lock, ArrowRight } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 export default function DonorLandingPage() {
+  const t = useTranslations('donorLanding')
+
   return (
     <div className="min-h-screen bg-[var(--tulip-cream)] flex flex-col" style={{ fontFamily: 'Inter, sans-serif' }}>
 
@@ -18,10 +21,10 @@ export default function DonorLandingPage() {
             <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: 'var(--tulip-forest)' }}>
               tulip<span style={{ color: '#10b981' }}>ds</span>
             </span>
-            <span className="text-[var(--tulip-forest)]/30 text-sm ml-1">| Donor Portal</span>
+            <span className="text-[var(--tulip-forest)]/30 text-sm ml-1">| {t('donorPortal')}</span>
           </Link>
           <Link href="/login" className="text-[var(--tulip-forest)]/60 text-sm hover:text-[var(--tulip-forest)]/70 transition-colors">
-            NGO Login
+            {t('ngoLogin')}
           </Link>
         </div>
       </nav>
@@ -33,17 +36,17 @@ export default function DonorLandingPage() {
           <Shield className="w-8 h-8 text-[var(--tulip-forest)]" />
         </div>
         <h1 className="text-4xl md:text-5xl font-bold text-[var(--tulip-forest)] mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
-          Donor Transparency Portal
+          {t('title')}
         </h1>
         <p className="text-[var(--tulip-forest)]/60 text-lg max-w-xl mx-auto mb-10 leading-relaxed">
-          Your NGO partner shares verified documents with you in real time. Every document is blockchain-sealed and cannot be altered.
+          {t('subtitle')}
         </p>
         <Link
           href="/donor/login"
           className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-white font-semibold text-sm hover:opacity-90 transition-opacity"
           style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}
         >
-          Sign in to Donor Portal
+          {t('signIn')}
           <ArrowRight className="w-4 h-4" />
         </Link>
       </section>
@@ -57,10 +60,10 @@ export default function DonorLandingPage() {
               <Shield className="w-6 h-6 text-emerald-400" />
             </div>
             <h3 className="text-[var(--tulip-forest)] font-semibold text-base mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
-              Blockchain Verified
+              {t('blockchainVerified')}
             </h3>
             <p className="text-[var(--tulip-forest)]/60 text-sm leading-relaxed">
-              Every document is SHA-256 hashed and anchored to Polygon blockchain
+              {t('blockchainVerifiedDesc')}
             </p>
           </div>
 
@@ -70,10 +73,10 @@ export default function DonorLandingPage() {
               <FileCheck className="w-6 h-6 text-emerald-400" />
             </div>
             <h3 className="text-[var(--tulip-forest)] font-semibold text-base mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
-              Real-Time Access
+              {t('realTimeAccess')}
             </h3>
             <p className="text-[var(--tulip-forest)]/60 text-sm leading-relaxed">
-              View all shared documents as soon as they&apos;re uploaded by your NGO partner
+              {t('realTimeAccessDesc')}
             </p>
           </div>
 
@@ -83,10 +86,10 @@ export default function DonorLandingPage() {
               <Lock className="w-6 h-6 text-emerald-400" />
             </div>
             <h3 className="text-[var(--tulip-forest)] font-semibold text-base mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
-              Tamper-Proof
+              {t('tamperProof')}
             </h3>
             <p className="text-[var(--tulip-forest)]/60 text-sm leading-relaxed">
-              Cryptographic sealing ensures no document can be altered after upload
+              {t('tamperProofDesc')}
             </p>
           </div>
         </div>
@@ -96,10 +99,10 @@ export default function DonorLandingPage() {
       <footer className="border-t border-[var(--tulip-sage-dark)] py-4">
         <div className="max-w-5xl mx-auto px-6 flex items-center justify-between">
           <p className="text-[var(--tulip-forest)]/30 text-xs">
-            &copy; 2026 Tulip DS &middot; Bright Bytes Technology &middot; Dubai, UAE
+            {t('footer')}
           </p>
           <Link href="/verify" className="text-emerald-400/60 text-xs hover:text-emerald-400 transition-colors">
-            Verify a document
+            {t('verifyADocument')}
           </Link>
         </div>
       </footer>

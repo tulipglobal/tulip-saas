@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { ArrowLeft, Banknote, Receipt, Edit3, Check, X, Plus, Trash2, AlertTriangle, CheckCircle, ChevronDown, ChevronUp, Upload } from 'lucide-react'
 import { FUNDING_SOURCE_TYPES, FUNDING_SOURCE_TYPE_KEYS } from '@/lib/ngo-categories'
 import CurrencySelect from '@/components/CurrencySelect'
+import { formatMoney } from '@/lib/currencies'
 
 interface BudgetLine {
   id: string
@@ -458,10 +459,10 @@ export default function BudgetDetailPage() {
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total Budget Required', value: `$${budget.totalApproved.toLocaleString()}`, color: 'text-[var(--tulip-forest)]' },
-          { label: 'Total Funded', value: `$${budget.totalFunded.toLocaleString()}`, sub: `${fundingPct}%`, color: isFullyFunded ? 'text-green-400' : 'text-yellow-400' },
-          { label: 'Total Spent', value: `$${budget.totalSpent.toLocaleString()}`, sub: `${spentPct}%`, color: 'text-orange-400' },
-          { label: 'Remaining', value: `$${budget.remaining.toLocaleString()}`, color: budget.remaining >= 0 ? 'text-green-400' : 'text-red-400' },
+          { label: 'Total Budget Required', value: formatMoney(budget.totalApproved, budget.lines?.[0]?.currency || 'USD'), color: 'text-[var(--tulip-forest)]' },
+          { label: 'Total Funded', value: formatMoney(budget.totalFunded, budget.lines?.[0]?.currency || 'USD'), sub: `${fundingPct}%`, color: isFullyFunded ? 'text-green-400' : 'text-yellow-400' },
+          { label: 'Total Spent', value: formatMoney(budget.totalSpent, budget.lines?.[0]?.currency || 'USD'), sub: `${spentPct}%`, color: 'text-orange-400' },
+          { label: 'Remaining', value: formatMoney(budget.remaining, budget.lines?.[0]?.currency || 'USD'), color: budget.remaining >= 0 ? 'text-green-400' : 'text-red-400' },
         ].map(({ label, value, sub, color }) => (
           <div key={label} className="rounded-xl border border-[var(--tulip-sage-dark)] px-5 py-4" style={{ background: 'var(--tulip-sage)' }}>
             <div className={`text-lg font-bold ${color}`} style={{ fontFamily: 'Inter, sans-serif' }}>
@@ -513,12 +514,14 @@ export default function BudgetDetailPage() {
           )
         }
 
+        const budgetCurrency = budget.lines?.[0]?.currency || 'USD'
+
         const renderSubtotal = (label: string, approved: number, spent: number, remaining: number) => (
           <div className="px-5 py-2.5 lg:grid lg:grid-cols-[2fr_1fr_1fr_1fr_1fr] lg:gap-4 lg:items-center bg-[var(--tulip-cream)]/60 border-t border-[var(--tulip-sage-dark)]">
             <div className="text-xs font-semibold text-[var(--tulip-forest)]/70 uppercase tracking-wide">{label}</div>
-            <div className="text-sm text-[var(--tulip-forest)] font-bold">${approved.toLocaleString()}</div>
-            <div className="text-sm text-orange-500 font-bold">${spent.toLocaleString()}</div>
-            <div className={`text-sm font-bold ${remaining >= 0 ? 'text-green-500' : 'text-red-500'}`}>${remaining.toLocaleString()}</div>
+            <div className="text-sm text-[var(--tulip-forest)] font-bold">{formatMoney(approved, budgetCurrency)}</div>
+            <div className="text-sm text-orange-500 font-bold">{formatMoney(spent, budgetCurrency)}</div>
+            <div className={`text-sm font-bold ${remaining >= 0 ? 'text-green-500' : 'text-red-500'}`}>{formatMoney(remaining, budgetCurrency)}</div>
             <div />
           </div>
         )
@@ -567,9 +570,9 @@ export default function BudgetDetailPage() {
             {(capexLines.length > 0 && opexLines.length > 0) && (
               <div className="px-5 py-3 lg:grid lg:grid-cols-[2fr_1fr_1fr_1fr_1fr] lg:gap-4 lg:items-center bg-[var(--tulip-forest)]/5 border-t-2 border-[var(--tulip-forest)]/20">
                 <div className="text-sm font-bold text-[var(--tulip-forest)] uppercase tracking-wide">Grand Total</div>
-                <div className="text-sm text-[var(--tulip-forest)] font-bold">${grandApproved.toLocaleString()}</div>
-                <div className="text-sm text-orange-500 font-bold">${grandSpent.toLocaleString()}</div>
-                <div className={`text-sm font-bold ${grandRemaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>${grandRemaining.toLocaleString()}</div>
+                <div className="text-sm text-[var(--tulip-forest)] font-bold">{formatMoney(grandApproved, budgetCurrency)}</div>
+                <div className="text-sm text-orange-500 font-bold">{formatMoney(grandSpent, budgetCurrency)}</div>
+                <div className={`text-sm font-bold ${grandRemaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatMoney(grandRemaining, budgetCurrency)}</div>
                 <div />
               </div>
             )}

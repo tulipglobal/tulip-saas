@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { apiGet, apiPost } from '@/lib/api'
 import { ArrowLeft, Send, Check, AlertCircle } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface Project {
   id: string
@@ -22,6 +23,8 @@ function Toast({ message, type, onClose }: { message: string; type: 'success' | 
 }
 
 export default function InviteDonorPage() {
+  const t = useTranslations('donorInvite')
+  const tCommon = useTranslations('common')
   const router = useRouter()
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
@@ -53,7 +56,7 @@ export default function InviteDonorPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!donorOrgName || !email || !selectedProjects.length) {
-      setToast({ message: 'Please fill all required fields and select at least one project', type: 'error' })
+      setToast({ message: t('fillRequired'), type: 'error' })
       return
     }
     setSubmitting(true)
@@ -68,10 +71,10 @@ export default function InviteDonorPage() {
         router.push('/dashboard/settings/donors')
       } else {
         const err = await res.json()
-        setToast({ message: err.error || 'Failed to send invite', type: 'error' })
+        setToast({ message: err.error || t('failedToSend'), type: 'error' })
       }
     } catch {
-      setToast({ message: 'Failed to send invite', type: 'error' })
+      setToast({ message: t('failedToSend'), type: 'error' })
     }
     setSubmitting(false)
   }
@@ -87,42 +90,42 @@ export default function InviteDonorPage() {
           <ArrowLeft size={18} />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>Invite Donor</h1>
-          <p className="text-[var(--tulip-forest)]/60 text-sm mt-0.5">Share project access with a donor organisation</p>
+          <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('title')}</h1>
+          <p className="text-[var(--tulip-forest)]/60 text-sm mt-0.5">{t('subtitle')}</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-5 py-5 space-y-4 bg-[var(--tulip-sage)]">
           <div>
-            <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Donor Organisation Name *</label>
+            <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('donorOrgName')}</label>
             <input
               className={inputClass}
               value={donorOrgName}
               onChange={e => setDonorOrgName(e.target.value)}
-              placeholder="e.g. Gates Foundation"
+              placeholder={t('donorOrgPlaceholder')}
               required
             />
           </div>
 
           <div>
-            <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Contact Email *</label>
+            <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('contactEmail')}</label>
             <input
               className={inputClass}
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder="contact@donor.org"
+              placeholder={t('contactEmailPlaceholder')}
               required
             />
           </div>
 
           <div>
-            <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1.5">Select Projects * </label>
+            <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1.5">{t('selectProjects')}</label>
             {loading ? (
-              <p className="text-[var(--tulip-forest)]/40 text-sm">Loading projects...</p>
+              <p className="text-[var(--tulip-forest)]/40 text-sm">{t('loadingProjects')}</p>
             ) : projects.length === 0 ? (
-              <p className="text-[var(--tulip-forest)]/40 text-sm">No projects found. Create a project first.</p>
+              <p className="text-[var(--tulip-forest)]/40 text-sm">{t('noProjects')}</p>
             ) : (
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {projects.map(p => (
@@ -148,12 +151,12 @@ export default function InviteDonorPage() {
           </div>
 
           <div>
-            <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Message (optional)</label>
+            <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('messageLabel')}</label>
             <textarea
               className={inputClass + ' min-h-[80px] resize-y'}
               value={message}
               onChange={e => setMessage(e.target.value)}
-              placeholder="Optional message to include in the invite email..."
+              placeholder={t('messagePlaceholder')}
             />
           </div>
         </div>
@@ -165,10 +168,10 @@ export default function InviteDonorPage() {
             className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] disabled:opacity-50 transition-all"
           >
             <Send size={14} />
-            {submitting ? 'Sending...' : 'Send Invite'}
+            {submitting ? t('sending') : t('sendInvite')}
           </button>
           <Link href="/dashboard/settings/donors" className="px-4 py-2.5 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage-dark)]/40 transition-all">
-            Cancel
+            {tCommon('cancel')}
           </Link>
         </div>
       </form>

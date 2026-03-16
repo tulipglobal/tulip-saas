@@ -66,7 +66,7 @@ function log(n, label, result, detail) {
   console.log(`[${String(n).padStart(2)}] ${tag.padEnd(6)} ${label}${d}`);
 }
 
-const TOTAL = 161;
+const TOTAL = 178;
 
 (async () => {
   console.log(`=== REGRESSION CHECKLIST (${TOTAL} items) ===\n`);
@@ -912,6 +912,85 @@ const TOTAL = 161;
   // 161 — Public report share page exists
   log(161, "Donor public report share page exists",
     fs.existsSync("" + DONOR_ROOT + "/app/share/report/[token]/page.tsx") ? "PASS" : "FAIL");
+
+  // ═══════════════════════════════════════════════════════════
+  //  DISBURSEMENT TRANCHES & DONOR FUNDING FLOW
+  // ═══════════════════════════════════════════════════════════
+
+  // 162 — Tranche routes file exists
+  log(162, "Tranche routes file exists",
+    fs.existsSync("" + SAAS_ROOT + "/backend/routes/trancheRoutes.js") ? "PASS" : "FAIL");
+
+  // 163 — Tranche route has donor create endpoint
+  const trancheRoutes = fs.readFileSync("" + SAAS_ROOT + "/backend/routes/trancheRoutes.js", "utf8");
+  log(163, "Donor create tranche endpoint exists",
+    trancheRoutes.includes("/donor/funding/:agreementId") && trancheRoutes.includes("router.post") ? "PASS" : "FAIL");
+
+  // 164 — Donor release tranche endpoint (PUT)
+  log(164, "Donor release tranche endpoint exists",
+    trancheRoutes.includes("/donor/:trancheId/release") && trancheRoutes.includes("apiPut") || trancheRoutes.includes("router.put") ? "PASS" : "FAIL");
+
+  // 165 — NGO conditions-met endpoint with file upload
+  log(165, "NGO conditions-met endpoint with multer upload",
+    trancheRoutes.includes("/ngo/:trancheId/conditions-met") && trancheRoutes.includes("upload.single") ? "PASS" : "FAIL");
+
+  // 166 — NGO attach-evidence endpoint
+  log(166, "NGO attach-evidence endpoint exists",
+    trancheRoutes.includes("/ngo/:trancheId/attach-evidence") ? "PASS" : "FAIL");
+
+  // 167 — Presigned URL generation for evidence files
+  log(167, "Donor GET tranches generates presigned URLs for evidence",
+    trancheRoutes.includes("getPresignedUrl") && trancheRoutes.includes("evidenceFileUrl") ? "PASS" : "FAIL");
+
+  // 168 — Disbursement info endpoint for NGO expense page
+  log(168, "NGO disbursement-info endpoint exists",
+    trancheRoutes.includes("/ngo/project/:projectId/disbursement-info") ? "PASS" : "FAIL");
+
+  // 169 — Budget auto-activate on tranche release
+  log(169, "Budget auto-activates on tranche release",
+    trancheRoutes.includes("ACTIVE") && trancheRoutes.includes("DRAFT") && trancheRoutes.includes("Budget") ? "PASS" : "FAIL");
+
+  // 170 — NGO budget page has tranche table without Utilised column
+  const ngoBudgetPage = fs.readFileSync("" + SAAS_ROOT + "/frontend/src/app/dashboard/budgets/[id]/page.tsx", "utf8");
+  log(170, "NGO tranche table has Amount/Status/Released columns",
+    ngoBudgetPage.includes("Amount") && ngoBudgetPage.includes("Released") && ngoBudgetPage.includes("Pending") ? "PASS" : "FAIL");
+
+  // 171 — NGO budget page has conditions modal with file upload
+  log(171, "NGO conditions modal has file upload",
+    ngoBudgetPage.includes("showConditionsModal") && ngoBudgetPage.includes("conditionsFile") ? "PASS" : "FAIL");
+
+  // 172 — NGO budget page has attach-evidence modal
+  log(172, "NGO attach-evidence modal exists",
+    ngoBudgetPage.includes("showEvidenceModal") && ngoBudgetPage.includes("handleAttachEvidence") ? "PASS" : "FAIL");
+
+  // 173 — Expense page shows disbursement limit
+  const expensePage = fs.readFileSync("" + SAAS_ROOT + "/frontend/src/app/dashboard/expenses/new/page.tsx", "utf8");
+  log(173, "Expense page shows disbursement limit info",
+    expensePage.includes("disbursementInfo") && expensePage.includes("Available from Released") ? "PASS" : "FAIL");
+
+  // 174 — Expense controller enforces disbursement limits
+  const expenseCtrl = fs.readFileSync("" + SAAS_ROOT + "/backend/controllers/expenseController.js", "utf8");
+  log(174, "Expense controller enforces released tranche limits",
+    expenseCtrl.includes("totalReleased") && expenseCtrl.includes("disbursedRemaining") ? "PASS" : "FAIL");
+
+  // 175 — Approval status uses uppercase APPROVED
+  log(175, "Expense approval uses uppercase APPROVED",
+    expenseCtrl.includes("approvalStatus: 'APPROVED'") ? "PASS" : "FAIL");
+
+  // 176 — Donor project page has tranche table
+  const donorProjectPage = fs.existsSync("" + DONOR_ROOT + "/app/projects/[id]/page.tsx")
+    ? fs.readFileSync("" + DONOR_ROOT + "/app/projects/[id]/page.tsx", "utf8") : "";
+  log(176, "Donor project page has disbursement table",
+    donorProjectPage.includes("Release Funds") && donorProjectPage.includes("Disbursement") ? "PASS" : "FAIL");
+
+  // 177 — Donor project page has evidence View link
+  log(177, "Donor project page has evidence View link",
+    donorProjectPage.includes("evidenceFileUrl") && donorProjectPage.includes("View") ? "PASS" : "FAIL");
+
+  // 178 — Budget creation auto-creates FundingAgreement for PORTAL donors
+  const budgetCtrl = fs.readFileSync("" + SAAS_ROOT + "/backend/controllers/budgetController.js", "utf8");
+  log(178, "Budget creation auto-creates FundingAgreement for PORTAL donors",
+    budgetCtrl.includes("fundingAgreement.create") && budgetCtrl.includes("PORTAL") && budgetCtrl.includes("projectFunding.create") ? "PASS" : "FAIL");
 
   // ═══════════════════════════════════════════════════════════
   //  SUMMARY

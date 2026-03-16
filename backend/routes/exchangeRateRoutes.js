@@ -78,6 +78,27 @@ router.put('/:id/lock', async (req, res) => {
   }
 })
 
+// GET /api/exchange-rates/months — list all months with data
+router.get('/months', async (req, res) => {
+  try {
+    const months = await exchangeRateService.getAvailableMonths()
+    res.json({ months })
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch months' })
+  }
+})
+
+// GET /api/exchange-rates/base/:currency?months=2026-03,2026-02 — all rates for a base currency
+router.get('/base/:currency', async (req, res) => {
+  try {
+    const months = req.query.months ? req.query.months.split(',') : null
+    const rates = await exchangeRateService.getRatesForBase(req.params.currency, months)
+    res.json({ baseCurrency: req.params.currency, rates })
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch base rates' })
+  }
+})
+
 // GET /api/exchange-rates/verify/:month — public, returns sealed hash + tx
 router.get('/verify/:month', async (req, res) => {
   try {

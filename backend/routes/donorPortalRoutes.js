@@ -3027,4 +3027,27 @@ router.get('/exchange-rates', donorAuth, async (req, res) => {
   }
 })
 
+// GET /api/donor/exchange-rates/months — available months
+router.get('/exchange-rates/months', donorAuth, async (req, res) => {
+  try {
+    const { getAvailableMonths } = require('../services/exchangeRateService')
+    const months = await getAvailableMonths()
+    res.json({ months })
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch months' })
+  }
+})
+
+// GET /api/donor/exchange-rates/base/:currency — all rates for a base currency
+router.get('/exchange-rates/base/:currency', donorAuth, async (req, res) => {
+  try {
+    const { getRatesForBase } = require('../services/exchangeRateService')
+    const months = req.query.months ? req.query.months.split(',') : null
+    const rates = await getRatesForBase(req.params.currency, months)
+    res.json({ baseCurrency: req.params.currency, rates })
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch base rates' })
+  }
+})
+
 module.exports = router

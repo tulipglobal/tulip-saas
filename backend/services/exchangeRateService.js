@@ -10,14 +10,17 @@ const prisma = require('../lib/client')
 const { createAuditLog } = require('./auditService')
 
 /**
- * Fetch rates from Frankfurter.app
+ * Fetch ALL rates from Frankfurter.app for a given base currency.
+ * When no targets specified, returns every world currency.
  * @param {string} base - e.g. 'USD'
- * @param {string[]} targets - e.g. ['XAF', 'EUR', 'GBP']
+ * @param {string[]} [targets] - optional filter; omit for all currencies
  * @returns {{ [currency: string]: number }} or null on failure
  */
 async function fetchFromFrankfurter(base, targets) {
   try {
-    const url = `https://api.frankfurter.app/latest?from=${base}&to=${targets.join(',')}`
+    const url = targets && targets.length > 0
+      ? `https://api.frankfurter.app/latest?from=${base}&to=${targets.join(',')}`
+      : `https://api.frankfurter.app/latest?from=${base}`
     const res = await fetch(url)
     if (!res.ok) return null
     const data = await res.json()
@@ -65,75 +68,44 @@ async function fetchFromOpenExchangeRates(base, targets) {
  * Fetch rates with retry logic
  */
 async function fetchWithRetry(base, targets, maxRetries = 3) {
-  // Try Frankfurter first
+  // Try Frankfurter first (targets=null means fetch all)
   for (let i = 0; i < maxRetries; i++) {
     const rates = await fetchFromFrankfurter(base, targets)
     if (rates) return { rates, source: 'frankfurter' }
     if (i < maxRetries - 1) await new Promise(r => setTimeout(r, 2000))
   }
 
-  // Fallback to Open Exchange Rates
-  for (let i = 0; i < maxRetries; i++) {
-    const rates = await fetchFromOpenExchangeRates(base, targets)
-    if (rates) return { rates, source: 'openexchangerates' }
-    if (i < maxRetries - 1) await new Promise(r => setTimeout(r, 2000))
+  // Fallback to Open Exchange Rates (only if we have specific targets)
+  if (targets && targets.length > 0) {
+    for (let i = 0; i < maxRetries; i++) {
+      const rates = await fetchFromOpenExchangeRates(base, targets)
+      if (rates) return { rates, source: 'openexchangerates' }
+      if (i < maxRetries - 1) await new Promise(r => setTimeout(r, 2000))
+    }
   }
 
   return null
 }
 
 /**
- * Main function: Fetch and store monthly rates for all active project currency pairs.
+ * Main function: Fetch and store ALL world currency rates from USD.
+ * Uses a single Frankfurter call: GET /latest?from=USD (returns ~30 currencies).
+ * Also fetches EUR-based rates for full coverage.
  * @param {string} month - "YYYY-MM" format
  */
 async function fetchMonthlyRates(month) {
   if (!month) month = new Date().toISOString().slice(0, 7)
 
-  console.log(`[ExchangeRate] Fetching rates for month: ${month}`)
-
-  // 1. Determine which currency pairs we need
-  const projects = await prisma.$queryRawUnsafe(`
-    SELECT DISTINCT "baseCurrency", "donorReportingCurrency"
-    FROM "Project"
-    WHERE "donorReportingCurrency" IS NOT NULL
-      AND "baseCurrency" != "donorReportingCurrency"
-      AND status = 'active'
-  `)
-
-  // Also get currencies from funding agreements
-  const agreements = await prisma.$queryRawUnsafe(`
-    SELECT DISTINCT fa.currency as "agreementCurrency", p."baseCurrency"
-    FROM "FundingAgreement" fa
-    JOIN "ProjectFunding" pf ON pf."fundingAgreementId" = fa.id
-    JOIN "Project" p ON p.id = pf."projectId"
-    WHERE fa.currency != p."baseCurrency"
-  `)
-
-  // Build unique pairs: { base -> Set<target> }
-  const pairs = {}
-  for (const p of projects) {
-    if (!pairs[p.baseCurrency]) pairs[p.baseCurrency] = new Set()
-    pairs[p.baseCurrency].add(p.donorReportingCurrency)
-  }
-  for (const a of agreements) {
-    if (!pairs[a.baseCurrency]) pairs[a.baseCurrency] = new Set()
-    pairs[a.baseCurrency].add(a.agreementCurrency)
-    // Also store inverse for donor→base lookups
-    if (!pairs[a.agreementCurrency]) pairs[a.agreementCurrency] = new Set()
-    pairs[a.agreementCurrency].add(a.baseCurrency)
-  }
-
-  if (Object.keys(pairs).length === 0) {
-    console.log('[ExchangeRate] No currency pairs needed — skipping')
-    return { fetched: 0, failed: 0 }
-  }
+  console.log(`[ExchangeRate] Fetching ALL world currency rates for month: ${month}`)
 
   let fetched = 0
   let failed = 0
 
-  for (const [base, targetSet] of Object.entries(pairs)) {
-    const targets = [...targetSet]
-    const result = await fetchWithRetry(base, targets)
+  // Fetch all currencies with USD as base (single API call)
+  const bases = ['USD', 'EUR', 'GBP']
+
+  for (const base of bases) {
+    const result = await fetchWithRetry(base, null) // null = fetch ALL
 
     if (result) {
       for (const [target, rate] of Object.entries(result.rates)) {
@@ -146,42 +118,37 @@ async function fetchMonthlyRates(month) {
             WHERE "ExchangeRate"."lockedAt" IS NULL
           `, base, target, rate, month, result.source)
           fetched++
-          console.log(`[ExchangeRate] ${base}→${target} = ${rate} (${result.source})`)
         } catch (err) {
           console.error(`[ExchangeRate] Failed to store ${base}→${target}:`, err.message)
           failed++
         }
       }
+      console.log(`[ExchangeRate] ${base}: ${Object.keys(result.rates).length} currencies stored (${result.source})`)
     } else {
-      // Both APIs failed — use previous month's rate
-      console.warn(`[ExchangeRate] Both APIs failed for ${base}→${targets.join(',')}. Using previous month rates.`)
+      // Both APIs failed — use previous month's rates for this base
+      console.warn(`[ExchangeRate] Both APIs failed for ${base}. Using previous month rates.`)
       const prevMonth = getPreviousMonth(month)
-      for (const target of targets) {
-        try {
-          const prev = await prisma.$queryRawUnsafe(`
-            SELECT rate FROM "ExchangeRate"
-            WHERE "baseCurrency" = $1 AND "targetCurrency" = $2 AND month = $3
-            LIMIT 1
-          `, base, target, prevMonth)
+      try {
+        const prevRates = await prisma.$queryRawUnsafe(`
+          SELECT "targetCurrency", rate FROM "ExchangeRate"
+          WHERE "baseCurrency" = $1 AND month = $2
+        `, base, prevMonth)
 
-          if (prev.length > 0) {
+        for (const prev of prevRates) {
+          try {
             await prisma.$executeRawUnsafe(`
               INSERT INTO "ExchangeRate" (id, "baseCurrency", "targetCurrency", rate, month, source, "fetchedAt", "createdAt")
               VALUES (gen_random_uuid()::text, $1, $2, $3, $4, 'previous', NOW(), NOW())
               ON CONFLICT ("baseCurrency", "targetCurrency", month)
               DO UPDATE SET rate = $3, source = 'previous', "fetchedAt" = NOW()
               WHERE "ExchangeRate"."lockedAt" IS NULL
-            `, base, target, Number(prev[0].rate), month)
+            `, base, prev.targetCurrency, Number(prev.rate), month)
             fetched++
-            console.log(`[ExchangeRate] ${base}→${target} = ${prev[0].rate} (previous month fallback)`)
-          } else {
-            failed++
-            console.error(`[ExchangeRate] No previous rate for ${base}→${target}`)
-          }
-        } catch (err) {
-          failed++
-          console.error(`[ExchangeRate] Fallback failed for ${base}→${target}:`, err.message)
+          } catch (err) { failed++ }
         }
+        console.log(`[ExchangeRate] ${base}: ${prevRates.length} rates copied from previous month`)
+      } catch (err) {
+        console.error(`[ExchangeRate] Fallback failed for ${base}:`, err.message)
       }
     }
   }
@@ -291,6 +258,34 @@ async function lockRate(rateId, userId) {
   `, userId, rateId)
 }
 
+/**
+ * Get all available months that have exchange rate data
+ */
+async function getAvailableMonths() {
+  const rows = await prisma.$queryRawUnsafe(`
+    SELECT DISTINCT month FROM "ExchangeRate" ORDER BY month DESC
+  `)
+  return rows.map(r => r.month)
+}
+
+/**
+ * Get all rates for a specific base currency across all months
+ */
+async function getRatesForBase(baseCurrency, months) {
+  const monthFilter = months && months.length > 0
+    ? `AND month = ANY($2::text[])`
+    : ''
+  const params = months && months.length > 0
+    ? [baseCurrency, months]
+    : [baseCurrency]
+  return prisma.$queryRawUnsafe(`
+    SELECT "baseCurrency", "targetCurrency", rate, month, source, "lockedAt", "sealTxHash"
+    FROM "ExchangeRate"
+    WHERE "baseCurrency" = $1 ${monthFilter}
+    ORDER BY "targetCurrency", month DESC
+  `, ...params)
+}
+
 module.exports = {
   fetchMonthlyRates,
   getRate,
@@ -298,6 +293,8 @@ module.exports = {
   getRatesForProject,
   setManualRate,
   lockRate,
+  getAvailableMonths,
+  getRatesForBase,
   fetchFromFrankfurter,
   fetchFromOpenExchangeRates,
 }

@@ -8,7 +8,7 @@ import { useOfflineSync } from '@/hooks/useOfflineSync'
 import {
   LayoutDashboard, FolderOpen, FileCheck, Receipt, Banknote,
   Key, Webhook, BarChart3, Settings, LogOut, Code2, CreditCard, Users,
-  ChevronLeft, ChevronRight, Shield, Bell, Search, Menu, X, ListChecks, ScanLine, FolderSearch, Briefcase, ShieldCheck, Crown, Flag, DollarSign, ArrowDownUp, MessageCircle, FileText
+  ChevronLeft, ChevronRight, Shield, Bell, Search, Menu, X, ListChecks, ScanLine, FolderSearch, Briefcase, ShieldCheck, Crown, Flag, DollarSign, ArrowDownUp, MessageCircle, FileText, Coins
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useTranslations } from 'next-intl'
@@ -76,6 +76,7 @@ const navItems = [
   { key: 'investments', href: '/dashboard/investments', icon: DollarSign, fallback: 'Investments' },
   { key: 'drawdowns', href: '/dashboard/drawdowns', icon: ArrowDownUp, fallback: 'Drawdowns' },
   { key: 'donors',     href: '/dashboard/settings/donors', icon: Users, fallback: 'Donors' },
+  { key: 'currencyRates', href: '/dashboard/currency-rates', icon: Coins, fallback: 'Currency Rates' },
   // Developer / integration tools — above Settings
   { key: 'apiKeys',     href: '/dashboard/api-keys',  icon: Key },
   { key: 'webhooks',    href: '/dashboard/webhooks',  icon: Webhook },

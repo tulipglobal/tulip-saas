@@ -93,6 +93,7 @@ interface LogframeOutput {
 
 const RAG_STYLES: Record<string, { bg: string; text: string; label: string }> = {
   NOT_STARTED: { bg: 'bg-gray-100', text: 'text-gray-600', label: 'Not started' },
+  GREY: { bg: 'bg-gray-100', text: 'text-gray-600', label: 'Not started' },
   GREEN: { bg: 'bg-[#F0FDF4]', text: 'text-[#166534]', label: 'On track' },
   AMBER: { bg: 'bg-[#FFFBEB]', text: 'text-[#92400E]', label: 'At risk' },
   RED: { bg: 'bg-[#FEF2F2]', text: 'text-[#991B1B]', label: 'Off track' },
@@ -533,7 +534,7 @@ export default function ProjectDetailPage() {
                     </thead>
                     <tbody>
                       {output.indicators.map(ind => {
-                        const rag = RAG_STYLES[ind.ragStatus || 'NOT_STARTED']
+                        const rag = RAG_STYLES[ind.ragStatus || 'NOT_STARTED'] || RAG_STYLES.NOT_STARTED
                         return (
                           <tr key={ind.id} className="border-b border-[var(--tulip-sage-dark)] last:border-0 hover:bg-[var(--tulip-cream)]/30">
                             <td className="px-3 py-2.5 text-[var(--tulip-forest)] max-w-[200px]">{ind.indicator}</td>

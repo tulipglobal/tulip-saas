@@ -69,14 +69,20 @@ interface Tranche {
   trancheNumber: number
   conditions: string | null
   plannedDate: string | null
+  plannedReleaseDate: string | null
   status: 'PENDING' | 'CONDITIONS_MET' | 'RELEASED' | 'UTILISED'
   releaseConditions: string | null
   releaseDate: string | null
+  actualReleaseDate: string | null
   amount: number
   utilisedAmount: number | null
   currency: string
   conditionsConfirmedAt: string | null
   evidenceDocumentId: string | null
+  evidenceName: string | null
+  evidenceFileUrl: string | null
+  agreementTitle: string | null
+  _agreementId: string
 }
 
 interface GrantCondition {
@@ -772,7 +778,7 @@ export default function BudgetDetailPage() {
         )}
       </div>
 
-      {/* 4. Disbursement Tranches */}
+      {/* 4. Grant Conditions — unified table */}
       {allTranches.length > 0 && (
         <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
           <button
@@ -780,10 +786,10 @@ export default function BudgetDetailPage() {
             className="w-full px-5 py-3 border-b border-[#c8d6c0] flex items-center justify-between hover:bg-[#c8d6c0]/20 transition-all"
           >
             <h2 className="text-sm font-semibold text-[#183a1d]/70 uppercase tracking-wide flex items-center gap-2">
-              <Banknote size={14} /> Tranches
+              <CheckCircle size={14} /> Grant Conditions
             </h2>
             <div className="flex items-center gap-3">
-              <span className="text-xs text-[#183a1d]/40">{allTranches.length} tranche{allTranches.length !== 1 ? 's' : ''}</span>
+              <span className="text-xs text-[#183a1d]/40">{allTranches.length} disbursement{allTranches.length !== 1 ? 's' : ''}</span>
               {tranchesExpanded ? <ChevronUp size={14} className="text-[#183a1d]/40" /> : <ChevronDown size={14} className="text-[#183a1d]/40" />}
             </div>
           </button>
@@ -791,7 +797,7 @@ export default function BudgetDetailPage() {
           {tranchesExpanded && (
             <>
               {/* Progress summary */}
-              {(() => {
+              {allTranches.length > 0 && (() => {
                 const totalAmount = allTranches.reduce((s, t) => s + (Number(t.amount) || 0), 0)
                 const releasedAmount = allTranches.filter(t => t.status === 'RELEASED' || t.status === 'UTILISED').reduce((s, t) => s + (Number(t.amount) || 0), 0)
                 const pendingAmount = totalAmount - releasedAmount
@@ -816,135 +822,78 @@ export default function BudgetDetailPage() {
                 )
               })()}
 
-              {/* Table header */}
-              <div className="hidden lg:grid grid-cols-[40px_1.2fr_0.8fr_0.7fr_0.7fr_0.7fr_1fr] gap-3 px-5 py-2 border-b border-[#c8d6c0] text-xs text-[#183a1d]/40 uppercase tracking-wide">
-                <span>#</span>
-                <span>Conditions</span>
-                <span>Amount</span>
-                <span>Status</span>
-                <span>Released</span>
-                <span>Release Date</span>
-                <span>Action</span>
-              </div>
+              {/* Disbursements table */}
+              {allTranches.length > 0 && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-[#c8d6c0] bg-[#c8d6c0]/30">
+                        <th className="text-left px-4 py-2 text-xs font-medium uppercase tracking-wide text-[#183a1d]/40">Funding Agreement</th>
+                        <th className="text-left px-4 py-2 text-xs font-medium uppercase tracking-wide text-[#183a1d]/40">Conditions</th>
+                        <th className="text-left px-4 py-2 text-xs font-medium uppercase tracking-wide text-[#183a1d]/40">Planned Date</th>
+                        <th className="text-center px-4 py-2 text-xs font-medium uppercase tracking-wide text-[#183a1d]/40">Status</th>
+                        <th className="text-right px-4 py-2 text-xs font-medium uppercase tracking-wide text-[#183a1d]/40">Actual Release</th>
+                        <th className="text-center px-4 py-2 text-xs font-medium uppercase tracking-wide text-[#183a1d]/40">Evidence</th>
+                        <th className="text-center px-4 py-2 text-xs font-medium uppercase tracking-wide text-[#183a1d]/40">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#c8d6c0]">
+                      {allTranches.map((tranche, i) => {
+                        const statusColors: Record<string, string> = {
+                          PENDING: 'bg-gray-100 text-gray-600 border-gray-200',
+                          CONDITIONS_MET: 'bg-amber-100 text-amber-700 border-amber-200',
+                          RELEASED: 'bg-green-100 text-green-700 border-green-200',
+                          UTILISED: 'bg-blue-100 text-blue-700 border-blue-200',
+                        }
+                        const actualDate = tranche.actualReleaseDate || tranche.releaseDate
+                        return (
+                          <tr key={tranche.id}>
+                            <td className="px-4 py-3 text-xs text-[#183a1d]/70">{tranche.agreementTitle || '—'}</td>
+                            <td className="px-4 py-3 text-xs text-[#183a1d]">{tranche.releaseConditions || tranche.conditions || '—'}</td>
+                            <td className="px-4 py-3 text-xs text-[#183a1d]">{tranche.plannedReleaseDate ? formatDate(tranche.plannedReleaseDate) : tranche.plannedDate ? formatDate(tranche.plannedDate) : '—'}</td>
+                            <td className="px-4 py-3 text-center">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border font-medium ${statusColors[tranche.status] || statusColors.PENDING}`}>
+                                {tranche.status.replace(/_/g, ' ')}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-right text-xs text-[#183a1d]">{actualDate ? formatDate(actualDate) : '—'}</td>
+                            <td className="px-4 py-3 text-center">
+                              {tranche.evidenceFileUrl ? (
+                                <a href={tranche.evidenceFileUrl} target="_blank" rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium bg-purple-500/10 text-purple-700 hover:bg-purple-500/20 transition-all">
+                                  <Upload size={10} /> {tranche.evidenceName || 'View'}
+                                </a>
+                              ) : '—'}
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <div className="flex flex-col items-center gap-1">
+                                {(tranche.status === 'PENDING' || (tranche.status === 'CONDITIONS_MET' && !tranche.conditionsConfirmedAt)) && (
+                                  <button
+                                    onClick={() => setShowConditionsModal({ trancheId: tranche.id, agreementId: tranche._agreementId })}
+                                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] transition-all"
+                                  >
+                                    <Check size={10} /> Confirm Met
+                                  </button>
+                                )}
+                                {tranche.status !== 'PENDING' && !tranche.evidenceDocumentId && (
+                                  <button
+                                    onClick={() => setShowEvidenceModal({ trancheId: tranche.id, agreementId: tranche._agreementId })}
+                                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-medium bg-purple-500/10 text-purple-700 hover:bg-purple-500/20 transition-all"
+                                  >
+                                    <Upload size={10} /> Attach Evidence
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
 
-              <div className="divide-y divide-[#c8d6c0]">
-                {allTranches.map(tranche => {
-                  const statusColors: Record<string, string> = {
-                    PENDING: 'bg-gray-100 text-gray-600 border-gray-200',
-                    CONDITIONS_MET: 'bg-amber-100 text-amber-700 border-amber-200',
-                    RELEASED: 'bg-green-100 text-green-700 border-green-200',
-                    UTILISED: 'bg-blue-100 text-blue-700 border-blue-200',
-                  }
-                  const isReleased = tranche.status === 'RELEASED' || tranche.status === 'UTILISED'
-                  const amt = Number(tranche.amount) || 0
-                  return (
-                    <div key={tranche.id} className="px-5 py-3 lg:grid lg:grid-cols-[40px_1.2fr_0.8fr_0.7fr_0.7fr_0.7fr_1fr] lg:gap-3 lg:items-center space-y-2 lg:space-y-0">
-                      <div className="text-sm font-medium text-[#183a1d]">{tranche.trancheNumber}</div>
-                      <div className="text-sm text-[#183a1d]/70">{tranche.releaseConditions || tranche.conditions || '—'}</div>
-                      <div className="text-sm font-medium text-[#183a1d]">{tranche.currency} {amt.toLocaleString()}</div>
-                      <div>
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border font-medium ${statusColors[tranche.status] || statusColors.PENDING}`}>
-                          {tranche.status.replace(/_/g, ' ')}
-                        </span>
-                      </div>
-                      <div className="text-sm text-[#183a1d]/60">
-                        {isReleased ? <span className="text-green-700 font-medium">{tranche.currency} {amt.toLocaleString()}</span> : '—'}
-                      </div>
-                      <div className="text-sm text-[#183a1d]/60">{tranche.releaseDate ? formatDate(tranche.releaseDate) : '—'}</div>
-                      <div>
-                        {(tranche.status === 'PENDING' || (tranche.status === 'CONDITIONS_MET' && !tranche.conditionsConfirmedAt)) && (
-                          <button
-                            onClick={() => setShowConditionsModal({ trancheId: tranche.id, agreementId: tranche._agreementId })}
-                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] transition-all"
-                          >
-                            <Check size={12} />
-                            Confirm conditions met
-                          </button>
-                        )}
-                        {tranche.status !== 'PENDING' && !tranche.evidenceDocumentId && (
-                          <button
-                            onClick={() => setShowEvidenceModal({ trancheId: tranche.id, agreementId: tranche._agreementId })}
-                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-purple-500/10 text-purple-700 hover:bg-purple-500/20 transition-all mt-1"
-                          >
-                            <Upload size={12} />
-                            Attach Evidence
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
             </>
-          )}
-        </div>
-      )}
-
-      {/* 5. Grant Conditions */}
-      {allConditions.length > 0 && (
-        <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
-          <button
-            onClick={() => setConditionsExpanded(!conditionsExpanded)}
-            className="w-full px-5 py-3 border-b border-[#c8d6c0] flex items-center justify-between hover:bg-[#c8d6c0]/20 transition-all"
-          >
-            <h2 className="text-sm font-semibold text-[#183a1d]/70 uppercase tracking-wide flex items-center gap-2">
-              <CheckCircle size={14} /> Grant Conditions
-            </h2>
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-[#183a1d]/40">{allConditions.length} condition{allConditions.length !== 1 ? 's' : ''}</span>
-              {conditionsExpanded ? <ChevronUp size={14} className="text-[#183a1d]/40" /> : <ChevronDown size={14} className="text-[#183a1d]/40" />}
-            </div>
-          </button>
-
-          {conditionsExpanded && (
-            <div className="divide-y divide-[#c8d6c0]">
-              {allConditions.map(condition => {
-                const statusColors: Record<string, string> = {
-                  ACTIVE: 'bg-gray-100 text-gray-600 border-gray-200',
-                  MET: 'bg-green-100 text-green-700 border-green-200',
-                  BREACHED: 'bg-red-100 text-red-700 border-red-200',
-                  WAIVED: 'bg-blue-100 text-blue-700 border-blue-200',
-                }
-                return (
-                  <div key={condition.id} className="px-5 py-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="text-sm font-medium text-[#183a1d]">{condition.title}</h4>
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border font-medium ${statusColors[condition.status] || statusColors.ACTIVE}`}>
-                            {condition.status}
-                          </span>
-                        </div>
-                        {condition.description && (
-                          <p className="text-xs text-[#183a1d]/50 mt-0.5">{condition.description}</p>
-                        )}
-                        {condition.note && (
-                          <p className="text-xs text-[#183a1d]/40 italic mt-1">Note: {condition.note}</p>
-                        )}
-                      </div>
-                      {condition.status === 'ACTIVE' && (
-                        <div className="flex items-center gap-2 shrink-0">
-                          <button
-                            onClick={() => handleConditionMet(condition.id, condition._agreementId)}
-                            disabled={conditionActionLoading === condition.id}
-                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-green-500/10 text-green-700 hover:bg-green-500/20 disabled:opacity-50 transition-all"
-                          >
-                            <Check size={12} />
-                            {conditionActionLoading === condition.id ? 'Saving...' : 'Mark as Met'}
-                          </button>
-                          <button
-                            onClick={() => { setBreachModal({ conditionId: condition.id, title: condition.title }); setBreachNote(''); setBreachSuccess(false) }}
-                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 text-red-700 hover:bg-red-500/20 transition-all"
-                          >
-                            <AlertTriangle size={12} /> Report Breach
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
           )}
         </div>
       )}

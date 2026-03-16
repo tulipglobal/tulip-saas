@@ -212,10 +212,21 @@ router.get('/ngo/funding/:agreementId', authenticate, tenantScope, async (req, r
   try {
     const { agreementId } = req.params
     const tranches = await prisma.$queryRawUnsafe(`
-      SELECT * FROM "DisbursementTranche"
-      WHERE "fundingAgreementId" = $1 AND "tenantId" = $2
-      ORDER BY "trancheNumber" ASC
+      SELECT dt.*, d.name as "evidenceName", d."fileUrl" as "evidenceFileUrl", d."sha256Hash" as "evidenceHash",
+             fa.title as "agreementTitle"
+      FROM "DisbursementTranche" dt
+      LEFT JOIN "Document" d ON d.id = dt."evidenceDocumentId"
+      LEFT JOIN "FundingAgreement" fa ON fa.id = dt."fundingAgreementId"
+      WHERE dt."fundingAgreementId" = $1 AND dt."tenantId" = $2
+      ORDER BY dt."trancheNumber" ASC
     `, agreementId, req.user.tenantId)
+
+    // Generate presigned URLs for evidence files
+    for (const t of tranches) {
+      if (t.evidenceFileUrl) {
+        t.evidenceFileUrl = await getPresignedUrl(t.evidenceFileUrl) || t.evidenceFileUrl
+      }
+    }
 
     // Get total project expenses for utilisation calculation
     if (tranches.length > 0) {

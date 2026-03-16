@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api'
-import { Plus, Edit2, Trash2, X, Globe, FileText } from 'lucide-react'
+import { apiGet, apiPost, apiPut, apiDelete, apiUpload } from '@/lib/api'
+import { Plus, Edit2, Trash2, X, Globe, FileText, Upload, Paperclip, ExternalLink } from 'lucide-react'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -28,6 +28,8 @@ interface WBContract {
   contractDate: string | null
   completionDate: string | null
   notes: string | null
+  fileName: string | null
+  fileKey: string | null
   createdAt: string
 }
 
@@ -98,6 +100,19 @@ export default function WorldBankTab({ projectId }: { projectId: string }) {
     if (!confirm('Delete this contract?')) return
     const res = await apiDelete(`/api/ngo/wb-contracts/${id}`)
     if (res.ok) fetchData()
+  }
+
+  const handleUploadContractFile = async (contractId: string, file: File) => {
+    const res = await apiUpload(`/api/ngo/wb-contracts/${contractId}/upload`, file)
+    if (res.ok) fetchData()
+  }
+
+  const handleViewContractFile = async (contractId: string) => {
+    const res = await apiGet(`/api/ngo/wb-contracts/${contractId}/file`)
+    if (res.ok) {
+      const data = await res.json()
+      window.open(data.url, '_blank')
+    }
   }
 
   if (loading) return (
@@ -221,6 +236,17 @@ export default function WorldBankTab({ projectId }: { projectId: string }) {
                       <td className="px-4 py-3 text-xs text-[var(--tulip-forest)]/60">{contract.completionDate ? new Date(contract.completionDate).toLocaleDateString() : '-'}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
+                          {contract.fileKey ? (
+                            <button onClick={() => handleViewContractFile(contract.id)} className="text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] transition-colors" title={`View: ${contract.fileName}`}>
+                              <Paperclip size={14} />
+                            </button>
+                          ) : (
+                            <label className="cursor-pointer text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] transition-colors" title="Upload Contract File">
+                              <Upload size={14} />
+                              <input type="file" className="hidden" accept=".pdf,.doc,.docx,.xlsx,.xls,.jpg,.jpeg,.png"
+                                onChange={e => { if (e.target.files?.[0]) handleUploadContractFile(contract.id, e.target.files[0]) }} />
+                            </label>
+                          )}
                           <button onClick={() => setEditingContract(contract)} className="text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] transition-colors" title="Edit">
                             <Edit2 size={14} />
                           </button>

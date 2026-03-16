@@ -3,9 +3,21 @@
 // ─────────────────────────────────────────────────────────────
 const express = require('express')
 const router = express.Router()
+const multer = require('multer')
 const prisma = require('../lib/client')
+const { uploadToS3, getPresignedUrlFromKey } = require('../lib/s3Upload')
 const authenticate = require('../middleware/authenticate')
 const tenantScope = require('../middleware/tenantScope')
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 20 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['.pdf','.doc','.docx','.xlsx','.xls','.jpg','.jpeg','.png','.csv']
+    const ext = '.' + file.originalname.split('.').pop().toLowerCase()
+    allowed.includes(ext) ? cb(null, true) : cb(new Error('File type not allowed'))
+  }
+})
 
 router.use(authenticate, tenantScope)
 
@@ -172,6 +184,52 @@ router.delete('/wb-contracts/:contractId', async (req, res) => {
   } catch (err) {
     console.error('Delete WB contract error:', err)
     res.status(500).json({ error: 'Failed to delete contract' })
+  }
+})
+
+// POST /api/ngo/wb-contracts/:contractId/upload — upload contract file
+router.post('/wb-contracts/:contractId/upload', upload.single('file'), async (req, res) => {
+  try {
+    const { contractId } = req.params
+    const tenantId = req.user.tenantId
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' })
+
+    // Verify contract belongs to tenant
+    const existing = await prisma.$queryRawUnsafe(
+      `SELECT id FROM "WBProcurementContract" WHERE id = $1 AND "tenantId" = $2`,
+      contractId, tenantId
+    )
+    if (!existing.length) return res.status(404).json({ error: 'Contract not found' })
+
+    const { fileUrl, key } = await uploadToS3(req.file.buffer, req.file.originalname, tenantId, 'wb-contracts')
+
+    await prisma.$executeRawUnsafe(
+      `UPDATE "WBProcurementContract" SET "fileKey" = $1, "fileUrl" = $2, "fileName" = $3, "updatedAt" = NOW() WHERE id = $4 AND "tenantId" = $5`,
+      key, fileUrl, req.file.originalname, contractId, tenantId
+    )
+
+    res.json({ fileUrl, fileName: req.file.originalname, fileKey: key })
+  } catch (err) {
+    console.error('Upload contract file error:', err)
+    res.status(500).json({ error: 'Failed to upload file' })
+  }
+})
+
+// GET /api/ngo/wb-contracts/:contractId/file — get presigned URL for contract file
+router.get('/wb-contracts/:contractId/file', async (req, res) => {
+  try {
+    const { contractId } = req.params
+    const tenantId = req.user.tenantId
+    const rows = await prisma.$queryRawUnsafe(
+      `SELECT "fileKey", "fileName" FROM "WBProcurementContract" WHERE id = $1 AND "tenantId" = $2`,
+      contractId, tenantId
+    )
+    if (!rows.length || !rows[0].fileKey) return res.status(404).json({ error: 'No file attached' })
+    const url = await getPresignedUrlFromKey(rows[0].fileKey, 3600)
+    res.json({ url, fileName: rows[0].fileName })
+  } catch (err) {
+    console.error('Get contract file error:', err)
+    res.status(500).json({ error: 'Failed to get file' })
   }
 })
 

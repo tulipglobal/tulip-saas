@@ -18,23 +18,40 @@ router.get('/', async (req, res) => {
     const { type, projectId, limit } = req.query
     const max = Math.min(parseInt(limit) || 50, 200)
 
-    let sql = `SELECT * FROM "GeneratedReport" WHERE "tenantId" = $1`
+    let sql = `SELECT gr.*, p.name as "projectName"
+      FROM "GeneratedReport" gr
+      LEFT JOIN "Project" p ON p.id = gr."projectId"
+      WHERE gr."tenantId" = $1`
     const params = [tenantId]
     let idx = 2
 
     if (type) {
-      sql += ` AND "reportType" = $${idx++}`
+      sql += ` AND gr."reportType" = $${idx++}`
       params.push(type)
     }
     if (projectId) {
-      sql += ` AND "projectId" = $${idx++}`
+      sql += ` AND gr."projectId" = $${idx++}`
       params.push(projectId)
     }
 
-    sql += ` ORDER BY "createdAt" DESC LIMIT $${idx}`
+    sql += ` ORDER BY gr."createdAt" DESC LIMIT $${idx}`
     params.push(max)
 
-    const reports = await prisma.$queryRawUnsafe(sql, ...params)
+    const rows = await prisma.$queryRawUnsafe(sql, ...params)
+    // Map DB columns to frontend Report interface
+    const reports = rows.map(r => ({
+      id: r.id,
+      type: r.reportType,
+      projectName: r.projectName || r.name,
+      projectId: r.projectId,
+      periodStart: r.dateRangeFrom,
+      periodEnd: r.dateRangeTo,
+      generatedAt: r.createdAt,
+      size: r.fileSizeBytes || 0,
+      sealStatus: r.hash ? 'anchored' : r.status === 'READY' ? 'sealing' : 'pending',
+      downloadUrl: r.fileUrl,
+      sha256: r.hash,
+    }))
     res.json({ reports })
   } catch (err) {
     console.error('List reports error:', err)
@@ -342,7 +359,7 @@ router.post('/generate/monthly', async (req, res) => {
     // Update footers with hash
     // (hash already saved in uploadAndSave)
 
-    res.json({ reportId: report.id, fileUrl: presignedUrl })
+    res.json({ reportId: report.id, downloadUrl: presignedUrl })
   } catch (err) {
     console.error('Generate monthly report error:', err)
     res.status(500).json({ error: 'Failed to generate report' })
@@ -431,7 +448,7 @@ router.post('/generate/quarterly', async (req, res) => {
     const result = await re.uploadAndSave(buffer, report.id, tenantId)
     const presignedUrl = await re.getPresignedUrl(result.fileKey)
 
-    res.json({ reportId: report.id, fileUrl: presignedUrl })
+    res.json({ reportId: report.id, downloadUrl: presignedUrl })
   } catch (err) {
     console.error('Generate quarterly report error:', err)
     res.status(500).json({ error: 'Failed to generate report' })
@@ -504,7 +521,7 @@ router.post('/generate/interim', async (req, res) => {
     const result = await re.uploadAndSave(buffer, report.id, tenantId)
     const presignedUrl = await re.getPresignedUrl(result.fileKey)
 
-    res.json({ reportId: report.id, fileUrl: presignedUrl })
+    res.json({ reportId: report.id, downloadUrl: presignedUrl })
   } catch (err) {
     console.error('Generate interim report error:', err)
     res.status(500).json({ error: 'Failed to generate report' })
@@ -589,7 +606,7 @@ router.post('/generate/closing', async (req, res) => {
     const result = await re.uploadAndSave(buffer, report.id, tenantId)
     const presignedUrl = await re.getPresignedUrl(result.fileKey)
 
-    res.json({ reportId: report.id, fileUrl: presignedUrl })
+    res.json({ reportId: report.id, downloadUrl: presignedUrl })
   } catch (err) {
     console.error('Generate closing report error:', err)
     res.status(500).json({ error: 'Failed to generate report' })
@@ -685,7 +702,7 @@ router.post('/generate/annual', async (req, res) => {
     const result = await re.uploadAndSave(buffer, report.id, tenantId)
     const presignedUrl = await re.getPresignedUrl(result.fileKey)
 
-    res.json({ reportId: report.id, fileUrl: presignedUrl })
+    res.json({ reportId: report.id, downloadUrl: presignedUrl })
   } catch (err) {
     console.error('Generate annual report error:', err)
     res.status(500).json({ error: 'Failed to generate report' })
@@ -860,7 +877,7 @@ router.post('/generate/usaid-sf425', async (req, res) => {
     const result = await re.uploadAndSave(buffer, report.id, tenantId)
     const presignedUrl = await re.getPresignedUrl(result.fileKey)
 
-    res.json({ reportId: report.id, fileUrl: presignedUrl })
+    res.json({ reportId: report.id, downloadUrl: presignedUrl })
   } catch (err) {
     console.error('Generate USAID SF-425 error:', err)
     res.status(500).json({ error: 'Failed to generate report' })
@@ -1031,7 +1048,7 @@ router.post('/generate/wb-procurement', async (req, res) => {
     const result = await re.uploadAndSave(buffer, report.id, tenantId)
     const presignedUrl = await re.getPresignedUrl(result.fileKey)
 
-    res.json({ reportId: report.id, fileUrl: presignedUrl })
+    res.json({ reportId: report.id, downloadUrl: presignedUrl })
   } catch (err) {
     console.error('Generate WB procurement report error:', err)
     res.status(500).json({ error: 'Failed to generate report' })

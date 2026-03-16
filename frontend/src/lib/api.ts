@@ -49,3 +49,12 @@ export function apiPatch(path: string, body: object) {
 export function apiDelete(path: string, body?: object) {
   return apiFetch(path, { method: 'DELETE', ...(body ? { body: JSON.stringify(body) } : {}) })
 }
+
+export function apiUpload(path: string, file: File, fieldName = 'file') {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('tulip_token') : null
+  const formData = new FormData()
+  formData.append(fieldName, file)
+  const headers: Record<string, string> = {}
+  if (token) headers['Authorization'] = `Bearer ${token}`
+  return fetch(`${API_URL}${path}`, { method: 'POST', headers, body: formData })
+}

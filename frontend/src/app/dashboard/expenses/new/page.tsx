@@ -53,6 +53,8 @@ export default function NewExpensePage() {
   const [autoFilledFields, setAutoFilledFields] = useState<Set<string>>(new Set())
   const [fraudFlags, setFraudFlags] = useState<FraudFlag[]>([])
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null)
+  const [customCategory, setCustomCategory] = useState(false)
+  const [customSubCategory, setCustomSubCategory] = useState(false)
 
   const [form, setForm] = useState({
     title: '', amount: '', currency: 'USD', expenseType: '' as '' | ExpenseType,
@@ -518,6 +520,7 @@ export default function NewExpensePage() {
                 <button key={type} type="button"
                   onClick={() => {
                     setForm(f => ({ ...f, expenseType: type, category: '', subCategory: '', budgetId: '', budgetLineId: '' }))
+                    setCustomCategory(false); setCustomSubCategory(false)
                     setSelectedBudget(null)
                   }}
                   className={`flex-1 py-2.5 rounded-lg text-sm font-medium border transition-all ${
@@ -653,17 +656,43 @@ export default function NewExpensePage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelCls}>{t('expenses.category')}</label>
-              <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value, subCategory: '' }))} className={inputCls}>
-                <option value="">{t('common.selectCategory')}</option>
-                {Object.keys(categories).map(cat => <option key={cat} value={cat}>{cat}</option>)}
-              </select>
+              {customCategory ? (
+                <div className="flex gap-2">
+                  <input type="text" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value, subCategory: '' }))}
+                    placeholder="Enter custom category..." className={inputCls + ' flex-1'} autoFocus />
+                  <button type="button" onClick={() => { setCustomCategory(false); setForm(f => ({ ...f, category: '', subCategory: '' })) }}
+                    className="px-2 py-1 text-xs rounded-lg text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] border border-[var(--tulip-sage-dark)]">Back</button>
+                </div>
+              ) : (
+                <select value={form.category} onChange={e => {
+                  if (e.target.value === '__other__') { setCustomCategory(true); setCustomSubCategory(false); setForm(f => ({ ...f, category: '', subCategory: '' })) }
+                  else setForm(f => ({ ...f, category: e.target.value, subCategory: '' }))
+                }} className={inputCls}>
+                  <option value="">{t('common.selectCategory')}</option>
+                  {Object.keys(categories).map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                  <option value="__other__">+ Add Custom Category</option>
+                </select>
+              )}
             </div>
             <div>
               <label className={labelCls}>{t('expenses.subCategory')}</label>
-              <select value={form.subCategory} onChange={e => set('subCategory', e.target.value)} className={inputCls} disabled={!form.category}>
-                <option value="">{t('common.selectSubCategory')}</option>
-                {subCategories.map(sub => <option key={sub} value={sub}>{sub}</option>)}
-              </select>
+              {customSubCategory ? (
+                <div className="flex gap-2">
+                  <input type="text" value={form.subCategory} onChange={e => set('subCategory', e.target.value)}
+                    placeholder="Enter custom subcategory..." className={inputCls + ' flex-1'} autoFocus />
+                  <button type="button" onClick={() => { setCustomSubCategory(false); set('subCategory', '') }}
+                    className="px-2 py-1 text-xs rounded-lg text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] border border-[var(--tulip-sage-dark)]">Back</button>
+                </div>
+              ) : (
+                <select value={form.subCategory} onChange={e => {
+                  if (e.target.value === '__other__') { setCustomSubCategory(true); set('subCategory', '') }
+                  else set('subCategory', e.target.value)
+                }} className={inputCls} disabled={!form.category}>
+                  <option value="">{t('common.selectSubCategory')}</option>
+                  {subCategories.map(sub => <option key={sub} value={sub}>{sub}</option>)}
+                  <option value="__other__">+ Add Custom Subcategory</option>
+                </select>
+              )}
             </div>
           </div>
         )}

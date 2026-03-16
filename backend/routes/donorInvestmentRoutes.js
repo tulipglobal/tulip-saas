@@ -249,48 +249,129 @@ router.get('/investments/:investmentId/schedule', donorAuth, async (req, res) =>
   }
 })
 
-// ── POST /investments/:investmentId/record-payment ──────────
-router.post('/investments/:investmentId/record-payment', donorAuth, async (req, res) => {
+// ── POST /investments/:investmentId/confirm-payment — Donor confirms NGO payment ──
+router.post('/investments/:investmentId/confirm-payment', donorAuth, async (req, res) => {
   try {
     const { investmentId } = req.params
-    const { donorOrgId } = req.donor
-    const { instalmentId, paidAmount, paidDate } = req.body
+    const { donorOrgId, donorMemberId } = req.donor
+    const { instalmentId } = req.body
 
-    if (!instalmentId || paidAmount === undefined) {
-      return res.status(400).json({ error: 'instalmentId and paidAmount are required' })
+    if (!instalmentId) {
+      return res.status(400).json({ error: 'instalmentId is required' })
     }
 
     // Verify ownership
     const inv = await prisma.$queryRawUnsafe(
-      `SELECT id FROM "ImpactInvestment" WHERE id = $1::uuid AND "donorOrgId" = $2::uuid`,
+      `SELECT ii.id, ii."projectId" FROM "ImpactInvestment" ii
+       WHERE ii.id = $1::uuid AND ii."donorOrgId" = $2::uuid`,
       investmentId, donorOrgId
     )
     if (!inv.length) return res.status(404).json({ error: 'Investment not found' })
 
-    // Get instalment
+    // Get instalment — must be SUBMITTED status
     const instalments = await prisma.$queryRawUnsafe(
-      `SELECT * FROM "RepaymentSchedule" WHERE id = $1::uuid AND "investmentId" = $2::uuid`,
+      `SELECT * FROM "RepaymentSchedule" WHERE id = $1 AND "investmentId" = $2::uuid AND status = 'SUBMITTED'`,
       instalmentId, investmentId
     )
-    if (!instalments.length) return res.status(404).json({ error: 'Instalment not found' })
+    if (!instalments.length) return res.status(404).json({ error: 'Instalment not found or not submitted' })
 
     const instalment = instalments[0]
-    const paid = parseFloat(paidAmount)
+    const paid = parseFloat(instalment.paidAmount) || 0
     const totalDue = parseFloat(instalment.totalDue) || 0
     const newStatus = paid >= totalDue ? 'PAID' : 'PARTIAL'
 
     const updated = await prisma.$queryRawUnsafe(
       `UPDATE "RepaymentSchedule"
-       SET "paidAmount" = $1, "paidDate" = $2, status = $3, "updatedAt" = NOW()
-       WHERE id = $4::uuid
+       SET status = $1, "paidDate" = NOW(), "confirmedBy" = $2, "confirmedAt" = NOW(), "updatedAt" = NOW()
+       WHERE id = $3
        RETURNING *`,
-      paid, paidDate ? new Date(paidDate) : new Date(), newStatus, instalmentId
+      newStatus, donorMemberId, instalmentId
     )
+
+    // Notify NGO
+    const project = await prisma.project.findUnique({
+      where: { id: inv[0].projectId },
+      select: { name: true, tenantId: true }
+    })
+    if (project) {
+      const ngoAdmins = await prisma.user.findMany({
+        where: { tenantId: project.tenantId, status: 'ACTIVE' },
+        select: { email: true, name: true }
+      })
+      for (const admin of ngoAdmins) {
+        await sendEmail({
+          to: admin.email,
+          subject: `Payment Confirmed — ${project.name}`,
+          html: `<p>Hi ${admin.name || 'there'},</p>
+                 <p>Your repayment for instalment #${instalment.instalmentNumber} of project <strong>${project.name}</strong> has been confirmed by the donor.</p>
+                 <p><strong>Amount:</strong> ${paid}</p>`
+        }).catch(() => {})
+      }
+    }
 
     res.json({ instalment: updated[0] })
   } catch (err) {
-    console.error('Donor record payment error:', err)
-    res.status(500).json({ error: 'Failed to record payment' })
+    console.error('Donor confirm payment error:', err)
+    res.status(500).json({ error: 'Failed to confirm payment' })
+  }
+})
+
+// ── POST /investments/:investmentId/reject-payment — Donor rejects NGO payment ──
+router.post('/investments/:investmentId/reject-payment', donorAuth, async (req, res) => {
+  try {
+    const { investmentId } = req.params
+    const { donorOrgId } = req.donor
+    const { instalmentId, reason } = req.body
+
+    if (!instalmentId) {
+      return res.status(400).json({ error: 'instalmentId is required' })
+    }
+
+    // Verify ownership
+    const inv = await prisma.$queryRawUnsafe(
+      `SELECT ii.id, ii."projectId" FROM "ImpactInvestment" ii
+       WHERE ii.id = $1::uuid AND ii."donorOrgId" = $2::uuid`,
+      investmentId, donorOrgId
+    )
+    if (!inv.length) return res.status(404).json({ error: 'Investment not found' })
+
+    // Reset to PENDING
+    const updated = await prisma.$queryRawUnsafe(
+      `UPDATE "RepaymentSchedule"
+       SET status = 'PENDING', "paidAmount" = NULL, "paymentNotes" = $1,
+           "submittedAt" = NULL, "submittedBy" = NULL, "updatedAt" = NOW()
+       WHERE id = $2 AND "investmentId" = $3::uuid AND status = 'SUBMITTED'
+       RETURNING *`,
+      reason ? `Rejected: ${reason}` : 'Payment rejected by donor', instalmentId, investmentId
+    )
+    if (!updated.length) return res.status(404).json({ error: 'Instalment not found or not submitted' })
+
+    // Notify NGO
+    const project = await prisma.project.findUnique({
+      where: { id: inv[0].projectId },
+      select: { name: true, tenantId: true }
+    })
+    if (project) {
+      const ngoAdmins = await prisma.user.findMany({
+        where: { tenantId: project.tenantId, status: 'ACTIVE' },
+        select: { email: true, name: true }
+      })
+      for (const admin of ngoAdmins) {
+        await sendEmail({
+          to: admin.email,
+          subject: `Payment Rejected — ${project.name}`,
+          html: `<p>Hi ${admin.name || 'there'},</p>
+                 <p>Your repayment for instalment #${updated[0].instalmentNumber} of project <strong>${project.name}</strong> was rejected by the donor.</p>
+                 ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
+                 <p>Please review and resubmit.</p>`
+        }).catch(() => {})
+      }
+    }
+
+    res.json({ instalment: updated[0] })
+  } catch (err) {
+    console.error('Donor reject payment error:', err)
+    res.status(500).json({ error: 'Failed to reject payment' })
   }
 })
 

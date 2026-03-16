@@ -8,11 +8,16 @@
 
 const express = require('express')
 const router = express.Router()
+const multer = require('multer')
 const prisma = require('../lib/client')
 const authenticate = require('../middleware/authenticate')
 const tenantScope = require('../middleware/tenantScope')
 const { sendEmail } = require('../services/emailService')
 const { createNotification, notifyDonorOrgsForProject } = require('../services/donorNotificationService')
+const { uploadToS3, computeSHA256 } = require('../lib/s3Upload')
+const { createAuditLog } = require('../services/auditService')
+
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } })
 
 // All routes require NGO auth
 router.use(authenticate, tenantScope)
@@ -301,6 +306,133 @@ router.put('/covenants/:covenantId/status', async (req, res) => {
   } catch (err) {
     console.error('NGO update covenant status error:', err)
     res.status(500).json({ error: 'Failed to update covenant status' })
+  }
+})
+
+// ── POST /:investmentId/record-payment — NGO submits payment with proof ──
+router.post('/:investmentId/record-payment', upload.single('proof'), async (req, res) => {
+  try {
+    const tenantId = req.user.tenantId
+    const { investmentId } = req.params
+    const { instalmentId, paidAmount, notes } = req.body
+
+    if (!instalmentId || paidAmount === undefined) {
+      return res.status(400).json({ error: 'instalmentId and paidAmount are required' })
+    }
+
+    // Verify investment belongs to tenant's project
+    const inv = await prisma.$queryRawUnsafe(
+      `SELECT ii.id, ii."projectId", ii."donorOrgId", ii.currency
+       FROM "ImpactInvestment" ii
+       JOIN "Project" p ON p.id = ii."projectId"::text
+       WHERE ii.id = $1::uuid AND p."tenantId" = $2`,
+      investmentId, tenantId
+    )
+    if (!inv.length) return res.status(404).json({ error: 'Investment not found' })
+
+    const investment = inv[0]
+
+    // Verify instalment belongs to this investment and is pending
+    const instalments = await prisma.$queryRawUnsafe(
+      `SELECT * FROM "RepaymentSchedule"
+       WHERE id = $1 AND "investmentId" = $2::uuid AND status IN ('PENDING', 'OVERDUE')`,
+      instalmentId, investmentId
+    )
+    if (!instalments.length) return res.status(404).json({ error: 'Instalment not found or already paid' })
+
+    // Upload proof document if provided
+    let proofDocumentId = null
+    if (req.file) {
+      try {
+        const sha256Hash = computeSHA256(req.file.buffer)
+        const { fileUrl } = await uploadToS3(req.file.buffer, req.file.originalname, tenantId, 'repayment-proof')
+
+        const document = await prisma.document.create({
+          data: {
+            name: `Repayment Proof — Instalment #${instalments[0].instalmentNumber}`,
+            description: notes || `Payment proof for instalment #${instalments[0].instalmentNumber}`,
+            documentType: 'Repayment Proof',
+            documentLevel: 'project',
+            category: 'financial',
+            fileUrl,
+            fileType: req.file.originalname.split('.').pop()?.toLowerCase() || null,
+            fileSize: req.file.size,
+            sha256Hash,
+            projectId: investment.projectId,
+            tenantId,
+            uploadedById: req.user.id,
+          }
+        })
+        proofDocumentId = document.id
+
+        await createAuditLog({
+          action: 'document.uploaded',
+          entityType: 'Document',
+          entityId: document.id,
+          userId: req.user.id,
+          tenantId,
+          details: { name: document.name, sha256Hash, type: 'repayment_proof', investmentId, instalmentId }
+        })
+      } catch (uploadErr) {
+        console.error('Proof upload error:', uploadErr.message)
+      }
+    }
+
+    // Update instalment status to SUBMITTED
+    const updated = await prisma.$queryRawUnsafe(
+      `UPDATE "RepaymentSchedule"
+       SET "paidAmount" = $1, status = 'SUBMITTED',
+           "paymentNotes" = $2, "proofDocumentId" = $3,
+           "submittedAt" = NOW(), "submittedBy" = $4,
+           "updatedAt" = NOW()
+       WHERE id = $5 AND "investmentId" = $6::uuid
+       RETURNING *`,
+      parseFloat(paidAmount), notes || null, proofDocumentId,
+      req.user.id, instalmentId, investmentId
+    )
+
+    // Notify donor org
+    if (investment.donorOrgId) {
+      const project = await prisma.project.findUnique({
+        where: { id: investment.projectId },
+        select: { name: true }
+      })
+      const projectName = project?.name || 'Unknown Project'
+
+      await createNotification({
+        donorOrgId: investment.donorOrgId,
+        alertType: 'REPAYMENT_SUBMITTED',
+        title: `Repayment submitted for ${projectName}`,
+        body: `NGO has submitted repayment of ${paidAmount} ${investment.currency} for instalment #${instalments[0].instalmentNumber}. Please review and confirm.`,
+        entityType: 'REPAYMENT',
+        entityId: instalmentId,
+        projectId: investment.projectId
+      }).catch(() => {})
+
+      // Email donor members
+      const donorMembers = await prisma.$queryRawUnsafe(
+        `SELECT email, name FROM "DonorMember" WHERE "donorOrgId" = $1 AND status = 'ACTIVE'`,
+        investment.donorOrgId
+      ).catch(() => [])
+
+      for (const member of donorMembers) {
+        await sendEmail({
+          to: member.email,
+          subject: `Repayment Submitted — ${projectName}`,
+          html: `<p>Hi ${member.name || 'there'},</p>
+                 <p>A repayment has been submitted for project <strong>${projectName}</strong>.</p>
+                 <p><strong>Amount:</strong> ${paidAmount} ${investment.currency}</p>
+                 <p><strong>Instalment:</strong> #${instalments[0].instalmentNumber}</p>
+                 ${notes ? `<p><strong>Notes:</strong> ${notes}</p>` : ''}
+                 <p>Please log in to review and confirm this payment.</p>`
+        }).catch(() => {})
+      }
+    }
+
+    res.json({ instalment: updated[0] })
+  } catch (err) {
+    console.error('NGO record payment error:', err)
+    res.status(500).json({ error: 'Failed to record payment' })
   }
 })
 

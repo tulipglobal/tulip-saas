@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { apiGet, apiPost } from '@/lib/api'
 
 /* ── types ── */
@@ -24,10 +24,17 @@ interface Drawdown {
 
 interface ScheduleRow {
   id: string
+  instalmentNumber: number
   dueDate: string
   amount: number
+  totalDue: number
+  principalDue: number
+  interestDue: number
+  paidAmount: number | null
   currency: string
-  status: 'PAID' | 'OVERDUE' | 'UPCOMING'
+  status: 'PAID' | 'PARTIAL' | 'OVERDUE' | 'PENDING' | 'SUBMITTED'
+  paymentNotes: string | null
+  proofDocumentId: string | null
 }
 
 interface RepaymentSummary {
@@ -118,6 +125,14 @@ export default function InvestmentsPage() {
   const [ddPurpose, setDdPurpose] = useState('')
   const [ddSubmitting, setDdSubmitting] = useState(false)
 
+  /* payment modal */
+  const [paymentModal, setPaymentModal] = useState<{ investmentId: string; instalment: ScheduleRow; currency: string } | null>(null)
+  const [paymentAmount, setPaymentAmount] = useState('')
+  const [paymentNotes, setPaymentNotes] = useState('')
+  const [paymentFile, setPaymentFile] = useState<File | null>(null)
+  const [paymentSubmitting, setPaymentSubmitting] = useState(false)
+  const paymentFileRef = useRef<HTMLInputElement>(null)
+
   useEffect(() => {
     loadData()
   }, [])
@@ -183,6 +198,36 @@ export default function InvestmentsPage() {
       /* ignore */
     } finally {
       setDdSubmitting(false)
+    }
+  }
+
+  /* submit payment */
+  async function submitPayment() {
+    if (!paymentModal || !paymentAmount) return
+    setPaymentSubmitting(true)
+    try {
+      const formData = new FormData()
+      formData.append('instalmentId', paymentModal.instalment.id)
+      formData.append('paidAmount', paymentAmount)
+      if (paymentNotes.trim()) formData.append('notes', paymentNotes.trim())
+      if (paymentFile) formData.append('proof', paymentFile)
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5050'}/api/ngo/investments/${paymentModal.investmentId}/record-payment`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('tulip_token')}` },
+        body: formData,
+      })
+      if (res.ok) {
+        setPaymentModal(null)
+        setPaymentAmount('')
+        setPaymentNotes('')
+        setPaymentFile(null)
+        loadData()
+      }
+    } catch {
+      /* ignore */
+    } finally {
+      setPaymentSubmitting(false)
     }
   }
 
@@ -406,32 +451,55 @@ export default function InvestmentsPage() {
                 </button>
                 {expandedSchedule.has(inv.id) && (inv.schedule || []).length > 0 && (
                   <div className="mt-3 rounded-lg border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
+                    <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-[#c8d6c0] text-[10px] text-[#183a1d]/40 uppercase tracking-wider">
-                          <th className="text-left px-4 py-2 font-medium">Due Date</th>
-                          <th className="text-left px-4 py-2 font-medium">Amount</th>
-                          <th className="text-left px-4 py-2 font-medium">Status</th>
+                          <th className="text-left px-3 py-2 font-medium">#</th>
+                          <th className="text-left px-3 py-2 font-medium">Due Date</th>
+                          <th className="text-right px-3 py-2 font-medium">Principal</th>
+                          <th className="text-right px-3 py-2 font-medium">Interest</th>
+                          <th className="text-right px-3 py-2 font-medium">Total Due</th>
+                          <th className="text-right px-3 py-2 font-medium">Paid</th>
+                          <th className="text-center px-3 py-2 font-medium">Status</th>
+                          <th className="text-right px-3 py-2 font-medium"></th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#c8d6c0]">
-                        {(inv.schedule || []).map(row => (
-                          <tr key={row.id}>
-                            <td className="px-4 py-2 text-[#183a1d]">{fmtDate(row.dueDate)}</td>
-                            <td className="px-4 py-2 text-[#183a1d] font-medium">{fmtCurrency(row.amount, row.currency)}</td>
-                            <td className="px-4 py-2">
+                        {(inv.schedule || []).map((row: ScheduleRow) => (
+                          <tr key={row.id} className={row.status === 'OVERDUE' ? 'bg-red-50/50' : ''}>
+                            <td className="px-3 py-2 text-[#183a1d] font-medium">{row.instalmentNumber}</td>
+                            <td className="px-3 py-2 text-[#183a1d]">{fmtDate(row.dueDate)}</td>
+                            <td className="px-3 py-2 text-right text-[#183a1d] font-mono text-xs">{fmtCurrency(parseFloat(String(row.principalDue)) || 0, row.currency)}</td>
+                            <td className="px-3 py-2 text-right text-[#183a1d]/60 font-mono text-xs">{fmtCurrency(parseFloat(String(row.interestDue)) || 0, row.currency)}</td>
+                            <td className="px-3 py-2 text-right text-[#183a1d] font-medium font-mono text-xs">{fmtCurrency(parseFloat(String(row.totalDue)) || row.amount, row.currency)}</td>
+                            <td className="px-3 py-2 text-right font-mono text-xs text-green-700">{row.paidAmount ? fmtCurrency(parseFloat(String(row.paidAmount)), row.currency) : '—'}</td>
+                            <td className="px-3 py-2 text-center">
                               <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${
                                 row.status === 'PAID' ? 'bg-green-100 text-green-700 border-green-300' :
+                                row.status === 'PARTIAL' ? 'bg-blue-100 text-blue-700 border-blue-300' :
+                                row.status === 'SUBMITTED' ? 'bg-amber-100 text-amber-700 border-amber-300' :
                                 row.status === 'OVERDUE' ? 'bg-red-100 text-red-700 border-red-300' :
                                 'bg-gray-100 text-gray-500 border-gray-300'
                               }`}>
-                                {row.status}
+                                {row.status === 'SUBMITTED' ? 'Awaiting Confirmation' : row.status}
                               </span>
+                            </td>
+                            <td className="px-3 py-2 text-right">
+                              {(row.status === 'PENDING' || row.status === 'OVERDUE') && (
+                                <button
+                                  onClick={() => { setPaymentModal({ investmentId: inv.id, instalment: row, currency: inv.currency }); setPaymentAmount(String(parseFloat(String(row.totalDue)) || row.amount)) }}
+                                  className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-[#183a1d] text-[#fefbe9] hover:bg-[#183a1d]/90 transition-colors"
+                                >
+                                  Record Payment
+                                </button>
+                              )}
                             </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
+                    </div>
                   </div>
                 )}
                 {expandedSchedule.has(inv.id) && (inv.schedule || []).length === 0 && (
@@ -509,6 +577,85 @@ export default function InvestmentsPage() {
                 className="px-4 py-2 rounded-lg text-sm font-medium text-[#fefbe9] bg-[#183a1d] hover:bg-[#183a1d]/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 {ddSubmitting ? 'Submitting...' : 'Submit Request'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Record Payment Modal ── */}
+      {paymentModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => { setPaymentModal(null); setPaymentFile(null); setPaymentNotes('') }}>
+          <div
+            className="w-full max-w-md rounded-xl border border-[#c8d6c0] p-6 space-y-4 shadow-xl"
+            style={{ background: '#fefbe9' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
+              Record Payment
+            </h3>
+            <div className="rounded-lg border border-[#c8d6c0] p-3" style={{ background: '#e1eedd' }}>
+              <p className="text-xs text-[#183a1d]/50">Instalment #{paymentModal.instalment.instalmentNumber}</p>
+              <p className="text-sm font-bold text-[#183a1d]">
+                Total Due: {fmtCurrency(parseFloat(String(paymentModal.instalment.totalDue)) || paymentModal.instalment.amount, paymentModal.currency)}
+              </p>
+            </div>
+
+            {/* Amount */}
+            <div>
+              <label className="block text-xs font-medium text-[#183a1d]/70 mb-1">Payment Amount</label>
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                value={paymentAmount}
+                onChange={e => setPaymentAmount(e.target.value)}
+                placeholder="0.00"
+                className="w-full rounded-lg border border-[#c8d6c0] bg-[#e1eedd] px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/30 outline-none focus:border-[#183a1d]/40"
+              />
+            </div>
+
+            {/* Proof file */}
+            <div>
+              <label className="block text-xs font-medium text-[#183a1d]/70 mb-1">Payment Proof (receipt, transfer confirmation, etc.)</label>
+              <input
+                ref={paymentFileRef}
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                onChange={e => setPaymentFile(e.target.files?.[0] || null)}
+                className="w-full rounded-lg border border-[#c8d6c0] bg-[#e1eedd] px-3 py-2 text-sm text-[#183a1d] file:mr-3 file:rounded-md file:border-0 file:bg-[#183a1d] file:px-3 file:py-1 file:text-xs file:font-medium file:text-[#fefbe9]"
+              />
+              {paymentFile && (
+                <p className="text-xs text-[#183a1d]/50 mt-1">{paymentFile.name} ({(paymentFile.size / 1024).toFixed(1)} KB)</p>
+              )}
+            </div>
+
+            {/* Notes */}
+            <div>
+              <label className="block text-xs font-medium text-[#183a1d]/70 mb-1">Notes</label>
+              <textarea
+                value={paymentNotes}
+                onChange={e => setPaymentNotes(e.target.value)}
+                rows={2}
+                placeholder="Payment reference, bank details, etc."
+                className="w-full rounded-lg border border-[#c8d6c0] bg-[#e1eedd] px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/30 outline-none focus:border-[#183a1d]/40 resize-none"
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                onClick={() => { setPaymentModal(null); setPaymentFile(null); setPaymentNotes('') }}
+                className="px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d]/60 border border-[#c8d6c0] hover:bg-[#e1eedd] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitPayment}
+                disabled={paymentSubmitting || !paymentAmount}
+                className="px-4 py-2 rounded-lg text-sm font-medium text-[#fefbe9] bg-[#183a1d] hover:bg-[#183a1d]/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                {paymentSubmitting ? 'Submitting...' : 'Submit Payment'}
               </button>
             </div>
           </div>

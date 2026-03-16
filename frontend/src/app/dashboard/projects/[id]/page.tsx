@@ -31,6 +31,7 @@ interface Project {
   status: string; startDate?: string | null; endDate?: string | null; createdAt: string
   fundingSources: any[]; expenses: Expense[]; documents: Document[]
   budgetSummary: BudgetSummary | null; budgets: BudgetInfo[]
+  logframeGoal?: string | null; logframePurpose?: string | null
 }
 
 interface Expense {
@@ -125,6 +126,10 @@ export default function ProjectDetailPage() {
   const [updateRAG, setUpdateRAG] = useState<RAGStatus>('NOT_STARTED')
   const [updateNotes, setUpdateNotes] = useState('')
   const [savingUpdate, setSavingUpdate] = useState(false)
+  const [logframeGoal, setLogframeGoal] = useState('')
+  const [logframePurpose, setLogframePurpose] = useState('')
+  const [savingGoalPurpose, setSavingGoalPurpose] = useState(false)
+  const [goalPurposeSaved, setGoalPurposeSaved] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -135,6 +140,8 @@ export default function ProjectDetailPage() {
     ]).then(([proj, exp, aud]) => {
       if (!proj) { setError('Project not found'); setLoading(false); return }
       setProject(proj)
+      setLogframeGoal(proj.logframeGoal || '')
+      setLogframePurpose(proj.logframePurpose || '')
       setExpenses(exp.data ?? exp.items ?? [])
       const allAudit = aud.data ?? aud.items ?? []
       setAudit(allAudit.filter((a: AuditEntry) => a.entityId === id || a.entityType === 'Project'))
@@ -164,6 +171,19 @@ export default function ProjectDetailPage() {
       .then(r => r.ok ? r.json() : { outputs: [] })
       .then(d => setLogframeOutputs(d.outputs ?? d.data ?? []))
       .catch(() => {})
+  }
+
+  const handleSaveGoalPurpose = async () => {
+    setSavingGoalPurpose(true)
+    setGoalPurposeSaved(false)
+    const res = await apiPut(`/api/projects/${id}`, { logframeGoal, logframePurpose })
+    if (res.ok) {
+      const updated = await res.json()
+      setProject(p => p ? { ...p, logframeGoal: updated.logframeGoal, logframePurpose: updated.logframePurpose } : p)
+      setGoalPurposeSaved(true)
+      setTimeout(() => setGoalPurposeSaved(false), 2000)
+    }
+    setSavingGoalPurpose(false)
   }
 
   const handleAddOutput = async () => {
@@ -489,6 +509,44 @@ export default function ProjectDetailPage() {
               className="flex items-center gap-2 text-sm font-medium text-[var(--tulip-forest)] px-4 py-2 rounded-lg bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)] transition-all">
               <Plus size={14} /> Add Output
             </button>
+          </div>
+
+          {/* Goal & Purpose */}
+          <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-5 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-[var(--tulip-forest)]/60 uppercase tracking-wide block mb-1.5">Goal</label>
+                <textarea
+                  className="w-full bg-[var(--tulip-cream)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] resize-none"
+                  rows={3}
+                  value={logframeGoal}
+                  onChange={e => setLogframeGoal(e.target.value)}
+                  placeholder="The high-level development impact the project contributes to..."
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-[var(--tulip-forest)]/60 uppercase tracking-wide block mb-1.5">Purpose</label>
+                <textarea
+                  className="w-full bg-[var(--tulip-cream)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] resize-none"
+                  rows={3}
+                  value={logframePurpose}
+                  onChange={e => setLogframePurpose(e.target.value)}
+                  placeholder="The specific outcome the project aims to achieve..."
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleSaveGoalPurpose}
+                disabled={savingGoalPurpose}
+                className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--tulip-forest)] text-[var(--tulip-cream)] hover:bg-[var(--tulip-forest)]/90 transition-all disabled:opacity-50"
+              >
+                {savingGoalPurpose ? 'Saving...' : 'Save Goal & Purpose'}
+              </button>
+              {goalPurposeSaved && (
+                <span className="text-xs text-emerald-600 flex items-center gap-1"><CheckCircle size={13} /> Saved</span>
+              )}
+            </div>
           </div>
 
           {/* Empty state */}

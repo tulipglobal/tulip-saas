@@ -181,7 +181,7 @@ exports.updateProject = async (req, res) => {
     const existing = await db.project.findFirst({ where: { id: req.params.id } })
     if (!existing) return res.status(404).json({ error: 'Project not found' })
 
-    const { name, description, budget, status, startDate, endDate } = req.body
+    const { name, description, budget, status, startDate, endDate, logframeGoal, logframePurpose } = req.body
     const project = await db.project.update({
       where: { id: req.params.id },
       data: {
@@ -191,6 +191,8 @@ exports.updateProject = async (req, res) => {
         ...(status      !== undefined && { status }),
         ...(startDate   !== undefined && { startDate: startDate ? new Date(startDate) : null }),
         ...(endDate     !== undefined && { endDate: endDate ? new Date(endDate) : null }),
+        ...(logframeGoal    !== undefined && { logframeGoal }),
+        ...(logframePurpose !== undefined && { logframePurpose }),
       }
     })
     res.json(project)

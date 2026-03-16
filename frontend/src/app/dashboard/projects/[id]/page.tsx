@@ -31,7 +31,7 @@ interface Project {
   status: string; startDate?: string | null; endDate?: string | null; createdAt: string
   fundingSources: any[]; expenses: Expense[]; documents: Document[]
   budgetSummary: BudgetSummary | null; budgets: BudgetInfo[]
-  logframeGoal?: string | null; logframePurpose?: string | null
+  logframeGoal?: string | null; logframePurpose?: string | null; logframeAssumptions?: string | null
 }
 
 interface Expense {
@@ -128,6 +128,7 @@ export default function ProjectDetailPage() {
   const [savingUpdate, setSavingUpdate] = useState(false)
   const [logframeGoal, setLogframeGoal] = useState('')
   const [logframePurpose, setLogframePurpose] = useState('')
+  const [logframeAssumptions, setLogframeAssumptions] = useState('')
   const [savingGoalPurpose, setSavingGoalPurpose] = useState(false)
   const [goalPurposeSaved, setGoalPurposeSaved] = useState(false)
 
@@ -142,6 +143,7 @@ export default function ProjectDetailPage() {
       setProject(proj)
       setLogframeGoal(proj.logframeGoal || '')
       setLogframePurpose(proj.logframePurpose || '')
+      setLogframeAssumptions(proj.logframeAssumptions || '')
       setExpenses(exp.data ?? exp.items ?? [])
       const allAudit = aud.data ?? aud.items ?? []
       setAudit(allAudit.filter((a: AuditEntry) => a.entityId === id || a.entityType === 'Project'))
@@ -176,10 +178,10 @@ export default function ProjectDetailPage() {
   const handleSaveGoalPurpose = async () => {
     setSavingGoalPurpose(true)
     setGoalPurposeSaved(false)
-    const res = await apiPut(`/api/projects/${id}`, { logframeGoal, logframePurpose })
+    const res = await apiPut(`/api/projects/${id}`, { logframeGoal, logframePurpose, logframeAssumptions })
     if (res.ok) {
       const updated = await res.json()
-      setProject(p => p ? { ...p, logframeGoal: updated.logframeGoal, logframePurpose: updated.logframePurpose } : p)
+      setProject(p => p ? { ...p, logframeGoal: updated.logframeGoal, logframePurpose: updated.logframePurpose, logframeAssumptions: updated.logframeAssumptions } : p)
       setGoalPurposeSaved(true)
       setTimeout(() => setGoalPurposeSaved(false), 2000)
     }
@@ -534,6 +536,16 @@ export default function ProjectDetailPage() {
                   placeholder="The specific outcome the project aims to achieve..."
                 />
               </div>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-[var(--tulip-forest)]/60 uppercase tracking-wide block mb-1.5">Assumptions</label>
+              <textarea
+                className="w-full bg-[var(--tulip-cream)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] resize-none"
+                rows={3}
+                value={logframeAssumptions}
+                onChange={e => setLogframeAssumptions(e.target.value)}
+                placeholder="Key assumptions and external factors that must hold true for the project to succeed..."
+              />
             </div>
             <div className="flex items-center gap-3">
               <button

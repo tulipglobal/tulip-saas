@@ -244,8 +244,9 @@ model Project {
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   status         String           @default("active")
-  logframeGoal    String?
-  logframePurpose String?
+  logframeGoal        String?
+  logframePurpose     String?
+  logframeAssumptions String?
   documents      Document[]
   expenses       Expense[]
   fundingSources FundingSource[]

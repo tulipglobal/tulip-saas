@@ -43,6 +43,7 @@ export default function NewExpensePage() {
   const [budgets, setBudgets] = useState<BudgetOption[]>([])
   const [selectedBudget, setSelectedBudget] = useState<BudgetOption | null>(null)
   const [loadingBudgets, setLoadingBudgets] = useState(false)
+  const [disbursementInfo, setDisbursementInfo] = useState<{ hasDisbursements: boolean; totalFunded: number; totalReleased: number; totalSpent: number; available: number } | null>(null)
 
   // Receipt upload state
   const [receiptFile, setReceiptFile] = useState<File | null>(null)
@@ -84,7 +85,13 @@ export default function NewExpensePage() {
     setForm(f => ({ ...f, projectId, budgetId: '', budgetLineId: '', expenseType: '', category: '', subCategory: '' }))
     setSelectedBudget(null)
     setBudgets([])
+    setDisbursementInfo(null)
     if (!projectId) return
+
+    // Fetch disbursement info
+    apiGet(`/api/tranches/ngo/project/${projectId}/disbursement-info`)
+      .then(async r => { if (r.ok) { const d = await r.json(); setDisbursementInfo(d) } })
+      .catch(() => {})
 
     setLoadingBudgets(true)
     const token = typeof window !== 'undefined' ? localStorage.getItem('tulip_token') : null
@@ -573,6 +580,24 @@ export default function NewExpensePage() {
           </div>
         )}
 
+        {/* Disbursement Limit Info */}
+        {disbursementInfo?.hasDisbursements && (
+          <div className="rounded-lg border px-4 py-3 space-y-1" style={{ background: disbursementInfo.totalReleased > 0 ? '#ecfdf5' : '#fef3c7', borderColor: disbursementInfo.totalReleased > 0 ? '#86efac' : '#fcd34d' }}>
+            <p className="text-xs font-medium" style={{ color: disbursementInfo.totalReleased > 0 ? '#166534' : '#92400e' }}>
+              Donor Disbursement Limit
+            </p>
+            <div className="flex gap-4 text-xs">
+              <span style={{ color: '#183a1d' }}>Funded: <strong>{formatCurrencyShort(form.currency || 'USD')} {disbursementInfo.totalFunded.toLocaleString()}</strong></span>
+              <span style={{ color: '#166534' }}>Released: <strong>{formatCurrencyShort(form.currency || 'USD')} {disbursementInfo.totalReleased.toLocaleString()}</strong></span>
+              <span style={{ color: '#183a1d' }}>Spent: <strong>{formatCurrencyShort(form.currency || 'USD')} {disbursementInfo.totalSpent.toLocaleString()}</strong></span>
+              <span style={{ color: disbursementInfo.available > 0 ? '#166534' : '#dc2626' }}>Available: <strong>{formatCurrencyShort(form.currency || 'USD')} {disbursementInfo.available.toLocaleString()}</strong></span>
+            </div>
+            {disbursementInfo.totalReleased === 0 && (
+              <p className="text-xs" style={{ color: '#92400e' }}>No funds released yet — donor must release tranches before expenses can be submitted.</p>
+            )}
+          </div>
+        )}
+
         {/* Title */}
         <div>
           <label className={labelCls}>{t('expenses.descriptionTitle')}</label>
@@ -588,6 +613,9 @@ export default function NewExpensePage() {
               placeholder="0.00" className={inputCls} />
             {lineRemaining !== null && form.amount && parseFloat(form.amount) > lineRemaining && (
               <p className="text-xs text-red-400 mt-1">Exceeds remaining balance of {selectedLine?.currency} {lineRemaining.toLocaleString()}</p>
+            )}
+            {disbursementInfo?.hasDisbursements && disbursementInfo.totalReleased > 0 && form.amount && parseFloat(form.amount) > disbursementInfo.available && (
+              <p className="text-xs text-red-400 mt-1">Exceeds disbursed funds: {formatCurrencyShort(form.currency || 'USD')} {disbursementInfo.available.toLocaleString()} available from released tranches</p>
             )}
           </div>
           <div>

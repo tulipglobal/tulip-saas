@@ -11,7 +11,7 @@ const prisma = require('../lib/client')
 const authenticate = require('../middleware/authenticate')
 const tenantScope = require('../middleware/tenantScope')
 const { createNotification, notifyDonorOrgsForProject } = require('../services/donorNotificationService')
-const { uploadToS3, computeSHA256 } = require('../lib/s3Upload')
+const { uploadToS3, computeSHA256, getPresignedUrl } = require('../lib/s3Upload')
 const { createAuditLog } = require('../services/auditService')
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } })
@@ -72,6 +72,14 @@ router.get('/donor/funding/:agreementId', donorAuth, async (req, res) => {
       WHERE dt."fundingAgreementId" = $1
       ORDER BY dt."trancheNumber" ASC
     `, agreementId)
+
+    // Generate presigned URLs for evidence files
+    for (const t of tranches) {
+      if (t.evidenceFileUrl) {
+        t.evidenceFileUrl = await getPresignedUrl(t.evidenceFileUrl) || t.evidenceFileUrl
+      }
+    }
+
     res.json({ tranches })
   } catch (err) {
     console.error('Get tranches error:', err)
@@ -103,6 +111,56 @@ router.put('/donor/:trancheId/release', donorAuth, async (req, res) => {
 // ═══════════════════════════════════════════════════════════════
 //  NGO TRANCHE ROUTES
 // ═══════════════════════════════════════════════════════════════
+
+// GET /api/tranches/ngo/project/:projectId/disbursement-info
+router.get('/ngo/project/:projectId/disbursement-info', authenticate, tenantScope, async (req, res) => {
+  try {
+    const { projectId } = req.params
+
+    // Check if project has PORTAL funding
+    const portalFunding = await prisma.$queryRawUnsafe(
+      `SELECT 1 FROM "FundingAgreement" fa
+       JOIN "ProjectFunding" pf ON pf."fundingAgreementId" = fa.id
+       WHERE pf."projectId" = $1::uuid AND fa."funderType" = 'PORTAL' LIMIT 1`, projectId
+    )
+    if (!portalFunding.length) return res.json({ hasDisbursements: false })
+
+    const releasedResult = await prisma.$queryRawUnsafe(
+      `SELECT COALESCE(SUM(dt.amount), 0)::float as "totalReleased"
+       FROM "DisbursementTranche" dt
+       JOIN "FundingAgreement" fa ON fa.id = dt."fundingAgreementId"
+       JOIN "ProjectFunding" pf ON pf."fundingAgreementId" = fa.id
+       WHERE pf."projectId" = $1::uuid
+         AND fa."funderType" = 'PORTAL'
+         AND dt.status IN ('RELEASED', 'UTILISED')`, projectId
+    )
+    const totalReleased = releasedResult[0]?.totalReleased || 0
+
+    const totalFunded = await prisma.$queryRawUnsafe(
+      `SELECT COALESCE(SUM(pf."allocatedAmount"), 0)::float as "totalFunded"
+       FROM "ProjectFunding" pf
+       JOIN "FundingAgreement" fa ON fa.id = pf."fundingAgreementId"
+       WHERE pf."projectId" = $1::uuid AND fa."funderType" = 'PORTAL'`, projectId
+    )
+
+    const projectSpentAgg = await prisma.expense.aggregate({
+      where: { projectId },
+      _sum: { amount: true }
+    })
+    const totalSpent = Number(projectSpentAgg._sum.amount || 0)
+
+    res.json({
+      hasDisbursements: true,
+      totalFunded: totalFunded[0]?.totalFunded || 0,
+      totalReleased,
+      totalSpent,
+      available: Math.max(0, totalReleased - totalSpent),
+    })
+  } catch (err) {
+    console.error('Disbursement info error:', err)
+    res.json({ hasDisbursements: false })
+  }
+})
 
 // GET /api/tranches/ngo/funding/:agreementId
 router.get('/ngo/funding/:agreementId', authenticate, tenantScope, async (req, res) => {

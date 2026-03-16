@@ -289,9 +289,15 @@ export default function WorldBankTab({ projectId }: { projectId: string }) {
       {/* Add Contract Modal */}
       {showAddContract && (
         <Modal title="Add Contract" onClose={() => setShowAddContract(false)}>
-          <ContractForm onSave={async (data) => {
+          <ContractForm onSave={async (data, file) => {
             const res = await apiPost(`/api/ngo/projects/${projectId}/wb-contracts`, data)
-            if (res.ok) { fetchData(); setShowAddContract(false) }
+            if (res.ok) {
+              const created = await res.json()
+              if (file && created.contract?.id) {
+                await apiUpload(`/api/ngo/wb-contracts/${created.contract.id}/upload`, file)
+              }
+              fetchData(); setShowAddContract(false)
+            }
           }} onCancel={() => setShowAddContract(false)} />
         </Modal>
       )}
@@ -299,9 +305,14 @@ export default function WorldBankTab({ projectId }: { projectId: string }) {
       {/* Update Contract Modal */}
       {editingContract && (
         <Modal title="Update Contract" onClose={() => setEditingContract(null)}>
-          <ContractUpdateForm initial={editingContract} onSave={async (data) => {
+          <ContractUpdateForm initial={editingContract} onSave={async (data, file) => {
             const res = await apiPut(`/api/ngo/wb-contracts/${editingContract.id}`, data)
-            if (res.ok) { fetchData(); setEditingContract(null) }
+            if (res.ok) {
+              if (file) {
+                await apiUpload(`/api/ngo/wb-contracts/${editingContract.id}/upload`, file)
+              }
+              fetchData(); setEditingContract(null)
+            }
           }} onCancel={() => setEditingContract(null)} />
         </Modal>
       )}
@@ -415,13 +426,14 @@ function ActualsForm({ initial, onSave, onCancel }: { initial: WBComponent; onSa
 
 // ── Contract Form (Add) ────────────────────────────────────────────────────
 
-function ContractForm({ onSave, onCancel }: { onSave: (data: any) => Promise<void>; onCancel: () => void }) {
+function ContractForm({ onSave, onCancel }: { onSave: (data: any, file?: File) => Promise<void>; onCancel: () => void }) {
   const [description, setDescription] = useState('')
   const [procurementMethod, setProcurementMethod] = useState('ICB')
   const [estimatedCost, setEstimatedCost] = useState('')
   const [currency, setCurrency] = useState('USD')
   const [contractDate, setContractDate] = useState('')
   const [notes, setNotes] = useState('')
+  const [file, setFile] = useState<File | null>(null)
   const [saving, setSaving] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -430,7 +442,7 @@ function ContractForm({ onSave, onCancel }: { onSave: (data: any) => Promise<voi
     await onSave({
       description, procurementMethod, estimatedCost: +estimatedCost || 0, currency,
       contractDate: contractDate || null, notes: notes || null,
-    })
+    }, file || undefined)
     setSaving(false)
   }
 
@@ -470,6 +482,22 @@ function ContractForm({ onSave, onCancel }: { onSave: (data: any) => Promise<voi
         </div>
       </div>
       <div>
+        <label className="text-xs font-medium text-[var(--tulip-forest)]/70 block mb-1">Contract File</label>
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border border-dashed border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] hover:border-[var(--tulip-gold)] transition-colors w-full">
+            <Upload size={14} className="text-[var(--tulip-forest)]/50" />
+            <span className="text-sm text-[var(--tulip-forest)]/60">{file ? file.name : 'Upload contract document (PDF, DOC, XLSX, etc.)'}</span>
+            <input type="file" className="hidden" accept=".pdf,.doc,.docx,.xlsx,.xls,.jpg,.jpeg,.png,.csv"
+              onChange={e => { if (e.target.files?.[0]) setFile(e.target.files[0]) }} />
+          </label>
+          {file && (
+            <button type="button" onClick={() => setFile(null)} className="text-[var(--tulip-forest)]/40 hover:text-red-500">
+              <X size={14} />
+            </button>
+          )}
+        </div>
+      </div>
+      <div>
         <label className="text-xs font-medium text-[var(--tulip-forest)]/70 block mb-1">Notes</label>
         <textarea rows={2} value={notes} onChange={e => setNotes(e.target.value)}
           className="w-full rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] text-sm text-[var(--tulip-forest)] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--tulip-gold)]/50" />
@@ -486,11 +514,12 @@ function ContractForm({ onSave, onCancel }: { onSave: (data: any) => Promise<voi
 
 // ── Contract Update Form ───────────────────────────────────────────────────
 
-function ContractUpdateForm({ initial, onSave, onCancel }: { initial: WBContract; onSave: (data: any) => Promise<void>; onCancel: () => void }) {
+function ContractUpdateForm({ initial, onSave, onCancel }: { initial: WBContract; onSave: (data: any, file?: File) => Promise<void>; onCancel: () => void }) {
   const [actualCost, setActualCost] = useState(String(initial.actualCost ?? ''))
   const [status, setStatus] = useState(initial.status || 'PLANNED')
   const [completionDate, setCompletionDate] = useState(initial.completionDate ? initial.completionDate.slice(0, 10) : '')
   const [notes, setNotes] = useState(initial.notes ?? '')
+  const [file, setFile] = useState<File | null>(null)
   const [saving, setSaving] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -499,7 +528,7 @@ function ContractUpdateForm({ initial, onSave, onCancel }: { initial: WBContract
     await onSave({
       actualCost: actualCost ? +actualCost : null, status,
       completionDate: completionDate || null, notes: notes || null,
-    })
+    }, file || undefined)
     setSaving(false)
   }
 
@@ -521,6 +550,34 @@ function ContractUpdateForm({ initial, onSave, onCancel }: { initial: WBContract
         <label className="text-xs font-medium text-[var(--tulip-forest)]/70 block mb-1">Completion Date</label>
         <input type="date" value={completionDate} onChange={e => setCompletionDate(e.target.value)}
           className="w-full rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] text-sm text-[var(--tulip-forest)] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--tulip-gold)]/50" />
+      </div>
+      <div>
+        <label className="text-xs font-medium text-[var(--tulip-forest)]/70 block mb-1">Contract File</label>
+        {initial.fileName && !file ? (
+          <div className="flex items-center gap-2 text-sm text-[var(--tulip-forest)]/70 px-3 py-2 rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]">
+            <Paperclip size={14} />
+            <span className="truncate">{initial.fileName}</span>
+            <label className="ml-auto cursor-pointer text-xs text-[var(--tulip-gold)] hover:text-[var(--tulip-orange)]">
+              Replace
+              <input type="file" className="hidden" accept=".pdf,.doc,.docx,.xlsx,.xls,.jpg,.jpeg,.png,.csv"
+                onChange={e => { if (e.target.files?.[0]) setFile(e.target.files[0]) }} />
+            </label>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <label className="flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border border-dashed border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] hover:border-[var(--tulip-gold)] transition-colors w-full">
+              <Upload size={14} className="text-[var(--tulip-forest)]/50" />
+              <span className="text-sm text-[var(--tulip-forest)]/60">{file ? file.name : 'Upload contract document'}</span>
+              <input type="file" className="hidden" accept=".pdf,.doc,.docx,.xlsx,.xls,.jpg,.jpeg,.png,.csv"
+                onChange={e => { if (e.target.files?.[0]) setFile(e.target.files[0]) }} />
+            </label>
+            {file && (
+              <button type="button" onClick={() => setFile(null)} className="text-[var(--tulip-forest)]/40 hover:text-red-500">
+                <X size={14} />
+              </button>
+            )}
+          </div>
+        )}
       </div>
       <div>
         <label className="text-xs font-medium text-[var(--tulip-forest)]/70 block mb-1">Notes</label>

@@ -794,7 +794,7 @@ export default function BudgetDetailPage() {
               {(() => {
                 const totalAmount = allTranches.reduce((s, t) => s + (Number(t.amount) || 0), 0)
                 const releasedAmount = allTranches.filter(t => t.status === 'RELEASED' || t.status === 'UTILISED').reduce((s, t) => s + (Number(t.amount) || 0), 0)
-                const utilisedAmount = allTranches.reduce((s, t) => s + (Number(t.utilisedAmount) || 0), 0)
+                const pendingAmount = totalAmount - releasedAmount
                 const releasedPct = totalAmount > 0 ? Math.round((releasedAmount / totalAmount) * 100) : 0
                 return (
                   <div className="px-5 py-3 border-b border-[#c8d6c0] bg-[#fefbe9]/50">
@@ -808,8 +808,8 @@ export default function BudgetDetailPage() {
                         <span className="font-semibold text-green-700">{allTranches[0]?.currency || 'USD'} {releasedAmount.toLocaleString()} ({releasedPct}%)</span>
                       </div>
                       <div>
-                        <span className="text-blue-600 block">Utilised (from expenses)</span>
-                        <span className="font-semibold text-blue-700">{allTranches[0]?.currency || 'USD'} {utilisedAmount.toLocaleString()}</span>
+                        <span className="text-amber-600 block">Pending</span>
+                        <span className="font-semibold text-amber-700">{allTranches[0]?.currency || 'USD'} {pendingAmount.toLocaleString()}</span>
                       </div>
                     </div>
                   </div>
@@ -817,13 +817,12 @@ export default function BudgetDetailPage() {
               })()}
 
               {/* Table header */}
-              <div className="hidden lg:grid grid-cols-[40px_1.2fr_0.8fr_0.7fr_0.7fr_0.7fr_0.7fr_1fr] gap-3 px-5 py-2 border-b border-[#c8d6c0] text-xs text-[#183a1d]/40 uppercase tracking-wide">
+              <div className="hidden lg:grid grid-cols-[40px_1.2fr_0.8fr_0.7fr_0.7fr_0.7fr_1fr] gap-3 px-5 py-2 border-b border-[#c8d6c0] text-xs text-[#183a1d]/40 uppercase tracking-wide">
                 <span>#</span>
                 <span>Conditions</span>
                 <span>Amount</span>
                 <span>Status</span>
                 <span>Released</span>
-                <span>Utilised</span>
                 <span>Release Date</span>
                 <span>Action</span>
               </div>
@@ -838,9 +837,8 @@ export default function BudgetDetailPage() {
                   }
                   const isReleased = tranche.status === 'RELEASED' || tranche.status === 'UTILISED'
                   const amt = Number(tranche.amount) || 0
-                  const used = Number(tranche.utilisedAmount) || 0
                   return (
-                    <div key={tranche.id} className="px-5 py-3 lg:grid lg:grid-cols-[40px_1.2fr_0.8fr_0.7fr_0.7fr_0.7fr_0.7fr_1fr] lg:gap-3 lg:items-center space-y-2 lg:space-y-0">
+                    <div key={tranche.id} className="px-5 py-3 lg:grid lg:grid-cols-[40px_1.2fr_0.8fr_0.7fr_0.7fr_0.7fr_1fr] lg:gap-3 lg:items-center space-y-2 lg:space-y-0">
                       <div className="text-sm font-medium text-[#183a1d]">{tranche.trancheNumber}</div>
                       <div className="text-sm text-[#183a1d]/70">{tranche.releaseConditions || tranche.conditions || '—'}</div>
                       <div className="text-sm font-medium text-[#183a1d]">{tranche.currency} {amt.toLocaleString()}</div>
@@ -852,9 +850,6 @@ export default function BudgetDetailPage() {
                       <div className="text-sm text-[#183a1d]/60">
                         {isReleased ? <span className="text-green-700 font-medium">{tranche.currency} {amt.toLocaleString()}</span> : '—'}
                       </div>
-                      <div className="text-sm text-[#183a1d]/60">
-                        {isReleased ? <span className={used >= amt ? 'text-blue-700 font-medium' : ''}>{tranche.currency} {used.toLocaleString()}</span> : '—'}
-                      </div>
                       <div className="text-sm text-[#183a1d]/60">{tranche.releaseDate ? formatDate(tranche.releaseDate) : '—'}</div>
                       <div>
                         {(tranche.status === 'PENDING' || (tranche.status === 'CONDITIONS_MET' && !tranche.conditionsConfirmedAt)) && (
@@ -865,9 +860,6 @@ export default function BudgetDetailPage() {
                             <Check size={12} />
                             Confirm conditions met
                           </button>
-                        )}
-                        {isReleased && used >= amt && (
-                          <span className="text-xs text-blue-600 font-medium">Fully utilised</span>
                         )}
                         {tranche.status !== 'PENDING' && !tranche.evidenceDocumentId && (
                           <button

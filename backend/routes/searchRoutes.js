@@ -26,7 +26,7 @@ router.get('/', async (req, res) => {
 
     if (type === 'all' || type === 'expenses') {
       const expenses = await prisma.$queryRawUnsafe(
-        `SELECT e.id, e.vendor as name, e.status, 'expense' as type FROM "Expense" e WHERE e."tenantId" = $1 AND (e.vendor ILIKE $2 OR e.description ILIKE $2 OR CAST(e.amount AS TEXT) LIKE $2) LIMIT 5`,
+        `SELECT e.id, COALESCE(e.vendor, e.description) as name, e."approvalStatus" as status, 'expense' as type FROM "Expense" e WHERE e."tenantId" = $1 AND (e.vendor ILIKE $2 OR e.description ILIKE $2 OR CAST(e.amount AS TEXT) LIKE $2) LIMIT 5`,
         tenantId, term
       )
       results.push(...expenses.map(e => ({ ...e, type: 'expense', url: `/dashboard/expenses` })))
@@ -34,7 +34,7 @@ router.get('/', async (req, res) => {
 
     if (type === 'all' || type === 'documents') {
       const documents = await prisma.$queryRawUnsafe(
-        `SELECT id, "fileName" as name, status, 'document' as type FROM "Document" WHERE "tenantId" = $1 AND ("fileName" ILIKE $2 OR tags::text ILIKE $2) LIMIT 5`,
+        `SELECT id, name, "approvalStatus" as status, 'document' as type FROM "Document" WHERE "tenantId" = $1 AND (name ILIKE $2 OR description ILIKE $2) LIMIT 5`,
         tenantId, term
       )
       results.push(...documents.map(d => ({ ...d, type: 'document', url: `/dashboard/documents` })))
@@ -42,7 +42,9 @@ router.get('/', async (req, res) => {
 
     if (type === 'all' || type === 'donors') {
       const donors = await prisma.$queryRawUnsafe(
-        `SELECT id, name, 'donor' as type FROM "DonorOrganisation" WHERE "tenantId" = $1 AND name ILIKE $2 LIMIT 5`,
+        `SELECT do2.id, do2.name, 'donor' as type FROM "DonorOrganisation" do2
+         WHERE do2.id IN (SELECT DISTINCT "donorOrgId" FROM "DonorProjectAccess" WHERE "projectId" IN (SELECT id FROM "Project" WHERE "tenantId" = $1) AND "revokedAt" IS NULL)
+         AND do2.name ILIKE $2 LIMIT 5`,
         tenantId, term
       )
       results.push(...donors.map(d => ({ ...d, type: 'donor', url: `/dashboard/settings/donors` })))

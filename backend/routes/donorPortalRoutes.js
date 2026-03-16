@@ -2775,7 +2775,7 @@ router.get('/search', donorAuth, async (req, res) => {
 
     if (type === 'all' || type === 'expenses') {
       const expenses = await prisma.$queryRawUnsafe(
-        `SELECT e.id, e.vendor as name, e.status, e."projectId", 'expense' as type FROM "Expense" e WHERE e."projectId" IN (${placeholders}) AND (e.vendor ILIKE $1 OR e.description ILIKE $1 OR CAST(e.amount AS TEXT) LIKE $1) LIMIT 5`,
+        `SELECT e.id, COALESCE(e.vendor, e.description) as name, e."approvalStatus" as status, e."projectId", 'expense' as type FROM "Expense" e WHERE e."projectId" IN (${placeholders}) AND (e.vendor ILIKE $1 OR e.description ILIKE $1 OR CAST(e.amount AS TEXT) LIKE $1) LIMIT 5`,
         term, ...projectIds
       )
       results.push(...expenses.map(e => ({ ...e, type: 'expense', url: `/projects/${e.projectId}?expense=${e.id}` })))
@@ -2783,7 +2783,7 @@ router.get('/search', donorAuth, async (req, res) => {
 
     if (type === 'all' || type === 'documents') {
       const documents = await prisma.$queryRawUnsafe(
-        `SELECT d.id, d."fileName" as name, d.status, d."projectId", 'document' as type FROM "Document" d WHERE d."projectId" IN (${placeholders}) AND (d."fileName" ILIKE $1 OR d.tags::text ILIKE $1) LIMIT 5`,
+        `SELECT d.id, d.name, d."approvalStatus" as status, d."projectId", 'document' as type FROM "Document" d WHERE d."projectId" IN (${placeholders}) AND (d.name ILIKE $1 OR d.description ILIKE $1) LIMIT 5`,
         term, ...projectIds
       )
       results.push(...documents.map(d => ({ ...d, type: 'document', url: `/projects/${d.projectId}` })))

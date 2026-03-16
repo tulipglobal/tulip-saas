@@ -46,8 +46,8 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
   const [error, setError] = useState('')
   const [dragOver, setDragOver] = useState(false)
 
-  const inputCls = "w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all"
-  const labelCls = "block text-xs font-medium text-[#183a1d]/60 mb-1.5 uppercase tracking-wide"
+  const inputCls = "w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] transition-all"
+  const labelCls = "block text-xs font-medium text-[var(--tulip-forest)]/60 mb-1.5 uppercase tracking-wide"
 
   const addFiles = useCallback((fileList: FileList | File[]) => {
     const files = Array.from(fileList)
@@ -145,11 +145,11 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
   const allDone = entries.length > 0 && entries.every(e => e.status !== 'queued' && e.status !== 'uploading')
 
   return (
-    <div className="rounded-xl border border-[#c8d6c0] p-5 space-y-4"
-      style={{ background: '#e1eedd' }}>
+    <div className="rounded-xl border border-[var(--tulip-sage-dark)] p-5 space-y-4"
+      style={{ background: 'var(--tulip-sage)' }}>
       <div className="flex items-center gap-2">
-        <Paperclip size={14} className="text-[#183a1d]" />
-        <span className="text-sm font-medium text-[#183a1d]">{t('documents.attachDocuments')} <span className="text-[#183a1d]/40 text-xs">({t('documents.upToFiles', { count: MAX_FILES })})</span></span>
+        <Paperclip size={14} className="text-[var(--tulip-forest)]" />
+        <span className="text-sm font-medium text-[var(--tulip-forest)]">{t('documents.attachDocuments')} <span className="text-[var(--tulip-forest)]/40 text-xs">({t('documents.upToFiles', { count: MAX_FILES })})</span></span>
       </div>
 
       {!isOnline && (
@@ -165,15 +165,15 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
         onDrop={e => { e.preventDefault(); setDragOver(false); if (e.dataTransfer.files.length > 0) addFiles(e.dataTransfer.files) }}
         onClick={() => document.getElementById(`file-input-${entityId}`)?.click()}
         className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all ${
-          dragOver ? 'border-[#f6c453] bg-[#f6c453]/10' : 'border-[#c8d6c0] hover:border-[#183a1d]/30'
+          dragOver ? 'border-[var(--tulip-gold)] bg-[var(--tulip-gold)]/10' : 'border-[var(--tulip-sage-dark)] hover:border-[var(--tulip-forest)]/30'
         }`}
       >
         <input id={`file-input-${entityId}`} type="file" multiple className="hidden"
           accept="image/*,video/*,.pdf,.doc,.docx,.xlsx,.xls,.csv"
           onChange={e => { if (e.target.files && e.target.files.length > 0) { addFiles(e.target.files); e.target.value = '' } }} />
-        <Upload size={20} className="text-[#183a1d]/30 mx-auto mb-2" />
-        <p className="text-sm text-[#183a1d]/60">{t('documents.dropOrBrowse')}</p>
-        <p className="text-xs text-[#183a1d]/30 mt-1">{t('documents.fileFormats')}</p>
+        <Upload size={20} className="text-[var(--tulip-forest)]/30 mx-auto mb-2" />
+        <p className="text-sm text-[var(--tulip-forest)]/60">{t('documents.dropOrBrowse')}</p>
+        <p className="text-xs text-[var(--tulip-forest)]/30 mt-1">{t('documents.fileFormats')}</p>
       </div>
 
       {/* File list */}
@@ -183,7 +183,7 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
             <div key={i} className="flex items-center gap-3 rounded-lg px-3 py-2" style={{
               background: entry.status === 'sealed' ? 'rgba(52,211,153,0.1)' : entry.status === 'failed' ? 'rgba(239,68,68,0.1)' : entry.status === 'offline_queued' ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.5)',
               border: '1px solid rgba(0,0,0,0.06)' }}>
-              {entry.status === 'queued' && <FileCheck size={14} className="text-[#183a1d]/40 shrink-0" />}
+              {entry.status === 'queued' && <FileCheck size={14} className="text-[var(--tulip-forest)]/40 shrink-0" />}
               {entry.status === 'uploading' && <Loader2 size={14} className="text-[#0d9488] shrink-0 animate-spin" />}
               {entry.status === 'sealed' && <CheckCircle size={14} className="text-green-500 shrink-0" />}
               {entry.status === 'failed' && <AlertCircle size={14} className="text-red-500 shrink-0" />}
@@ -193,7 +193,7 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
                   <input value={entry.name} onChange={e => updateName(i, e.target.value)}
                     className={inputCls} style={{ padding:'4px 8px', fontSize:12 }} />
                 ) : (
-                  <p className="text-xs text-[#183a1d] font-medium truncate m-0">{entry.name}</p>
+                  <p className="text-xs text-[var(--tulip-forest)] font-medium truncate m-0">{entry.name}</p>
                 )}
                 <p className="text-[10px] m-0 mt-0.5" style={{ color: entry.status === 'failed' ? '#ef4444' : '#183a1d80' }}>
                   {formatSize(entry.file.size)}
@@ -203,7 +203,7 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
                 </p>
               </div>
               {entry.status === 'queued' && !uploading && (
-                <button onClick={() => removeFile(i)} className="text-[#183a1d]/30 hover:text-[#183a1d] shrink-0">
+                <button onClick={() => removeFile(i)} className="text-[var(--tulip-forest)]/30 hover:text-[var(--tulip-forest)] shrink-0">
                   <X size={14} />
                 </button>
               )}
@@ -239,8 +239,8 @@ export default function DocumentUploadSection({ entityType, entityId, onUploaded
 
       {entries.some(e => e.status === 'queued') && (
         <button onClick={upload} disabled={uploading}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] disabled:opacity-50 transition-all ${
-            isOnline ? 'bg-[#f6c453] hover:bg-[#f0a04b]' : 'bg-amber-400 hover:bg-amber-500'
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-forest)] disabled:opacity-50 transition-all ${
+            isOnline ? 'bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)]' : 'bg-amber-400 hover:bg-amber-500'
           }`}>
           {isOnline ? <Upload size={14} /> : <WifiOff size={14} />}
           {uploading ? t('expenses.uploading') : isOnline

@@ -9,8 +9,8 @@ import { useTranslations } from 'next-intl'
 export default function AcceptInvitePage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#fefbe9] flex items-center justify-center">
-        <Loader2 size={32} className="text-[#f6c453] animate-spin" />
+      <div className="min-h-screen bg-[var(--tulip-cream)] flex items-center justify-center">
+        <Loader2 size={32} className="text-[var(--tulip-gold)] animate-spin" />
       </div>
     }>
       <AcceptInviteForm />
@@ -68,23 +68,23 @@ function AcceptInviteForm() {
   }
 
   if (!token) return (
-    <div className="min-h-screen bg-[#fefbe9] flex items-center justify-center">
+    <div className="min-h-screen bg-[var(--tulip-cream)] flex items-center justify-center">
       <div className="text-center">
         <AlertCircle size={48} className="text-red-400 mx-auto mb-4" />
-        <h1 className="text-xl font-semibold text-[#183a1d] mb-2">{t('invalidInviteLink')}</h1>
-        <p className="text-[#183a1d]/60 text-sm">{t('missingToken')}</p>
+        <h1 className="text-xl font-semibold text-[var(--tulip-forest)] mb-2">{t('invalidInviteLink')}</h1>
+        <p className="text-[var(--tulip-forest)]/60 text-sm">{t('missingToken')}</p>
       </div>
     </div>
   )
 
   if (step === 'success') return (
-    <div className="min-h-screen bg-[#fefbe9] flex items-center justify-center">
+    <div className="min-h-screen bg-[var(--tulip-cream)] flex items-center justify-center">
       <div className="text-center max-w-md">
         <CheckCircle size={48} className="text-emerald-400 mx-auto mb-4" />
-        <h1 className="text-xl font-semibold text-[#183a1d] mb-2">{t('invitationAccepted')}</h1>
-        <p className="text-[#183a1d]/60 text-sm mb-6">{t('successDesc')}</p>
-        <Link href="/login" className="inline-block px-6 py-3 rounded-lg text-sm font-medium text-[#183a1d]"
-          style={{ background: '#f6c453' }}>
+        <h1 className="text-xl font-semibold text-[var(--tulip-forest)] mb-2">{t('invitationAccepted')}</h1>
+        <p className="text-[var(--tulip-forest)]/60 text-sm mb-6">{t('successDesc')}</p>
+        <Link href="/login" className="inline-block px-6 py-3 rounded-lg text-sm font-medium text-[var(--tulip-forest)]"
+          style={{ background: 'var(--tulip-gold)' }}>
           {t('goToLogin')}
         </Link>
       </div>
@@ -92,28 +92,28 @@ function AcceptInviteForm() {
   )
 
   if (step === 'loading') return (
-    <div className="min-h-screen bg-[#fefbe9] flex items-center justify-center">
-      <Loader2 size={32} className="text-[#f6c453] animate-spin" />
+    <div className="min-h-screen bg-[var(--tulip-cream)] flex items-center justify-center">
+      <Loader2 size={32} className="text-[var(--tulip-gold)] animate-spin" />
     </div>
   )
 
-  const inputCls = "w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all"
-  const labelCls = "block text-xs font-medium text-[#183a1d]/60 mb-1.5 uppercase tracking-wide"
+  const inputCls = "w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] transition-all"
+  const labelCls = "block text-xs font-medium text-[var(--tulip-forest)]/60 mb-1.5 uppercase tracking-wide"
 
   return (
-    <div className="min-h-screen bg-[#fefbe9] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[var(--tulip-cream)] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center"
-            style={{ background: '#f6c453' }}>
-            <span className="text-[#183a1d] font-bold text-lg" style={{ fontFamily: 'Inter, sans-serif' }}>T</span>
+            style={{ background: 'var(--tulip-gold)' }}>
+            <span className="text-[var(--tulip-forest)] font-bold text-lg" style={{ fontFamily: 'Inter, sans-serif' }}>T</span>
           </div>
-          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('title')}</h1>
-          <p className="text-[#183a1d]/60 text-sm mt-2">{t('subtitle')}</p>
+          <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('title')}</h1>
+          <p className="text-[var(--tulip-forest)]/60 text-sm mt-2">{t('subtitle')}</p>
         </div>
 
-        <div className="rounded-xl border border-[#c8d6c0] p-6 space-y-4"
-          style={{ background: '#e1eedd' }}>
+        <div className="rounded-xl border border-[var(--tulip-sage-dark)] p-6 space-y-4"
+          style={{ background: 'var(--tulip-sage)' }}>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -168,13 +168,13 @@ function AcceptInviteForm() {
           )}
 
           <button onClick={submit}
-            className="w-full py-3 rounded-lg text-sm font-medium text-[#183a1d] transition-all"
-            style={{ background: '#f6c453' }}>
+            className="w-full py-3 rounded-lg text-sm font-medium text-[var(--tulip-forest)] transition-all"
+            style={{ background: 'var(--tulip-gold)' }}>
             {t('acceptCreateAccount')}
           </button>
         </div>
 
-        <p className="text-center text-[#183a1d]/30 text-xs mt-6">{t('footerText')}</p>
+        <p className="text-center text-[var(--tulip-forest)]/30 text-xs mt-6">{t('footerText')}</p>
       </div>
     </div>
   )

@@ -57,7 +57,7 @@ function ApprovalBadge({ status }: { status?: string }) {
     pending_review: 'Pending Review', rejected: 'Rejected',
   }
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] border font-medium ${map[status] ?? 'bg-[#e1eedd] text-[#183a1d]/60 border-[#c8d6c0]'}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] border font-medium ${map[status] ?? 'bg-[var(--tulip-sage)] text-[var(--tulip-forest)]/60 border-[var(--tulip-sage-dark)]'}`}>
       {labels[status] ?? status}
     </span>
   )
@@ -142,9 +142,9 @@ function HashCell({ hash }: { hash: string }) {
   const copy = (e: React.MouseEvent) => { e.stopPropagation(); navigator.clipboard.writeText(hash); setCopied(true); setTimeout(() => setCopied(false), 1500) }
   return (
     <div className="flex items-center gap-1.5 group">
-      <span className="hash-mono text-[#183a1d]/40" style={{ fontSize: 11 }}>{hash.slice(0, 10)}…{hash.slice(-6)}</span>
+      <span className="hash-mono text-[var(--tulip-forest)]/40" style={{ fontSize: 11 }}>{hash.slice(0, 10)}…{hash.slice(-6)}</span>
       <button onClick={copy} className="opacity-0 group-hover:opacity-100 transition-opacity">
-        {copied ? <Check size={11} className="text-green-400" /> : <Copy size={11} className="text-[#183a1d]/40" />}
+        {copied ? <Check size={11} className="text-green-400" /> : <Copy size={11} className="text-[var(--tulip-forest)]/40" />}
       </button>
     </div>
   )
@@ -161,7 +161,7 @@ function CategoryBadge({ category }: { category: string | null }) {
 
 function ExpiryCell({ doc }: { doc: Document }) {
   if (!doc.category || !KEY_DOCUMENT_CATEGORIES.includes(doc.category) || !doc.expiryDate) {
-    return <span className="text-[#183a1d]/30 text-xs">—</span>
+    return <span className="text-[var(--tulip-forest)]/30 text-xs">—</span>
   }
   const now = new Date()
   const expiry = new Date(doc.expiryDate)
@@ -178,18 +178,18 @@ function ExpiryCell({ doc }: { doc: Document }) {
   if (daysLeft <= 30) {
     return <span className="text-orange-400 text-xs font-medium">{formatted}</span>
   }
-  return <span className="text-[#183a1d]/60 text-xs">{formatted}</span>
+  return <span className="text-[var(--tulip-forest)]/60 text-xs">{formatted}</span>
 }
 
 function FileTypeBadge({ type }: { type: string | null }) {
   const t = (type ?? 'file').toLowerCase()
   const map: Record<string, string> = {
-    pdf: 'bg-red-400/10 text-red-400', docx: 'bg-[#f6c453]/10 text-[#183a1d]',
+    pdf: 'bg-red-400/10 text-red-400', docx: 'bg-[var(--tulip-gold)]/10 text-[var(--tulip-forest)]',
     xlsx: 'bg-green-400/10 text-green-400', jpg: 'bg-orange-400/10 text-orange-400',
     png: 'bg-orange-400/10 text-orange-400', csv: 'bg-teal-400/10 text-teal-400',
   }
   return (
-    <span className={`inline-flex px-2 py-0.5 rounded text-xs font-mono font-medium uppercase ${map[t] ?? 'bg-[#e1eedd] text-[#183a1d]/60'}`}>
+    <span className={`inline-flex px-2 py-0.5 rounded text-xs font-mono font-medium uppercase ${map[t] ?? 'bg-[var(--tulip-sage)] text-[var(--tulip-forest)]/60'}`}>
       {t}
     </span>
   )
@@ -263,11 +263,11 @@ export default function DocumentsPage() {
     <div className="p-4 md:p-6 space-y-6 animate-fade-up">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('documents.title')}</h1>
-          <p className="text-[#183a1d]/60 text-sm mt-1">{docs.length} document{docs.length !== 1 ? 's' : ''} — {t('documents.sha256Fingerprinted')}</p>
+          <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('documents.title')}</h1>
+          <p className="text-[var(--tulip-forest)]/60 text-sm mt-1">{docs.length} document{docs.length !== 1 ? 's' : ''} — {t('documents.sha256Fingerprinted')}</p>
         </div>
         <Link href="/dashboard/documents/new"
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] self-start bg-[#f6c453] hover:bg-[#f0a04b]">
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-forest)] self-start bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)]">
           <Plus size={16} /> {t('documents.new')}
         </Link>
       </div>
@@ -276,7 +276,7 @@ export default function DocumentsPage() {
         <div className="rounded-xl border p-3.5 flex items-center gap-3"
           style={{ background: 'rgba(251,191,36,0.08)', borderColor: 'rgba(251,191,36,0.2)' }}>
           <WifiOff size={16} className="text-amber-400 shrink-0" />
-          <p className="text-[#183a1d]/60 text-xs">{t('documents.offlineShowCached')}</p>
+          <p className="text-[var(--tulip-forest)]/60 text-xs">{t('documents.offlineShowCached')}</p>
         </div>
       )}
 
@@ -284,47 +284,47 @@ export default function DocumentsPage() {
       <div className="rounded-xl border p-3.5 flex items-center gap-3"
         style={{ background: 'rgba(16,185,129,0.05)', borderColor: 'rgba(16,185,129,0.15)' }}>
         <Users size={16} className="text-emerald-400 shrink-0" />
-        <p className="text-[#183a1d]/60 text-xs">{t('documents.donorSharing')}</p>
+        <p className="text-[var(--tulip-forest)]/60 text-xs">{t('documents.donorSharing')}</p>
       </div>
 
-      <div className="flex items-center gap-3 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 max-w-sm">
-        <Search size={15} className="text-[#183a1d]/40" />
+      <div className="flex items-center gap-3 bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 max-w-sm">
+        <Search size={15} className="text-[var(--tulip-forest)]/40" />
         <input value={search} onChange={e => setSearch(e.target.value)}
-          placeholder={t('documents.searchDocuments')} className="bg-transparent text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none w-full" />
+          placeholder={t('documents.searchDocuments')} className="bg-transparent text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none w-full" />
       </div>
 
-      <div className="rounded-xl border border-[#c8d6c0] overflow-hidden"
-        style={{ background: '#e1eedd' }}>
+      <div className="rounded-xl border border-[var(--tulip-sage-dark)] overflow-hidden"
+        style={{ background: 'var(--tulip-sage)' }}>
         {/* Desktop table header */}
-        <div className="hidden lg:grid grid-cols-[2fr_70px_80px_70px_1fr_80px_1fr_80px_40px] gap-3 px-5 py-3 border-b border-[#c8d6c0] text-xs text-[#183a1d]/40 uppercase tracking-wide font-medium">
+        <div className="hidden lg:grid grid-cols-[2fr_70px_80px_70px_1fr_80px_1fr_80px_40px] gap-3 px-5 py-3 border-b border-[var(--tulip-sage-dark)] text-xs text-[var(--tulip-forest)]/40 uppercase tracking-wide font-medium">
           <span>{t('documents.document')}</span><span>{t('documents.type')}</span><span>{t('documents.category')}</span><span>{t('documents.expiry')}</span><span>{t('documents.hash')}</span><span>{t('documents.seal')}</span><span>{t('documents.project')}</span><span>{t('common.date')}</span><span></span>
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-[#183a1d]/40 text-sm">{t('common.loading')}</div>
+          <div className="p-8 text-center text-[var(--tulip-forest)]/40 text-sm">{t('common.loading')}</div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center py-16 gap-3">
-            <FileCheck size={32} className="text-[#183a1d]/30" />
-            <p className="text-[#183a1d]/40 text-sm">{t('documents.noDocuments')}</p>
-            <Link href="/dashboard/documents/new" className="text-[#183a1d] text-sm hover:underline">{t('documents.addFirst')}</Link>
+            <FileCheck size={32} className="text-[var(--tulip-forest)]/30" />
+            <p className="text-[var(--tulip-forest)]/40 text-sm">{t('documents.noDocuments')}</p>
+            <Link href="/dashboard/documents/new" className="text-[var(--tulip-forest)] text-sm hover:underline">{t('documents.addFirst')}</Link>
           </div>
         ) : (
-          <div className="divide-y divide-[#c8d6c0]">
+          <div className="divide-y divide-[var(--tulip-sage-dark)]">
             {filtered.map(doc => (
-              <div key={doc.id} className="px-4 py-3.5 hover:bg-[#e1eedd]/50 transition-colors lg:grid lg:grid-cols-[2fr_70px_80px_70px_1fr_80px_1fr_80px_40px] lg:gap-3 lg:items-center lg:px-5">
+              <div key={doc.id} className="px-4 py-3.5 hover:bg-[var(--tulip-sage)]/50 transition-colors lg:grid lg:grid-cols-[2fr_70px_80px_70px_1fr_80px_1fr_80px_40px] lg:gap-3 lg:items-center lg:px-5">
                 {/* Document name + info — always visible */}
                 <div className="flex items-center gap-3 cursor-pointer" onClick={() => openDoc(doc.id)}>
-                  <div className="w-8 h-8 rounded-lg bg-[#f6c453]/10 flex items-center justify-center shrink-0">
-                    <FileCheck size={14} className="text-[#183a1d]" />
+                  <div className="w-8 h-8 rounded-lg bg-[var(--tulip-gold)]/10 flex items-center justify-center shrink-0">
+                    <FileCheck size={14} className="text-[var(--tulip-forest)]" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-[#183a1d] truncate hover:text-[#183a1d] transition-colors">{doc.name}</span>
+                      <span className="text-sm font-medium text-[var(--tulip-forest)] truncate hover:text-[var(--tulip-forest)] transition-colors">{doc.name}</span>
                       <span className="hidden lg:inline-flex"><ApprovalBadge status={doc.approvalStatus} /></span>
                       <span className="hidden lg:inline-flex"><DuplicateBadge doc={doc} /></span>
                       <span className="hidden lg:inline-flex"><RiskBadge score={doc.fraudRiskScore} level={doc.fraudRiskLevel} /></span>
                     </div>
-                    {doc.description && <div className="text-xs text-[#183a1d]/40 truncate">{doc.description}</div>}
+                    {doc.description && <div className="text-xs text-[var(--tulip-forest)]/40 truncate">{doc.description}</div>}
                     {/* Mobile-only meta row */}
                     <div className="flex flex-wrap items-center gap-2 mt-1 lg:hidden">
                       <FileTypeBadge type={doc.fileType} />
@@ -333,8 +333,8 @@ export default function DocumentsPage() {
                       <RiskBadge score={doc.fraudRiskScore} level={doc.fraudRiskLevel} />
                       <CategoryBadge category={doc.category} />
                       <ExpiryCell doc={doc} />
-                      {doc.project?.name && <span className="text-xs text-[#183a1d]/60">{doc.project.name}</span>}
-                      <span className="text-xs text-[#183a1d]/40">
+                      {doc.project?.name && <span className="text-xs text-[var(--tulip-forest)]/60">{doc.project.name}</span>}
+                      <span className="text-xs text-[var(--tulip-forest)]/40">
                         {new Date(doc.uploadedAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
@@ -342,12 +342,12 @@ export default function DocumentsPage() {
                   {/* Mobile actions */}
                   <div className="flex items-center gap-2 lg:hidden shrink-0">
                     <button onClick={(e) => { e.stopPropagation(); openDoc(doc.id) }}
-                      className="text-[#183a1d]/30 hover:text-[#34d399] transition-colors" title="View document">
+                      className="text-[var(--tulip-forest)]/30 hover:text-[#34d399] transition-colors" title="View document">
                       <ExternalLink size={15} />
                     </button>
                     {doc.sha256Hash && (
                       <Link href={`/verify?hash=${doc.sha256Hash}`} target="_blank"
-                        className="text-[#183a1d]/30 hover:text-[#183a1d] transition-colors" title="Verify">
+                        className="text-[var(--tulip-forest)]/30 hover:text-[var(--tulip-forest)] transition-colors" title="Verify">
                         <Shield size={15} />
                       </Link>
                     )}
@@ -362,18 +362,18 @@ export default function DocumentsPage() {
                   onClick={() => doc.sha256Hash && window.open(`/verify?hash=${doc.sha256Hash}`, '_blank')}
                   title="Click to verify this hash"
                 >
-                  {doc.sha256Hash ? <HashCell hash={doc.sha256Hash} /> : <span className="text-[#183a1d]/30 text-xs">Pending</span>}
+                  {doc.sha256Hash ? <HashCell hash={doc.sha256Hash} /> : <span className="text-[var(--tulip-forest)]/30 text-xs">Pending</span>}
                 </div>
                 <div className="hidden lg:block" onClick={e => e.stopPropagation()}>
                   <SealPill hash={doc.sha256Hash} sealMap={sealMap} onOpen={setActiveSealId} />
                 </div>
-                <div className="hidden lg:block text-xs text-[#183a1d]/60 truncate">{doc.project?.name ?? '—'}</div>
-                <div className="hidden lg:block text-xs text-[#183a1d]/40">
+                <div className="hidden lg:block text-xs text-[var(--tulip-forest)]/60 truncate">{doc.project?.name ?? '—'}</div>
+                <div className="hidden lg:block text-xs text-[var(--tulip-forest)]/40">
                   {new Date(doc.uploadedAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
                 </div>
                 <div className="hidden lg:flex items-center gap-2">
                   <button onClick={() => openDoc(doc.id)}
-                    className="text-[#183a1d]/30 hover:text-[#34d399] transition-colors cursor-pointer bg-transparent border-none p-0" title="View document">
+                    className="text-[var(--tulip-forest)]/30 hover:text-[#34d399] transition-colors cursor-pointer bg-transparent border-none p-0" title="View document">
                     <ExternalLink size={13} />
                   </button>
                 </div>

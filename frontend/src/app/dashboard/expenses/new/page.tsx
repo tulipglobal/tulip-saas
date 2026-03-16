@@ -391,8 +391,8 @@ export default function NewExpensePage() {
     setSaving(false)
   }
 
-  const inputCls = "w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all [&>option]:bg-[#e1eedd] [color-scheme:light]"
-  const labelCls = "block text-xs font-medium text-[#183a1d]/60 mb-1.5 uppercase tracking-wide"
+  const inputCls = "w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] transition-all [&>option]:bg-[var(--tulip-sage)] [color-scheme:light]"
+  const labelCls = "block text-xs font-medium text-[var(--tulip-forest)]/60 mb-1.5 uppercase tracking-wide"
 
   const AutoBadge = ({ field }: { field: string }) => {
     if (!autoFilledFields.has(field)) return null
@@ -409,15 +409,15 @@ export default function NewExpensePage() {
             <button onClick={() => setShowDebug(false)} className="text-red-400 hover:text-red-600">close</button>
           </div>
           <div className="grid grid-cols-2 gap-1">
-            <span className="text-[#183a1d]/60">navigator.onLine:</span>
+            <span className="text-[var(--tulip-forest)]/60">navigator.onLine:</span>
             <span className={typeof navigator !== 'undefined' && navigator.onLine ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
               {typeof navigator !== 'undefined' ? String(navigator.onLine) : 'N/A'}
             </span>
-            <span className="text-[#183a1d]/60">isOnline (hook):</span>
+            <span className="text-[var(--tulip-forest)]/60">isOnline (hook):</span>
             <span className={isOnline ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>{String(isOnline)}</span>
-            <span className="text-[#183a1d]/60">debugSimOffline:</span>
-            <span className={debugSimOffline ? 'text-red-600 font-bold' : 'text-[#183a1d]/40'}>{String(debugSimOffline)}</span>
-            <span className="text-[#183a1d]/60 font-bold border-t border-red-200 pt-1">effectiveOnline (final):</span>
+            <span className="text-[var(--tulip-forest)]/60">debugSimOffline:</span>
+            <span className={debugSimOffline ? 'text-red-600 font-bold' : 'text-[var(--tulip-forest)]/40'}>{String(debugSimOffline)}</span>
+            <span className="text-[var(--tulip-forest)]/60 font-bold border-t border-red-200 pt-1">effectiveOnline (final):</span>
             <span className={`font-bold border-t border-red-200 pt-1 ${effectiveOnline ? 'text-green-600' : 'text-red-600'}`}>{String(effectiveOnline)}</span>
           </div>
           <div className="flex gap-2 pt-2 border-t border-red-200">
@@ -431,29 +431,29 @@ export default function NewExpensePage() {
         </div>
       )}
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/dashboard/expenses" className="text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">
+        <Link href="/dashboard/expenses" className="text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] transition-colors">
           <ArrowLeft size={18} />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('expenses.logExpense')}</h1>
-          <p className="text-[#183a1d]/60 text-sm">{t('expenses.expenseAnchored')}</p>
+          <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('expenses.logExpense')}</h1>
+          <p className="text-[var(--tulip-forest)]/60 text-sm">{t('expenses.expenseAnchored')}</p>
         </div>
       </div>
 
-      <div className="rounded-xl border border-[#c8d6c0] p-6 space-y-5" style={{ background: '#e1eedd' }}>
+      <div className="rounded-xl border border-[var(--tulip-sage-dark)] p-6 space-y-5" style={{ background: 'var(--tulip-sage)' }}>
 
         {/* ─── 1. UPLOAD SECTION (FIRST) ─── */}
-        <div className="rounded-lg border-2 border-dashed border-[#c8d6c0] p-6 space-y-3 bg-[#fefbe9]/50">
+        <div className="rounded-lg border-2 border-dashed border-[var(--tulip-sage-dark)] p-6 space-y-3 bg-[var(--tulip-cream)]/50">
           <div className="flex items-center gap-2 mb-1">
-            <Upload size={18} className="text-[#183a1d]/70" />
-            <span className="text-sm font-semibold text-[#183a1d]">{t('expenses.receiptInvoice')}</span>
+            <Upload size={18} className="text-[var(--tulip-forest)]/70" />
+            <span className="text-sm font-semibold text-[var(--tulip-forest)]">{t('expenses.receiptInvoice')}</span>
           </div>
-          <p className="text-sm text-[#183a1d]/60">
+          <p className="text-sm text-[var(--tulip-forest)]/60">
             Upload your receipt or invoice first. We&apos;ll read it automatically and fill in the details below.
           </p>
 
           {uploading ? (
-            <div className="flex items-center gap-3 py-6 justify-center text-[#183a1d]/60">
+            <div className="flex items-center gap-3 py-6 justify-center text-[var(--tulip-forest)]/60">
               <Loader2 size={20} className="animate-spin" />
               <span className="text-sm font-medium">Reading your document...</span>
             </div>
@@ -461,30 +461,30 @@ export default function NewExpensePage() {
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 {receiptPreview ? (
-                  <img src={receiptPreview} alt="Receipt" className="w-16 h-16 object-cover rounded-lg border border-[#c8d6c0]" />
+                  <img src={receiptPreview} alt="Receipt" className="w-16 h-16 object-cover rounded-lg border border-[var(--tulip-sage-dark)]" />
                 ) : (
-                  <div className="w-16 h-16 rounded-lg border border-[#c8d6c0] bg-[#e1eedd] flex items-center justify-center">
-                    <FileText size={24} className="text-[#183a1d]/40" />
+                  <div className="w-16 h-16 rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] flex items-center justify-center">
+                    <FileText size={24} className="text-[var(--tulip-forest)]/40" />
                   </div>
                 )}
                 <div className="flex-1">
                   <div className="flex items-center gap-2 text-green-600 text-sm font-medium">
                     <CheckCircle size={14} /> Uploaded &amp; Sealed
                   </div>
-                  <p className="text-xs text-[#183a1d]/60 mt-0.5">{receiptFile?.name}</p>
-                  <p className="text-[10px] text-[#183a1d]/30 font-mono mt-0.5">SHA-256: {receiptData.hash.slice(0, 16)}…</p>
+                  <p className="text-xs text-[var(--tulip-forest)]/60 mt-0.5">{receiptFile?.name}</p>
+                  <p className="text-[10px] text-[var(--tulip-forest)]/30 font-mono mt-0.5">SHA-256: {receiptData.hash.slice(0, 16)}…</p>
                 </div>
                 <button onClick={() => { setReceiptData(null); setReceiptFile(null); setReceiptPreview(null); setFraudFlags([]); setAutoFilledFields(new Set()); setOcrValues(null) }}
-                  className="text-xs text-[#183a1d]/40 hover:text-[#183a1d]/60 shrink-0">Replace</button>
+                  className="text-xs text-[var(--tulip-forest)]/40 hover:text-[var(--tulip-forest)]/60 shrink-0">Replace</button>
               </div>
             </div>
           ) : (
-            <label className="flex flex-col items-center gap-2 py-6 cursor-pointer rounded-lg hover:bg-[#e1eedd]/50 transition-colors">
-              <div className="w-14 h-14 rounded-full bg-[#e1eedd] flex items-center justify-center">
-                <Upload size={22} className="text-[#183a1d]/50" />
+            <label className="flex flex-col items-center gap-2 py-6 cursor-pointer rounded-lg hover:bg-[var(--tulip-sage)]/50 transition-colors">
+              <div className="w-14 h-14 rounded-full bg-[var(--tulip-sage)] flex items-center justify-center">
+                <Upload size={22} className="text-[var(--tulip-forest)]/50" />
               </div>
-              <span className="text-sm text-[#183a1d]/70 font-medium">Click to upload</span>
-              <span className="text-xs text-[#183a1d]/30">PDF, JPG, or PNG</span>
+              <span className="text-sm text-[var(--tulip-forest)]/70 font-medium">Click to upload</span>
+              <span className="text-xs text-[var(--tulip-forest)]/30">PDF, JPG, or PNG</span>
               <input type="file" className="hidden"
                 accept=".pdf,.jpg,.jpeg,.png,image/jpeg,image/png,application/pdf"
                 onChange={e => { if (e.target.files?.[0]) handleReceiptUpload(e.target.files[0]) }} />
@@ -522,8 +522,8 @@ export default function NewExpensePage() {
                   }}
                   className={`flex-1 py-2.5 rounded-lg text-sm font-medium border transition-all ${
                     form.expenseType === type
-                      ? type === 'CAPEX' ? 'bg-purple-500/15 border-purple-500/30 text-purple-400' : 'bg-cyan-500/15 border-cyan-500/30 text-[#183a1d]'
-                      : 'bg-[#e1eedd] border-[#c8d6c0] text-[#183a1d]/60 hover:border-[#c8d6c0]'
+                      ? type === 'CAPEX' ? 'bg-purple-500/15 border-purple-500/30 text-purple-400' : 'bg-cyan-500/15 border-cyan-500/30 text-[var(--tulip-forest)]'
+                      : 'bg-[var(--tulip-sage)] border-[var(--tulip-sage-dark)] text-[var(--tulip-forest)]/60 hover:border-[var(--tulip-sage-dark)]'
                   }`}>
                   {type === 'CAPEX' ? 'CapEx' : 'OpEx'}
                 </button>
@@ -537,11 +537,11 @@ export default function NewExpensePage() {
           <div>
             <label className={labelCls}>{t('expenses.budget')}</label>
             {loadingBudgets ? (
-              <div className={inputCls + ' text-[#183a1d]/40'}>{t('expenses.loadingBudgets')}</div>
+              <div className={inputCls + ' text-[var(--tulip-forest)]/40'}>{t('expenses.loadingBudgets')}</div>
             ) : filteredBudgets.length === 0 ? (
-              <div className="text-xs text-[#183a1d]/40 py-2">
+              <div className="text-xs text-[var(--tulip-forest)]/40 py-2">
                 {budgets.length === 0 ? <>{t('expenses.noBudgets')}{' '}
-                  <Link href={`/dashboard/budgets/new?projectId=${form.projectId}`} className="text-[#183a1d] hover:text-[#f6c453]">{t('expenses.createOne')}</Link>
+                  <Link href={`/dashboard/budgets/new?projectId=${form.projectId}`} className="text-[var(--tulip-forest)] hover:text-[var(--tulip-gold)]">{t('expenses.createOne')}</Link>
                 </> : <>No budgets with {form.expenseType === 'CAPEX' ? 'CapEx' : 'OpEx'} lines found.</>}
               </div>
             ) : (
@@ -570,8 +570,8 @@ export default function NewExpensePage() {
               ))}
             </select>
             {selectedLine && (
-              <div className="text-xs text-[#183a1d]/60 mt-1 flex gap-4">
-                <span>{t('expenses.approved')}: <span className="text-[#183a1d]/70">{selectedLine.currency} {selectedLine.approvedAmount.toLocaleString()}</span></span>
+              <div className="text-xs text-[var(--tulip-forest)]/60 mt-1 flex gap-4">
+                <span>{t('expenses.approved')}: <span className="text-[var(--tulip-forest)]/70">{selectedLine.currency} {selectedLine.approvedAmount.toLocaleString()}</span></span>
                 {disbursementInfo?.hasDisbursements ? (
                   <span>Available from Released: <span className={disbursementInfo.available > 0 ? 'text-green-400' : 'text-red-400'}>{selectedLine.currency} {disbursementInfo.available.toLocaleString()}</span></span>
                 ) : selectedLine.remaining !== undefined && (
@@ -589,9 +589,9 @@ export default function NewExpensePage() {
               Donor Disbursement Limit
             </p>
             <div className="flex gap-4 text-xs">
-              <span style={{ color: '#183a1d' }}>Funded: <strong>{formatCurrencyShort(form.currency || 'USD')} {disbursementInfo.totalFunded.toLocaleString()}</strong></span>
+              <span style={{ color: 'var(--tulip-forest)' }}>Funded: <strong>{formatCurrencyShort(form.currency || 'USD')} {disbursementInfo.totalFunded.toLocaleString()}</strong></span>
               <span style={{ color: '#166534' }}>Released: <strong>{formatCurrencyShort(form.currency || 'USD')} {disbursementInfo.totalReleased.toLocaleString()}</strong></span>
-              <span style={{ color: '#183a1d' }}>Spent: <strong>{formatCurrencyShort(form.currency || 'USD')} {disbursementInfo.totalSpent.toLocaleString()}</strong></span>
+              <span style={{ color: 'var(--tulip-forest)' }}>Spent: <strong>{formatCurrencyShort(form.currency || 'USD')} {disbursementInfo.totalSpent.toLocaleString()}</strong></span>
               <span style={{ color: disbursementInfo.available > 0 ? '#166534' : '#dc2626' }}>Available: <strong>{formatCurrencyShort(form.currency || 'USD')} {disbursementInfo.available.toLocaleString()}</strong></span>
             </div>
             {disbursementInfo.totalReleased === 0 && (
@@ -678,7 +678,7 @@ export default function NewExpensePage() {
         {/* ─── 3. FRAUD FLAGS (informational banners) ─── */}
         {allFlags.length > 0 && (
           <div className="space-y-2 pt-2">
-            <p className="text-xs text-[#183a1d]/50">
+            <p className="text-xs text-[var(--tulip-forest)]/50">
               These are automated checks. Review them before submitting — your approver will also see these.
             </p>
             {allFlags.map((flag, i) => (
@@ -719,10 +719,10 @@ export default function NewExpensePage() {
         {/* ─── 4. SUBMIT BUTTON (always enabled) ─── */}
         <div className="flex items-center gap-3 pt-2">
           <button onClick={submit} disabled={saving}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-[#183a1d] disabled:opacity-50 bg-[#f6c453] hover:bg-[#f0a04b]">
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-[var(--tulip-forest)] disabled:opacity-50 bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)]">
             <Save size={15} /> {saving ? t('common.saving') : effectiveOnline ? 'Submit for Approval' : t('expenses.saveOffline')}
           </button>
-          <Link href="/dashboard/expenses" className="px-5 py-2.5 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">
+          <Link href="/dashboard/expenses" className="px-5 py-2.5 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] transition-colors">
             {t('common.cancel')}
           </Link>
         </div>

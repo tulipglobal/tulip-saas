@@ -27,7 +27,7 @@ function TrustScore({ score }: { score: number }) {
     <div className="flex items-center gap-2">
       <div className="relative w-8 h-8">
         <svg className="w-8 h-8 -rotate-90" viewBox="0 0 32 32">
-          <circle cx="16" cy="16" r="12" fill="none" stroke="#c8d6c0" strokeWidth="3" />
+          <circle cx="16" cy="16" r="12" fill="none" stroke="var(--tulip-sage-dark)" strokeWidth="3" />
           <circle cx="16" cy="16" r="12" fill="none" stroke={color} strokeWidth="3"
             strokeDasharray={`${(score / 100) * 75.4} 75.4`} strokeLinecap="round" />
         </svg>
@@ -37,7 +37,7 @@ function TrustScore({ score }: { score: number }) {
       </div>
       <div>
         <div className="text-xs font-semibold" style={{ color }}>{label}</div>
-        <div className="text-xs text-[#183a1d]/40">{t('donors.integrity')}</div>
+        <div className="text-xs text-[var(--tulip-forest)]/40">{t('donors.integrity')}</div>
       </div>
     </div>
   )
@@ -47,41 +47,41 @@ function NGOCard({ ngo }: { ngo: NGOProfile }) {
   const t = useTranslations()
   return (
     <Link href={`/donors/${ngo.slug || ngo.id}`}
-      className="group block rounded-2xl border border-[#c8d6c0] hover:border-[#f6c453]/40 p-6 transition-all hover:bg-[#f6c453]/5"
-      style={{ background: '#e1eedd' }}>
+      className="group block rounded-2xl border border-[var(--tulip-sage-dark)] hover:border-[var(--tulip-gold)]/40 p-6 transition-all hover:bg-[var(--tulip-gold)]/5"
+      style={{ background: 'var(--tulip-sage)' }}>
       <div className="flex items-start justify-between mb-4">
-        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold text-[#183a1d] shrink-0"
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold text-[var(--tulip-forest)] shrink-0"
           style={{ background: 'rgba(246,196,83,0.15)', border: '1px solid rgba(246,196,83,0.2)' }}>
           {ngo.name.charAt(0)}
         </div>
         <div className="flex items-center gap-2">
           <TrustScore score={ngo.integrityScore} />
-          <ArrowUpRight size={16} className="text-[#183a1d]/30 group-hover:text-[#f6c453] transition-colors ml-1" />
+          <ArrowUpRight size={16} className="text-[var(--tulip-forest)]/30 group-hover:text-[var(--tulip-gold)] transition-colors ml-1" />
         </div>
       </div>
 
-      <h3 className="font-semibold text-[#183a1d] text-base mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+      <h3 className="font-semibold text-[var(--tulip-forest)] text-base mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
         {ngo.name}
       </h3>
       {ngo.description && (
-        <p className="text-[#183a1d]/60 text-sm line-clamp-2 mb-4">{ngo.description}</p>
+        <p className="text-[var(--tulip-forest)]/60 text-sm line-clamp-2 mb-4">{ngo.description}</p>
       )}
 
-      <div className="flex items-center gap-4 pt-4 border-t border-[#c8d6c0]/50">
+      <div className="flex items-center gap-4 pt-4 border-t border-[var(--tulip-sage-dark)]/50">
         <div className="text-center">
-          <div className="text-sm font-bold text-[#183a1d]">{ngo.totalProjects}</div>
-          <div className="text-xs text-[#183a1d]/40">{t('donors.projects')}</div>
+          <div className="text-sm font-bold text-[var(--tulip-forest)]">{ngo.totalProjects}</div>
+          <div className="text-xs text-[var(--tulip-forest)]/40">{t('donors.projects')}</div>
         </div>
         <div className="text-center">
-          <div className="text-sm font-bold text-[#183a1d]">{ngo.totalExpenses}</div>
-          <div className="text-xs text-[#183a1d]/40">{t('donors.expenses')}</div>
+          <div className="text-sm font-bold text-[var(--tulip-forest)]">{ngo.totalExpenses}</div>
+          <div className="text-xs text-[var(--tulip-forest)]/40">{t('donors.expenses')}</div>
         </div>
         <div className="text-center">
-          <div className="text-sm font-bold text-[#183a1d]">{ngo.totalAnchored}</div>
-          <div className="text-xs text-[#183a1d]/40">{t('donors.anchored')}</div>
+          <div className="text-sm font-bold text-[var(--tulip-forest)]">{ngo.totalAnchored}</div>
+          <div className="text-xs text-[var(--tulip-forest)]/40">{t('donors.anchored')}</div>
         </div>
         {ngo.country && (
-          <div className="ml-auto flex items-center gap-1 text-xs text-[#183a1d]/40">
+          <div className="ml-auto flex items-center gap-1 text-xs text-[var(--tulip-forest)]/40">
             <Globe size={11} />
             {ngo.country}
           </div>
@@ -89,9 +89,9 @@ function NGOCard({ ngo }: { ngo: NGOProfile }) {
       </div>
 
       {ngo.verifiedAt && (
-        <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-[#c8d6c0]/50">
+        <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-[var(--tulip-sage-dark)]/50">
           <CheckCircle size={12} className="text-green-400" />
-          <span className="text-xs text-[#183a1d]/40">
+          <span className="text-xs text-[var(--tulip-forest)]/40">
             {t('donors.verifiedSince', { date: new Date(ngo.verifiedAt).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) })}
           </span>
         </div>
@@ -147,24 +147,24 @@ export default function DonorPortalPage() {
 
   return (
     <div className="min-h-screen" style={{
-      background: '#fefbe9',
+      background: 'var(--tulip-cream)',
       backgroundImage: 'radial-gradient(at 20% 10%, rgba(246,196,83,0.12) 0px, transparent 50%), radial-gradient(at 80% 80%, rgba(24,58,29,0.08) 0px, transparent 50%)'
     }}>
       {/* Nav */}
-      <nav className="border-b border-[#c8d6c0] px-6 h-16 flex items-center justify-between"
-        style={{ background: '#fefbe9', backdropFilter: 'blur(12px)' }}>
+      <nav className="border-b border-[var(--tulip-sage-dark)] px-6 h-16 flex items-center justify-between"
+        style={{ background: 'var(--tulip-cream)', backdropFilter: 'blur(12px)' }}>
         <Link href="/" className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-            style={{ background: '#f6c453' }}>
-            <span className="text-[#183a1d] font-bold text-xs" style={{ fontFamily: 'Inter, sans-serif' }}>T</span>
+            style={{ background: 'var(--tulip-gold)' }}>
+            <span className="text-[var(--tulip-forest)] font-bold text-xs" style={{ fontFamily: 'Inter, sans-serif' }}>T</span>
           </div>
-          <span className="font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
-            tulip<span style={{ color: '#f6c453' }}>ds</span>
+          <span className="font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>
+            tulip<span style={{ color: 'var(--tulip-gold)' }}>ds</span>
           </span>
         </Link>
         <div className="flex items-center gap-4">
-          <Link href="/verify" className="text-sm text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">{t('donors.verifyHash')}</Link>
-          <Link href="/login" className="px-4 py-1.5 rounded-lg text-sm font-medium text-[#183a1d] border border-[#c8d6c0] hover:border-[#f6c453]/30 transition-all">
+          <Link href="/verify" className="text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] transition-colors">{t('donors.verifyHash')}</Link>
+          <Link href="/login" className="px-4 py-1.5 rounded-lg text-sm font-medium text-[var(--tulip-forest)] border border-[var(--tulip-sage-dark)] hover:border-[var(--tulip-gold)]/30 transition-all">
             {t('donors.ngoSignIn')}
           </Link>
         </div>
@@ -172,17 +172,17 @@ export default function DonorPortalPage() {
 
       {/* Hero */}
       <div className="max-w-4xl mx-auto px-6 pt-16 pb-12 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#f6c453]/30 bg-[#f6c453]/10 text-xs text-[#183a1d] mb-6">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[var(--tulip-gold)]/30 bg-[var(--tulip-gold)]/10 text-xs text-[var(--tulip-forest)] mb-6">
           <Shield size={12} />
           {t('donors.heroBadge')}
         </div>
-        <h1 className="text-4xl md:text-5xl font-bold text-[#183a1d] mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
+        <h1 className="text-4xl md:text-5xl font-bold text-[var(--tulip-forest)] mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
           {t('donors.heroTitle1')}<br />
           <span style={{ background: 'linear-gradient(135deg, #f6c453, #f6c453)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             {t('donors.heroTitle2')}
           </span>
         </h1>
-        <p className="text-[#183a1d]/60 text-lg max-w-xl mx-auto mb-8">
+        <p className="text-[var(--tulip-forest)]/60 text-lg max-w-xl mx-auto mb-8">
           {t('donors.heroDesc')}
         </p>
 
@@ -194,7 +194,7 @@ export default function DonorPortalPage() {
             { key: 'rfc', label: t('donors.rfcTimestamped') },
             { key: 'eidas', label: t('donors.eidasCompliant') },
           ].map(pill => (
-            <div key={pill.key} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#e1eedd] border border-[#c8d6c0] text-xs text-[#183a1d]/60">
+            <div key={pill.key} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] text-xs text-[var(--tulip-forest)]/60">
               <CheckCircle size={11} className="text-green-400" />
               {pill.label}
             </div>
@@ -202,20 +202,20 @@ export default function DonorPortalPage() {
         </div>
 
         {/* Search */}
-        <div className="flex items-center gap-3 bg-[#e1eedd] border border-[#c8d6c0] hover:border-[#c8d6c0] rounded-xl px-5 py-3.5 max-w-lg mx-auto transition-all">
-          <Search size={18} className="text-[#183a1d]/40 shrink-0" />
+        <div className="flex items-center gap-3 bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] hover:border-[var(--tulip-sage-dark)] rounded-xl px-5 py-3.5 max-w-lg mx-auto transition-all">
+          <Search size={18} className="text-[var(--tulip-forest)]/40 shrink-0" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder={t('donors.searchPlaceholder')}
-            className="bg-transparent text-[#183a1d] placeholder-[#183a1d]/40 outline-none w-full text-sm"
+            className="bg-transparent text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none w-full text-sm"
           />
         </div>
       </div>
 
       {/* Stats bar */}
-      <div className="border-y border-[#c8d6c0] py-6 mb-12"
-        style={{ background: '#e1eedd' }}>
+      <div className="border-y border-[var(--tulip-sage-dark)] py-6 mb-12"
+        style={{ background: 'var(--tulip-sage)' }}>
         <div className="max-w-4xl mx-auto px-6 grid grid-cols-3 gap-6 text-center">
           {[
             { label: t('donors.verifiedNgos'), value: ngos.length },
@@ -223,8 +223,8 @@ export default function DonorPortalPage() {
             { label: t('donors.avgIntegrity'), value: ngos.length ? `${Math.round(ngos.reduce((s, n) => s + n.integrityScore, 0) / ngos.length)}%` : '—' },
           ].map(({ label, value }) => (
             <div key={label}>
-              <div className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
-              <div className="text-sm text-[#183a1d]/60 mt-1">{label}</div>
+              <div className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
+              <div className="text-sm text-[var(--tulip-forest)]/60 mt-1">{label}</div>
             </div>
           ))}
         </div>
@@ -233,10 +233,10 @@ export default function DonorPortalPage() {
       {/* NGO Grid */}
       <div className="max-w-4xl mx-auto px-6 pb-20">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="font-semibold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
+          <h2 className="font-semibold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>
             {t('donors.verifiedOrgs', { count: filtered.length })}
           </h2>
-          <div className="flex items-center gap-1.5 text-xs text-[#183a1d]/40">
+          <div className="flex items-center gap-1.5 text-xs text-[var(--tulip-forest)]/40">
             <Star size={12} className="text-yellow-400" />
             {t('donors.sortedByIntegrity')}
           </div>
@@ -245,12 +245,12 @@ export default function DonorPortalPage() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1,2,3].map(i => (
-              <div key={i} className="rounded-2xl border border-[#c8d6c0] p-6 space-y-3 animate-pulse"
-                style={{ background: '#e1eedd' }}>
-                <div className="h-12 w-12 rounded-xl bg-[#c8d6c0]" />
-                <div className="h-4 bg-[#c8d6c0] rounded w-3/4" />
-                <div className="h-3 bg-[#c8d6c0] rounded w-full" />
-                <div className="h-3 bg-[#c8d6c0] rounded w-2/3" />
+              <div key={i} className="rounded-2xl border border-[var(--tulip-sage-dark)] p-6 space-y-3 animate-pulse"
+                style={{ background: 'var(--tulip-sage)' }}>
+                <div className="h-12 w-12 rounded-xl bg-[var(--tulip-sage-dark)]" />
+                <div className="h-4 bg-[var(--tulip-sage-dark)] rounded w-3/4" />
+                <div className="h-3 bg-[var(--tulip-sage-dark)] rounded w-full" />
+                <div className="h-3 bg-[var(--tulip-sage-dark)] rounded w-2/3" />
               </div>
             ))}
           </div>
@@ -262,8 +262,8 @@ export default function DonorPortalPage() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-[#c8d6c0] py-8 text-center">
-        <p className="text-[#183a1d]/30 text-xs">{t('donors.footer')}</p>
+      <footer className="border-t border-[var(--tulip-sage-dark)] py-8 text-center">
+        <p className="text-[var(--tulip-forest)]/30 text-xs">{t('donors.footer')}</p>
       </footer>
     </div>
   )

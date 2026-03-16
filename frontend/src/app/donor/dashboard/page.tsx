@@ -158,7 +158,7 @@ function StatusBadge({ status }: { status: string }) {
     completed: 'bg-blue-400/10 text-blue-400 border-blue-400/20',
   }
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border font-medium ${map[status] ?? 'bg-[#e1eedd] text-[#183a1d]/60 border-[#c8d6c0]'}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border font-medium ${map[status] ?? 'bg-[var(--tulip-sage)] text-[var(--tulip-forest)]/60 border-[var(--tulip-sage-dark)]'}`}>
       {status}
     </span>
   )
@@ -183,76 +183,76 @@ function AgreementCard({ agreement, documents, token }: {
 
   return (
     <div
-      className="rounded-xl border border-[#c8d6c0] overflow-hidden transition-all"
-      style={{ background: '#e1eedd' }}
+      className="rounded-xl border border-[var(--tulip-sage-dark)] overflow-hidden transition-all"
+      style={{ background: 'var(--tulip-sage)' }}
     >
       {/* Card header — clickable */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full text-left p-5 flex items-start justify-between gap-4 cursor-pointer hover:bg-[#e1eedd] transition-colors"
+        className="w-full text-left p-5 flex items-start justify-between gap-4 cursor-pointer hover:bg-[var(--tulip-sage)] transition-colors"
       >
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="text-[#183a1d] font-semibold text-sm truncate" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <h3 className="text-[var(--tulip-forest)] font-semibold text-sm truncate" style={{ fontFamily: 'Inter, sans-serif' }}>
               {agreement.title}
             </h3>
             <StatusBadge status={agreement.status} />
           </div>
-          <p className="text-[#183a1d]/40 text-xs">
+          <p className="text-[var(--tulip-forest)]/40 text-xs">
             {agreement.tenant.name} &middot; {agreement.type} &middot; {agreement._count.expenses} expense{agreement._count.expenses !== 1 ? 's' : ''}
           </p>
 
           {/* Amount + progress */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-3">
             <div>
-              <span className="text-[#183a1d]/40 text-xs">{t('funded')}</span>
-              <p className="text-[#183a1d] font-bold text-sm">{agreement.currency} {agreement.totalAmount.toLocaleString()}</p>
+              <span className="text-[var(--tulip-forest)]/40 text-xs">{t('funded')}</span>
+              <p className="text-[var(--tulip-forest)] font-bold text-sm">{agreement.currency} {agreement.totalAmount.toLocaleString()}</p>
             </div>
             <div>
-              <span className="text-[#183a1d]/40 text-xs">{t('spent')}</span>
-              <p className="text-[#183a1d]/70 font-medium text-sm">{agreement.currency} {agreement.spent.toLocaleString()}</p>
+              <span className="text-[var(--tulip-forest)]/40 text-xs">{t('spent')}</span>
+              <p className="text-[var(--tulip-forest)]/70 font-medium text-sm">{agreement.currency} {agreement.spent.toLocaleString()}</p>
             </div>
             <div className="flex-1 min-w-[120px]">
               <div className="flex items-center gap-2">
-                <div className="flex-1 h-1.5 rounded-full bg-[#c8d6c0] overflow-hidden">
+                <div className="flex-1 h-1.5 rounded-full bg-[var(--tulip-sage-dark)] overflow-hidden">
                   <div className="h-full rounded-full transition-all" style={{
                     width: `${pct}%`,
                     background: pct > 90 ? '#f87171' : pct > 70 ? '#fbbf24' : '#34d399'
                   }} />
                 </div>
-                <span className="text-xs text-[#183a1d]/60 w-8 text-right">{pct}%</span>
+                <span className="text-xs text-[var(--tulip-forest)]/60 w-8 text-right">{pct}%</span>
               </div>
             </div>
           </div>
         </div>
-        <div className="shrink-0 text-[#183a1d]/40 mt-1">
+        <div className="shrink-0 text-[var(--tulip-forest)]/40 mt-1">
           {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
         </div>
       </button>
 
       {/* Expanded details */}
       {expanded && (
-        <div className="border-t border-[#c8d6c0]/50 px-5 py-4 space-y-4">
+        <div className="border-t border-[var(--tulip-sage-dark)]/50 px-5 py-4 space-y-4">
           {/* Budget breakdown — donor visibility */}
           {agreement.budget && (
             <div>
-              <h4 className="text-[#183a1d]/40 text-xs uppercase tracking-wide font-medium mb-2">
+              <h4 className="text-[var(--tulip-forest)]/40 text-xs uppercase tracking-wide font-medium mb-2">
                 Budget: {agreement.budget.name}
-                <span className="text-[#183a1d]/30 normal-case ml-2">
+                <span className="text-[var(--tulip-forest)]/30 normal-case ml-2">
                   {formatDate(agreement.budget.periodFrom)} – {formatDate(agreement.budget.periodTo)}
                 </span>
               </h4>
               <div className="grid grid-cols-3 gap-2 mb-3">
-                <div className="rounded-lg border border-[#c8d6c0]/50 px-3 py-2 bg-[#e1eedd]">
-                  <div className="text-[10px] text-[#183a1d]/40">{t('budgeted')}</div>
-                  <div className="text-sm font-bold text-[#183a1d]">${agreement.budget.totalApproved.toLocaleString()}</div>
+                <div className="rounded-lg border border-[var(--tulip-sage-dark)]/50 px-3 py-2 bg-[var(--tulip-sage)]">
+                  <div className="text-[10px] text-[var(--tulip-forest)]/40">{t('budgeted')}</div>
+                  <div className="text-sm font-bold text-[var(--tulip-forest)]">${agreement.budget.totalApproved.toLocaleString()}</div>
                 </div>
-                <div className="rounded-lg border border-[#c8d6c0]/50 px-3 py-2 bg-[#e1eedd]">
-                  <div className="text-[10px] text-[#183a1d]/40">{t('spent')}</div>
+                <div className="rounded-lg border border-[var(--tulip-sage-dark)]/50 px-3 py-2 bg-[var(--tulip-sage)]">
+                  <div className="text-[10px] text-[var(--tulip-forest)]/40">{t('spent')}</div>
                   <div className="text-sm font-bold text-orange-400">${agreement.budget.totalSpent.toLocaleString()}</div>
                 </div>
-                <div className="rounded-lg border border-[#c8d6c0]/50 px-3 py-2 bg-[#e1eedd]">
-                  <div className="text-[10px] text-[#183a1d]/40">{t('remaining')}</div>
+                <div className="rounded-lg border border-[var(--tulip-sage-dark)]/50 px-3 py-2 bg-[var(--tulip-sage)]">
+                  <div className="text-[10px] text-[var(--tulip-forest)]/40">{t('remaining')}</div>
                   <div className={`text-sm font-bold ${(agreement.budget.totalApproved - agreement.budget.totalSpent) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                     ${(agreement.budget.totalApproved - agreement.budget.totalSpent).toLocaleString()}
                   </div>
@@ -262,20 +262,20 @@ function AgreementCard({ agreement, documents, token }: {
                 {agreement.budget.lines.map(line => {
                   const linePct = line.approvedAmount > 0 ? Math.min(100, Math.round((line.spent / line.approvedAmount) * 100)) : 0
                   return (
-                    <div key={line.id} className="flex items-center gap-3 py-1.5 px-2 rounded-lg bg-[#e1eedd]">
+                    <div key={line.id} className="flex items-center gap-3 py-1.5 px-2 rounded-lg bg-[var(--tulip-sage)]">
                       <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
                         line.expenseType === 'CAPEX' ? 'bg-purple-400/10 text-purple-400' : 'bg-cyan-400/10 text-cyan-400'
                       }`}>{line.expenseType}</span>
-                      <span className="text-xs text-[#183a1d]/60 flex-1 truncate">
+                      <span className="text-xs text-[var(--tulip-forest)]/60 flex-1 truncate">
                         {line.category}{line.subCategory ? ` / ${line.subCategory}` : ''}
                       </span>
-                      <div className="w-20 h-1 rounded-full bg-[#c8d6c0] overflow-hidden">
+                      <div className="w-20 h-1 rounded-full bg-[var(--tulip-sage-dark)] overflow-hidden">
                         <div className="h-full rounded-full" style={{
                           width: `${linePct}%`,
                           background: linePct > 90 ? '#f87171' : linePct > 70 ? '#fbbf24' : '#34d399'
                         }} />
                       </div>
-                      <span className="text-[10px] text-[#183a1d]/40 w-20 text-right">
+                      <span className="text-[10px] text-[var(--tulip-forest)]/40 w-20 text-right">
                         {line.currency} {line.spent.toLocaleString()} / {line.approvedAmount.toLocaleString()}
                       </span>
                     </div>
@@ -288,15 +288,15 @@ function AgreementCard({ agreement, documents, token }: {
           {/* Linked projects */}
           {agreement.projectFunding.length > 0 && (
             <div>
-              <h4 className="text-[#183a1d]/40 text-xs uppercase tracking-wide font-medium mb-2">{t('linkedProjects')}</h4>
+              <h4 className="text-[var(--tulip-forest)]/40 text-xs uppercase tracking-wide font-medium mb-2">{t('linkedProjects')}</h4>
               <div className="flex flex-wrap gap-2">
                 {agreement.projectFunding.map(pf => (
-                  <div key={pf.id} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#e1eedd] text-xs">
+                  <div key={pf.id} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--tulip-sage)] text-xs">
                     <FolderOpen size={11} className="text-emerald-400" />
-                    <span className="text-[#183a1d]/70">{pf.project.name}</span>
+                    <span className="text-[var(--tulip-forest)]/70">{pf.project.name}</span>
                     <StatusBadge status={pf.project.status} />
                     {pf.allocatedAmount > 0 && (
-                      <span className="text-[#183a1d]/30 ml-1">{agreement.currency} {pf.allocatedAmount.toLocaleString()}</span>
+                      <span className="text-[var(--tulip-forest)]/30 ml-1">{agreement.currency} {pf.allocatedAmount.toLocaleString()}</span>
                     )}
                   </div>
                 ))}
@@ -307,7 +307,7 @@ function AgreementCard({ agreement, documents, token }: {
           {/* Documents for this agreement's projects */}
           {linkedDocs.length > 0 && (
             <div>
-              <h4 className="text-[#183a1d]/40 text-xs uppercase tracking-wide font-medium mb-2">
+              <h4 className="text-[var(--tulip-forest)]/40 text-xs uppercase tracking-wide font-medium mb-2">
                 {t('projectDocuments', { count: linkedDocs.length })}
               </h4>
               <div className="space-y-1">
@@ -319,7 +319,7 @@ function AgreementCard({ agreement, documents, token }: {
           )}
 
           {linkedDocs.length === 0 && agreement.projectFunding.length > 0 && (
-            <p className="text-[#183a1d]/30 text-xs">{t('noDocsLinked')}</p>
+            <p className="text-[var(--tulip-forest)]/30 text-xs">{t('noDocsLinked')}</p>
           )}
         </div>
       )}
@@ -354,18 +354,18 @@ function DocumentRow({ doc, token, compact = false }: { doc: Document; token: st
 
   if (compact) {
     return (
-      <div className="flex items-center gap-3 py-1.5 px-2 rounded-lg hover:bg-[#e1eedd]/50 transition-colors group">
-        <FileText size={12} className="text-[#183a1d]/30 shrink-0" />
-        <span className="text-[#183a1d]/70 text-xs truncate flex-1">{doc.name}</span>
-        {doc.fileType && <span className="text-[#183a1d]/30 text-[10px] uppercase">{doc.fileType}</span>}
+      <div className="flex items-center gap-3 py-1.5 px-2 rounded-lg hover:bg-[var(--tulip-sage)]/50 transition-colors group">
+        <FileText size={12} className="text-[var(--tulip-forest)]/30 shrink-0" />
+        <span className="text-[var(--tulip-forest)]/70 text-xs truncate flex-1">{doc.name}</span>
+        {doc.fileType && <span className="text-[var(--tulip-forest)]/30 text-[10px] uppercase">{doc.fileType}</span>}
         {doc.anchorStatus === 'confirmed' ? (
           <CheckCircle size={11} className="text-emerald-400 shrink-0" />
         ) : (
-          <Clock size={11} className="text-[#183a1d]/30 shrink-0" />
+          <Clock size={11} className="text-[var(--tulip-forest)]/30 shrink-0" />
         )}
         {doc.fileUrl && (
           <button onClick={openFile} disabled={viewLoading}
-            className="opacity-0 group-hover:opacity-100 text-[#183a1d]/40 hover:text-emerald-400 transition-all disabled:opacity-20">
+            className="opacity-0 group-hover:opacity-100 text-[var(--tulip-forest)]/40 hover:text-emerald-400 transition-all disabled:opacity-20">
             <Eye size={12} />
           </button>
         )}
@@ -374,23 +374,23 @@ function DocumentRow({ doc, token, compact = false }: { doc: Document; token: st
   }
 
   return (
-    <div className="md:grid md:grid-cols-[2.5fr_1fr_1fr_1fr_1.5fr_1fr] gap-4 items-center px-5 py-3 hover:bg-[#e1eedd] transition-colors">
+    <div className="md:grid md:grid-cols-[2.5fr_1fr_1fr_1fr_1.5fr_1fr] gap-4 items-center px-5 py-3 hover:bg-[var(--tulip-sage)] transition-colors">
       {/* Document name — clickable to open */}
       <div
         className={`flex items-center gap-2.5 min-w-0 ${doc.fileUrl ? 'cursor-pointer group' : ''}`}
         onClick={doc.fileUrl ? openFile : undefined}
       >
-        <div className="w-8 h-8 rounded-lg bg-[#e1eedd] flex items-center justify-center flex-shrink-0">
-          <FileText size={14} className="text-[#183a1d]/30" />
+        <div className="w-8 h-8 rounded-lg bg-[var(--tulip-sage)] flex items-center justify-center flex-shrink-0">
+          <FileText size={14} className="text-[var(--tulip-forest)]/30" />
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <p className={`text-sm font-medium truncate ${doc.fileUrl ? 'text-[#183a1d] group-hover:text-emerald-400' : 'text-[#183a1d]'} transition-colors`}>
+            <p className={`text-sm font-medium truncate ${doc.fileUrl ? 'text-[var(--tulip-forest)] group-hover:text-emerald-400' : 'text-[var(--tulip-forest)]'} transition-colors`}>
               {doc.name}
             </p>
-            {doc.fileUrl && <ExternalLink size={10} className="text-[#183a1d]/30 group-hover:text-emerald-400/60 shrink-0 transition-colors" />}
+            {doc.fileUrl && <ExternalLink size={10} className="text-[var(--tulip-forest)]/30 group-hover:text-emerald-400/60 shrink-0 transition-colors" />}
           </div>
-          <p className="text-[#183a1d]/30 text-xs truncate">
+          <p className="text-[var(--tulip-forest)]/30 text-xs truncate">
             {doc.description ? (doc.description.length > 50 ? doc.description.slice(0, 50) + '...' : doc.description) : ''}
             {doc.description && doc.fileSize ? ' \u00b7 ' : ''}
             {doc.fileSize ? formatFileSize(doc.fileSize) : ''}
@@ -399,21 +399,21 @@ function DocumentRow({ doc, token, compact = false }: { doc: Document; token: st
       </div>
 
       {/* Project */}
-      <span className="text-[#183a1d]/60 text-sm truncate">{doc.project?.name || '\u2014'}</span>
+      <span className="text-[var(--tulip-forest)]/60 text-sm truncate">{doc.project?.name || '\u2014'}</span>
 
       {/* Category */}
       <div>
         {doc.category && CATEGORY_LABELS[doc.category] ? (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs border border-[#c8d6c0] bg-[#e1eedd] text-[#183a1d]/60 font-medium">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] text-[var(--tulip-forest)]/60 font-medium">
             {CATEGORY_LABELS[doc.category]}
           </span>
         ) : (
-          <span className="text-[#183a1d]/30 text-sm">{'\u2014'}</span>
+          <span className="text-[var(--tulip-forest)]/30 text-sm">{'\u2014'}</span>
         )}
       </div>
 
       {/* Date */}
-      <span className="text-[#183a1d]/40 text-xs">{formatDate(doc.uploadedAt)}</span>
+      <span className="text-[var(--tulip-forest)]/40 text-xs">{formatDate(doc.uploadedAt)}</span>
 
       {/* Blockchain Status */}
       <div>
@@ -435,13 +435,13 @@ function DocumentRow({ doc, token, compact = false }: { doc: Document; token: st
             {t('anchored')}
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#e1eedd] text-[#183a1d]/40 border border-[#c8d6c0]">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--tulip-sage)] text-[var(--tulip-forest)]/40 border border-[var(--tulip-sage-dark)]">
             <Clock size={12} />
             {t('pending')}
           </span>
         )}
         {doc.anchoredAt && (
-          <p className="text-[#183a1d]/30 text-[10px] mt-0.5 pl-1">{t('anchoredDate', { date: formatDate(doc.anchoredAt) })}</p>
+          <p className="text-[var(--tulip-forest)]/30 text-[10px] mt-0.5 pl-1">{t('anchoredDate', { date: formatDate(doc.anchoredAt) })}</p>
         )}
       </div>
 
@@ -449,9 +449,9 @@ function DocumentRow({ doc, token, compact = false }: { doc: Document; token: st
       <div className="flex items-center gap-2">
         {doc.fileUrl && (
           <button onClick={openFile} disabled={viewLoading}
-            className="inline-flex items-center gap-1 text-xs text-[#183a1d]/60 hover:text-emerald-400 transition-colors disabled:opacity-30">
+            className="inline-flex items-center gap-1 text-xs text-[var(--tulip-forest)]/60 hover:text-emerald-400 transition-colors disabled:opacity-30">
             {viewLoading ? (
-              <div className="w-3 h-3 border border-[#183a1d]/30 border-t-emerald-400 rounded-full animate-spin" />
+              <div className="w-3 h-3 border border-[var(--tulip-forest)]/30 border-t-emerald-400 rounded-full animate-spin" />
             ) : (
               <Eye size={12} />
             )}
@@ -462,7 +462,7 @@ function DocumentRow({ doc, token, compact = false }: { doc: Document; token: st
           <Link
             href={`/verify?hash=${doc.sha256Hash}`}
             target="_blank"
-            className="inline-flex items-center gap-1 text-xs text-[#183a1d]/60 hover:text-emerald-400 transition-colors"
+            className="inline-flex items-center gap-1 text-xs text-[var(--tulip-forest)]/60 hover:text-emerald-400 transition-colors"
           >
             <Link2 size={12} />
             {t('verify')}
@@ -510,26 +510,26 @@ function DonorIEStatement({ token }: { token: string }) {
     <div>
       <button onClick={() => setExpanded(!expanded)}
         className="flex items-center justify-between w-full text-left mb-3">
-        <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide">
+        <h2 className="text-sm font-medium text-[var(--tulip-forest)]/60 uppercase tracking-wide">
           {t('incomeExpenditure')}
         </h2>
-        <span className="text-[#183a1d]/40">
+        <span className="text-[var(--tulip-forest)]/40">
           {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </span>
       </button>
 
       {/* Summary always visible */}
       <div className="grid grid-cols-3 gap-3 mb-3">
-        <div className="rounded-lg border border-[#c8d6c0] px-3 py-3" style={{ background: '#e1eedd' }}>
-          <div className="text-[10px] text-[#183a1d]/40 mb-0.5">{t('income')}</div>
+        <div className="rounded-lg border border-[var(--tulip-sage-dark)] px-3 py-3" style={{ background: 'var(--tulip-sage)' }}>
+          <div className="text-[10px] text-[var(--tulip-forest)]/40 mb-0.5">{t('income')}</div>
           <div className="text-sm font-bold text-emerald-400">${data.income.total.toLocaleString()}</div>
         </div>
-        <div className="rounded-lg border border-[#c8d6c0] px-3 py-3" style={{ background: '#e1eedd' }}>
-          <div className="text-[10px] text-[#183a1d]/40 mb-0.5">{t('expenditure')}</div>
+        <div className="rounded-lg border border-[var(--tulip-sage-dark)] px-3 py-3" style={{ background: 'var(--tulip-sage)' }}>
+          <div className="text-[10px] text-[var(--tulip-forest)]/40 mb-0.5">{t('expenditure')}</div>
           <div className="text-sm font-bold text-orange-400">${data.expenditure.total.toLocaleString()}</div>
         </div>
-        <div className="rounded-lg border border-[#c8d6c0] px-3 py-3" style={{ background: '#e1eedd' }}>
-          <div className="text-[10px] text-[#183a1d]/40 mb-0.5">{t('balance')}</div>
+        <div className="rounded-lg border border-[var(--tulip-sage-dark)] px-3 py-3" style={{ background: 'var(--tulip-sage)' }}>
+          <div className="text-[10px] text-[var(--tulip-forest)]/40 mb-0.5">{t('balance')}</div>
           <div className={`text-sm font-bold ${data.netBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
             ${data.netBalance.toLocaleString()}
           </div>
@@ -537,29 +537,29 @@ function DonorIEStatement({ token }: { token: string }) {
       </div>
 
       {expanded && (
-        <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
+        <div className="rounded-xl border border-[var(--tulip-sage-dark)] overflow-hidden" style={{ background: 'var(--tulip-sage)' }}>
           {/* Income */}
-          <div className="px-4 py-3 border-b border-[#c8d6c0]/50">
+          <div className="px-4 py-3 border-b border-[var(--tulip-sage-dark)]/50">
             <div className="text-xs font-medium text-emerald-400 mb-2">{t('incomeBySource')}</div>
             {data.income.bySource.map(s => (
               <div key={s.sourceType} className="flex items-center justify-between py-0.5">
-                <span className="text-xs text-[#183a1d]/60">{s.sourceType}</span>
-                <span className="text-xs text-[#183a1d]/40">${s.total.toLocaleString()}</span>
+                <span className="text-xs text-[var(--tulip-forest)]/60">{s.sourceType}</span>
+                <span className="text-xs text-[var(--tulip-forest)]/40">${s.total.toLocaleString()}</span>
               </div>
             ))}
           </div>
 
           {/* CapEx */}
           {data.expenditure.capex.total > 0 && (
-            <div className="px-4 py-3 border-b border-[#c8d6c0]/50">
+            <div className="px-4 py-3 border-b border-[var(--tulip-sage-dark)]/50">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-medium text-purple-400">CapEx</span>
-                <span className="text-xs text-[#183a1d]/60">${data.expenditure.capex.total.toLocaleString()}</span>
+                <span className="text-xs text-[var(--tulip-forest)]/60">${data.expenditure.capex.total.toLocaleString()}</span>
               </div>
               {data.expenditure.capex.byCategory.map(c => (
                 <div key={c.category} className="flex items-center justify-between pl-3 py-0.5">
-                  <span className="text-[11px] text-[#183a1d]/40">{c.category}</span>
-                  <span className="text-[11px] text-[#183a1d]/30">${c.total.toLocaleString()}</span>
+                  <span className="text-[11px] text-[var(--tulip-forest)]/40">{c.category}</span>
+                  <span className="text-[11px] text-[var(--tulip-forest)]/30">${c.total.toLocaleString()}</span>
                 </div>
               ))}
             </div>
@@ -567,15 +567,15 @@ function DonorIEStatement({ token }: { token: string }) {
 
           {/* OpEx */}
           {data.expenditure.opex.total > 0 && (
-            <div className="px-4 py-3 border-b border-[#c8d6c0]/50">
+            <div className="px-4 py-3 border-b border-[var(--tulip-sage-dark)]/50">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-medium text-cyan-400">OpEx</span>
-                <span className="text-xs text-[#183a1d]/60">${data.expenditure.opex.total.toLocaleString()}</span>
+                <span className="text-xs text-[var(--tulip-forest)]/60">${data.expenditure.opex.total.toLocaleString()}</span>
               </div>
               {data.expenditure.opex.byCategory.map(c => (
                 <div key={c.category} className="flex items-center justify-between pl-3 py-0.5">
-                  <span className="text-[11px] text-[#183a1d]/40">{c.category}</span>
-                  <span className="text-[11px] text-[#183a1d]/30">${c.total.toLocaleString()}</span>
+                  <span className="text-[11px] text-[var(--tulip-forest)]/40">{c.category}</span>
+                  <span className="text-[11px] text-[var(--tulip-forest)]/30">${c.total.toLocaleString()}</span>
                 </div>
               ))}
             </div>
@@ -678,7 +678,7 @@ export default function DonorDashboardPage() {
   /* ---------------------------------------------------------------- */
 
   const statCards = [
-    { label: t('totalDocuments'), value: stats?.total ?? 0, icon: FileText, bg: 'rgba(246,196,83,0.10)', iconColor: 'text-[#f6c453]' },
+    { label: t('totalDocuments'), value: stats?.total ?? 0, icon: FileText, bg: 'rgba(246,196,83,0.10)', iconColor: 'text-[var(--tulip-gold)]' },
     { label: t('blockchainVerified'), value: stats?.verified ?? 0, icon: CheckCircle, bg: 'rgba(16,185,129,0.10)', iconColor: 'text-emerald-400' },
     { label: t('thisMonth'), value: stats?.thisMonth ?? 0, icon: Calendar, bg: 'rgba(139,92,246,0.10)', iconColor: 'text-purple-400' },
     {
@@ -686,7 +686,7 @@ export default function DonorDashboardPage() {
       value: stats?.lastUpdated ? formatDate(stats.lastUpdated) : '\u2014',
       icon: Clock,
       bg: 'rgba(225,238,221,0.5)',
-      iconColor: 'text-[#183a1d]/40',
+      iconColor: 'text-[var(--tulip-forest)]/40',
     },
   ]
 
@@ -697,30 +697,30 @@ export default function DonorDashboardPage() {
   /* ---------------------------------------------------------------- */
 
   return (
-    <div className="min-h-screen bg-[#fefbe9]" style={{ fontFamily: 'Inter, sans-serif' }}>
+    <div className="min-h-screen bg-[var(--tulip-cream)]" style={{ fontFamily: 'Inter, sans-serif' }}>
 
       {/* ── Nav ── */}
-      <nav className="border-b border-[#c8d6c0] bg-[#e1eedd]/95 backdrop-blur-md sticky top-0 z-50">
+      <nav className="border-b border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]/95 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/donor/dashboard" className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center"
                 style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
-                <Shield className="w-4 h-4 text-[#183a1d]" />
+                <Shield className="w-4 h-4 text-[var(--tulip-forest)]" />
               </div>
-              <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: '#183a1d' }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: 'var(--tulip-forest)' }}>
                 tulip<span style={{ color: '#34d399' }}>ds</span>
               </span>
             </Link>
-            <span className="text-[#183a1d]/30 text-sm">|</span>
-            <span className="text-[#183a1d]/60 text-sm font-medium">{user?.donor?.name || t('donorPortal')}</span>
+            <span className="text-[var(--tulip-forest)]/30 text-sm">|</span>
+            <span className="text-[var(--tulip-forest)]/60 text-sm font-medium">{user?.donor?.name || t('donorPortal')}</span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-[#183a1d]/40 text-sm hidden sm:block">
+            <span className="text-[var(--tulip-forest)]/40 text-sm hidden sm:block">
               {user?.firstName} {user?.lastName}
             </span>
             <button onClick={handleSignOut}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-[#183a1d]/60 hover:text-red-400 hover:bg-red-400/5 transition-all text-sm">
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-[var(--tulip-forest)]/60 hover:text-red-400 hover:bg-red-400/5 transition-all text-sm">
               <LogOut size={16} /> {t('signOut')}
             </button>
           </div>
@@ -731,10 +731,10 @@ export default function DonorDashboardPage() {
 
         {/* ── Header ── */}
         <div>
-          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
+          <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>
             {t('welcome', { name: user?.firstName || 'Donor' })}
           </h1>
-          <p className="text-[#183a1d]/60 text-sm mt-1">
+          <p className="text-[var(--tulip-forest)]/60 text-sm mt-1">
             {user?.tenantName
               ? t('viewingDocsFrom', { tenant: user.tenantName })
               : t('viewingDocsGeneric')}
@@ -754,14 +754,14 @@ export default function DonorDashboardPage() {
             {/* ── Stats Row ── */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {statCards.map(({ label, value, icon: Icon, bg, iconColor }) => (
-                <div key={label} className="rounded-xl border border-[#c8d6c0] px-4 py-4" style={{ background: '#e1eedd' }}>
+                <div key={label} className="rounded-xl border border-[var(--tulip-sage-dark)] px-4 py-4" style={{ background: 'var(--tulip-sage)' }}>
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: bg }}>
                       <Icon size={14} className={iconColor} />
                     </div>
-                    <span className="text-[#183a1d]/40 text-xs font-medium">{label}</span>
+                    <span className="text-[var(--tulip-forest)]/40 text-xs font-medium">{label}</span>
                   </div>
-                  <div className="text-lg font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
+                  <div className="text-lg font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
                 </div>
               ))}
             </div>
@@ -772,7 +772,7 @@ export default function DonorDashboardPage() {
             {/* ── Funding Agreements ── */}
             {agreements.length > 0 && (
               <div>
-                <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide mb-3">{t('fundingAgreements')}</h2>
+                <h2 className="text-sm font-medium text-[var(--tulip-forest)]/60 uppercase tracking-wide mb-3">{t('fundingAgreements')}</h2>
                 <div className="space-y-3">
                   {agreements.map(a => (
                     <AgreementCard key={a.id} agreement={a} documents={documents} token={token} />
@@ -783,35 +783,35 @@ export default function DonorDashboardPage() {
 
             {/* ── Documents Section ── */}
             <div>
-              <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide mb-3">{t('allSharedDocuments')}</h2>
+              <h2 className="text-sm font-medium text-[var(--tulip-forest)]/60 uppercase tracking-wide mb-3">{t('allSharedDocuments')}</h2>
 
               {/* Search */}
               <div className="relative mb-4">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#183a1d]/30 pointer-events-none" />
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--tulip-forest)]/30 pointer-events-none" />
                 <input
                   type="text"
                   placeholder={t('searchPlaceholder')}
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#c8d6c0] bg-[#e1eedd] text-[#183a1d] text-sm placeholder:text-[#183a1d]/30 focus:outline-none focus:border-emerald-400/30 transition-colors"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] text-[var(--tulip-forest)] text-sm placeholder:text-[var(--tulip-forest)]/30 focus:outline-none focus:border-emerald-400/30 transition-colors"
                 />
               </div>
 
               {/* Documents Table */}
               {filtered.length === 0 ? (
-                <div className="rounded-xl border border-[#c8d6c0] px-5 py-16 text-center" style={{ background: '#e1eedd' }}>
-                  <FileText size={32} className="text-[#183a1d]/30 mx-auto mb-3" />
-                  <p className="text-[#183a1d]/40 text-sm font-medium">
+                <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-5 py-16 text-center" style={{ background: 'var(--tulip-sage)' }}>
+                  <FileText size={32} className="text-[var(--tulip-forest)]/30 mx-auto mb-3" />
+                  <p className="text-[var(--tulip-forest)]/40 text-sm font-medium">
                     {search ? t('noDocsMatch') : t('noDocsShared')}
                   </p>
-                  <p className="text-[#183a1d]/30 text-xs mt-1">
+                  <p className="text-[var(--tulip-forest)]/30 text-xs mt-1">
                     {search ? t('tryDifferent') : t('docsWillAppear')}
                   </p>
                 </div>
               ) : (
-                <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
+                <div className="rounded-xl border border-[var(--tulip-sage-dark)] overflow-hidden" style={{ background: 'var(--tulip-sage)' }}>
                   {/* Table header */}
-                  <div className="hidden md:grid grid-cols-[2.5fr_1fr_1fr_1fr_1.5fr_1fr] gap-4 px-5 py-3 border-b border-[#c8d6c0] text-xs text-[#183a1d]/40 uppercase tracking-wide font-medium">
+                  <div className="hidden md:grid grid-cols-[2.5fr_1fr_1fr_1fr_1.5fr_1fr] gap-4 px-5 py-3 border-b border-[var(--tulip-sage-dark)] text-xs text-[var(--tulip-forest)]/40 uppercase tracking-wide font-medium">
                     <span>{t('document')}</span>
                     <span>{t('project')}</span>
                     <span>{t('category')}</span>
@@ -821,7 +821,7 @@ export default function DonorDashboardPage() {
                   </div>
 
                   {/* Table rows */}
-                  <div className="divide-y divide-[#c8d6c0]/50">
+                  <div className="divide-y divide-[var(--tulip-sage-dark)]/50">
                     {filtered.map(doc => (
                       <DocumentRow key={doc.id} doc={doc} token={token} />
                     ))}
@@ -834,12 +834,12 @@ export default function DonorDashboardPage() {
       </div>
 
       {/* ── Footer ── */}
-      <footer className="border-t border-[#c8d6c0] py-6 mt-8">
+      <footer className="border-t border-[var(--tulip-sage-dark)] py-6 mt-8">
         <div className="max-w-6xl mx-auto px-4 md:px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-[#183a1d]/30 text-xs">
+          <p className="text-[var(--tulip-forest)]/30 text-xs">
             &copy; 2026 Tulip DS &middot; Bright Bytes Technology &middot; Dubai, UAE
           </p>
-          <Link href="/verify" className="flex items-center gap-1.5 text-[#183a1d]/30 text-xs hover:text-[#183a1d]/60 transition-colors">
+          <Link href="/verify" className="flex items-center gap-1.5 text-[var(--tulip-forest)]/30 text-xs hover:text-[var(--tulip-forest)]/60 transition-colors">
             <Hash size={12} /> {t('verifyADocument')}
           </Link>
         </div>

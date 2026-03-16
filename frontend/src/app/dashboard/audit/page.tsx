@@ -32,11 +32,11 @@ function HashCell({ hash, short = false }: { hash: string; short?: boolean }) {
   }
   return (
     <div className="flex items-center gap-1.5 group">
-      <span className="hash-mono text-[#183a1d]/40" style={{ fontSize: 11 }}>
+      <span className="hash-mono text-[var(--tulip-forest)]/40" style={{ fontSize: 11 }}>
         {short ? `${hash.slice(0, 8)}…${hash.slice(-6)}` : hash}
       </span>
       <button onClick={copy} className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-        {copied ? <Check size={11} className="text-green-400" /> : <Copy size={11} className="text-[#183a1d]/40" />}
+        {copied ? <Check size={11} className="text-green-400" /> : <Copy size={11} className="text-[var(--tulip-forest)]/40" />}
       </button>
     </div>
   )
@@ -46,7 +46,7 @@ function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     confirmed:  'bg-green-400/10 text-green-400 border-green-400/20',
     pending:    'bg-yellow-400/10 text-yellow-400 border-yellow-400/20',
-    processing: 'bg-[#f6c453]/10 text-[#183a1d] border-[#f6c453]/30',
+    processing: 'bg-[var(--tulip-gold)]/10 text-[var(--tulip-forest)] border-[var(--tulip-gold)]/30',
     failed:     'bg-red-400/10 text-red-400 border-red-400/20',
   }
   return (
@@ -135,17 +135,17 @@ export default function AuditPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('audit.title')}</h1>
-          <p className="text-[#183a1d]/60 text-sm mt-1">{t('audit.subtitle', { total })}</p>
+          <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('audit.title')}</h1>
+          <p className="text-[var(--tulip-forest)]/60 text-sm mt-1">{t('audit.subtitle', { total })}</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setShowExport(true)}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-[#183a1d] hover:opacity-90 transition-opacity bg-[#f6c453] hover:bg-[#f0a04b]">
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-[var(--tulip-forest)] hover:opacity-90 transition-opacity bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)]">
             <Download size={14} />
             {t('audit.export')}
           </button>
           <button onClick={() => load(page)}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] border border-[#c8d6c0] hover:border-[#c8d6c0] transition-all">
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] border border-[var(--tulip-sage-dark)] hover:border-[var(--tulip-sage-dark)] transition-all">
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
             {t('audit.refresh')}
           </button>
@@ -154,13 +154,13 @@ export default function AuditPage() {
 
       {/* Export Panel */}
       {showExport && (
-        <div className="rounded-xl border border-[#c8d6c0] p-5 space-y-5" style={{ background: '#e1eedd' }}>
+        <div className="rounded-xl border border-[var(--tulip-sage-dark)] p-5 space-y-5" style={{ background: 'var(--tulip-sage)' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <FileArchive size={18} className="text-[#183a1d]" />
-              <h3 className="text-[#183a1d] font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>{t('audit.exportAuditLog')}</h3>
+              <FileArchive size={18} className="text-[var(--tulip-forest)]" />
+              <h3 className="text-[var(--tulip-forest)] font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>{t('audit.exportAuditLog')}</h3>
             </div>
-            <button onClick={() => setShowExport(false)} className="text-[#183a1d]/40 hover:text-[#183a1d] transition-colors">
+            <button onClick={() => setShowExport(false)} className="text-[var(--tulip-forest)]/40 hover:text-[var(--tulip-forest)] transition-colors">
               <X size={16} />
             </button>
           </div>
@@ -168,21 +168,21 @@ export default function AuditPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {/* Date range */}
             <div>
-              <label className="block text-[#183a1d]/40 text-xs mb-1.5">{t('audit.from')}</label>
+              <label className="block text-[var(--tulip-forest)]/40 text-xs mb-1.5">{t('audit.from')}</label>
               <input type="date" value={exportOpts.from} onChange={e => setExportOpts(o => ({ ...o, from: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg bg-[#e1eedd] border border-[#c8d6c0] text-[#183a1d] text-sm outline-none focus:border-[#f6c453] transition-colors" />
+                className="w-full px-3 py-2 rounded-lg bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] text-[var(--tulip-forest)] text-sm outline-none focus:border-[var(--tulip-gold)] transition-colors" />
             </div>
             <div>
-              <label className="block text-[#183a1d]/40 text-xs mb-1.5">{t('audit.to')}</label>
+              <label className="block text-[var(--tulip-forest)]/40 text-xs mb-1.5">{t('audit.to')}</label>
               <input type="date" value={exportOpts.to} onChange={e => setExportOpts(o => ({ ...o, to: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg bg-[#e1eedd] border border-[#c8d6c0] text-[#183a1d] text-sm outline-none focus:border-[#f6c453] transition-colors" />
+                className="w-full px-3 py-2 rounded-lg bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] text-[var(--tulip-forest)] text-sm outline-none focus:border-[var(--tulip-gold)] transition-colors" />
             </div>
 
             {/* Status filter */}
             <div>
-              <label className="block text-[#183a1d]/40 text-xs mb-1.5">{t('audit.status')}</label>
+              <label className="block text-[var(--tulip-forest)]/40 text-xs mb-1.5">{t('audit.status')}</label>
               <select value={exportOpts.anchorStatus} onChange={e => setExportOpts(o => ({ ...o, anchorStatus: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg bg-[#e1eedd] border border-[#c8d6c0] text-[#183a1d] text-sm outline-none focus:border-[#f6c453] transition-colors appearance-none">
+                className="w-full px-3 py-2 rounded-lg bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] text-[var(--tulip-forest)] text-sm outline-none focus:border-[var(--tulip-gold)] transition-colors appearance-none">
                 <option value="all">{t('audit.allStatuses')}</option>
                 <option value="confirmed">{t('audit.confirmed')}</option>
                 <option value="pending">{t('audit.pending')}</option>
@@ -192,9 +192,9 @@ export default function AuditPage() {
 
             {/* Entity type filter */}
             <div>
-              <label className="block text-[#183a1d]/40 text-xs mb-1.5">{t('audit.entityType')}</label>
+              <label className="block text-[var(--tulip-forest)]/40 text-xs mb-1.5">{t('audit.entityType')}</label>
               <select value={exportOpts.entityType} onChange={e => setExportOpts(o => ({ ...o, entityType: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg bg-[#e1eedd] border border-[#c8d6c0] text-[#183a1d] text-sm outline-none focus:border-[#f6c453] transition-colors appearance-none">
+                className="w-full px-3 py-2 rounded-lg bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] text-[var(--tulip-forest)] text-sm outline-none focus:border-[var(--tulip-gold)] transition-colors appearance-none">
                 <option value="all">{t('audit.allTypes')}</option>
                 <option value="Document">{t('audit.documents')}</option>
                 <option value="Expense">{t('audit.expenses')}</option>
@@ -209,14 +209,14 @@ export default function AuditPage() {
             {/* Include files toggle */}
             <label className="flex items-center gap-2.5 cursor-pointer select-none">
               <button onClick={() => setExportOpts(o => ({ ...o, includeFiles: !o.includeFiles }))}
-                className={`w-9 h-5 rounded-full transition-colors relative ${exportOpts.includeFiles ? 'bg-[#f6c453]' : 'bg-[#e1eedd]'}`}>
+                className={`w-9 h-5 rounded-full transition-colors relative ${exportOpts.includeFiles ? 'bg-[var(--tulip-gold)]' : 'bg-[var(--tulip-sage)]'}`}>
                 <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${exportOpts.includeFiles ? 'left-[18px]' : 'left-0.5'}`} />
               </button>
-              <span className="text-[#183a1d]/60 text-sm">{t('audit.includeFiles')}</span>
+              <span className="text-[var(--tulip-forest)]/60 text-sm">{t('audit.includeFiles')}</span>
             </label>
 
             <button onClick={doExport} disabled={exporting}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-[#183a1d] hover:opacity-90 transition-opacity disabled:opacity-50 bg-[#f6c453] hover:bg-[#f0a04b]">
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-[var(--tulip-forest)] hover:opacity-90 transition-opacity disabled:opacity-50 bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)]">
               {exporting ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               {exporting ? t('audit.exporting') : t('audit.downloadZip')}
             </button>
@@ -226,17 +226,17 @@ export default function AuditPage() {
 
       {/* Filters */}
       <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex items-center gap-2 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2">
-          <Search size={14} className="text-[#183a1d]/40" />
+        <div className="flex items-center gap-2 bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2">
+          <Search size={14} className="text-[var(--tulip-forest)]/40" />
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder={t('audit.searchPlaceholder')}
-            className="bg-transparent text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none w-48" />
+            className="bg-transparent text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none w-48" />
         </div>
-        <div className="flex items-center gap-1 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg p-1">
+        <div className="flex items-center gap-1 bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg p-1">
           {['all', 'confirmed', 'pending', 'failed'].map(f => (
             <button key={f} onClick={() => setFilter(f)}
               className={`px-3 py-1.5 rounded-md text-xs font-medium capitalize transition-all ${
-                filter === f ? 'bg-[#f6c453] text-[#183a1d]' : 'text-[#183a1d]/60 hover:text-[#183a1d]'
+                filter === f ? 'bg-[var(--tulip-gold)] text-[var(--tulip-forest)]' : 'text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]'
               }`}>
               {filterLabel(f)}
             </button>
@@ -245,43 +245,43 @@ export default function AuditPage() {
       </div>
 
       {/* Table */}
-      <div className="rounded-xl border border-[#c8d6c0] overflow-hidden"
-        style={{ background: '#e1eedd' }}>
-        <div className="grid grid-cols-[1fr_1fr_1fr_2fr_1fr_1fr_32px] gap-3 px-5 py-3 border-b border-[#c8d6c0] text-xs text-[#183a1d]/40 uppercase tracking-wide font-medium">
+      <div className="rounded-xl border border-[var(--tulip-sage-dark)] overflow-hidden"
+        style={{ background: 'var(--tulip-sage)' }}>
+        <div className="grid grid-cols-[1fr_1fr_1fr_2fr_1fr_1fr_32px] gap-3 px-5 py-3 border-b border-[var(--tulip-sage-dark)] text-xs text-[var(--tulip-forest)]/40 uppercase tracking-wide font-medium">
           <span>{t('audit.action')}</span><span>{t('audit.entity')}</span><span>{t('audit.project')}</span><span>{t('audit.hash')}</span><span>{t('audit.status')}</span><span>{t('audit.date')}</span><span/>
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-[#183a1d]/40 text-sm">{t('audit.loadingEntries')}</div>
+          <div className="p-8 text-center text-[var(--tulip-forest)]/40 text-sm">{t('audit.loadingEntries')}</div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center py-16 gap-3">
-            <Shield size={32} className="text-[#183a1d]/30" />
-            <p className="text-[#183a1d]/40 text-sm">{t('audit.noEntries')}</p>
+            <Shield size={32} className="text-[var(--tulip-forest)]/30" />
+            <p className="text-[var(--tulip-forest)]/40 text-sm">{t('audit.noEntries')}</p>
           </div>
         ) : (
-          <div className="divide-y divide-[#c8d6c0]">
+          <div className="divide-y divide-[var(--tulip-sage-dark)]">
             {filtered.map(entry => (
               <div key={entry.id}
-                className="grid grid-cols-[1fr_1fr_1fr_2fr_1fr_1fr_32px] gap-3 items-center px-5 py-3 hover:bg-[#e1eedd]/50 transition-colors">
-                <div className="text-sm font-medium text-[#183a1d] truncate">{entry.action}</div>
+                className="grid grid-cols-[1fr_1fr_1fr_2fr_1fr_1fr_32px] gap-3 items-center px-5 py-3 hover:bg-[var(--tulip-sage)]/50 transition-colors">
+                <div className="text-sm font-medium text-[var(--tulip-forest)] truncate">{entry.action}</div>
                 <div>
-                  <div className="text-xs text-[#183a1d]/60 truncate">{entry.entityType}</div>
-                  <div className="text-xs text-[#183a1d]/40 truncate">{entry.entityId}</div>
+                  <div className="text-xs text-[var(--tulip-forest)]/60 truncate">{entry.entityType}</div>
+                  <div className="text-xs text-[var(--tulip-forest)]/40 truncate">{entry.entityId}</div>
                 </div>
-                <div className="text-sm text-[#183a1d]/60 truncate">{entry.projectName ?? '—'}</div>
+                <div className="text-sm text-[var(--tulip-forest)]/60 truncate">{entry.projectName ?? '—'}</div>
                 <div className="min-w-0">
                   <HashCell hash={entry.dataHash} short />
                   {entry.blockNumber && (
-                    <div className="text-xs text-[#183a1d]/30 mt-0.5">Block #{entry.blockNumber.toLocaleString()}</div>
+                    <div className="text-xs text-[var(--tulip-forest)]/30 mt-0.5">Block #{entry.blockNumber.toLocaleString()}</div>
                   )}
                 </div>
                 <StatusBadge status={entry.anchorStatus || 'pending'} />
-                <div className="text-xs text-[#183a1d]/40">
+                <div className="text-xs text-[var(--tulip-forest)]/40">
                   {new Date(entry.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
                 </div>
                 <div className="flex items-center gap-1">
                   <Link href={`/verify?hash=${entry.dataHash}`} target="_blank"
-                    className="text-[#183a1d]/30 hover:text-[#183a1d] transition-colors" title="Verify">
+                    className="text-[var(--tulip-forest)]/30 hover:text-[var(--tulip-forest)] transition-colors" title="Verify">
                     <Shield size={13} />
                   </Link>
                 </div>
@@ -294,14 +294,14 @@ export default function AuditPage() {
       {/* Pagination */}
       {total > limit && (
         <div className="flex items-center justify-between text-sm">
-          <span className="text-[#183a1d]/40">{t('audit.showing', { from: ((page-1)*limit)+1, to: Math.min(page*limit, total), total })}</span>
+          <span className="text-[var(--tulip-forest)]/40">{t('audit.showing', { from: ((page-1)*limit)+1, to: Math.min(page*limit, total), total })}</span>
           <div className="flex gap-2">
             <button onClick={() => { setPage(p => p-1); load(page-1) }} disabled={page === 1}
-              className="px-3 py-1.5 rounded-lg border border-[#c8d6c0] text-[#183a1d]/60 hover:text-[#183a1d] disabled:opacity-30 transition-all">
+              className="px-3 py-1.5 rounded-lg border border-[var(--tulip-sage-dark)] text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] disabled:opacity-30 transition-all">
               {t('audit.previous')}
             </button>
             <button onClick={() => { setPage(p => p+1); load(page+1) }} disabled={page * limit >= total}
-              className="px-3 py-1.5 rounded-lg border border-[#c8d6c0] text-[#183a1d]/60 hover:text-[#183a1d] disabled:opacity-30 transition-all">
+              className="px-3 py-1.5 rounded-lg border border-[var(--tulip-sage-dark)] text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] disabled:opacity-30 transition-all">
               {t('audit.next')}
             </button>
           </div>

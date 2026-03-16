@@ -44,7 +44,7 @@ const STATUS_TABS = [
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     pending: 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20',
-    in_review: 'bg-[#f6c453]/10 text-[#183a1d] border-[#f6c453]/30',
+    in_review: 'bg-[var(--tulip-gold)]/10 text-[var(--tulip-forest)] border-[var(--tulip-gold)]/30',
     approved: 'bg-green-400/10 text-green-400 border-green-400/20',
     rejected: 'bg-red-400/10 text-red-400 border-red-400/20',
   }
@@ -67,7 +67,7 @@ function TypeBadge({ type }: { type: string }) {
     document_approval: 'Document', expense_approval: 'Expense',
   }
   return (
-    <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${map[type] ?? 'bg-[#e1eedd] text-[#183a1d]/60'}`}>
+    <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${map[type] ?? 'bg-[var(--tulip-sage)] text-[var(--tulip-forest)]/60'}`}>
       {labels[type] ?? type}
     </span>
   )
@@ -163,8 +163,8 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
   const canAct = task.status === 'pending' || task.status === 'in_review'
 
   return (
-    <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
-      <div className="px-4 py-3.5 flex items-start gap-3 cursor-pointer hover:bg-[#e1eedd]/50 transition-colors" onClick={() => { setExpanded(e => !e); loadExpense() }}>
+    <div className="rounded-xl border border-[var(--tulip-sage-dark)] overflow-hidden" style={{ background: 'var(--tulip-sage)' }}>
+      <div className="px-4 py-3.5 flex items-start gap-3 cursor-pointer hover:bg-[var(--tulip-sage)]/50 transition-colors" onClick={() => { setExpanded(e => !e); loadExpense() }}>
         <div className="mt-0.5 shrink-0">
           {task.status === 'approved' ? <CheckCircle2 size={18} className="text-green-400" /> :
            task.status === 'rejected' ? <XCircle size={18} className="text-red-400" /> :
@@ -172,11 +172,11 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-medium text-[#183a1d]">{task.title}</span>
+            <span className="text-sm font-medium text-[var(--tulip-forest)]">{task.title}</span>
             <TypeBadge type={task.type} />
             <StatusBadge status={task.status} />
           </div>
-          <div className="flex items-center gap-3 mt-1 text-xs text-[#183a1d]/60">
+          <div className="flex items-center gap-3 mt-1 text-xs text-[var(--tulip-forest)]/60">
             {task.submitter && <span>by {task.submitter.name}</span>}
             <span>{new Date(task.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
             {task.comments.length > 0 && (
@@ -184,92 +184,92 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
             )}
           </div>
         </div>
-        <span className="text-[#183a1d]/30 shrink-0 mt-1">
+        <span className="text-[var(--tulip-forest)]/30 shrink-0 mt-1">
           {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </span>
       </div>
 
       {expanded && (
-        <div className="px-4 pb-4 border-t border-[#c8d6c0] pt-3 space-y-3">
+        <div className="px-4 pb-4 border-t border-[var(--tulip-sage-dark)] pt-3 space-y-3">
           {task.description && (
-            <p className="text-sm text-[#183a1d]/60">{task.description}</p>
+            <p className="text-sm text-[var(--tulip-forest)]/60">{task.description}</p>
           )}
 
           {/* Expense details panel */}
           {task.entityType === 'expense' && expense && (
-            <div className="rounded-lg border border-[#c8d6c0] p-4 space-y-4 bg-[#fefbe9]/50">
-              <div className="flex items-center gap-2 text-xs text-[#183a1d]/40 uppercase tracking-wide font-medium">
+            <div className="rounded-lg border border-[var(--tulip-sage-dark)] p-4 space-y-4 bg-[var(--tulip-cream)]/50">
+              <div className="flex items-center gap-2 text-xs text-[var(--tulip-forest)]/40 uppercase tracking-wide font-medium">
                 <DollarSign size={12} /> Expense Details
               </div>
 
               {/* Full expense details */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div>
-                  <div className="text-[10px] text-[#183a1d]/40 uppercase">Amount</div>
-                  <div className="text-sm font-bold text-[#183a1d]">{expense.currency} {expense.amount.toLocaleString()}</div>
+                  <div className="text-[10px] text-[var(--tulip-forest)]/40 uppercase">Amount</div>
+                  <div className="text-sm font-bold text-[var(--tulip-forest)]">{expense.currency} {expense.amount.toLocaleString()}</div>
                 </div>
                 {expense.vendor && (
                   <div>
-                    <div className="text-[10px] text-[#183a1d]/40 uppercase">Vendor</div>
-                    <div className="text-sm text-[#183a1d]">{expense.vendor}</div>
+                    <div className="text-[10px] text-[var(--tulip-forest)]/40 uppercase">Vendor</div>
+                    <div className="text-sm text-[var(--tulip-forest)]">{expense.vendor}</div>
                   </div>
                 )}
                 <div>
-                  <div className="text-[10px] text-[#183a1d]/40 uppercase">Date</div>
-                  <div className="text-sm text-[#183a1d]">{new Date(expense.expenseDate || expense.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                  <div className="text-[10px] text-[var(--tulip-forest)]/40 uppercase">Date</div>
+                  <div className="text-sm text-[var(--tulip-forest)]">{new Date(expense.expenseDate || expense.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
                 </div>
                 {expense.project && (
                   <div>
-                    <div className="text-[10px] text-[#183a1d]/40 uppercase">Project</div>
-                    <div className="text-sm text-[#183a1d]">{expense.project.name}</div>
+                    <div className="text-[10px] text-[var(--tulip-forest)]/40 uppercase">Project</div>
+                    <div className="text-sm text-[var(--tulip-forest)]">{expense.project.name}</div>
                   </div>
                 )}
                 {expense.category && (
                   <div>
-                    <div className="text-[10px] text-[#183a1d]/40 uppercase">Category</div>
-                    <div className="text-sm text-[#183a1d]">{expense.category}</div>
+                    <div className="text-[10px] text-[var(--tulip-forest)]/40 uppercase">Category</div>
+                    <div className="text-sm text-[var(--tulip-forest)]">{expense.category}</div>
                   </div>
                 )}
                 {expense.notes && (
                   <div className="col-span-2 sm:col-span-3">
-                    <div className="text-[10px] text-[#183a1d]/40 uppercase">Notes</div>
-                    <div className="text-sm text-[#183a1d]">{expense.notes}</div>
+                    <div className="text-[10px] text-[var(--tulip-forest)]/40 uppercase">Notes</div>
+                    <div className="text-sm text-[var(--tulip-forest)]">{expense.notes}</div>
                   </div>
                 )}
               </div>
 
               {/* OCR vs Submitted comparison */}
               {(expense.ocrAmount != null || expense.ocrVendor || expense.ocrDate) && (
-                <div className="rounded-lg border border-[#c8d6c0] overflow-hidden">
-                  <div className="text-[10px] text-[#183a1d]/40 uppercase tracking-wide font-medium px-3 py-2 bg-[#e1eedd]/50">OCR Extracted vs Submitted</div>
+                <div className="rounded-lg border border-[var(--tulip-sage-dark)] overflow-hidden">
+                  <div className="text-[10px] text-[var(--tulip-forest)]/40 uppercase tracking-wide font-medium px-3 py-2 bg-[var(--tulip-sage)]/50">OCR Extracted vs Submitted</div>
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="border-b border-[#c8d6c0]">
-                        <th className="text-left px-3 py-1.5 text-[#183a1d]/40 font-normal">Field</th>
-                        <th className="text-left px-3 py-1.5 text-[#183a1d]/40 font-normal">OCR Read</th>
-                        <th className="text-left px-3 py-1.5 text-[#183a1d]/40 font-normal">Submitted</th>
+                      <tr className="border-b border-[var(--tulip-sage-dark)]">
+                        <th className="text-left px-3 py-1.5 text-[var(--tulip-forest)]/40 font-normal">Field</th>
+                        <th className="text-left px-3 py-1.5 text-[var(--tulip-forest)]/40 font-normal">OCR Read</th>
+                        <th className="text-left px-3 py-1.5 text-[var(--tulip-forest)]/40 font-normal">Submitted</th>
                       </tr>
                     </thead>
                     <tbody>
                       {expense.ocrAmount != null && (
-                        <tr className={`border-b border-[#c8d6c0] ${expense.amountMismatch ? 'bg-amber-50' : ''}`}>
-                          <td className="px-3 py-1.5 text-[#183a1d]/60">Amount</td>
-                          <td className="px-3 py-1.5 text-[#183a1d]">{expense.ocrAmount.toLocaleString()}</td>
-                          <td className={`px-3 py-1.5 ${expense.amountMismatch ? 'text-amber-700 font-bold' : 'text-[#183a1d]'}`}>{expense.amount.toLocaleString()}</td>
+                        <tr className={`border-b border-[var(--tulip-sage-dark)] ${expense.amountMismatch ? 'bg-amber-50' : ''}`}>
+                          <td className="px-3 py-1.5 text-[var(--tulip-forest)]/60">Amount</td>
+                          <td className="px-3 py-1.5 text-[var(--tulip-forest)]">{expense.ocrAmount.toLocaleString()}</td>
+                          <td className={`px-3 py-1.5 ${expense.amountMismatch ? 'text-amber-700 font-bold' : 'text-[var(--tulip-forest)]'}`}>{expense.amount.toLocaleString()}</td>
                         </tr>
                       )}
                       {expense.ocrVendor && (
-                        <tr className={`border-b border-[#c8d6c0] ${expense.vendorMismatch ? 'bg-amber-50' : ''}`}>
-                          <td className="px-3 py-1.5 text-[#183a1d]/60">Vendor</td>
-                          <td className="px-3 py-1.5 text-[#183a1d]">{expense.ocrVendor}</td>
-                          <td className={`px-3 py-1.5 ${expense.vendorMismatch ? 'text-amber-700 font-bold' : 'text-[#183a1d]'}`}>{expense.vendor || '—'}</td>
+                        <tr className={`border-b border-[var(--tulip-sage-dark)] ${expense.vendorMismatch ? 'bg-amber-50' : ''}`}>
+                          <td className="px-3 py-1.5 text-[var(--tulip-forest)]/60">Vendor</td>
+                          <td className="px-3 py-1.5 text-[var(--tulip-forest)]">{expense.ocrVendor}</td>
+                          <td className={`px-3 py-1.5 ${expense.vendorMismatch ? 'text-amber-700 font-bold' : 'text-[var(--tulip-forest)]'}`}>{expense.vendor || '—'}</td>
                         </tr>
                       )}
                       {expense.ocrDate && (
                         <tr className={`${expense.dateMismatch ? 'bg-amber-50' : ''}`}>
-                          <td className="px-3 py-1.5 text-[#183a1d]/60">Date</td>
-                          <td className="px-3 py-1.5 text-[#183a1d]">{expense.ocrDate}</td>
-                          <td className={`px-3 py-1.5 ${expense.dateMismatch ? 'text-amber-700 font-bold' : 'text-[#183a1d]'}`}>{expense.expenseDate || new Date(expense.createdAt).toISOString().split('T')[0]}</td>
+                          <td className="px-3 py-1.5 text-[var(--tulip-forest)]/60">Date</td>
+                          <td className="px-3 py-1.5 text-[var(--tulip-forest)]">{expense.ocrDate}</td>
+                          <td className={`px-3 py-1.5 ${expense.dateMismatch ? 'text-amber-700 font-bold' : 'text-[var(--tulip-forest)]'}`}>{expense.expenseDate || new Date(expense.createdAt).toISOString().split('T')[0]}</td>
                         </tr>
                       )}
                     </tbody>
@@ -317,14 +317,14 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
               {/* Invoice preview */}
               {expense.receiptUrl && (
                 <div>
-                  <div className="text-[10px] text-[#183a1d]/40 uppercase mb-2">Invoice / Receipt</div>
+                  <div className="text-[10px] text-[var(--tulip-forest)]/40 uppercase mb-2">Invoice / Receipt</div>
                   {expense.receiptFileKey?.match(/\.(jpg|jpeg|png)$/i) ? (
                     <a href={expense.receiptUrl} target="_blank" rel="noopener noreferrer" className="block">
-                      <img src={expense.receiptUrl} alt="Receipt" className="max-w-xs max-h-48 rounded-lg border border-[#c8d6c0] hover:shadow-lg transition-shadow cursor-pointer" />
+                      <img src={expense.receiptUrl} alt="Receipt" className="max-w-xs max-h-48 rounded-lg border border-[var(--tulip-sage-dark)] hover:shadow-lg transition-shadow cursor-pointer" />
                     </a>
                   ) : (
                     <a href={expense.receiptUrl} target="_blank" rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-[#e1eedd] border border-[#c8d6c0] text-[#183a1d] hover:bg-[#e1eedd]/70 transition-colors">
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)]/70 transition-colors">
                       <Shield size={14} /> View Invoice (PDF)
                     </a>
                   )}
@@ -332,20 +332,20 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
               )}
 
               {expense.fraudRiskScore != null && (
-                <div className="text-[10px] text-[#183a1d]/30">Fraud score: {expense.fraudRiskScore}/100 ({expense.fraudRiskLevel})</div>
+                <div className="text-[10px] text-[var(--tulip-forest)]/30">Fraud score: {expense.fraudRiskScore}/100 ({expense.fraudRiskLevel})</div>
               )}
             </div>
           )}
           {task.entityType === 'expense' && loadingExpense && (
-            <div className="text-xs text-[#183a1d]/40 animate-pulse">Loading expense details...</div>
+            <div className="text-xs text-[var(--tulip-forest)]/40 animate-pulse">Loading expense details...</div>
           )}
 
           {task.assignee && (
-            <div className="text-xs text-[#183a1d]/60">Assigned to: <span className="text-[#183a1d]/70">{task.assignee.name}</span></div>
+            <div className="text-xs text-[var(--tulip-forest)]/60">Assigned to: <span className="text-[var(--tulip-forest)]/70">{task.assignee.name}</span></div>
           )}
 
           {task.resolvedAt && (
-            <div className="text-xs text-[#183a1d]/60">
+            <div className="text-xs text-[var(--tulip-forest)]/60">
               Resolved: {new Date(task.resolvedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
             </div>
           )}
@@ -353,14 +353,14 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
           {/* Comments */}
           {task.comments.length > 0 && (
             <div className="space-y-2">
-              <div className="text-xs text-[#183a1d]/40 uppercase tracking-wide font-medium">Comments</div>
+              <div className="text-xs text-[var(--tulip-forest)]/40 uppercase tracking-wide font-medium">Comments</div>
               {task.comments.map(c => (
-                <div key={c.id} className="rounded-lg bg-[#e1eedd] px-3 py-2">
+                <div key={c.id} className="rounded-lg bg-[var(--tulip-sage)] px-3 py-2">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-medium text-[#183a1d]/70">{c.user?.name ?? 'Unknown'}</span>
-                    <span className="text-xs text-[#183a1d]/40">{new Date(c.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                    <span className="text-xs font-medium text-[var(--tulip-forest)]/70">{c.user?.name ?? 'Unknown'}</span>
+                    <span className="text-xs text-[var(--tulip-forest)]/40">{new Date(c.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
-                  <p className="text-sm text-[#183a1d]/60">{c.comment}</p>
+                  <p className="text-sm text-[var(--tulip-forest)]/60">{c.comment}</p>
                 </div>
               ))}
             </div>
@@ -372,12 +372,12 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
               value={comment}
               onChange={e => setComment(e.target.value)}
               placeholder={canAct ? 'Add a comment (required for rejection)...' : 'Add a comment...'}
-              className="flex-1 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#c8d6c0]"
+              className="flex-1 bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-sage-dark)]"
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !canAct) handleComment() }}
             />
             <button onClick={handleComment} disabled={!comment.trim() || submitting}
-              className="w-8 h-8 rounded-lg bg-[#e1eedd] border border-[#c8d6c0] flex items-center justify-center hover:bg-[#e1eedd] transition-all disabled:opacity-30">
-              <Send size={14} className="text-[#183a1d]/70" />
+              className="w-8 h-8 rounded-lg bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] flex items-center justify-center hover:bg-[var(--tulip-sage)] transition-all disabled:opacity-30">
+              <Send size={14} className="text-[var(--tulip-forest)]/70" />
             </button>
           </div>
 
@@ -394,7 +394,7 @@ function TaskCard({ task, onAction }: { task: WorkflowTask; onAction: () => void
               </button>
               {task.status === 'pending' && (
                 <button onClick={() => handleStatus('in_review')} disabled={submitting}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#f6c453]/10 text-[#183a1d] border border-[#f6c453]/30 hover:bg-[#f6c453]/20 transition-all disabled:opacity-50">
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--tulip-gold)]/10 text-[var(--tulip-forest)] border border-[var(--tulip-gold)]/30 hover:bg-[var(--tulip-gold)]/20 transition-all disabled:opacity-50">
                   <Clock size={13} /> Mark In Review
                 </button>
               )}
@@ -431,21 +431,21 @@ export default function WorkflowPage() {
   return (
     <div className="p-4 md:p-6 space-y-6 animate-fade-up">
       <div>
-        <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Workflow</h1>
-        <p className="text-[#183a1d]/60 text-sm mt-1">Approval tasks for documents & expenses</p>
+        <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>Workflow</h1>
+        <p className="text-[var(--tulip-forest)]/60 text-sm mt-1">Approval tasks for documents & expenses</p>
       </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { label: 'Pending', value: summary.pending, color: 'text-yellow-400' },
-          { label: 'In Review', value: summary.inReview, color: 'text-[#183a1d]' },
+          { label: 'In Review', value: summary.inReview, color: 'text-[var(--tulip-forest)]' },
           { label: 'Approved', value: summary.approved, color: 'text-green-400' },
           { label: 'Rejected', value: summary.rejected, color: 'text-red-400' },
         ].map(({ label, value, color }) => (
-          <div key={label} className="rounded-xl border border-[#c8d6c0] px-4 py-3" style={{ background: '#e1eedd' }}>
+          <div key={label} className="rounded-xl border border-[var(--tulip-sage-dark)] px-4 py-3" style={{ background: 'var(--tulip-sage)' }}>
             <div className={`text-xl font-bold ${color}`} style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
-            <div className="text-xs text-[#183a1d]/60 mt-0.5">{label}</div>
+            <div className="text-xs text-[var(--tulip-forest)]/60 mt-0.5">{label}</div>
           </div>
         ))}
       </div>
@@ -456,8 +456,8 @@ export default function WorkflowPage() {
           <button key={key} onClick={() => setTab(key)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
               tab === key
-                ? 'bg-[#f6c453]/10 text-[#183a1d]'
-                : 'text-[#183a1d]/60 hover:text-[#183a1d]/70 hover:bg-[#e1eedd]/50'
+                ? 'bg-[var(--tulip-gold)]/10 text-[var(--tulip-forest)]'
+                : 'text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]/70 hover:bg-[var(--tulip-sage)]/50'
             }`}>
             {label}
             {key === '' && totalActive > 0 && (
@@ -471,13 +471,13 @@ export default function WorkflowPage() {
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
-            <div key={i} className="rounded-xl border border-[#c8d6c0] h-20 animate-pulse" style={{ background: '#e1eedd' }} />
+            <div key={i} className="rounded-xl border border-[var(--tulip-sage-dark)] h-20 animate-pulse" style={{ background: 'var(--tulip-sage)' }} />
           ))}
         </div>
       ) : tasks.length === 0 ? (
         <div className="flex flex-col items-center py-16 gap-3">
-          <ListFilter size={32} className="text-[#183a1d]/30" />
-          <p className="text-[#183a1d]/40 text-sm">No workflow tasks{tab ? ` with status "${tab.replace('_', ' ')}"` : ''}</p>
+          <ListFilter size={32} className="text-[var(--tulip-forest)]/30" />
+          <p className="text-[var(--tulip-forest)]/40 text-sm">No workflow tasks{tab ? ` with status "${tab.replace('_', ' ')}"` : ''}</p>
         </div>
       ) : (
         <div className="space-y-3">

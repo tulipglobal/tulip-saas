@@ -76,26 +76,26 @@ export default function InviteDonorPage() {
     setSubmitting(false)
   }
 
-  const inputClass = 'w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] focus:ring-1 focus:ring-[#f6c453] transition-all'
+  const inputClass = 'w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] focus:ring-1 focus:ring-[var(--tulip-gold)] transition-all'
 
   return (
     <div className="p-6 space-y-6 animate-fade-up max-w-2xl">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       <div className="flex items-center gap-3">
-        <Link href="/dashboard/settings/donors" className="text-[#183a1d]/40 hover:text-[#183a1d] transition-all">
+        <Link href="/dashboard/settings/donors" className="text-[var(--tulip-forest)]/40 hover:text-[var(--tulip-forest)] transition-all">
           <ArrowLeft size={18} />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>Invite Donor</h1>
-          <p className="text-[#183a1d]/60 text-sm mt-0.5">Share project access with a donor organisation</p>
+          <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>Invite Donor</h1>
+          <p className="text-[var(--tulip-forest)]/60 text-sm mt-0.5">Share project access with a donor organisation</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="rounded-xl border border-[#c8d6c0] px-5 py-5 space-y-4 bg-[#e1eedd]">
+        <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-5 py-5 space-y-4 bg-[var(--tulip-sage)]">
           <div>
-            <label className="text-xs text-[#183a1d]/40 block mb-1">Donor Organisation Name *</label>
+            <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Donor Organisation Name *</label>
             <input
               className={inputClass}
               value={donorOrgName}
@@ -106,7 +106,7 @@ export default function InviteDonorPage() {
           </div>
 
           <div>
-            <label className="text-xs text-[#183a1d]/40 block mb-1">Contact Email *</label>
+            <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Contact Email *</label>
             <input
               className={inputClass}
               type="email"
@@ -118,11 +118,11 @@ export default function InviteDonorPage() {
           </div>
 
           <div>
-            <label className="text-xs text-[#183a1d]/40 block mb-1.5">Select Projects * </label>
+            <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1.5">Select Projects * </label>
             {loading ? (
-              <p className="text-[#183a1d]/40 text-sm">Loading projects...</p>
+              <p className="text-[var(--tulip-forest)]/40 text-sm">Loading projects...</p>
             ) : projects.length === 0 ? (
-              <p className="text-[#183a1d]/40 text-sm">No projects found. Create a project first.</p>
+              <p className="text-[var(--tulip-forest)]/40 text-sm">No projects found. Create a project first.</p>
             ) : (
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {projects.map(p => (
@@ -130,17 +130,17 @@ export default function InviteDonorPage() {
                     key={p.id}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border cursor-pointer transition-all ${
                       selectedProjects.includes(p.id)
-                        ? 'border-[#f6c453] bg-[#f6c453]/10'
-                        : 'border-[#c8d6c0] hover:border-[#f6c453]/50'
+                        ? 'border-[var(--tulip-gold)] bg-[var(--tulip-gold)]/10'
+                        : 'border-[var(--tulip-sage-dark)] hover:border-[var(--tulip-gold)]/50'
                     }`}
                   >
                     <input
                       type="checkbox"
                       checked={selectedProjects.includes(p.id)}
                       onChange={() => toggleProject(p.id)}
-                      className="accent-[#f6c453] w-4 h-4"
+                      className="accent-[var(--tulip-gold)] w-4 h-4"
                     />
-                    <span className="text-sm text-[#183a1d]">{p.name}</span>
+                    <span className="text-sm text-[var(--tulip-forest)]">{p.name}</span>
                   </label>
                 ))}
               </div>
@@ -148,7 +148,7 @@ export default function InviteDonorPage() {
           </div>
 
           <div>
-            <label className="text-xs text-[#183a1d]/40 block mb-1">Message (optional)</label>
+            <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Message (optional)</label>
             <textarea
               className={inputClass + ' min-h-[80px] resize-y'}
               value={message}
@@ -162,12 +162,12 @@ export default function InviteDonorPage() {
           <button
             type="submit"
             disabled={submitting || !donorOrgName || !email || !selectedProjects.length}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50 transition-all"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] disabled:opacity-50 transition-all"
           >
             <Send size={14} />
             {submitting ? 'Sending...' : 'Send Invite'}
           </button>
-          <Link href="/dashboard/settings/donors" className="px-4 py-2.5 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] hover:bg-[#c8d6c0]/40 transition-all">
+          <Link href="/dashboard/settings/donors" className="px-4 py-2.5 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage-dark)]/40 transition-all">
             Cancel
           </Link>
         </div>

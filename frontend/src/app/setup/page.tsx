@@ -175,28 +175,28 @@ export default function SetupWizardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fefbe9]" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="min-h-screen bg-[var(--tulip-cream)]" style={{ fontFamily: "'Inter', sans-serif" }}>
 
       {/* Top bar */}
-      <div className="border-b border-[#c8d6c0] bg-[#e1eedd]/80 backdrop-blur-md">
+      <div className="border-b border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]/80 backdrop-blur-md">
         <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-              style={{ background: '#f6c453' }}>
-              <Building2 className="w-3.5 h-3.5 text-[#183a1d]" />
+              style={{ background: 'var(--tulip-gold)' }}>
+              <Building2 className="w-3.5 h-3.5 text-[var(--tulip-forest)]" />
             </div>
-            <span className="text-[#183a1d] font-bold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
-              tulip<span style={{ color: '#f6c453' }}>ds</span>
+            <span className="text-[var(--tulip-forest)] font-bold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
+              tulip<span style={{ color: 'var(--tulip-gold)' }}>ds</span>
             </span>
             {tenantName && (
               <>
-                <span className="text-[#183a1d]/30 text-sm ml-1">|</span>
-                <span className="text-[#183a1d]/60 text-sm">{tenantName}</span>
+                <span className="text-[var(--tulip-forest)]/30 text-sm ml-1">|</span>
+                <span className="text-[var(--tulip-forest)]/60 text-sm">{tenantName}</span>
               </>
             )}
           </div>
           <button onClick={() => router.push('/dashboard')}
-            className="text-[#183a1d]/40 text-xs hover:text-[#183a1d]/60 transition-colors">
+            className="text-[var(--tulip-forest)]/40 text-xs hover:text-[var(--tulip-forest)]/60 transition-colors">
             {t('skipSetup')}
           </button>
         </div>
@@ -215,21 +215,21 @@ export default function SetupWizardPage() {
                 <div className="flex items-center gap-2.5">
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
                     isDone ? 'bg-emerald-500/15 border border-emerald-500/30' :
-                    isActive ? 'bg-[#f6c453]/15 border border-[#f6c453]/40' :
-                    'bg-[#e1eedd] border border-[#c8d6c0]'
+                    isActive ? 'bg-[var(--tulip-gold)]/15 border border-[var(--tulip-gold)]/40' :
+                    'bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)]'
                   }`}>
                     {isDone ? (
                       <Check className="w-4 h-4 text-emerald-400" />
                     ) : (
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-[#f6c453]' : 'text-[#183a1d]/30'}`} />
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-[var(--tulip-gold)]' : 'text-[var(--tulip-forest)]/30'}`} />
                     )}
                   </div>
                   <span className={`text-xs font-medium hidden sm:block ${
-                    isDone ? 'text-emerald-400' : isActive ? 'text-[#183a1d]' : 'text-[#183a1d]/40'
+                    isDone ? 'text-emerald-400' : isActive ? 'text-[var(--tulip-forest)]' : 'text-[var(--tulip-forest)]/40'
                   }`}>{stepLabels[s.id]}</span>
                 </div>
                 {i < STEPS.length - 1 && (
-                  <div className={`flex-1 h-px mx-4 ${isDone ? 'bg-emerald-500/25' : 'bg-[#c8d6c0]'}`} />
+                  <div className={`flex-1 h-px mx-4 ${isDone ? 'bg-emerald-500/25' : 'bg-[var(--tulip-sage-dark)]'}`} />
                 )}
               </div>
             )
@@ -246,32 +246,32 @@ export default function SetupWizardPage() {
         {/* Step 1: Organisation Details */}
         {step === 1 && (
           <div className="animate-in">
-            <h1 className="text-2xl font-bold text-[#183a1d] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <h1 className="text-2xl font-bold text-[var(--tulip-forest)] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
               {t('orgDetailsTitle')}
             </h1>
-            <p className="text-[#183a1d]/60 text-sm mb-8">{t('orgDetailsDesc')}</p>
+            <p className="text-[var(--tulip-forest)]/60 text-sm mb-8">{t('orgDetailsDesc')}</p>
 
             <div className="space-y-5">
               {/* Logo upload */}
               <div>
-                <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">{t('logo')}</label>
+                <label className="text-[var(--tulip-forest)]/60 text-xs font-medium uppercase tracking-wider mb-2 block">{t('logo')}</label>
                 <div className="flex items-center gap-4">
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-20 h-20 rounded-2xl border-2 border-dashed border-[#c8d6c0] hover:border-[#f6c453]/30 flex items-center justify-center cursor-pointer transition-all overflow-hidden bg-[#e1eedd]"
+                    className="w-20 h-20 rounded-2xl border-2 border-dashed border-[var(--tulip-sage-dark)] hover:border-[var(--tulip-gold)]/30 flex items-center justify-center cursor-pointer transition-all overflow-hidden bg-[var(--tulip-sage)]"
                   >
                     {logoPreview ? (
                       <img src={logoPreview} alt="Logo" className="w-full h-full object-cover" />
                     ) : (
-                      <Upload className="w-5 h-5 text-[#183a1d]/30" />
+                      <Upload className="w-5 h-5 text-[var(--tulip-forest)]/30" />
                     )}
                   </div>
                   <div>
                     <button onClick={() => fileInputRef.current?.click()}
-                      className="text-[#183a1d] text-sm hover:underline">
+                      className="text-[var(--tulip-forest)] text-sm hover:underline">
                       {logoPreview ? t('changeLogo') : t('uploadLogo')}
                     </button>
-                    <p className="text-[#183a1d]/30 text-xs mt-1">{t('logoHint')}</p>
+                    <p className="text-[var(--tulip-forest)]/30 text-xs mt-1">{t('logoHint')}</p>
                   </div>
                   <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoSelect} className="hidden" />
                 </div>
@@ -279,19 +279,19 @@ export default function SetupWizardPage() {
 
               {/* Description */}
               <div>
-                <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">{t('description')}</label>
+                <label className="text-[var(--tulip-forest)]/60 text-xs font-medium uppercase tracking-wider mb-2 block">{t('description')}</label>
                 <textarea
                   value={orgForm.description}
                   onChange={e => setOrgForm(f => ({ ...f, description: e.target.value }))}
                   placeholder={t('descriptionPlaceholder')}
                   rows={3}
-                  className="w-full px-4 py-3 rounded-xl border border-[#c8d6c0] bg-[#e1eedd] text-[#183a1d] placeholder-[#183a1d]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[#f6c453]/30 focus:border-[#f6c453] transition-all resize-none"
+                  className="w-full px-4 py-3 rounded-xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--tulip-gold)]/30 focus:border-[var(--tulip-gold)] transition-all resize-none"
                 />
               </div>
 
               {/* Country */}
               <div>
-                <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">{t('country')}</label>
+                <label className="text-[var(--tulip-forest)]/60 text-xs font-medium uppercase tracking-wider mb-2 block">{t('country')}</label>
                 <CountrySelect
                   value={orgForm.country}
                   onChange={v => setOrgForm(f => ({ ...f, country: v }))}
@@ -301,42 +301,42 @@ export default function SetupWizardPage() {
               {/* Website + Reg number */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">{t('website')}</label>
+                  <label className="text-[var(--tulip-forest)]/60 text-xs font-medium uppercase tracking-wider mb-2 block">{t('website')}</label>
                   <div className="relative">
-                    <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#183a1d]/30" />
+                    <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--tulip-forest)]/30" />
                     <input
                       type="url"
                       value={orgForm.website}
                       onChange={e => setOrgForm(f => ({ ...f, website: e.target.value }))}
                       placeholder="https://your-org.com"
-                      className="w-full pl-11 pr-4 py-3 rounded-xl border border-[#c8d6c0] bg-[#e1eedd] text-[#183a1d] placeholder-[#183a1d]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[#f6c453]/30 focus:border-[#f6c453] transition-all"
+                      className="w-full pl-11 pr-4 py-3 rounded-xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--tulip-gold)]/30 focus:border-[var(--tulip-gold)] transition-all"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">{t('registrationNumber')}</label>
+                  <label className="text-[var(--tulip-forest)]/60 text-xs font-medium uppercase tracking-wider mb-2 block">{t('registrationNumber')}</label>
                   <div className="relative">
-                    <FileText className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#183a1d]/30" />
+                    <FileText className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--tulip-forest)]/30" />
                     <input
                       type="text"
                       value={orgForm.registrationNumber}
                       onChange={e => setOrgForm(f => ({ ...f, registrationNumber: e.target.value }))}
                       placeholder="NGO-12345"
-                      className="w-full pl-11 pr-4 py-3 rounded-xl border border-[#c8d6c0] bg-[#e1eedd] text-[#183a1d] placeholder-[#183a1d]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[#f6c453]/30 focus:border-[#f6c453] transition-all"
+                      className="w-full pl-11 pr-4 py-3 rounded-xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--tulip-gold)]/30 focus:border-[var(--tulip-gold)] transition-all"
                     />
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-between mt-8 pt-6 border-t border-[#c8d6c0]">
+            <div className="flex items-center justify-between mt-8 pt-6 border-t border-[var(--tulip-sage-dark)]">
               <button onClick={() => { setError(''); setStep(2) }}
-                className="text-[#183a1d]/40 text-sm hover:text-[#183a1d]/60 flex items-center gap-1 transition-colors">
+                className="text-[var(--tulip-forest)]/40 text-sm hover:text-[var(--tulip-forest)]/60 flex items-center gap-1 transition-colors">
                 <SkipForward className="w-3.5 h-3.5" /> {t('skipStep')}
               </button>
               <button onClick={handleOrgSubmit} disabled={loading}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-[#183a1d] text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
-                style={{ background: '#f6c453' }}>
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-[var(--tulip-forest)] text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
+                style={{ background: 'var(--tulip-gold)' }}>
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>{t('saveContinue')}</span><ChevronRight className="w-4 h-4" /></>}
               </button>
             </div>
@@ -346,54 +346,54 @@ export default function SetupWizardPage() {
         {/* Step 2: First Project */}
         {step === 2 && (
           <div className="animate-in">
-            <h1 className="text-2xl font-bold text-[#183a1d] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <h1 className="text-2xl font-bold text-[var(--tulip-forest)] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
               {t('createProjectTitle')}
             </h1>
-            <p className="text-[#183a1d]/60 text-sm mb-8">{t('createProjectDesc')}</p>
+            <p className="text-[var(--tulip-forest)]/60 text-sm mb-8">{t('createProjectDesc')}</p>
 
             <div className="space-y-5">
               <div>
-                <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">{t('projectName')}</label>
+                <label className="text-[var(--tulip-forest)]/60 text-xs font-medium uppercase tracking-wider mb-2 block">{t('projectName')}</label>
                 <input
                   type="text"
                   value={projectForm.name}
                   onChange={e => setProjectForm(f => ({ ...f, name: e.target.value }))}
                   placeholder="e.g. Clean Water Initiative 2026"
-                  className="w-full px-4 py-3 rounded-xl border border-[#c8d6c0] bg-[#e1eedd] text-[#183a1d] placeholder-[#183a1d]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[#f6c453]/30 focus:border-[#f6c453] transition-all"
+                  className="w-full px-4 py-3 rounded-xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--tulip-gold)]/30 focus:border-[var(--tulip-gold)] transition-all"
                 />
               </div>
 
               <div>
-                <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">{t('projectDescription')}</label>
+                <label className="text-[var(--tulip-forest)]/60 text-xs font-medium uppercase tracking-wider mb-2 block">{t('projectDescription')}</label>
                 <textarea
                   value={projectForm.description}
                   onChange={e => setProjectForm(f => ({ ...f, description: e.target.value }))}
                   placeholder="Brief description of the project"
                   rows={3}
-                  className="w-full px-4 py-3 rounded-xl border border-[#c8d6c0] bg-[#e1eedd] text-[#183a1d] placeholder-[#183a1d]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[#f6c453]/30 focus:border-[#f6c453] transition-all resize-none"
+                  className="w-full px-4 py-3 rounded-xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--tulip-gold)]/30 focus:border-[var(--tulip-gold)] transition-all resize-none"
                 />
               </div>
 
               <div className="sm:w-1/2">
-                <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-2 block">{t('budgetUsd')}</label>
+                <label className="text-[var(--tulip-forest)]/60 text-xs font-medium uppercase tracking-wider mb-2 block">{t('budgetUsd')}</label>
                 <input
                   type="number"
                   value={projectForm.budget}
                   onChange={e => setProjectForm(f => ({ ...f, budget: e.target.value }))}
                   placeholder="50000"
-                  className="w-full px-4 py-3 rounded-xl border border-[#c8d6c0] bg-[#e1eedd] text-[#183a1d] placeholder-[#183a1d]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[#f6c453]/30 focus:border-[#f6c453] transition-all"
+                  className="w-full px-4 py-3 rounded-xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--tulip-gold)]/30 focus:border-[var(--tulip-gold)] transition-all"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-between mt-8 pt-6 border-t border-[#c8d6c0]">
+            <div className="flex items-center justify-between mt-8 pt-6 border-t border-[var(--tulip-sage-dark)]">
               <button onClick={() => { setError(''); setStep(3) }}
-                className="text-[#183a1d]/40 text-sm hover:text-[#183a1d]/60 flex items-center gap-1 transition-colors">
+                className="text-[var(--tulip-forest)]/40 text-sm hover:text-[var(--tulip-forest)]/60 flex items-center gap-1 transition-colors">
                 <SkipForward className="w-3.5 h-3.5" /> {t('skipStep')}
               </button>
               <button onClick={handleProjectSubmit} disabled={loading}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-[#183a1d] text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
-                style={{ background: '#f6c453' }}>
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-[var(--tulip-forest)] text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
+                style={{ background: 'var(--tulip-gold)' }}>
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>{t('createProject')}</span><ChevronRight className="w-4 h-4" /></>}
               </button>
             </div>
@@ -403,16 +403,16 @@ export default function SetupWizardPage() {
         {/* Step 3: Invite Team */}
         {step === 3 && (
           <div className="animate-in">
-            <h1 className="text-2xl font-bold text-[#183a1d] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <h1 className="text-2xl font-bold text-[var(--tulip-forest)] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
               {t('inviteTeamTitle')}
             </h1>
-            <p className="text-[#183a1d]/60 text-sm mb-8">{t('inviteTeamDesc')}</p>
+            <p className="text-[var(--tulip-forest)]/60 text-sm mb-8">{t('inviteTeamDesc')}</p>
 
             <div className="space-y-3">
               {emails.map((email, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <div className="flex-1 relative">
-                    <Users className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#183a1d]/30" />
+                    <Users className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--tulip-forest)]/30" />
                     <input
                       type="email"
                       value={email}
@@ -422,7 +422,7 @@ export default function SetupWizardPage() {
                         setEmails(newEmails)
                       }}
                       placeholder={`colleague${i + 1}@org.com`}
-                      className="w-full pl-11 pr-4 py-3 rounded-xl border border-[#c8d6c0] bg-[#e1eedd] text-[#183a1d] placeholder-[#183a1d]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[#f6c453]/30 focus:border-[#f6c453] transition-all"
+                      className="w-full pl-11 pr-4 py-3 rounded-xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--tulip-gold)]/30 focus:border-[var(--tulip-gold)] transition-all"
                     />
                   </div>
                   {email && (
@@ -430,7 +430,7 @@ export default function SetupWizardPage() {
                       const newEmails = [...emails]
                       newEmails[i] = ''
                       setEmails(newEmails)
-                    }} className="text-[#183a1d]/30 hover:text-[#183a1d]/60 transition-colors">
+                    }} className="text-[var(--tulip-forest)]/30 hover:text-[var(--tulip-forest)]/60 transition-colors">
                       <X className="w-4 h-4" />
                     </button>
                   )}
@@ -438,14 +438,14 @@ export default function SetupWizardPage() {
               ))}
             </div>
 
-            <div className="flex items-center justify-between mt-8 pt-6 border-t border-[#c8d6c0]">
+            <div className="flex items-center justify-between mt-8 pt-6 border-t border-[var(--tulip-sage-dark)]">
               <button onClick={() => { setError(''); setStep(4) }}
-                className="text-[#183a1d]/40 text-sm hover:text-[#183a1d]/60 flex items-center gap-1 transition-colors">
+                className="text-[var(--tulip-forest)]/40 text-sm hover:text-[var(--tulip-forest)]/60 flex items-center gap-1 transition-colors">
                 <SkipForward className="w-3.5 h-3.5" /> {t('skipStep')}
               </button>
               <button onClick={handleInviteSubmit} disabled={loading}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-[#183a1d] text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
-                style={{ background: '#f6c453' }}>
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-[var(--tulip-forest)] text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
+                style={{ background: 'var(--tulip-gold)' }}>
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>{t('sendInvitations')}</span><ChevronRight className="w-4 h-4" /></>}
               </button>
             </div>
@@ -459,21 +459,21 @@ export default function SetupWizardPage() {
               style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.15), rgba(5,150,105,0.15))', border: '1px solid rgba(16,185,129,0.25)' }}>
               <Rocket className="w-9 h-9 text-emerald-400" />
             </div>
-            <h1 className="text-3xl font-bold text-[#183a1d] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <h1 className="text-3xl font-bold text-[var(--tulip-forest)] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
               {t('workspaceReady')}
             </h1>
-            <p className="text-[#183a1d]/60 text-sm mb-8 max-w-md mx-auto">
+            <p className="text-[var(--tulip-forest)]/60 text-sm mb-8 max-w-md mx-auto">
               {tenantName ? t('workspaceReadyDesc', { name: tenantName }) : t('workspaceReadyDescDefault')}
             </p>
 
             {/* Invite results */}
             {inviteResults.length > 0 && (
               <div className="mb-8 max-w-sm mx-auto">
-                <h3 className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-3">{t('invitationStatus')}</h3>
+                <h3 className="text-[var(--tulip-forest)]/60 text-xs font-medium uppercase tracking-wider mb-3">{t('invitationStatus')}</h3>
                 <div className="space-y-2">
                   {inviteResults.map((r, i) => (
-                    <div key={i} className="flex items-center justify-between px-4 py-2.5 rounded-lg bg-[#e1eedd] border border-[#c8d6c0]">
-                      <span className="text-[#183a1d]/70 text-sm truncate">{r.email}</span>
+                    <div key={i} className="flex items-center justify-between px-4 py-2.5 rounded-lg bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)]">
+                      <span className="text-[var(--tulip-forest)]/70 text-sm truncate">{r.email}</span>
                       <span className={`text-xs font-medium ${
                         r.status === 'sent' ? 'text-emerald-400' :
                         r.status === 'already_registered' ? 'text-yellow-400' :
@@ -498,7 +498,7 @@ export default function SetupWizardPage() {
                 return (
                   <button key={link.href}
                     onClick={() => { handleComplete(); router.push(link.href) }}
-                    className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-[#c8d6c0] bg-[#e1eedd] text-[#183a1d]/70 text-sm hover:bg-[#e1eedd] hover:text-[#183a1d] transition-all">
+                    className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] text-[var(--tulip-forest)]/70 text-sm hover:bg-[var(--tulip-sage)] hover:text-[var(--tulip-forest)] transition-all">
                     <Icon className="w-4 h-4" />
                     {link.label}
                   </button>

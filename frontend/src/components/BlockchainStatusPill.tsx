@@ -18,7 +18,7 @@ export default function BlockchainStatusPill({ sealId, anchorStatus, txHash, onC
     return (
       <button
         onClick={onClick}
-        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#e1eedd] text-[#183a1d]/50 border border-[#c8d6c0] hover:border-[#183a1d]/30 transition-all cursor-pointer"
+        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[var(--tulip-sage)] text-[var(--tulip-forest)]/50 border border-[var(--tulip-sage-dark)] hover:border-[var(--tulip-forest)]/30 transition-all cursor-pointer"
       >
         <XCircle size={10} /> {t('seal.noSeal')}
       </button>
@@ -39,7 +39,7 @@ export default function BlockchainStatusPill({ sealId, anchorStatus, txHash, onC
   return (
     <button
       onClick={onClick}
-      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#f6c453]/15 text-[#f0a04b] border border-[#f6c453]/30 hover:border-[#f0a04b] transition-all cursor-pointer"
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[var(--tulip-gold)]/15 text-[var(--tulip-orange)] border border-[var(--tulip-gold)]/30 hover:border-[#f0a04b] transition-all cursor-pointer"
     >
       <Clock size={10} /> {t('seal.pending')}
     </button>

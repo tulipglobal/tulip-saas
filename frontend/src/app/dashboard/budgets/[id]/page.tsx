@@ -100,9 +100,9 @@ const STATUS_OPTIONS = ['DRAFT', 'APPROVED', 'ACTIVE', 'CLOSED']
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     DRAFT:    'bg-yellow-400/10 text-yellow-400 border-yellow-400/20',
-    APPROVED: 'bg-[#f6c453]/10 text-[#183a1d] border-[#f6c453]/30',
+    APPROVED: 'bg-[var(--tulip-gold)]/10 text-[var(--tulip-forest)] border-[var(--tulip-gold)]/30',
     ACTIVE:   'bg-green-400/10 text-green-400 border-green-400/20',
-    CLOSED:   'bg-[#e1eedd] text-[#183a1d]/60 border-[#c8d6c0]',
+    CLOSED:   'bg-[var(--tulip-sage)] text-[var(--tulip-forest)]/60 border-[var(--tulip-sage-dark)]',
   }
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border font-medium ${map[status] ?? map.DRAFT}`}>
@@ -134,7 +134,7 @@ function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-const inputCls = "w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all [&>option]:bg-[#e1eedd]"
+const inputCls = "w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] transition-all [&>option]:bg-[var(--tulip-sage)]"
 
 export default function BudgetDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -410,8 +410,8 @@ export default function BudgetDetailPage() {
   const allTranches = Object.entries(tranches).flatMap(([agId, list]) => list.map(t => ({ ...t, _agreementId: agId })))
   const allConditions = Object.entries(conditions).flatMap(([agId, list]) => list.map(c => ({ ...c, _agreementId: agId })))
 
-  if (loading) return <div className="p-8 text-center text-[#183a1d]/40">Loading...</div>
-  if (!budget) return <div className="p-8 text-center text-[#183a1d]/40">Budget not found</div>
+  if (loading) return <div className="p-8 text-center text-[var(--tulip-forest)]/40">Loading...</div>
+  if (!budget) return <div className="p-8 text-center text-[var(--tulip-forest)]/40">Budget not found</div>
 
   const fundingPct = budget.totalApproved > 0 ? Math.round((budget.totalFunded / budget.totalApproved) * 100) : 0
   const spentPct = budget.totalApproved > 0 ? Math.round((budget.totalSpent / budget.totalApproved) * 100) : 0
@@ -423,34 +423,34 @@ export default function BudgetDetailPage() {
     <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-6 animate-fade-up">
       {/* Header */}
       <div className="flex items-start gap-3">
-        <Link href="/dashboard/budgets" className="w-9 h-9 rounded-lg bg-[#e1eedd] border border-[#c8d6c0] flex items-center justify-center hover:bg-[#e1eedd] transition-all mt-1">
-          <ArrowLeft size={16} className="text-[#183a1d]/70" />
+        <Link href="/dashboard/budgets" className="w-9 h-9 rounded-lg bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] flex items-center justify-center hover:bg-[var(--tulip-sage)] transition-all mt-1">
+          <ArrowLeft size={16} className="text-[var(--tulip-forest)]/70" />
         </Link>
         <div className="flex-1">
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{budget.name}</h1>
+            <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>{budget.name}</h1>
             {editingStatus ? (
               <div className="flex items-center gap-1">
                 <select value={newStatus} onChange={e => setNewStatus(e.target.value)}
-                  className="bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-2 py-1 text-xs text-[#183a1d] outline-none [&>option]:bg-[#e1eedd]">
+                  className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-2 py-1 text-xs text-[var(--tulip-forest)] outline-none [&>option]:bg-[var(--tulip-sage)]">
                   {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
                 <button onClick={handleStatusChange} className="text-green-400 hover:text-green-300"><Check size={14} /></button>
-                <button onClick={() => { setEditingStatus(false); setStatusError('') }} className="text-[#183a1d]/40 hover:text-[#183a1d]/60"><X size={14} /></button>
+                <button onClick={() => { setEditingStatus(false); setStatusError('') }} className="text-[var(--tulip-forest)]/40 hover:text-[var(--tulip-forest)]/60"><X size={14} /></button>
               </div>
             ) : (
               <button onClick={() => { setEditingStatus(true); setNewStatus(budget.status) }} className="flex items-center gap-1 group">
                 <StatusBadge status={budget.status} />
-                <Edit3 size={12} className="text-[#183a1d]/30 group-hover:text-[#183a1d]/60" />
+                <Edit3 size={12} className="text-[var(--tulip-forest)]/30 group-hover:text-[var(--tulip-forest)]/60" />
               </button>
             )}
             <FundingBadge totalApproved={budget.totalApproved} totalFunded={budget.totalFunded} />
           </div>
           {statusError && <p className="text-xs text-red-400 mt-1">{statusError}</p>}
-          <p className="text-[#183a1d]/60 text-sm mt-1">
+          <p className="text-[var(--tulip-forest)]/60 text-sm mt-1">
             {formatDate(budget.periodFrom)} – {formatDate(budget.periodTo)}
             {budget.project && <> · <Link href={`/dashboard/projects/${budget.project.id}`} className="text-cyan-400/60 hover:text-cyan-400">{budget.project.name}</Link></>}
-            {budget.notes && <span className="ml-2 text-[#183a1d]/40">· {budget.notes}</span>}
+            {budget.notes && <span className="ml-2 text-[var(--tulip-forest)]/40">· {budget.notes}</span>}
           </p>
         </div>
       </div>
@@ -458,16 +458,16 @@ export default function BudgetDetailPage() {
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total Budget Required', value: `$${budget.totalApproved.toLocaleString()}`, color: 'text-[#183a1d]' },
+          { label: 'Total Budget Required', value: `$${budget.totalApproved.toLocaleString()}`, color: 'text-[var(--tulip-forest)]' },
           { label: 'Total Funded', value: `$${budget.totalFunded.toLocaleString()}`, sub: `${fundingPct}%`, color: isFullyFunded ? 'text-green-400' : 'text-yellow-400' },
           { label: 'Total Spent', value: `$${budget.totalSpent.toLocaleString()}`, sub: `${spentPct}%`, color: 'text-orange-400' },
           { label: 'Remaining', value: `$${budget.remaining.toLocaleString()}`, color: budget.remaining >= 0 ? 'text-green-400' : 'text-red-400' },
         ].map(({ label, value, sub, color }) => (
-          <div key={label} className="rounded-xl border border-[#c8d6c0] px-5 py-4" style={{ background: '#e1eedd' }}>
+          <div key={label} className="rounded-xl border border-[var(--tulip-sage-dark)] px-5 py-4" style={{ background: 'var(--tulip-sage)' }}>
             <div className={`text-lg font-bold ${color}`} style={{ fontFamily: 'Inter, sans-serif' }}>
-              {value} {sub && <span className="text-xs font-normal text-[#183a1d]/40">{sub}</span>}
+              {value} {sub && <span className="text-xs font-normal text-[var(--tulip-forest)]/40">{sub}</span>}
             </div>
-            <div className="text-xs text-[#183a1d]/60 mt-1">{label}</div>
+            <div className="text-xs text-[var(--tulip-forest)]/60 mt-1">{label}</div>
           </div>
         ))}
       </div>
@@ -491,32 +491,32 @@ export default function BudgetDetailPage() {
           return (
             <div key={line.id} className="px-5 py-3 lg:grid lg:grid-cols-[2fr_1fr_1fr_1fr_1fr] lg:gap-4 lg:items-center">
               <div>
-                <div className="text-sm text-[#183a1d]">{line.category}</div>
-                {line.subCategory && <div className="text-xs text-[#183a1d]/40">{line.subCategory}</div>}
-                {line.description && <div className="text-xs text-[#183a1d]/30 italic">{line.description}</div>}
+                <div className="text-sm text-[var(--tulip-forest)]">{line.category}</div>
+                {line.subCategory && <div className="text-xs text-[var(--tulip-forest)]/40">{line.subCategory}</div>}
+                {line.description && <div className="text-xs text-[var(--tulip-forest)]/30 italic">{line.description}</div>}
               </div>
-              <div className="text-sm text-[#183a1d] font-medium">{line.currency} {line.approvedAmount.toLocaleString()}</div>
+              <div className="text-sm text-[var(--tulip-forest)] font-medium">{line.currency} {line.approvedAmount.toLocaleString()}</div>
               <div className="text-sm text-orange-400">{line.currency} {line.spent.toLocaleString()}</div>
               <div className={`text-sm font-medium ${line.remaining >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                 {line.currency} {line.remaining.toLocaleString()}
               </div>
               <div className="flex items-center gap-2">
-                <div className="flex-1 h-1.5 rounded-full bg-[#c8d6c0]/50 overflow-hidden">
+                <div className="flex-1 h-1.5 rounded-full bg-[var(--tulip-sage-dark)]/50 overflow-hidden">
                   <div className="h-full rounded-full transition-all" style={{
                     width: `${pct}%`,
                     background: pct > 90 ? '#f87171' : pct > 70 ? '#fbbf24' : '#34d399'
                   }} />
                 </div>
-                <span className="text-xs text-[#183a1d]/60 w-8 text-right">{pct}%</span>
+                <span className="text-xs text-[var(--tulip-forest)]/60 w-8 text-right">{pct}%</span>
               </div>
             </div>
           )
         }
 
         const renderSubtotal = (label: string, approved: number, spent: number, remaining: number) => (
-          <div className="px-5 py-2.5 lg:grid lg:grid-cols-[2fr_1fr_1fr_1fr_1fr] lg:gap-4 lg:items-center bg-[#fefbe9]/60 border-t border-[#c8d6c0]">
-            <div className="text-xs font-semibold text-[#183a1d]/70 uppercase tracking-wide">{label}</div>
-            <div className="text-sm text-[#183a1d] font-bold">${approved.toLocaleString()}</div>
+          <div className="px-5 py-2.5 lg:grid lg:grid-cols-[2fr_1fr_1fr_1fr_1fr] lg:gap-4 lg:items-center bg-[var(--tulip-cream)]/60 border-t border-[var(--tulip-sage-dark)]">
+            <div className="text-xs font-semibold text-[var(--tulip-forest)]/70 uppercase tracking-wide">{label}</div>
+            <div className="text-sm text-[var(--tulip-forest)] font-bold">${approved.toLocaleString()}</div>
             <div className="text-sm text-orange-500 font-bold">${spent.toLocaleString()}</div>
             <div className={`text-sm font-bold ${remaining >= 0 ? 'text-green-500' : 'text-red-500'}`}>${remaining.toLocaleString()}</div>
             <div />
@@ -524,24 +524,24 @@ export default function BudgetDetailPage() {
         )
 
         return (
-          <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
-            <div className="px-5 py-3 border-b border-[#c8d6c0] flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-[#183a1d]/70 uppercase tracking-wide">Budget vs Actual</h2>
-              <span className="text-xs text-[#183a1d]/40">{budget.lines.length} line{budget.lines.length !== 1 ? 's' : ''}</span>
+          <div className="rounded-xl border border-[var(--tulip-sage-dark)] overflow-hidden" style={{ background: 'var(--tulip-sage)' }}>
+            <div className="px-5 py-3 border-b border-[var(--tulip-sage-dark)] flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-[var(--tulip-forest)]/70 uppercase tracking-wide">Budget vs Actual</h2>
+              <span className="text-xs text-[var(--tulip-forest)]/40">{budget.lines.length} line{budget.lines.length !== 1 ? 's' : ''}</span>
             </div>
-            <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-4 px-5 py-2 border-b border-[#c8d6c0] text-xs text-[#183a1d]/40 uppercase tracking-wide">
+            <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-4 px-5 py-2 border-b border-[var(--tulip-sage-dark)] text-xs text-[var(--tulip-forest)]/40 uppercase tracking-wide">
               <span>Category</span><span>Approved</span><span>Spent</span><span>Remaining</span><span>Usage</span>
             </div>
 
             {/* CapEx section */}
             {capexLines.length > 0 && (
               <>
-                <div className="px-5 py-2 border-b border-[#c8d6c0] bg-[#EFF6FF]/40">
+                <div className="px-5 py-2 border-b border-[var(--tulip-sage-dark)] bg-[#EFF6FF]/40">
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#EFF6FF] text-[#1D4ED8] border border-[#1D4ED8]/20">
                     CapEx — Capital Expenditure
                   </span>
                 </div>
-                <div className="divide-y divide-[#c8d6c0]">
+                <div className="divide-y divide-[var(--tulip-sage-dark)]">
                   {capexLines.map(renderLineRow)}
                 </div>
                 {renderSubtotal('CapEx Subtotal', capexApproved, capexSpent, capexRemaining)}
@@ -551,12 +551,12 @@ export default function BudgetDetailPage() {
             {/* OpEx section */}
             {opexLines.length > 0 && (
               <>
-                <div className="px-5 py-2 border-b border-[#c8d6c0] bg-[#F3F4F6]/40">
+                <div className="px-5 py-2 border-b border-[var(--tulip-sage-dark)] bg-[#F3F4F6]/40">
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#F3F4F6] text-[#4B5563] border border-[#4B5563]/20">
                     OpEx — Operating Expenditure
                   </span>
                 </div>
-                <div className="divide-y divide-[#c8d6c0]">
+                <div className="divide-y divide-[var(--tulip-sage-dark)]">
                   {opexLines.map(renderLineRow)}
                 </div>
                 {renderSubtotal('OpEx Subtotal', opexApproved, opexSpent, opexRemaining)}
@@ -565,9 +565,9 @@ export default function BudgetDetailPage() {
 
             {/* Grand Total */}
             {(capexLines.length > 0 && opexLines.length > 0) && (
-              <div className="px-5 py-3 lg:grid lg:grid-cols-[2fr_1fr_1fr_1fr_1fr] lg:gap-4 lg:items-center bg-[#183a1d]/5 border-t-2 border-[#183a1d]/20">
-                <div className="text-sm font-bold text-[#183a1d] uppercase tracking-wide">Grand Total</div>
-                <div className="text-sm text-[#183a1d] font-bold">${grandApproved.toLocaleString()}</div>
+              <div className="px-5 py-3 lg:grid lg:grid-cols-[2fr_1fr_1fr_1fr_1fr] lg:gap-4 lg:items-center bg-[var(--tulip-forest)]/5 border-t-2 border-[var(--tulip-forest)]/20">
+                <div className="text-sm font-bold text-[var(--tulip-forest)] uppercase tracking-wide">Grand Total</div>
+                <div className="text-sm text-[var(--tulip-forest)] font-bold">${grandApproved.toLocaleString()}</div>
                 <div className="text-sm text-orange-500 font-bold">${grandSpent.toLocaleString()}</div>
                 <div className={`text-sm font-bold ${grandRemaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>${grandRemaining.toLocaleString()}</div>
                 <div />
@@ -578,9 +578,9 @@ export default function BudgetDetailPage() {
       })()}
 
       {/* 2. Funding Sources */}
-      <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
-        <div className="px-5 py-3 border-b border-[#c8d6c0] flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-[#183a1d]/70 uppercase tracking-wide flex items-center gap-2">
+      <div className="rounded-xl border border-[var(--tulip-sage-dark)] overflow-hidden" style={{ background: 'var(--tulip-sage)' }}>
+        <div className="px-5 py-3 border-b border-[var(--tulip-sage-dark)] flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-[var(--tulip-forest)]/70 uppercase tracking-wide flex items-center gap-2">
             <Banknote size={14} /> Funding Sources
           </h2>
           <div className="flex items-center gap-3">
@@ -593,24 +593,24 @@ export default function BudgetDetailPage() {
         </div>
 
         {budget.fundingSources.length === 0 && !showAddFunding ? (
-          <div className="px-5 py-6 text-center text-[#183a1d]/40 text-sm">
+          <div className="px-5 py-6 text-center text-[var(--tulip-forest)]/40 text-sm">
             No funding sources yet.{' '}
             <button onClick={() => setShowAddFunding(true)} className="text-cyan-400 hover:text-cyan-300">Add one</button>
           </div>
         ) : (
-          <div className="divide-y divide-[#c8d6c0]">
+          <div className="divide-y divide-[var(--tulip-sage-dark)]">
             {budget.fundingSources.map(f => (
               <div key={f.id} className="flex items-center justify-between px-5 py-3">
                 <div>
-                  <div className="text-sm text-[#183a1d]">{f.donorName}</div>
-                  <div className="text-xs text-[#183a1d]/40">
+                  <div className="text-sm text-[var(--tulip-forest)]">{f.donorName}</div>
+                  <div className="text-xs text-[var(--tulip-forest)]/40">
                     {f.sourceType}{f.sourceSubType ? ` / ${f.sourceSubType}` : ''}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-[#183a1d]">{f.currency} {f.amount.toLocaleString()}</span>
+                  <span className="text-sm font-medium text-[var(--tulip-forest)]">{f.currency} {f.amount.toLocaleString()}</span>
                   <button onClick={() => handleRemoveFunding(f.id)}
-                    className="text-[#183a1d]/30 hover:text-red-400 transition-colors" title="Remove">
+                    className="text-[var(--tulip-forest)]/30 hover:text-red-400 transition-colors" title="Remove">
                     <Trash2 size={13} />
                   </button>
                 </div>
@@ -621,10 +621,10 @@ export default function BudgetDetailPage() {
 
         {/* Inline add form */}
         {showAddFunding && (
-          <div className="px-5 py-4 border-t border-[#c8d6c0] space-y-3">
+          <div className="px-5 py-4 border-t border-[var(--tulip-sage-dark)] space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <div>
-                <label className="text-xs text-[#183a1d]/60 mb-1 block">Source Type *</label>
+                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Source Type *</label>
                 <select value={newFunding.sourceType} onChange={e => setNewFunding(p => ({ ...p, sourceType: e.target.value, sourceSubType: '' }))}
                   className={inputCls}>
                   <option value="">Select...</option>
@@ -632,7 +632,7 @@ export default function BudgetDetailPage() {
                 </select>
               </div>
               <div>
-                <label className="text-xs text-[#183a1d]/60 mb-1 block">Sub-Type</label>
+                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Sub-Type</label>
                 <select value={newFunding.sourceSubType} onChange={e => setNewFunding(p => ({ ...p, sourceSubType: e.target.value }))}
                   disabled={subTypes.length === 0} className={inputCls + ' disabled:opacity-40'}>
                   <option value="">Select...</option>
@@ -640,12 +640,12 @@ export default function BudgetDetailPage() {
                 </select>
               </div>
               <div>
-                <label className="text-xs text-[#183a1d]/60 mb-1 block">Funded By *</label>
-                <div className="flex rounded-lg overflow-hidden border border-[#c8d6c0] mb-2">
+                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Funded By *</label>
+                <div className="flex rounded-lg overflow-hidden border border-[var(--tulip-sage-dark)] mb-2">
                   {(['existing', 'external'] as const).map(m => (
                     <button key={m} onClick={() => { setDonorMode(m); setNewFunding(p => ({ ...p, donorOrgId: '', donorName: '' })) }}
                       className="flex-1 px-3 py-1.5 text-[11px] font-medium transition-all"
-                      style={{ background: donorMode === m ? '#183a1d' : '#e1eedd', color: donorMode === m ? '#fefbe9' : '#183a1d' }}>
+                      style={{ background: donorMode === m ? 'var(--tulip-forest)' : 'var(--tulip-sage)', color: donorMode === m ? 'var(--tulip-cream)' : 'var(--tulip-forest)' }}>
                       {m === 'existing' ? 'Existing Donor' : 'Other'}
                     </button>
                   ))}
@@ -662,43 +662,43 @@ export default function BudgetDetailPage() {
                 )}
               </div>
               <div>
-                <label className="text-xs text-[#183a1d]/60 mb-1 block">Amount *</label>
+                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Amount *</label>
                 <div className="flex gap-1.5">
                   <CurrencySelect compact value={newFunding.currency} onChange={v => setNewFunding(p => ({ ...p, currency: v }))} />
                   <input type="number" min="0" step="0.01" value={newFunding.amount}
                     onChange={e => setNewFunding(p => ({ ...p, amount: e.target.value }))} placeholder="0.00"
-                    className="flex-1 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all" />
+                    className="flex-1 bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] transition-all" />
                 </div>
               </div>
             </div>
             {newFunding.sourceType === 'Impact Investment' && (
               <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                 <div>
-                  <label className="text-xs text-[#183a1d]/60 mb-1 block">Interest Rate (% p.a.)</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Interest Rate (% p.a.)</label>
                   <input type="number" min="0" step="0.01" value={newFunding.interestRate}
                     onChange={e => setNewFunding(p => ({ ...p, interestRate: e.target.value }))} placeholder="e.g. 5.5"
                     className={inputCls} />
                 </div>
                 <div>
-                  <label className="text-xs text-[#183a1d]/60 mb-1 block">Interest Type</label>
-                  <div className="flex rounded-lg overflow-hidden border border-[#c8d6c0]">
+                  <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Interest Type</label>
+                  <div className="flex rounded-lg overflow-hidden border border-[var(--tulip-sage-dark)]">
                     {(['FIXED', 'VARIABLE'] as const).map(t => (
                       <button key={t} onClick={() => setNewFunding(p => ({ ...p, interestType: t }))}
                         className="flex-1 px-3 py-2 text-xs font-medium transition-all"
-                        style={{ background: newFunding.interestType === t ? '#183a1d' : '#e1eedd', color: newFunding.interestType === t ? '#fefbe9' : '#183a1d' }}>
+                        style={{ background: newFunding.interestType === t ? 'var(--tulip-forest)' : 'var(--tulip-sage)', color: newFunding.interestType === t ? 'var(--tulip-cream)' : 'var(--tulip-forest)' }}>
                         {t}
                       </button>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs text-[#183a1d]/60 mb-1 block">Grace Period (months)</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Grace Period (months)</label>
                   <input type="number" min="0" value={newFunding.gracePeriodMonths}
                     onChange={e => setNewFunding(p => ({ ...p, gracePeriodMonths: e.target.value }))} placeholder="e.g. 6"
                     className={inputCls} />
                 </div>
                 <div>
-                  <label className="text-xs text-[#183a1d]/60 mb-1 block">Term (months)</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Term (months)</label>
                   <input type="number" min="1" value={newFunding.termMonths}
                     onChange={e => setNewFunding(p => ({ ...p, termMonths: e.target.value }))} placeholder="e.g. 24"
                     className={inputCls} />
@@ -707,12 +707,12 @@ export default function BudgetDetailPage() {
             )}
             {newFunding.sourceType === 'Impact Investment' && Number(newFunding.termMonths) > 0 && (
               <div>
-                <label className="text-xs text-[#183a1d]/60 mb-1 block">Auto-generate repayment schedule</label>
-                <div className="flex rounded-lg overflow-hidden border border-[#c8d6c0] w-fit">
+                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Auto-generate repayment schedule</label>
+                <div className="flex rounded-lg overflow-hidden border border-[var(--tulip-sage-dark)] w-fit">
                   {([true, false] as const).map(v => (
                     <button key={String(v)} onClick={() => setNewFunding(p => ({ ...p, autoGenerateSchedule: v }))}
                       className="px-4 py-1.5 text-xs font-medium transition-all"
-                      style={{ background: newFunding.autoGenerateSchedule === v ? '#183a1d' : '#e1eedd', color: newFunding.autoGenerateSchedule === v ? '#fefbe9' : '#183a1d' }}>
+                      style={{ background: newFunding.autoGenerateSchedule === v ? 'var(--tulip-forest)' : 'var(--tulip-sage)', color: newFunding.autoGenerateSchedule === v ? 'var(--tulip-cream)' : 'var(--tulip-forest)' }}>
                       {v ? 'Yes' : 'No'}
                     </button>
                   ))}
@@ -721,10 +721,10 @@ export default function BudgetDetailPage() {
             )}
             <div className="flex items-center gap-2">
               <button onClick={handleAddFunding} disabled={addingFunding || !newFunding.sourceType || !newFunding.amount || (donorMode === 'existing' ? !newFunding.donorOrgId : !newFunding.donorName)}
-                className="px-4 py-1.5 rounded-lg text-xs font-medium text-[#183a1d] disabled:opacity-40 transition-all bg-[#f6c453] hover:bg-[#f0a04b]">
+                className="px-4 py-1.5 rounded-lg text-xs font-medium text-[var(--tulip-forest)] disabled:opacity-40 transition-all bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)]">
                 {addingFunding ? 'Adding...' : 'Add Source'}
               </button>
-              <button onClick={() => setShowAddFunding(false)} className="px-4 py-1.5 text-xs text-[#183a1d]/60 hover:text-[#183a1d]/70">Cancel</button>
+              <button onClick={() => setShowAddFunding(false)} className="px-4 py-1.5 text-xs text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]/70">Cancel</button>
             </div>
           </div>
         )}
@@ -740,7 +740,7 @@ export default function BudgetDetailPage() {
                 : <><AlertTriangle size={14} className="text-yellow-400" /><span className="text-yellow-400 font-medium">Gap: ${fundingGap.toLocaleString()}</span></>
               }
             </div>
-            <span className="text-xs text-[#183a1d]/60">
+            <span className="text-xs text-[var(--tulip-forest)]/60">
               Required ${budget.totalApproved.toLocaleString()} · Funded ${budget.totalFunded.toLocaleString()}
             </span>
           </div>
@@ -748,30 +748,30 @@ export default function BudgetDetailPage() {
       </div>
 
       {/* 3. Expenses */}
-      <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
-        <div className="px-5 py-3 border-b border-[#c8d6c0] flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-[#183a1d]/70 uppercase tracking-wide flex items-center gap-2">
+      <div className="rounded-xl border border-[var(--tulip-sage-dark)] overflow-hidden" style={{ background: 'var(--tulip-sage)' }}>
+        <div className="px-5 py-3 border-b border-[var(--tulip-sage-dark)] flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-[var(--tulip-forest)]/70 uppercase tracking-wide flex items-center gap-2">
             <Receipt size={14} /> Expenses
           </h2>
-          <span className="text-xs text-[#183a1d]/40">{budget.expenses.length} expense{budget.expenses.length !== 1 ? 's' : ''}</span>
+          <span className="text-xs text-[var(--tulip-forest)]/40">{budget.expenses.length} expense{budget.expenses.length !== 1 ? 's' : ''}</span>
         </div>
         {budget.expenses.length === 0 ? (
-          <div className="px-5 py-6 text-center text-[#183a1d]/40 text-sm">
+          <div className="px-5 py-6 text-center text-[var(--tulip-forest)]/40 text-sm">
             No expenses recorded against this budget yet.
           </div>
         ) : (
-          <div className="divide-y divide-[#c8d6c0]">
+          <div className="divide-y divide-[var(--tulip-sage-dark)]">
             {budget.expenses.slice(0, 20).map(e => (
               <div key={e.id} className="flex items-center justify-between px-5 py-3">
                 <div>
-                  <div className="text-sm text-[#183a1d]">{e.description}</div>
-                  <div className="text-xs text-[#183a1d]/40">
+                  <div className="text-sm text-[var(--tulip-forest)]">{e.description}</div>
+                  <div className="text-xs text-[var(--tulip-forest)]/40">
                     {e.project.name} · {e.category ?? 'Uncategorised'}
                     {e.subCategory && ` / ${e.subCategory}`}
                     <span className="ml-2">{formatDate(e.createdAt)}</span>
                   </div>
                 </div>
-                <div className="text-sm font-medium text-[#183a1d]">{e.currency} {e.amount.toLocaleString()}</div>
+                <div className="text-sm font-medium text-[var(--tulip-forest)]">{e.currency} {e.amount.toLocaleString()}</div>
               </div>
             ))}
           </div>
@@ -780,17 +780,17 @@ export default function BudgetDetailPage() {
 
       {/* 4. Grant Conditions — unified table */}
       {allTranches.length > 0 && (
-        <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
+        <div className="rounded-xl border border-[var(--tulip-sage-dark)] overflow-hidden" style={{ background: 'var(--tulip-sage)' }}>
           <button
             onClick={() => setTranchesExpanded(!tranchesExpanded)}
-            className="w-full px-5 py-3 border-b border-[#c8d6c0] flex items-center justify-between hover:bg-[#c8d6c0]/20 transition-all"
+            className="w-full px-5 py-3 border-b border-[var(--tulip-sage-dark)] flex items-center justify-between hover:bg-[var(--tulip-sage-dark)]/20 transition-all"
           >
-            <h2 className="text-sm font-semibold text-[#183a1d]/70 uppercase tracking-wide flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-[var(--tulip-forest)]/70 uppercase tracking-wide flex items-center gap-2">
               <CheckCircle size={14} /> Grant Conditions
             </h2>
             <div className="flex items-center gap-3">
-              <span className="text-xs text-[#183a1d]/40">{allTranches.length} disbursement{allTranches.length !== 1 ? 's' : ''}</span>
-              {tranchesExpanded ? <ChevronUp size={14} className="text-[#183a1d]/40" /> : <ChevronDown size={14} className="text-[#183a1d]/40" />}
+              <span className="text-xs text-[var(--tulip-forest)]/40">{allTranches.length} disbursement{allTranches.length !== 1 ? 's' : ''}</span>
+              {tranchesExpanded ? <ChevronUp size={14} className="text-[var(--tulip-forest)]/40" /> : <ChevronDown size={14} className="text-[var(--tulip-forest)]/40" />}
             </div>
           </button>
 
@@ -803,11 +803,11 @@ export default function BudgetDetailPage() {
                 const pendingAmount = totalAmount - releasedAmount
                 const releasedPct = totalAmount > 0 ? Math.round((releasedAmount / totalAmount) * 100) : 0
                 return (
-                  <div className="px-5 py-3 border-b border-[#c8d6c0] bg-[#fefbe9]/50">
+                  <div className="px-5 py-3 border-b border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)]/50">
                     <div className="grid grid-cols-3 gap-4 text-xs text-center">
                       <div>
-                        <span className="text-[#183a1d]/40 block">Total Tranched</span>
-                        <span className="font-semibold text-[#183a1d]">{allTranches[0]?.currency || 'USD'} {totalAmount.toLocaleString()}</span>
+                        <span className="text-[var(--tulip-forest)]/40 block">Total Tranched</span>
+                        <span className="font-semibold text-[var(--tulip-forest)]">{allTranches[0]?.currency || 'USD'} {totalAmount.toLocaleString()}</span>
                       </div>
                       <div>
                         <span className="text-green-600 block">Released</span>
@@ -827,17 +827,17 @@ export default function BudgetDetailPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-[#c8d6c0] bg-[#c8d6c0]/30">
-                        <th className="text-left px-4 py-2 text-xs font-medium uppercase tracking-wide text-[#183a1d]/40">Funding Agreement</th>
-                        <th className="text-left px-4 py-2 text-xs font-medium uppercase tracking-wide text-[#183a1d]/40">Conditions</th>
-                        <th className="text-left px-4 py-2 text-xs font-medium uppercase tracking-wide text-[#183a1d]/40">Planned Date</th>
-                        <th className="text-center px-4 py-2 text-xs font-medium uppercase tracking-wide text-[#183a1d]/40">Status</th>
-                        <th className="text-right px-4 py-2 text-xs font-medium uppercase tracking-wide text-[#183a1d]/40">Actual Release</th>
-                        <th className="text-center px-4 py-2 text-xs font-medium uppercase tracking-wide text-[#183a1d]/40">Evidence</th>
-                        <th className="text-center px-4 py-2 text-xs font-medium uppercase tracking-wide text-[#183a1d]/40">Action</th>
+                      <tr className="border-b border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage-dark)]/30">
+                        <th className="text-left px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">Funding Agreement</th>
+                        <th className="text-left px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">Conditions</th>
+                        <th className="text-left px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">Planned Date</th>
+                        <th className="text-center px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">Status</th>
+                        <th className="text-right px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">Actual Release</th>
+                        <th className="text-center px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">Evidence</th>
+                        <th className="text-center px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#c8d6c0]">
+                    <tbody className="divide-y divide-[var(--tulip-sage-dark)]">
                       {allTranches.map((tranche, i) => {
                         const statusColors: Record<string, string> = {
                           PENDING: 'bg-gray-100 text-gray-600 border-gray-200',
@@ -848,15 +848,15 @@ export default function BudgetDetailPage() {
                         const actualDate = tranche.actualReleaseDate || tranche.releaseDate
                         return (
                           <tr key={tranche.id}>
-                            <td className="px-4 py-3 text-xs text-[#183a1d]/70">{tranche.agreementTitle || '—'}</td>
-                            <td className="px-4 py-3 text-xs text-[#183a1d]">{tranche.releaseConditions || tranche.conditions || '—'}</td>
-                            <td className="px-4 py-3 text-xs text-[#183a1d]">{tranche.plannedReleaseDate ? formatDate(tranche.plannedReleaseDate) : tranche.plannedDate ? formatDate(tranche.plannedDate) : '—'}</td>
+                            <td className="px-4 py-3 text-xs text-[var(--tulip-forest)]/70">{tranche.agreementTitle || '—'}</td>
+                            <td className="px-4 py-3 text-xs text-[var(--tulip-forest)]">{tranche.releaseConditions || tranche.conditions || '—'}</td>
+                            <td className="px-4 py-3 text-xs text-[var(--tulip-forest)]">{tranche.plannedReleaseDate ? formatDate(tranche.plannedReleaseDate) : tranche.plannedDate ? formatDate(tranche.plannedDate) : '—'}</td>
                             <td className="px-4 py-3 text-center">
                               <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border font-medium ${statusColors[tranche.status] || statusColors.PENDING}`}>
                                 {tranche.status.replace(/_/g, ' ')}
                               </span>
                             </td>
-                            <td className="px-4 py-3 text-right text-xs text-[#183a1d]">{actualDate ? formatDate(actualDate) : '—'}</td>
+                            <td className="px-4 py-3 text-right text-xs text-[var(--tulip-forest)]">{actualDate ? formatDate(actualDate) : '—'}</td>
                             <td className="px-4 py-3 text-center">
                               {tranche.evidenceFileUrl ? (
                                 <a href={tranche.evidenceFileUrl} target="_blank" rel="noopener noreferrer"
@@ -870,7 +870,7 @@ export default function BudgetDetailPage() {
                                 {(tranche.status === 'PENDING' || (tranche.status === 'CONDITIONS_MET' && !tranche.conditionsConfirmedAt)) && (
                                   <button
                                     onClick={() => setShowConditionsModal({ trancheId: tranche.id, agreementId: tranche._agreementId })}
-                                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] transition-all"
+                                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] transition-all"
                                   >
                                     <Check size={10} /> Confirm Met
                                   </button>
@@ -902,38 +902,38 @@ export default function BudgetDetailPage() {
       {showConditionsModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => { setShowConditionsModal(null); setConditionsFile(null); setConditionsNotes('') }} />
-          <div className="relative bg-[#fefbe9] rounded-2xl border border-[#c8d6c0] shadow-xl w-full max-w-md mx-4">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-[#c8d6c0]">
+          <div className="relative bg-[var(--tulip-cream)] rounded-2xl border border-[var(--tulip-sage-dark)] shadow-xl w-full max-w-md mx-4">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--tulip-sage-dark)]">
               <div>
-                <h3 className="text-base font-bold text-[#183a1d]">Confirm Conditions Met</h3>
-                <p className="text-xs text-[#183a1d]/50 mt-0.5">Upload supporting evidence and notify the donor</p>
+                <h3 className="text-base font-bold text-[var(--tulip-forest)]">Confirm Conditions Met</h3>
+                <p className="text-xs text-[var(--tulip-forest)]/50 mt-0.5">Upload supporting evidence and notify the donor</p>
               </div>
               <button onClick={() => { setShowConditionsModal(null); setConditionsFile(null); setConditionsNotes('') }}
-                className="text-[#183a1d]/40 hover:text-[#183a1d] transition-all">
+                className="text-[var(--tulip-forest)]/40 hover:text-[var(--tulip-forest)] transition-all">
                 <X size={18} />
               </button>
             </div>
             <div className="px-5 py-4 space-y-4">
               <div>
-                <label className="text-xs text-[#183a1d]/60 mb-1 block">Notes</label>
+                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Notes</label>
                 <textarea
                   value={conditionsNotes}
                   onChange={e => setConditionsNotes(e.target.value)}
                   rows={3}
                   placeholder="Describe how conditions have been met..."
-                  className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all resize-none"
+                  className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] transition-all resize-none"
                 />
               </div>
               <div>
-                <label className="text-xs text-[#183a1d]/60 mb-1 block">Supporting Document (optional)</label>
+                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Supporting Document (optional)</label>
                 <input
                   type="file"
                   accept=".pdf,.doc,.docx,.xlsx,.xls,.jpg,.jpeg,.png,.csv"
                   onChange={e => setConditionsFile(e.target.files?.[0] || null)}
-                  className="w-full text-sm text-[#183a1d]/70 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-[#c8d6c0] file:bg-[#e1eedd] file:text-[#183a1d] file:text-xs file:font-medium hover:file:bg-[#c8d6c0] file:cursor-pointer file:transition-all"
+                  className="w-full text-sm text-[var(--tulip-forest)]/70 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-[var(--tulip-sage-dark)] file:bg-[var(--tulip-sage)] file:text-[var(--tulip-forest)] file:text-xs file:font-medium hover:file:bg-[var(--tulip-sage-dark)] file:cursor-pointer file:transition-all"
                 />
                 {conditionsFile && (
-                  <p className="text-xs text-[#183a1d]/50 mt-1">
+                  <p className="text-xs text-[var(--tulip-forest)]/50 mt-1">
                     {conditionsFile.name} ({(conditionsFile.size / 1024).toFixed(0)} KB) — will be hashed &amp; stored in Documents
                   </p>
                 )}
@@ -942,13 +942,13 @@ export default function BudgetDetailPage() {
                 <button
                   onClick={() => handleConfirmConditions(showConditionsModal.trancheId, showConditionsModal.agreementId)}
                   disabled={confirmingTranche === showConditionsModal.trancheId}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50 transition-all"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] disabled:opacity-50 transition-all"
                 >
                   <Check size={14} />
                   {confirmingTranche === showConditionsModal.trancheId ? 'Submitting...' : 'Confirm & Notify Donor'}
                 </button>
                 <button onClick={() => { setShowConditionsModal(null); setConditionsFile(null); setConditionsNotes('') }}
-                  className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] hover:bg-[#c8d6c0]/40 transition-all">
+                  className="px-4 py-2 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage-dark)]/40 transition-all">
                   Cancel
                 </button>
               </div>
@@ -961,38 +961,38 @@ export default function BudgetDetailPage() {
       {showEvidenceModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => { setShowEvidenceModal(null); setEvidenceFile(null); setEvidenceNotes('') }} />
-          <div className="relative bg-[#fefbe9] rounded-2xl border border-[#c8d6c0] shadow-xl w-full max-w-md mx-4">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-[#c8d6c0]">
+          <div className="relative bg-[var(--tulip-cream)] rounded-2xl border border-[var(--tulip-sage-dark)] shadow-xl w-full max-w-md mx-4">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--tulip-sage-dark)]">
               <div>
-                <h3 className="text-base font-bold text-[#183a1d]">Attach Evidence</h3>
-                <p className="text-xs text-[#183a1d]/50 mt-0.5">Upload a supporting document — it will be hashed and stored</p>
+                <h3 className="text-base font-bold text-[var(--tulip-forest)]">Attach Evidence</h3>
+                <p className="text-xs text-[var(--tulip-forest)]/50 mt-0.5">Upload a supporting document — it will be hashed and stored</p>
               </div>
               <button onClick={() => { setShowEvidenceModal(null); setEvidenceFile(null); setEvidenceNotes('') }}
-                className="text-[#183a1d]/40 hover:text-[#183a1d] transition-all">
+                className="text-[var(--tulip-forest)]/40 hover:text-[var(--tulip-forest)] transition-all">
                 <X size={18} />
               </button>
             </div>
             <div className="px-5 py-4 space-y-4">
               <div>
-                <label className="text-xs text-[#183a1d]/60 mb-1 block">Notes (optional)</label>
+                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Notes (optional)</label>
                 <textarea
                   value={evidenceNotes}
                   onChange={e => setEvidenceNotes(e.target.value)}
                   rows={2}
                   placeholder="Describe the evidence..."
-                  className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all resize-none"
+                  className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] transition-all resize-none"
                 />
               </div>
               <div>
-                <label className="text-xs text-[#183a1d]/60 mb-1 block">Evidence File</label>
+                <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Evidence File</label>
                 <input
                   type="file"
                   accept=".pdf,.doc,.docx,.xlsx,.xls,.jpg,.jpeg,.png,.csv"
                   onChange={e => setEvidenceFile(e.target.files?.[0] || null)}
-                  className="w-full text-sm text-[#183a1d]/70 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-[#c8d6c0] file:bg-[#e1eedd] file:text-[#183a1d] file:text-xs file:font-medium hover:file:bg-[#c8d6c0] file:cursor-pointer file:transition-all"
+                  className="w-full text-sm text-[var(--tulip-forest)]/70 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-[var(--tulip-sage-dark)] file:bg-[var(--tulip-sage)] file:text-[var(--tulip-forest)] file:text-xs file:font-medium hover:file:bg-[var(--tulip-sage-dark)] file:cursor-pointer file:transition-all"
                 />
                 {evidenceFile && (
-                  <p className="text-xs text-[#183a1d]/50 mt-1">
+                  <p className="text-xs text-[var(--tulip-forest)]/50 mt-1">
                     {evidenceFile.name} ({(evidenceFile.size / 1024).toFixed(0)} KB) — will be hashed &amp; stored in Documents
                   </p>
                 )}
@@ -1007,7 +1007,7 @@ export default function BudgetDetailPage() {
                   {uploadingEvidence ? 'Uploading...' : 'Upload & Notify Donor'}
                 </button>
                 <button onClick={() => { setShowEvidenceModal(null); setEvidenceFile(null); setEvidenceNotes('') }}
-                  className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] hover:bg-[#c8d6c0]/40 transition-all">
+                  className="px-4 py-2 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage-dark)]/40 transition-all">
                   Cancel
                 </button>
               </div>
@@ -1020,14 +1020,14 @@ export default function BudgetDetailPage() {
       {breachModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => { setBreachModal(null); setBreachNote(''); setBreachSuccess(false) }} />
-          <div className="relative bg-[#fefbe9] rounded-2xl border border-[#c8d6c0] shadow-xl w-full max-w-md mx-4">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-[#c8d6c0]">
+          <div className="relative bg-[var(--tulip-cream)] rounded-2xl border border-[var(--tulip-sage-dark)] shadow-xl w-full max-w-md mx-4">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--tulip-sage-dark)]">
               <div>
-                <h3 className="text-base font-bold text-[#183a1d]">Report Breach</h3>
-                <p className="text-xs text-[#183a1d]/50 mt-0.5">{breachModal.title}</p>
+                <h3 className="text-base font-bold text-[var(--tulip-forest)]">Report Breach</h3>
+                <p className="text-xs text-[var(--tulip-forest)]/50 mt-0.5">{breachModal.title}</p>
               </div>
               <button onClick={() => { setBreachModal(null); setBreachNote(''); setBreachSuccess(false) }}
-                className="text-[#183a1d]/40 hover:text-[#183a1d] transition-all">
+                className="text-[var(--tulip-forest)]/40 hover:text-[var(--tulip-forest)] transition-all">
                 <X size={18} />
               </button>
             </div>
@@ -1035,17 +1035,17 @@ export default function BudgetDetailPage() {
               {breachSuccess ? (
                 <div className="text-center py-4">
                   <CheckCircle size={32} className="mx-auto text-green-500 mb-2" />
-                  <p className="text-sm text-[#183a1d] font-medium">Donor has been notified of this condition breach.</p>
+                  <p className="text-sm text-[var(--tulip-forest)] font-medium">Donor has been notified of this condition breach.</p>
                 </div>
               ) : (
                 <>
-                  <label className="text-xs text-[#183a1d]/60 mb-1 block">Describe the breach situation</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/60 mb-1 block">Describe the breach situation</label>
                   <textarea
                     value={breachNote}
                     onChange={e => setBreachNote(e.target.value)}
                     rows={4}
                     placeholder="Explain what happened and any corrective actions planned..."
-                    className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all resize-none"
+                    className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] transition-all resize-none"
                   />
                   <div className="flex items-center gap-3 mt-4">
                     <button
@@ -1057,7 +1057,7 @@ export default function BudgetDetailPage() {
                       {breachSubmitting ? 'Submitting...' : 'Submit'}
                     </button>
                     <button onClick={() => { setBreachModal(null); setBreachNote(''); setBreachSuccess(false) }}
-                      className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] hover:bg-[#c8d6c0]/40 transition-all">
+                      className="px-4 py-2 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage-dark)]/40 transition-all">
                       Cancel
                     </button>
                   </div>

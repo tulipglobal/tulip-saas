@@ -65,7 +65,7 @@ interface Investment {
 /* ── pills / badges ── */
 function TypePill({ label }: { label: string }) {
   return (
-    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#f6c453]/20 text-[#183a1d] border border-[#f6c453]/40">
+    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[var(--tulip-gold)]/20 text-[var(--tulip-forest)] border border-[var(--tulip-gold)]/40">
       {label}
     </span>
   )
@@ -251,23 +251,23 @@ export default function InvestmentsPage() {
     <div className="p-4 md:p-6 space-y-6 animate-fade-up">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
+        <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>
           Investment Monitoring
         </h1>
-        <p className="text-[#183a1d]/60 text-sm mt-1">
+        <p className="text-[var(--tulip-forest)]/60 text-sm mt-1">
           Track repayment schedules, drawdowns and covenants
         </p>
       </div>
 
       {/* Loading */}
       {loading && (
-        <div className="p-12 text-center text-[#183a1d]/40 text-sm">Loading investments...</div>
+        <div className="p-12 text-center text-[var(--tulip-forest)]/40 text-sm">Loading investments...</div>
       )}
 
       {/* Empty */}
       {!loading && investments.length === 0 && (
-        <div className="rounded-xl border border-[#c8d6c0] p-12 text-center" style={{ background: '#e1eedd' }}>
-          <p className="text-[#183a1d]/40 text-sm">No investments found</p>
+        <div className="rounded-xl border border-[var(--tulip-sage-dark)] p-12 text-center" style={{ background: 'var(--tulip-sage)' }}>
+          <p className="text-[var(--tulip-forest)]/40 text-sm">No investments found</p>
         </div>
       )}
 
@@ -280,74 +280,74 @@ export default function InvestmentsPage() {
         const counts = covenantCounts(inv.covenants)
 
         return (
-          <div key={inv.id} className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#fefbe9' }}>
+          <div key={inv.id} className="rounded-xl border border-[var(--tulip-sage-dark)] overflow-hidden" style={{ background: 'var(--tulip-cream)' }}>
             {/* Card header */}
-            <div className="px-5 py-4 border-b border-[#c8d6c0] flex flex-wrap items-center gap-3" style={{ background: '#e1eedd' }}>
-              <h2 className="text-base font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <div className="px-5 py-4 border-b border-[var(--tulip-sage-dark)] flex flex-wrap items-center gap-3" style={{ background: 'var(--tulip-sage)' }}>
+              <h2 className="text-base font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>
                 {inv.projectName}
               </h2>
               <TypePill label={inv.investmentType} />
               <StatusPill status={inv.status} />
-              <span className="text-xs text-[#183a1d]/50 ml-auto">{inv.donorOrgName}</span>
+              <span className="text-xs text-[var(--tulip-forest)]/50 ml-auto">{inv.donorOrgName}</span>
             </div>
 
             <div className="p-5 space-y-5">
               {/* Facility summary */}
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-[#183a1d]/40 font-medium mb-2">Facility Summary</div>
+                <div className="text-[10px] uppercase tracking-wider text-[var(--tulip-forest)]/40 font-medium mb-2">Facility Summary</div>
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="rounded-lg border border-[#c8d6c0] p-3" style={{ background: '#e1eedd' }}>
-                    <div className="text-xs text-[#183a1d]/50 mb-0.5">Total Facility</div>
-                    <div className="text-sm font-bold text-[#183a1d]">{fmtCurrency(inv.totalFacility, inv.currency)}</div>
+                  <div className="rounded-lg border border-[var(--tulip-sage-dark)] p-3" style={{ background: 'var(--tulip-sage)' }}>
+                    <div className="text-xs text-[var(--tulip-forest)]/50 mb-0.5">Total Facility</div>
+                    <div className="text-sm font-bold text-[var(--tulip-forest)]">{fmtCurrency(inv.totalFacility, inv.currency)}</div>
                   </div>
-                  <div className="rounded-lg border border-[#c8d6c0] p-3" style={{ background: '#e1eedd' }}>
-                    <div className="text-xs text-[#183a1d]/50 mb-0.5">Drawn Down</div>
-                    <div className="text-sm font-bold text-[#183a1d]">{fmtCurrency(inv.drawnDown, inv.currency)}</div>
+                  <div className="rounded-lg border border-[var(--tulip-sage-dark)] p-3" style={{ background: 'var(--tulip-sage)' }}>
+                    <div className="text-xs text-[var(--tulip-forest)]/50 mb-0.5">Drawn Down</div>
+                    <div className="text-sm font-bold text-[var(--tulip-forest)]">{fmtCurrency(inv.drawnDown, inv.currency)}</div>
                   </div>
-                  <div className="rounded-lg border border-[#c8d6c0] p-3" style={{ background: '#e1eedd' }}>
-                    <div className="text-xs text-[#183a1d]/50 mb-0.5">Remaining</div>
-                    <div className="text-sm font-bold text-[#183a1d]">{fmtCurrency(remaining, inv.currency)}</div>
+                  <div className="rounded-lg border border-[var(--tulip-sage-dark)] p-3" style={{ background: 'var(--tulip-sage)' }}>
+                    <div className="text-xs text-[var(--tulip-forest)]/50 mb-0.5">Remaining</div>
+                    <div className="text-sm font-bold text-[var(--tulip-forest)]">{fmtCurrency(remaining, inv.currency)}</div>
                   </div>
                 </div>
               </div>
 
               {/* Repayment status */}
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-[#183a1d]/40 font-medium mb-2">Repayment Status</div>
+                <div className="text-[10px] uppercase tracking-wider text-[var(--tulip-forest)]/40 font-medium mb-2">Repayment Status</div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {/* Next due */}
-                  <div className="rounded-lg border border-[#c8d6c0] p-3" style={{ background: '#e1eedd' }}>
-                    <div className="text-xs text-[#183a1d]/50 mb-0.5">Next Due</div>
+                  <div className="rounded-lg border border-[var(--tulip-sage-dark)] p-3" style={{ background: 'var(--tulip-sage)' }}>
+                    <div className="text-xs text-[var(--tulip-forest)]/50 mb-0.5">Next Due</div>
                     {inv.repaymentSummary.nextRepayment ? (
                       <>
-                        <div className="text-sm font-bold text-[#183a1d]">
+                        <div className="text-sm font-bold text-[var(--tulip-forest)]">
                           {fmtCurrency(inv.repaymentSummary.nextRepayment.amount, inv.currency)}
                         </div>
-                        <div className="text-[11px] text-[#183a1d]/50 mt-0.5">
+                        <div className="text-[11px] text-[var(--tulip-forest)]/50 mt-0.5">
                           {fmtDate(inv.repaymentSummary.nextRepayment.dueDate)}
                         </div>
                       </>
                     ) : (
-                      <div className="text-sm text-[#183a1d]/40">None</div>
+                      <div className="text-sm text-[var(--tulip-forest)]/40">None</div>
                     )}
                   </div>
                   {/* Overdue */}
-                  <div className="rounded-lg border border-[#c8d6c0] p-3" style={{ background: '#e1eedd' }}>
-                    <div className="text-xs text-[#183a1d]/50 mb-0.5">Overdue</div>
-                    <div className={`text-sm font-bold ${inv.repaymentSummary.overdueCount > 0 ? 'text-red-600' : 'text-[#183a1d]'}`}>
+                  <div className="rounded-lg border border-[var(--tulip-sage-dark)] p-3" style={{ background: 'var(--tulip-sage)' }}>
+                    <div className="text-xs text-[var(--tulip-forest)]/50 mb-0.5">Overdue</div>
+                    <div className={`text-sm font-bold ${inv.repaymentSummary.overdueCount > 0 ? 'text-red-600' : 'text-[var(--tulip-forest)]'}`}>
                       {inv.repaymentSummary.overdueCount} payment{inv.repaymentSummary.overdueCount !== 1 ? 's' : ''}
                     </div>
                   </div>
                   {/* Paid to date */}
-                  <div className="rounded-lg border border-[#c8d6c0] p-3" style={{ background: '#e1eedd' }}>
-                    <div className="text-xs text-[#183a1d]/50 mb-0.5">Paid to Date</div>
-                    <div className="text-sm font-bold text-[#183a1d]">
+                  <div className="rounded-lg border border-[var(--tulip-sage-dark)] p-3" style={{ background: 'var(--tulip-sage)' }}>
+                    <div className="text-xs text-[var(--tulip-forest)]/50 mb-0.5">Paid to Date</div>
+                    <div className="text-sm font-bold text-[var(--tulip-forest)]">
                       {fmtCurrency(inv.repaymentSummary.totalPaid, inv.currency)}
                     </div>
-                    <div className="mt-1.5 h-1.5 rounded-full bg-[#c8d6c0] overflow-hidden">
-                      <div className="h-full rounded-full bg-[#183a1d] transition-all" style={{ width: `${paidPct}%` }} />
+                    <div className="mt-1.5 h-1.5 rounded-full bg-[var(--tulip-sage-dark)] overflow-hidden">
+                      <div className="h-full rounded-full bg-[var(--tulip-forest)] transition-all" style={{ width: `${paidPct}%` }} />
                     </div>
-                    <div className="text-[10px] text-[#183a1d]/40 mt-0.5">{paidPct}% of facility</div>
+                    <div className="text-[10px] text-[var(--tulip-forest)]/40 mt-0.5">{paidPct}% of facility</div>
                   </div>
                 </div>
               </div>
@@ -355,7 +355,7 @@ export default function InvestmentsPage() {
               {/* Covenant health */}
               {inv.covenants.length > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider text-[#183a1d]/40 font-medium mb-2">Covenant Health</div>
+                  <div className="text-[10px] uppercase tracking-wider text-[var(--tulip-forest)]/40 font-medium mb-2">Covenant Health</div>
                   <div className="flex flex-wrap gap-2 mb-3">
                     {counts.OK > 0 && <CovenantBadge status="OK" count={counts.OK} />}
                     {counts.WARNING > 0 && <CovenantBadge status="WARNING" count={counts.WARNING} />}
@@ -363,25 +363,25 @@ export default function InvestmentsPage() {
                   </div>
                   <div className="space-y-2">
                     {inv.covenants.map(cov => (
-                      <div key={cov.id} className="rounded-lg border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
+                      <div key={cov.id} className="rounded-lg border border-[var(--tulip-sage-dark)] overflow-hidden" style={{ background: 'var(--tulip-sage)' }}>
                         <button
                           onClick={() => toggleCovenant(cov.id)}
                           className="w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-[#d5e5cc] transition-colors"
                         >
                           <div className="flex items-center gap-2">
-                            <span className="text-sm text-[#183a1d] font-medium">{cov.name}</span>
+                            <span className="text-sm text-[var(--tulip-forest)] font-medium">{cov.name}</span>
                             <CovenantBadge status={cov.status} count={0} />
                           </div>
                           <svg
-                            className={`w-4 h-4 text-[#183a1d]/40 transition-transform ${expandedCovenants.has(cov.id) ? 'rotate-180' : ''}`}
+                            className={`w-4 h-4 text-[var(--tulip-forest)]/40 transition-transform ${expandedCovenants.has(cov.id) ? 'rotate-180' : ''}`}
                             fill="none" viewBox="0 0 24 24" stroke="currentColor"
                           >
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                           </svg>
                         </button>
                         {expandedCovenants.has(cov.id) && (
-                          <div className="px-4 py-3 border-t border-[#c8d6c0] space-y-3">
-                            <p className="text-xs text-[#183a1d]/60">{cov.description}</p>
+                          <div className="px-4 py-3 border-t border-[var(--tulip-sage-dark)] space-y-3">
+                            <p className="text-xs text-[var(--tulip-forest)]/60">{cov.description}</p>
                             <div className="flex gap-2">
                               <button
                                 onClick={() => updateCovenantStatus(cov.id, 'OK')}
@@ -413,26 +413,26 @@ export default function InvestmentsPage() {
               {/* Drawdown pipeline */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <div className="text-[10px] uppercase tracking-wider text-[#183a1d]/40 font-medium">Drawdown Pipeline</div>
+                  <div className="text-[10px] uppercase tracking-wider text-[var(--tulip-forest)]/40 font-medium">Drawdown Pipeline</div>
                   <button
                     onClick={() => { setDrawdownModal(inv); setDdAmount(''); setDdPurpose('') }}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium text-[#183a1d] border border-[#c8d6c0] hover:bg-[#e1eedd] transition-colors"
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--tulip-forest)] border border-[var(--tulip-sage-dark)] hover:bg-[var(--tulip-sage)] transition-colors"
                   >
                     + Request Drawdown
                   </button>
                 </div>
                 {inv.drawdowns.length === 0 ? (
-                  <p className="text-xs text-[#183a1d]/40">No drawdowns yet</p>
+                  <p className="text-xs text-[var(--tulip-forest)]/40">No drawdowns yet</p>
                 ) : (
                   <div className="space-y-1.5">
                     {inv.drawdowns.map(dd => (
-                      <div key={dd.id} className="flex items-center justify-between rounded-lg border border-[#c8d6c0] px-4 py-2" style={{ background: '#e1eedd' }}>
+                      <div key={dd.id} className="flex items-center justify-between rounded-lg border border-[var(--tulip-sage-dark)] px-4 py-2" style={{ background: 'var(--tulip-sage)' }}>
                         <div>
-                          <span className="text-sm font-medium text-[#183a1d]">{fmtCurrency(dd.amount, dd.currency)}</span>
-                          <span className="text-xs text-[#183a1d]/50 ml-2">{dd.purpose}</span>
+                          <span className="text-sm font-medium text-[var(--tulip-forest)]">{fmtCurrency(dd.amount, dd.currency)}</span>
+                          <span className="text-xs text-[var(--tulip-forest)]/50 ml-2">{dd.purpose}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] text-[#183a1d]/40">{fmtDate(dd.requestedAt)}</span>
+                          <span className="text-[10px] text-[var(--tulip-forest)]/40">{fmtDate(dd.requestedAt)}</span>
                           <DrawdownStatusPill status={dd.status} />
                         </div>
                       </div>
@@ -445,16 +445,16 @@ export default function InvestmentsPage() {
               <div>
                 <button
                   onClick={() => toggleSchedule(inv.id)}
-                  className="text-xs font-medium text-[#183a1d]/60 hover:text-[#183a1d] transition-colors underline underline-offset-2"
+                  className="text-xs font-medium text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] transition-colors underline underline-offset-2"
                 >
                   {expandedSchedule.has(inv.id) ? 'Hide Schedule' : 'View Full Schedule'}
                 </button>
                 {expandedSchedule.has(inv.id) && (inv.schedule || []).length > 0 && (
-                  <div className="mt-3 rounded-lg border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
+                  <div className="mt-3 rounded-lg border border-[var(--tulip-sage-dark)] overflow-hidden" style={{ background: 'var(--tulip-sage)' }}>
                     <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-[#c8d6c0] text-[10px] text-[#183a1d]/40 uppercase tracking-wider">
+                        <tr className="border-b border-[var(--tulip-sage-dark)] text-[10px] text-[var(--tulip-forest)]/40 uppercase tracking-wider">
                           <th className="text-left px-3 py-2 font-medium">#</th>
                           <th className="text-left px-3 py-2 font-medium">Due Date</th>
                           <th className="text-right px-3 py-2 font-medium">Principal</th>
@@ -465,14 +465,14 @@ export default function InvestmentsPage() {
                           <th className="text-right px-3 py-2 font-medium"></th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#c8d6c0]">
+                      <tbody className="divide-y divide-[var(--tulip-sage-dark)]">
                         {(inv.schedule || []).map((row: ScheduleRow) => (
                           <tr key={row.id} className={row.status === 'OVERDUE' ? 'bg-red-50/50' : ''}>
-                            <td className="px-3 py-2 text-[#183a1d] font-medium">{row.instalmentNumber}</td>
-                            <td className="px-3 py-2 text-[#183a1d]">{fmtDate(row.dueDate)}</td>
-                            <td className="px-3 py-2 text-right text-[#183a1d] font-mono text-xs">{fmtCurrency(parseFloat(String(row.principalDue)) || 0, row.currency)}</td>
-                            <td className="px-3 py-2 text-right text-[#183a1d]/60 font-mono text-xs">{fmtCurrency(parseFloat(String(row.interestDue)) || 0, row.currency)}</td>
-                            <td className="px-3 py-2 text-right text-[#183a1d] font-medium font-mono text-xs">{fmtCurrency(parseFloat(String(row.totalDue)) || row.amount, row.currency)}</td>
+                            <td className="px-3 py-2 text-[var(--tulip-forest)] font-medium">{row.instalmentNumber}</td>
+                            <td className="px-3 py-2 text-[var(--tulip-forest)]">{fmtDate(row.dueDate)}</td>
+                            <td className="px-3 py-2 text-right text-[var(--tulip-forest)] font-mono text-xs">{fmtCurrency(parseFloat(String(row.principalDue)) || 0, row.currency)}</td>
+                            <td className="px-3 py-2 text-right text-[var(--tulip-forest)]/60 font-mono text-xs">{fmtCurrency(parseFloat(String(row.interestDue)) || 0, row.currency)}</td>
+                            <td className="px-3 py-2 text-right text-[var(--tulip-forest)] font-medium font-mono text-xs">{fmtCurrency(parseFloat(String(row.totalDue)) || row.amount, row.currency)}</td>
                             <td className="px-3 py-2 text-right font-mono text-xs text-green-700">{row.paidAmount ? fmtCurrency(parseFloat(String(row.paidAmount)), row.currency) : '—'}</td>
                             <td className="px-3 py-2 text-center">
                               <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${
@@ -489,7 +489,7 @@ export default function InvestmentsPage() {
                               {(row.status === 'PENDING' || row.status === 'OVERDUE') && (
                                 <button
                                   onClick={() => { setPaymentModal({ investmentId: inv.id, instalment: row, currency: inv.currency }); setPaymentAmount(String(parseFloat(String(row.totalDue)) || row.amount)) }}
-                                  className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-[#183a1d] text-[#fefbe9] hover:bg-[#183a1d]/90 transition-colors"
+                                  className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-[var(--tulip-forest)] text-[var(--tulip-cream)] hover:bg-[var(--tulip-forest)]/90 transition-colors"
                                 >
                                   Record Payment
                                 </button>
@@ -503,7 +503,7 @@ export default function InvestmentsPage() {
                   </div>
                 )}
                 {expandedSchedule.has(inv.id) && (inv.schedule || []).length === 0 && (
-                  <p className="mt-2 text-xs text-[#183a1d]/40">No schedule entries</p>
+                  <p className="mt-2 text-xs text-[var(--tulip-forest)]/40">No schedule entries</p>
                 )}
               </div>
             </div>
@@ -515,20 +515,20 @@ export default function InvestmentsPage() {
       {drawdownModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setDrawdownModal(null)}>
           <div
-            className="w-full max-w-md rounded-xl border border-[#c8d6c0] p-6 space-y-4 shadow-xl"
-            style={{ background: '#fefbe9' }}
+            className="w-full max-w-md rounded-xl border border-[var(--tulip-sage-dark)] p-6 space-y-4 shadow-xl"
+            style={{ background: 'var(--tulip-cream)' }}
             onClick={e => e.stopPropagation()}
           >
-            <h3 className="text-lg font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <h3 className="text-lg font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>
               Request Drawdown
             </h3>
-            <p className="text-xs text-[#183a1d]/50">
+            <p className="text-xs text-[var(--tulip-forest)]/50">
               {drawdownModal.projectName} &mdash; remaining: {fmtCurrency(drawdownModal.totalFacility - drawdownModal.drawnDown, drawdownModal.currency)}
             </p>
 
             {/* Amount */}
             <div>
-              <label className="block text-xs font-medium text-[#183a1d]/70 mb-1">Amount</label>
+              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">Amount</label>
               <input
                 type="number"
                 min={0}
@@ -536,30 +536,30 @@ export default function InvestmentsPage() {
                 value={ddAmount}
                 onChange={e => setDdAmount(e.target.value)}
                 placeholder="0.00"
-                className="w-full rounded-lg border border-[#c8d6c0] bg-[#e1eedd] px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/30 outline-none focus:border-[#183a1d]/40"
+                className="w-full rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/30 outline-none focus:border-[var(--tulip-forest)]/40"
               />
             </div>
 
             {/* Currency */}
             <div>
-              <label className="block text-xs font-medium text-[#183a1d]/70 mb-1">Currency</label>
+              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">Currency</label>
               <input
                 type="text"
                 value={drawdownModal.currency}
                 readOnly
-                className="w-full rounded-lg border border-[#c8d6c0] bg-[#e1eedd]/60 px-3 py-2 text-sm text-[#183a1d]/60 outline-none cursor-not-allowed"
+                className="w-full rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]/60 px-3 py-2 text-sm text-[var(--tulip-forest)]/60 outline-none cursor-not-allowed"
               />
             </div>
 
             {/* Purpose */}
             <div>
-              <label className="block text-xs font-medium text-[#183a1d]/70 mb-1">Purpose <span className="text-red-500">*</span></label>
+              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">Purpose <span className="text-red-500">*</span></label>
               <textarea
                 value={ddPurpose}
                 onChange={e => setDdPurpose(e.target.value)}
                 rows={3}
                 placeholder="Describe the purpose of this drawdown..."
-                className="w-full rounded-lg border border-[#c8d6c0] bg-[#e1eedd] px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/30 outline-none focus:border-[#183a1d]/40 resize-none"
+                className="w-full rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/30 outline-none focus:border-[var(--tulip-forest)]/40 resize-none"
               />
             </div>
 
@@ -567,14 +567,14 @@ export default function InvestmentsPage() {
             <div className="flex justify-end gap-3 pt-2">
               <button
                 onClick={() => setDrawdownModal(null)}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d]/60 border border-[#c8d6c0] hover:bg-[#e1eedd] transition-colors"
+                className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-forest)]/60 border border-[var(--tulip-sage-dark)] hover:bg-[var(--tulip-sage)] transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={submitDrawdown}
                 disabled={ddSubmitting || !ddAmount || !ddPurpose.trim()}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-[#fefbe9] bg-[#183a1d] hover:bg-[#183a1d]/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-cream)] bg-[var(--tulip-forest)] hover:bg-[var(--tulip-forest)]/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 {ddSubmitting ? 'Submitting...' : 'Submit Request'}
               </button>
@@ -587,23 +587,23 @@ export default function InvestmentsPage() {
       {paymentModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => { setPaymentModal(null); setPaymentFile(null); setPaymentNotes('') }}>
           <div
-            className="w-full max-w-md rounded-xl border border-[#c8d6c0] p-6 space-y-4 shadow-xl"
-            style={{ background: '#fefbe9' }}
+            className="w-full max-w-md rounded-xl border border-[var(--tulip-sage-dark)] p-6 space-y-4 shadow-xl"
+            style={{ background: 'var(--tulip-cream)' }}
             onClick={e => e.stopPropagation()}
           >
-            <h3 className="text-lg font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <h3 className="text-lg font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>
               Record Payment
             </h3>
-            <div className="rounded-lg border border-[#c8d6c0] p-3" style={{ background: '#e1eedd' }}>
-              <p className="text-xs text-[#183a1d]/50">Instalment #{paymentModal.instalment.instalmentNumber}</p>
-              <p className="text-sm font-bold text-[#183a1d]">
+            <div className="rounded-lg border border-[var(--tulip-sage-dark)] p-3" style={{ background: 'var(--tulip-sage)' }}>
+              <p className="text-xs text-[var(--tulip-forest)]/50">Instalment #{paymentModal.instalment.instalmentNumber}</p>
+              <p className="text-sm font-bold text-[var(--tulip-forest)]">
                 Total Due: {fmtCurrency(parseFloat(String(paymentModal.instalment.totalDue)) || paymentModal.instalment.amount, paymentModal.currency)}
               </p>
             </div>
 
             {/* Amount */}
             <div>
-              <label className="block text-xs font-medium text-[#183a1d]/70 mb-1">Payment Amount</label>
+              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">Payment Amount</label>
               <input
                 type="number"
                 min={0}
@@ -611,34 +611,34 @@ export default function InvestmentsPage() {
                 value={paymentAmount}
                 onChange={e => setPaymentAmount(e.target.value)}
                 placeholder="0.00"
-                className="w-full rounded-lg border border-[#c8d6c0] bg-[#e1eedd] px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/30 outline-none focus:border-[#183a1d]/40"
+                className="w-full rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/30 outline-none focus:border-[var(--tulip-forest)]/40"
               />
             </div>
 
             {/* Proof file */}
             <div>
-              <label className="block text-xs font-medium text-[#183a1d]/70 mb-1">Payment Proof (receipt, transfer confirmation, etc.)</label>
+              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">Payment Proof (receipt, transfer confirmation, etc.)</label>
               <input
                 ref={paymentFileRef}
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                 onChange={e => setPaymentFile(e.target.files?.[0] || null)}
-                className="w-full rounded-lg border border-[#c8d6c0] bg-[#e1eedd] px-3 py-2 text-sm text-[#183a1d] file:mr-3 file:rounded-md file:border-0 file:bg-[#183a1d] file:px-3 file:py-1 file:text-xs file:font-medium file:text-[#fefbe9]"
+                className="w-full rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] px-3 py-2 text-sm text-[var(--tulip-forest)] file:mr-3 file:rounded-md file:border-0 file:bg-[var(--tulip-forest)] file:px-3 file:py-1 file:text-xs file:font-medium file:text-[var(--tulip-cream)]"
               />
               {paymentFile && (
-                <p className="text-xs text-[#183a1d]/50 mt-1">{paymentFile.name} ({(paymentFile.size / 1024).toFixed(1)} KB)</p>
+                <p className="text-xs text-[var(--tulip-forest)]/50 mt-1">{paymentFile.name} ({(paymentFile.size / 1024).toFixed(1)} KB)</p>
               )}
             </div>
 
             {/* Notes */}
             <div>
-              <label className="block text-xs font-medium text-[#183a1d]/70 mb-1">Notes</label>
+              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">Notes</label>
               <textarea
                 value={paymentNotes}
                 onChange={e => setPaymentNotes(e.target.value)}
                 rows={2}
                 placeholder="Payment reference, bank details, etc."
-                className="w-full rounded-lg border border-[#c8d6c0] bg-[#e1eedd] px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/30 outline-none focus:border-[#183a1d]/40 resize-none"
+                className="w-full rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/30 outline-none focus:border-[var(--tulip-forest)]/40 resize-none"
               />
             </div>
 
@@ -646,14 +646,14 @@ export default function InvestmentsPage() {
             <div className="flex justify-end gap-3 pt-2">
               <button
                 onClick={() => { setPaymentModal(null); setPaymentFile(null); setPaymentNotes('') }}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d]/60 border border-[#c8d6c0] hover:bg-[#e1eedd] transition-colors"
+                className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-forest)]/60 border border-[var(--tulip-sage-dark)] hover:bg-[var(--tulip-sage)] transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={submitPayment}
                 disabled={paymentSubmitting || !paymentAmount}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-[#fefbe9] bg-[#183a1d] hover:bg-[#183a1d]/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-cream)] bg-[var(--tulip-forest)] hover:bg-[var(--tulip-forest)]/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 {paymentSubmitting ? 'Submitting...' : 'Submit Payment'}
               </button>

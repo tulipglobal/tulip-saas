@@ -94,7 +94,7 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
       .catch(() => { setError(t('seal.failedToLoad')); setLoading(false) })
 
     // Generate QR code
-    QRCode.toDataURL(verifyUrl, { width: 140, margin: 1, color: { dark: '#183a1d', light: '#fefbe9' } })
+    QRCode.toDataURL(verifyUrl, { width: 140, margin: 1, color: { dark: 'var(--tulip-forest)', light: 'var(--tulip-cream)' } })
       .then(url => setQrDataUrl(url))
       .catch(() => {})
   }, [sealId, verifyUrl])
@@ -150,31 +150,31 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
 
       {/* Modal */}
       <div
-        className="relative bg-[#fefbe9] rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col md:flex-row"
+        className="relative bg-[var(--tulip-cream)] rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col md:flex-row"
         onClick={e => e.stopPropagation()}
       >
         {/* Close button */}
-        <button onClick={onClose} className="absolute top-4 right-4 z-10 p-1.5 rounded-full bg-[#e1eedd] hover:bg-[#c8d6c0] transition-colors">
-          <X size={16} className="text-[#183a1d]/60" />
+        <button onClick={onClose} className="absolute top-4 right-4 z-10 p-1.5 rounded-full bg-[var(--tulip-sage)] hover:bg-[var(--tulip-sage-dark)] transition-colors">
+          <X size={16} className="text-[var(--tulip-forest)]/60" />
         </button>
 
         {loading ? (
           <div className="flex items-center justify-center w-full py-24">
-            <div className="w-8 h-8 border-2 border-[#f6c453] border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-[var(--tulip-gold)] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : error ? (
-          <div className="flex items-center justify-center w-full py-24 text-[#183a1d]/40">{error}</div>
+          <div className="flex items-center justify-center w-full py-24 text-[var(--tulip-forest)]/40">{error}</div>
         ) : seal ? (
           <>
             {/* LEFT — Document Preview */}
-            <div className="md:w-[55%] bg-[#e1eedd] border-b md:border-b-0 md:border-r border-[#c8d6c0] flex items-center justify-center min-h-[300px] p-6">
+            <div className="md:w-[55%] bg-[var(--tulip-sage)] border-b md:border-b-0 md:border-r border-[var(--tulip-sage-dark)] flex items-center justify-center min-h-[300px] p-6">
               {docLoading ? (
                 <div className="flex flex-col items-center gap-3">
-                  <div className="w-8 h-8 border-2 border-[#f6c453] border-t-transparent rounded-full animate-spin" />
-                  <p className="text-xs text-[#183a1d]/40">{t('seal.loadingPreview')}</p>
+                  <div className="w-8 h-8 border-2 border-[var(--tulip-gold)] border-t-transparent rounded-full animate-spin" />
+                  <p className="text-xs text-[var(--tulip-forest)]/40">{t('seal.loadingPreview')}</p>
                 </div>
               ) : docUrl && isPdf ? (
-                <iframe src={docUrl} className="w-full h-[500px] rounded-lg border border-[#c8d6c0]" title={seal.documentTitle} />
+                <iframe src={docUrl} className="w-full h-[500px] rounded-lg border border-[var(--tulip-sage-dark)]" title={seal.documentTitle} />
               ) : docUrl && isImage ? (
                 <img
                   src={docUrl}
@@ -183,26 +183,26 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
                   onError={() => { console.warn('[TrustSealCard] Image failed to load:', docUrl?.substring(0, 80)); setDocError(true) }}
                 />
               ) : docUrl ? (
-                <div className="flex flex-col items-center gap-4 text-[#183a1d]/40">
-                  <FileText size={56} className="text-[#183a1d]/30" />
-                  <p className="text-sm font-medium text-[#183a1d]/60">{seal.documentTitle}</p>
-                  <p className="text-xs text-[#183a1d]/40 uppercase">{seal.fileType || seal.documentType}</p>
+                <div className="flex flex-col items-center gap-4 text-[var(--tulip-forest)]/40">
+                  <FileText size={56} className="text-[var(--tulip-forest)]/30" />
+                  <p className="text-sm font-medium text-[var(--tulip-forest)]/60">{seal.documentTitle}</p>
+                  <p className="text-xs text-[var(--tulip-forest)]/40 uppercase">{seal.fileType || seal.documentType}</p>
                   <a href={docUrl} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#f6c453] text-[#183a1d] text-sm font-medium hover:bg-[#f0a04b] transition-colors">
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--tulip-gold)] text-[var(--tulip-forest)] text-sm font-medium hover:bg-[var(--tulip-orange)] transition-colors">
                     <Download size={14} /> {t('common.download')}
                   </a>
                 </div>
               ) : docError ? (
-                <div className="flex flex-col items-center gap-3 text-[#183a1d]/40">
-                  <FileText size={56} className="text-[#183a1d]/30" />
-                  <p className="text-sm font-medium text-[#183a1d]/60">{t('seal.unableToPreview')}</p>
-                  <p className="text-xs text-[#183a1d]/40">{seal.documentTitle}</p>
+                <div className="flex flex-col items-center gap-3 text-[var(--tulip-forest)]/40">
+                  <FileText size={56} className="text-[var(--tulip-forest)]/30" />
+                  <p className="text-sm font-medium text-[var(--tulip-forest)]/60">{t('seal.unableToPreview')}</p>
+                  <p className="text-xs text-[var(--tulip-forest)]/40">{seal.documentTitle}</p>
                 </div>
               ) : (
-                <div className="flex flex-col items-center gap-4 text-[#183a1d]/40">
-                  <FileText size={56} className="text-[#183a1d]/30" />
-                  <p className="text-sm font-medium text-[#183a1d]/60">{seal.documentTitle}</p>
-                  <p className="text-xs text-[#183a1d]/40 uppercase">{seal.fileType || seal.documentType}</p>
+                <div className="flex flex-col items-center gap-4 text-[var(--tulip-forest)]/40">
+                  <FileText size={56} className="text-[var(--tulip-forest)]/30" />
+                  <p className="text-sm font-medium text-[var(--tulip-forest)]/60">{seal.documentTitle}</p>
+                  <p className="text-xs text-[var(--tulip-forest)]/40 uppercase">{seal.fileType || seal.documentType}</p>
                 </div>
               )}
             </div>
@@ -212,40 +212,40 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
               {/* Title + type badge */}
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <Shield size={18} className="text-[#183a1d]" />
-                  <span className="text-xs font-medium uppercase tracking-wide px-2 py-0.5 rounded-full bg-[#e1eedd] text-[#183a1d] border border-[#c8d6c0]">
+                  <Shield size={18} className="text-[var(--tulip-forest)]" />
+                  <span className="text-xs font-medium uppercase tracking-wide px-2 py-0.5 rounded-full bg-[var(--tulip-sage)] text-[var(--tulip-forest)] border border-[var(--tulip-sage-dark)]">
                     {seal.documentType.replace(/-/g, ' ')}
                   </span>
                 </div>
-                <h2 className="text-lg font-semibold text-[#183a1d] mt-2">{seal.documentTitle}</h2>
+                <h2 className="text-lg font-semibold text-[var(--tulip-forest)] mt-2">{seal.documentTitle}</h2>
               </div>
 
               {/* Issuer / Recipient */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-[10px] text-[#183a1d]/40 uppercase tracking-wide mb-0.5">{t('seal.issuedBy')}</p>
-                  <p className="text-sm font-medium text-[#183a1d]">{seal.issuedBy}</p>
+                  <p className="text-[10px] text-[var(--tulip-forest)]/40 uppercase tracking-wide mb-0.5">{t('seal.issuedBy')}</p>
+                  <p className="text-sm font-medium text-[var(--tulip-forest)]">{seal.issuedBy}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-[#183a1d]/40 uppercase tracking-wide mb-0.5">{t('seal.issuedTo')}</p>
-                  <p className="text-sm font-medium text-[#183a1d]">{seal.issuedTo}</p>
+                  <p className="text-[10px] text-[var(--tulip-forest)]/40 uppercase tracking-wide mb-0.5">{t('seal.issuedTo')}</p>
+                  <p className="text-sm font-medium text-[var(--tulip-forest)]">{seal.issuedTo}</p>
                 </div>
               </div>
 
               <div>
-                <p className="text-[10px] text-[#183a1d]/40 uppercase tracking-wide mb-0.5">{t('seal.issueDate')}</p>
-                <p className="text-sm text-[#183a1d]">{new Date(seal.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                <p className="text-[10px] text-[var(--tulip-forest)]/40 uppercase tracking-wide mb-0.5">{t('seal.issueDate')}</p>
+                <p className="text-sm text-[var(--tulip-forest)]">{new Date(seal.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
               </div>
 
               {/* Blockchain status */}
-              <div className="rounded-xl border border-[#c8d6c0] p-4 space-y-3 bg-[#e1eedd]/50">
+              <div className="rounded-xl border border-[var(--tulip-sage-dark)] p-4 space-y-3 bg-[var(--tulip-sage)]/50">
                 <div className="flex items-center gap-2">
                   {isAnchored ? (
                     <span className="flex items-center gap-1.5 text-sm font-medium text-green-600">
                       <CheckCircle size={15} /> {t('seal.confirmedOnPolygon')}
                     </span>
                   ) : (
-                    <span className="flex items-center gap-1.5 text-sm font-medium text-[#f0a04b]">
+                    <span className="flex items-center gap-1.5 text-sm font-medium text-[var(--tulip-orange)]">
                       <Clock size={15} /> {t('seal.pendingAnchor')}
                     </span>
                   )}
@@ -253,13 +253,13 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
 
                 {/* SHA-256 */}
                 <div>
-                  <p className="text-[10px] text-[#183a1d]/40 uppercase tracking-wide mb-1">{t('seal.sha256Hash')}</p>
+                  <p className="text-[10px] text-[var(--tulip-forest)]/40 uppercase tracking-wide mb-1">{t('seal.sha256Hash')}</p>
                   <div className="flex items-center gap-2">
-                    <code className="text-[11px] text-[#183a1d] bg-[#fefbe9] px-2 py-1 rounded border border-[#c8d6c0] break-all flex-1 font-mono">
+                    <code className="text-[11px] text-[var(--tulip-forest)] bg-[var(--tulip-cream)] px-2 py-1 rounded border border-[var(--tulip-sage-dark)] break-all flex-1 font-mono">
                       {seal.rawHash}
                     </code>
-                    <button onClick={copyHash} className="p-1 rounded hover:bg-[#c8d6c0] transition-colors shrink-0">
-                      {copied ? <Check size={13} className="text-green-500" /> : <Copy size={13} className="text-[#183a1d]/40" />}
+                    <button onClick={copyHash} className="p-1 rounded hover:bg-[var(--tulip-sage-dark)] transition-colors shrink-0">
+                      {copied ? <Check size={13} className="text-green-500" /> : <Copy size={13} className="text-[var(--tulip-forest)]/40" />}
                     </button>
                   </div>
                 </div>
@@ -267,9 +267,9 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
                 {/* TX hash */}
                 {seal.anchorTxHash && (
                   <div>
-                    <p className="text-[10px] text-[#183a1d]/40 uppercase tracking-wide mb-1">{t('seal.transaction')}</p>
+                    <p className="text-[10px] text-[var(--tulip-forest)]/40 uppercase tracking-wide mb-1">{t('seal.transaction')}</p>
                     <a href={`https://polygonscan.com/tx/${seal.anchorTxHash}`} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 text-[11px] text-[#183a1d] hover:text-[#f0a04b] font-mono">
+                      className="flex items-center gap-1.5 text-[11px] text-[var(--tulip-forest)] hover:text-[var(--tulip-orange)] font-mono">
                       {seal.anchorTxHash.slice(0, 16)}...{seal.anchorTxHash.slice(-8)}
                       <ExternalLink size={11} />
                     </a>
@@ -278,8 +278,8 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
 
                 {seal.anchoredAt && (
                   <div>
-                    <p className="text-[10px] text-[#183a1d]/40 uppercase tracking-wide mb-0.5">{t('seal.anchoredAt')}</p>
-                    <p className="text-xs text-[#183a1d]/60">{new Date(seal.anchoredAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                    <p className="text-[10px] text-[var(--tulip-forest)]/40 uppercase tracking-wide mb-0.5">{t('seal.anchoredAt')}</p>
+                    <p className="text-xs text-[var(--tulip-forest)]/60">{new Date(seal.anchoredAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                   </div>
                 )}
               </div>
@@ -347,7 +347,7 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
               <div className="flex flex-col items-center gap-2 py-2">
                 {qrDataUrl && <img src={qrDataUrl} alt="Verify QR" className="w-[120px] h-[120px]" />}
                 <a href={verifyUrl} target="_blank" rel="noopener noreferrer"
-                  className="text-[11px] text-[#183a1d] hover:text-[#f0a04b] hover:underline font-mono">
+                  className="text-[11px] text-[var(--tulip-forest)] hover:text-[var(--tulip-orange)] hover:underline font-mono">
                   {verifyUrl}
                 </a>
               </div>
@@ -356,10 +356,10 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
               <button
                 onClick={downloadSealedPdf}
                 disabled={downloading}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#f6c453] text-[#183a1d] text-sm font-medium hover:bg-[#f0a04b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--tulip-gold)] text-[var(--tulip-forest)] text-sm font-medium hover:bg-[var(--tulip-orange)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {downloading ? (
-                  <div className="w-4 h-4 border-2 border-[#183a1d] border-t-transparent rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-[var(--tulip-forest)] border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <Download size={15} />
                 )}
@@ -367,9 +367,9 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
               </button>
 
               {/* Footer */}
-              <div className="border-t border-[#c8d6c0] pt-3 flex items-center justify-center gap-2 text-xs text-[#183a1d]/40">
-                <Shield size={12} className="text-[#183a1d]" />
-                <span>{t('seal.verifiedByTulip')} <strong className="text-[#183a1d]">{t('seal.tulipDs')}</strong></span>
+              <div className="border-t border-[var(--tulip-sage-dark)] pt-3 flex items-center justify-center gap-2 text-xs text-[var(--tulip-forest)]/40">
+                <Shield size={12} className="text-[var(--tulip-forest)]" />
+                <span>{t('seal.verifiedByTulip')} <strong className="text-[var(--tulip-forest)]">{t('seal.tulipDs')}</strong></span>
               </div>
             </div>
           </>

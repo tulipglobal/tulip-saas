@@ -96,28 +96,28 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh]" onClick={onClose}>
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      <div className="relative w-full max-w-xl rounded-xl shadow-2xl overflow-hidden" style={{ background: '#fefbe9', border: '1px solid #c8d6c0' }} onClick={e => e.stopPropagation()}>
+      <div className="relative w-full max-w-xl rounded-xl shadow-2xl overflow-hidden" style={{ background: 'var(--tulip-cream)', border: '1px solid #c8d6c0' }} onClick={e => e.stopPropagation()}>
         <div className="flex items-center gap-3 px-4 py-3" style={{ borderBottom: '1px solid #c8d6c0' }}>
-          <Search className="w-5 h-5 shrink-0 text-[#183a1d]/40" />
+          <Search className="w-5 h-5 shrink-0 text-[var(--tulip-forest)]/40" />
           <input
             ref={inputRef}
             value={query}
             onChange={e => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Search projects, expenses, documents..."
-            className="flex-1 bg-transparent outline-none text-sm text-[#183a1d] placeholder-[#183a1d]/40"
+            className="flex-1 bg-transparent outline-none text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40"
           />
-          <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#e1eedd] text-[#183a1d]/60 border border-[#c8d6c0]">ESC</kbd>
+          <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-[var(--tulip-sage)] text-[var(--tulip-forest)]/60 border border-[var(--tulip-sage-dark)]">ESC</kbd>
         </div>
 
         <div className="max-h-[60vh] overflow-y-auto p-2">
-          {loading && <p className="text-center py-4 text-sm text-[#183a1d]/50">Searching...</p>}
+          {loading && <p className="text-center py-4 text-sm text-[var(--tulip-forest)]/50">Searching...</p>}
 
           {!loading && query.length < 2 && recentSearches.length > 0 && (
             <div>
-              <p className="px-2 py-1 text-xs font-medium text-[#183a1d]/50">Recent Searches</p>
+              <p className="px-2 py-1 text-xs font-medium text-[var(--tulip-forest)]/50">Recent Searches</p>
               {recentSearches.map(s => (
-                <button key={s} onClick={() => setQuery(s)} className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-[#183a1d]/70 hover:bg-[#e1eedd] transition-colors">
+                <button key={s} onClick={() => setQuery(s)} className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-[var(--tulip-forest)]/70 hover:bg-[var(--tulip-sage)] transition-colors">
                   <Clock className="w-3.5 h-3.5" /> {s}
                 </button>
               ))}
@@ -125,12 +125,12 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
           )}
 
           {!loading && query.length >= 2 && results.length === 0 && (
-            <p className="text-center py-8 text-sm text-[#183a1d]/50">No results found</p>
+            <p className="text-center py-8 text-sm text-[var(--tulip-forest)]/50">No results found</p>
           )}
 
           {!loading && Object.entries(grouped).map(([type, items]) => (
             <div key={type} className="mb-2">
-              <p className="px-2 py-1 text-xs font-medium uppercase tracking-wider text-[#183a1d]/50">{typeLabels[type] || type}</p>
+              <p className="px-2 py-1 text-xs font-medium uppercase tracking-wider text-[var(--tulip-forest)]/50">{typeLabels[type] || type}</p>
               {items.map((item: any) => {
                 const Icon = typeIcons[type] || FileText
                 const idx = flatIndex++
@@ -138,16 +138,16 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
                   <button
                     key={item.id}
                     onClick={() => navigate(item.url)}
-                    className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm transition-colors ${idx === selectedIndex ? '' : 'hover:bg-[#e1eedd]'}`}
+                    className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm transition-colors ${idx === selectedIndex ? '' : 'hover:bg-[var(--tulip-sage)]'}`}
                     style={{
                       background: idx === selectedIndex ? '#f6c453' : 'transparent',
-                      color: idx === selectedIndex ? '#183a1d' : '#183a1d',
+                      color: idx === selectedIndex ? '#183a1d' : 'var(--tulip-forest)',
                     }}
                   >
                     <Icon className="w-4 h-4 shrink-0" />
                     <span className="flex-1 text-left truncate">{item.name}</span>
                     {item.status && (
-                      <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: idx === selectedIndex ? 'rgba(0,0,0,0.1)' : '#e1eedd', color: idx === selectedIndex ? '#183a1d' : '#183a1d/60' }}>
+                      <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: idx === selectedIndex ? 'rgba(0,0,0,0.1)' : 'var(--tulip-sage)', color: idx === selectedIndex ? '#183a1d' : '#183a1d/60' }}>
                         {item.status}
                       </span>
                     )}
@@ -158,7 +158,7 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
           ))}
         </div>
 
-        <div className="px-4 py-2 flex items-center gap-4 text-[11px] text-[#183a1d]/50" style={{ borderTop: '1px solid #c8d6c0' }}>
+        <div className="px-4 py-2 flex items-center gap-4 text-[11px] text-[var(--tulip-forest)]/50" style={{ borderTop: '1px solid #c8d6c0' }}>
           <span><kbd className="font-mono">↑↓</kbd> navigate</span>
           <span><kbd className="font-mono">↵</kbd> open</span>
           <span><kbd className="font-mono">esc</kbd> close</span>

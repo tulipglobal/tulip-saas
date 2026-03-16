@@ -59,14 +59,14 @@ const RANGES = [
 
 const tooltipStyle = {
   contentStyle: {
-    background: '#e1eedd',
-    border: '1px solid #c8d6c0',
+    background: 'var(--tulip-sage)',
+    border: '1px solid var(--tulip-sage-dark)',
     borderRadius: 8,
     fontSize: 12,
-    color: '#183a1d',
+    color: 'var(--tulip-forest)',
     boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
   },
-  labelStyle: { color: '#183a1d' },
+  labelStyle: { color: 'var(--tulip-forest)' },
 }
 
 function formatYAxis(value: number) {
@@ -93,11 +93,11 @@ function ChartCard({ title, subtitle, children, fullWidth = false }: {
   title: string; subtitle: string; children: React.ReactNode; fullWidth?: boolean
 }) {
   return (
-    <div className={`rounded-xl border border-[#c8d6c0] p-5 ${fullWidth ? 'col-span-1 md:col-span-2' : ''}`}
-      style={{ background: '#e1eedd' }}>
+    <div className={`rounded-xl border border-[var(--tulip-sage-dark)] p-5 ${fullWidth ? 'col-span-1 md:col-span-2' : ''}`}
+      style={{ background: 'var(--tulip-sage)' }}>
       <div className="mb-4">
-        <h3 className="text-sm font-semibold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{title}</h3>
-        <p className="text-xs text-[#183a1d]/40 mt-0.5">{subtitle}</p>
+        <h3 className="text-sm font-semibold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>{title}</h3>
+        <p className="text-xs text-[var(--tulip-forest)]/40 mt-0.5">{subtitle}</p>
       </div>
       {children}
     </div>
@@ -481,52 +481,52 @@ function IEStatement() {
     finally { setExporting(false) }
   }
 
-  const inputCls = "bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] outline-none focus:border-[#f6c453] transition-all"
+  const inputCls = "bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2 text-sm text-[var(--tulip-forest)] outline-none focus:border-[var(--tulip-gold)] transition-all"
 
   return (
     <div className="space-y-6">
       {/* Date range picker */}
       <div className="flex flex-wrap items-end gap-3">
         <div>
-          <label className="block text-xs text-[#183a1d]/40 mb-1">{t('analytics.from')}</label>
+          <label className="block text-xs text-[var(--tulip-forest)]/40 mb-1">{t('analytics.from')}</label>
           <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className={inputCls} />
         </div>
         <div>
-          <label className="block text-xs text-[#183a1d]/40 mb-1">{t('analytics.to')}</label>
+          <label className="block text-xs text-[var(--tulip-forest)]/40 mb-1">{t('analytics.to')}</label>
           <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className={inputCls} />
         </div>
         <button onClick={handleFilter}
-          className="px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] bg-[#f6c453] hover:bg-[#f0a04b]">
+          className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-forest)] bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)]">
           {t('analytics.apply')}
         </button>
         <button onClick={exportPDF} disabled={exporting || !data}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d]/70 border border-[#c8d6c0] hover:border-[#c8d6c0] disabled:opacity-40 transition-all">
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-forest)]/70 border border-[var(--tulip-sage-dark)] hover:border-[var(--tulip-sage-dark)] disabled:opacity-40 transition-all">
           <Download size={14} /> {exporting ? t('analytics.exporting') : t('analytics.exportPdf')}
         </button>
       </div>
 
       {loading ? (
-        <div className="py-16 text-center text-[#183a1d]/40 text-sm">{t('analytics.loading')}</div>
+        <div className="py-16 text-center text-[var(--tulip-forest)]/40 text-sm">{t('analytics.loading')}</div>
       ) : !data ? (
-        <div className="py-16 text-center text-[#183a1d]/40 text-sm">{t('analytics.failedToLoad')}</div>
+        <div className="py-16 text-center text-[var(--tulip-forest)]/40 text-sm">{t('analytics.failedToLoad')}</div>
       ) : (
         <>
           {/* Summary cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="rounded-xl border border-[#c8d6c0] px-5 py-4" style={{ background: '#e1eedd' }}>
-              <div className="text-xs text-[#183a1d]/60 mb-1">{t('analytics.totalIncome')}</div>
+            <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-5 py-4" style={{ background: 'var(--tulip-sage)' }}>
+              <div className="text-xs text-[var(--tulip-forest)]/60 mb-1">{t('analytics.totalIncome')}</div>
               <div className="text-xl font-bold text-emerald-400" style={{ fontFamily: 'Inter, sans-serif' }}>
                 ${data.income.total.toLocaleString()}
               </div>
             </div>
-            <div className="rounded-xl border border-[#c8d6c0] px-5 py-4" style={{ background: '#e1eedd' }}>
-              <div className="text-xs text-[#183a1d]/60 mb-1">{t('analytics.totalExpenditure')}</div>
+            <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-5 py-4" style={{ background: 'var(--tulip-sage)' }}>
+              <div className="text-xs text-[var(--tulip-forest)]/60 mb-1">{t('analytics.totalExpenditure')}</div>
               <div className="text-xl font-bold text-orange-400" style={{ fontFamily: 'Inter, sans-serif' }}>
                 ${data.expenditure.total.toLocaleString()}
               </div>
             </div>
-            <div className="rounded-xl border border-[#c8d6c0] px-5 py-4" style={{ background: '#e1eedd' }}>
-              <div className="text-xs text-[#183a1d]/60 mb-1">{t('analytics.netBalance')}</div>
+            <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-5 py-4" style={{ background: 'var(--tulip-sage)' }}>
+              <div className="text-xs text-[var(--tulip-forest)]/60 mb-1">{t('analytics.netBalance')}</div>
               <div className={`text-xl font-bold ${data.netBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}
                 style={{ fontFamily: 'Inter, sans-serif' }}>
                 ${data.netBalance.toLocaleString()}
@@ -535,24 +535,24 @@ function IEStatement() {
           </div>
 
           {/* Income Section */}
-          <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
-            <div className="px-5 py-3 border-b border-[#c8d6c0]">
+          <div className="rounded-xl border border-[var(--tulip-sage-dark)] overflow-hidden" style={{ background: 'var(--tulip-sage)' }}>
+            <div className="px-5 py-3 border-b border-[var(--tulip-sage-dark)]">
               <h3 className="text-sm font-semibold text-emerald-400" style={{ fontFamily: 'Inter, sans-serif' }}>{t('analytics.income')}</h3>
             </div>
             {data.income.bySource.length === 0 ? (
-              <div className="px-5 py-8 text-center text-[#183a1d]/30 text-sm">{t('analytics.noIncome')}</div>
+              <div className="px-5 py-8 text-center text-[var(--tulip-forest)]/30 text-sm">{t('analytics.noIncome')}</div>
             ) : (
-              <div className="divide-y divide-[#c8d6c0]">
+              <div className="divide-y divide-[var(--tulip-sage-dark)]">
                 {data.income.bySource.map(source => (
                   <div key={source.sourceType} className="px-5 py-3">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-[#183a1d]">{source.sourceType}</span>
-                      <span className="text-sm font-bold text-[#183a1d]">${source.total.toLocaleString()}</span>
+                      <span className="text-sm font-medium text-[var(--tulip-forest)]">{source.sourceType}</span>
+                      <span className="text-sm font-bold text-[var(--tulip-forest)]">${source.total.toLocaleString()}</span>
                     </div>
                     {source.items.map((item: { id: string; title: string; totalAmount: number }) => (
                       <div key={item.id} className="flex items-center justify-between pl-4 py-0.5">
-                        <span className="text-xs text-[#183a1d]/60">{item.title}</span>
-                        <span className="text-xs text-[#183a1d]/40">${item.totalAmount.toLocaleString()}</span>
+                        <span className="text-xs text-[var(--tulip-forest)]/60">{item.title}</span>
+                        <span className="text-xs text-[var(--tulip-forest)]/40">${item.totalAmount.toLocaleString()}</span>
                       </div>
                     ))}
                   </div>
@@ -568,22 +568,22 @@ function IEStatement() {
           </div>
 
           {/* Expenditure Section */}
-          <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
-            <div className="px-5 py-3 border-b border-[#c8d6c0]">
+          <div className="rounded-xl border border-[var(--tulip-sage-dark)] overflow-hidden" style={{ background: 'var(--tulip-sage)' }}>
+            <div className="px-5 py-3 border-b border-[var(--tulip-sage-dark)]">
               <h3 className="text-sm font-semibold text-orange-400" style={{ fontFamily: 'Inter, sans-serif' }}>{t('analytics.expenditure')}</h3>
             </div>
-            <div className="divide-y divide-[#c8d6c0]">
+            <div className="divide-y divide-[var(--tulip-sage-dark)]">
               {/* CapEx */}
               {data.expenditure.capex.total > 0 && (
                 <div className="px-5 py-3">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-purple-400">{t('analytics.capex')}</span>
-                    <span className="text-sm font-bold text-[#183a1d]">${data.expenditure.capex.total.toLocaleString()}</span>
+                    <span className="text-sm font-bold text-[var(--tulip-forest)]">${data.expenditure.capex.total.toLocaleString()}</span>
                   </div>
                   {data.expenditure.capex.byCategory.map(cat => (
                     <div key={cat.category} className="flex items-center justify-between pl-4 py-0.5">
-                      <span className="text-xs text-[#183a1d]/60">{cat.category}</span>
-                      <span className="text-xs text-[#183a1d]/40">${cat.total.toLocaleString()}</span>
+                      <span className="text-xs text-[var(--tulip-forest)]/60">{cat.category}</span>
+                      <span className="text-xs text-[var(--tulip-forest)]/40">${cat.total.toLocaleString()}</span>
                     </div>
                   ))}
                 </div>
@@ -594,12 +594,12 @@ function IEStatement() {
                 <div className="px-5 py-3">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-cyan-400">{t('analytics.opex')}</span>
-                    <span className="text-sm font-bold text-[#183a1d]">${data.expenditure.opex.total.toLocaleString()}</span>
+                    <span className="text-sm font-bold text-[var(--tulip-forest)]">${data.expenditure.opex.total.toLocaleString()}</span>
                   </div>
                   {data.expenditure.opex.byCategory.map(cat => (
                     <div key={cat.category} className="flex items-center justify-between pl-4 py-0.5">
-                      <span className="text-xs text-[#183a1d]/60">{cat.category}</span>
-                      <span className="text-xs text-[#183a1d]/40">${cat.total.toLocaleString()}</span>
+                      <span className="text-xs text-[var(--tulip-forest)]/60">{cat.category}</span>
+                      <span className="text-xs text-[var(--tulip-forest)]/40">${cat.total.toLocaleString()}</span>
                     </div>
                   ))}
                 </div>
@@ -609,14 +609,14 @@ function IEStatement() {
               {data.expenditure.other.total > 0 && (
                 <div className="px-5 py-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-[#183a1d]/60">{t('analytics.otherUncategorised')}</span>
-                    <span className="text-sm font-bold text-[#183a1d]">${data.expenditure.other.total.toLocaleString()}</span>
+                    <span className="text-sm font-medium text-[var(--tulip-forest)]/60">{t('analytics.otherUncategorised')}</span>
+                    <span className="text-sm font-bold text-[var(--tulip-forest)]">${data.expenditure.other.total.toLocaleString()}</span>
                   </div>
                 </div>
               )}
 
               {data.expenditure.total === 0 && (
-                <div className="px-5 py-8 text-center text-[#183a1d]/30 text-sm">{t('analytics.noExpenditure')}</div>
+                <div className="px-5 py-8 text-center text-[var(--tulip-forest)]/30 text-sm">{t('analytics.noExpenditure')}</div>
               )}
 
               <div className="px-5 py-3 bg-orange-400/5">
@@ -631,7 +631,7 @@ function IEStatement() {
           {/* Net Balance */}
           <div className={`rounded-xl border px-5 py-4 ${data.netBalance >= 0 ? 'border-emerald-400/20 bg-emerald-400/5' : 'border-red-400/20 bg-red-400/5'}`}>
             <div className="flex items-center justify-between">
-              <span className="text-base font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('analytics.netBalance')}</span>
+              <span className="text-base font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('analytics.netBalance')}</span>
               <span className={`text-xl font-bold ${data.netBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}
                 style={{ fontFamily: 'Inter, sans-serif' }}>
                 ${data.netBalance.toLocaleString()}
@@ -672,12 +672,12 @@ function FraudSection() {
   if (loading) return (
     <div className="space-y-4">
       {[1, 2, 3].map(i => (
-        <div key={i} className="rounded-xl border border-[#c8d6c0] p-5 h-48 animate-pulse" style={{ background: '#e1eedd' }} />
+        <div key={i} className="rounded-xl border border-[var(--tulip-sage-dark)] p-5 h-48 animate-pulse" style={{ background: 'var(--tulip-sage)' }} />
       ))}
     </div>
   )
 
-  if (!data) return <div className="py-16 text-center text-[#183a1d]/40 text-sm">{t('analytics.failedLoadFraud')}</div>
+  if (!data) return <div className="py-16 text-center text-[var(--tulip-forest)]/40 text-sm">{t('analytics.failedLoadFraud')}</div>
 
   return (
     <div className="space-y-6">
@@ -689,14 +689,14 @@ function FraudSection() {
           { labelKey: 'mismatchRate', value: `${data.mismatchRate}%`, color: 'text-orange-400', bg: 'rgba(249,115,22,0.10)' },
           { labelKey: 'duplicateRate', value: `${data.duplicateRate}%`, color: 'text-purple-400', bg: 'rgba(139,92,246,0.10)' },
         ].map(({ labelKey, value, color, bg }) => (
-          <div key={labelKey} className="rounded-xl border border-[#c8d6c0] px-4 py-4" style={{ background: '#e1eedd' }}>
+          <div key={labelKey} className="rounded-xl border border-[var(--tulip-sage-dark)] px-4 py-4" style={{ background: 'var(--tulip-sage)' }}>
             <div className="flex items-center gap-2 mb-2">
               <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: bg }}>
                 <Shield size={14} className={color} />
               </div>
-              <span className="text-[#183a1d]/40 text-xs font-medium">{t('analytics.' + labelKey)}</span>
+              <span className="text-[var(--tulip-forest)]/40 text-xs font-medium">{t('analytics.' + labelKey)}</span>
             </div>
-            <div className="text-lg font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
+            <div className="text-lg font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
           </div>
         ))}
       </div>
@@ -705,11 +705,11 @@ function FraudSection() {
         {/* Fraud detections over time */}
         <ChartCard title={t('analytics.fraudDetections')} subtitle={t('analytics.last30Days')} fullWidth>
           {data.fraudByDay.every(d => d.high === 0 && d.medium === 0 && d.low === 0) ? (
-            <div className="h-48 flex items-center justify-center text-[#183a1d]/30 text-sm">{t('analytics.noFraudDetections')}</div>
+            <div className="h-48 flex items-center justify-center text-[var(--tulip-forest)]/30 text-sm">{t('analytics.noFraudDetections')}</div>
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <AreaChart data={data.fraudByDay}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#c8d6c0" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--tulip-sage-dark)" />
                 <XAxis dataKey="date" tickFormatter={formatShortDate} tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} allowDecimals={false} domain={[0, 'auto']} tickFormatter={formatYAxis} />
                 <Tooltip {...tooltipStyle} labelFormatter={tooltipLabelFormatter} />
@@ -725,11 +725,11 @@ function FraudSection() {
         {/* Top risky vendors */}
         <ChartCard title={t('analytics.topRiskyVendors')} subtitle={t('analytics.byAvgFraudScore')}>
           {data.topRiskyVendors.length === 0 ? (
-            <div className="h-48 flex items-center justify-center text-[#183a1d]/30 text-sm">{t('analytics.noVendorFraud')}</div>
+            <div className="h-48 flex items-center justify-center text-[var(--tulip-forest)]/30 text-sm">{t('analytics.noVendorFraud')}</div>
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={data.topRiskyVendors} layout="vertical" margin={{ left: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#c8d6c0" horizontal={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--tulip-sage-dark)" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} domain={[0, 100]} />
                 <YAxis type="category" dataKey="vendor" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} width={100}
                   tickFormatter={(v: string) => v.length > 14 ? v.slice(0, 14) + '…' : v} />
@@ -785,26 +785,26 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('analytics.title')}</h1>
-          <p className="text-[#183a1d]/60 text-sm mt-1">{t('analytics.chartsSubtitle')}</p>
+          <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('analytics.title')}</h1>
+          <p className="text-[var(--tulip-forest)]/60 text-sm mt-1">{t('analytics.chartsSubtitle')}</p>
         </div>
         <div className="flex items-center gap-3">
           {activeTab === 'charts' && (
             <>
-              <div className="flex rounded-lg border border-[#c8d6c0] overflow-hidden">
+              <div className="flex rounded-lg border border-[var(--tulip-sage-dark)] overflow-hidden">
                 {RANGES.map(r => (
                   <button key={r.value} onClick={() => setRange(r.value)}
                     className={`px-3 py-1.5 text-xs font-medium transition-all ${
                       range === r.value
                         ? 'bg-indigo-500/20 text-indigo-400 border-indigo-400/30'
-                        : 'text-[#183a1d]/60 hover:text-[#183a1d]/70 hover:bg-[#e1eedd]/50'
+                        : 'text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]/70 hover:bg-[var(--tulip-sage)]/50'
                     }`}>
                     {t('analytics.' + r.key)}
                   </button>
                 ))}
               </div>
               <button onClick={handleGenerateReport} disabled={generating}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] hover:opacity-90 transition-opacity disabled:opacity-50 bg-[#f6c453] hover:bg-[#f0a04b]">
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-forest)] hover:opacity-90 transition-opacity disabled:opacity-50 bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)]">
                 {generating ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Download size={14} />}
                 <span className="hidden sm:inline">{generating ? t('analytics.generating') : t('analytics.impactReport')}</span>
               </button>
@@ -814,13 +814,13 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 rounded-lg border border-[#c8d6c0] p-1 w-fit">
+      <div className="flex gap-1 rounded-lg border border-[var(--tulip-sage-dark)] p-1 w-fit">
         {TABS.map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
             className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
               activeTab === tab.id
-                ? 'bg-[#e1eedd] text-[#183a1d]'
-                : 'text-[#183a1d]/60 hover:text-[#183a1d]/70'
+                ? 'bg-[var(--tulip-sage)] text-[var(--tulip-forest)]'
+                : 'text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]/70'
             }`}>
             {t('analytics.' + tab.labelKey)}
           </button>
@@ -839,9 +839,9 @@ export default function AnalyticsPage() {
       {loading ? (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className="rounded-xl border border-[#c8d6c0] px-5 py-4 animate-pulse" style={{ background: '#e1eedd' }}>
-              <div className="h-4 bg-[#e1eedd] rounded w-16 mb-2" />
-              <div className="h-7 bg-[#e1eedd] rounded w-12" />
+            <div key={i} className="rounded-xl border border-[var(--tulip-sage-dark)] px-5 py-4 animate-pulse" style={{ background: 'var(--tulip-sage)' }}>
+              <div className="h-4 bg-[var(--tulip-sage)] rounded w-16 mb-2" />
+              <div className="h-7 bg-[var(--tulip-sage)] rounded w-12" />
             </div>
           ))}
         </div>
@@ -850,17 +850,17 @@ export default function AnalyticsPage() {
           {[
             { labelKey: 'totalDocuments', value: data.totals.totalDocuments, icon: FileText, color: 'text-indigo-400', bg: 'rgba(99,102,241,0.10)' },
             { labelKey: 'verified', value: data.totals.totalVerified, icon: Shield, color: 'text-emerald-400', bg: 'rgba(16,185,129,0.10)' },
-            { labelKey: 'fundingReceived', value: `$${data.totals.totalFundingReceived.toLocaleString()}`, icon: Banknote, color: 'text-[#183a1d]', bg: 'rgba(59,130,246,0.10)' },
+            { labelKey: 'fundingReceived', value: `$${data.totals.totalFundingReceived.toLocaleString()}`, icon: Banknote, color: 'text-[var(--tulip-forest)]', bg: 'rgba(59,130,246,0.10)' },
             { labelKey: 'expensesLabel', value: `$${data.totals.totalExpenses.toLocaleString()}`, icon: Receipt, color: 'text-orange-400', bg: 'rgba(249,115,22,0.10)' },
           ].map(({ labelKey, value, icon: Icon, color, bg }) => (
-            <div key={labelKey} className="rounded-xl border border-[#c8d6c0] px-4 py-4" style={{ background: '#e1eedd' }}>
+            <div key={labelKey} className="rounded-xl border border-[var(--tulip-sage-dark)] px-4 py-4" style={{ background: 'var(--tulip-sage)' }}>
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: bg }}>
                   <Icon size={14} className={color} />
                 </div>
-                <span className="text-[#183a1d]/40 text-xs font-medium">{t('analytics.' + labelKey)}</span>
+                <span className="text-[var(--tulip-forest)]/40 text-xs font-medium">{t('analytics.' + labelKey)}</span>
               </div>
-              <div className="text-lg font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
+              <div className="text-lg font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
             </div>
           ))}
         </div>
@@ -870,11 +870,11 @@ export default function AnalyticsPage() {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[1, 2, 3, 4, 5].map(i => (
-            <div key={i} className={`rounded-xl border border-[#c8d6c0] p-5 ${i === 1 || i === 5 ? 'md:col-span-2' : ''}`}
-              style={{ background: '#e1eedd' }}>
-              <div className="h-4 bg-[#e1eedd] rounded w-32 mb-2" />
-              <div className="h-3 bg-[#e1eedd] rounded w-48 mb-4" />
-              <div className="h-48 bg-[#e1eedd] rounded-lg animate-pulse" />
+            <div key={i} className={`rounded-xl border border-[var(--tulip-sage-dark)] p-5 ${i === 1 || i === 5 ? 'md:col-span-2' : ''}`}
+              style={{ background: 'var(--tulip-sage)' }}>
+              <div className="h-4 bg-[var(--tulip-sage)] rounded w-32 mb-2" />
+              <div className="h-3 bg-[var(--tulip-sage)] rounded w-48 mb-4" />
+              <div className="h-48 bg-[var(--tulip-sage)] rounded-lg animate-pulse" />
             </div>
           ))}
         </div>
@@ -884,11 +884,11 @@ export default function AnalyticsPage() {
           {/* Chart 1 — Documents Uploaded (full width) */}
           <ChartCard title={t('analytics.documentsUploaded')} subtitle={rangeLabel} fullWidth>
             {data.documentsOverTime.length === 0 ? (
-              <div className="h-48 flex items-center justify-center text-[#183a1d]/30 text-sm">{t('analytics.noDocsUploaded')}</div>
+              <div className="h-48 flex items-center justify-center text-[var(--tulip-forest)]/30 text-sm">{t('analytics.noDocsUploaded')}</div>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={data.documentsOverTime}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#c8d6c0" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--tulip-sage-dark)" />
                   <XAxis dataKey="date" tickFormatter={formatShortDate} tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} allowDecimals={false} domain={[0, 'auto']} tickFormatter={formatYAxis} />
                   <Tooltip {...tooltipStyle} labelFormatter={tooltipLabelFormatter} />
@@ -901,11 +901,11 @@ export default function AnalyticsPage() {
           {/* Chart 2 — Blockchain Verifications */}
           <ChartCard title={t('analytics.blockchainVerifications')} subtitle={t('analytics.anchoredToPolygon')}>
             {data.blockchainVerifications.length === 0 ? (
-              <div className="h-48 flex items-center justify-center text-[#183a1d]/30 text-sm">{t('analytics.noVerifications')}</div>
+              <div className="h-48 flex items-center justify-center text-[var(--tulip-forest)]/30 text-sm">{t('analytics.noVerifications')}</div>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={data.blockchainVerifications}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#c8d6c0" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--tulip-sage-dark)" />
                   <XAxis dataKey="date" tickFormatter={formatShortDate} tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} allowDecimals={false} domain={[0, 'auto']} tickFormatter={formatYAxis} />
                   <Tooltip {...tooltipStyle} labelFormatter={tooltipLabelFormatter} />
@@ -918,11 +918,11 @@ export default function AnalyticsPage() {
           {/* Chart 3 — Funding Received vs Spent */}
           <ChartCard title={t('analytics.fundingOverview')} subtitle={t('analytics.last6Months')}>
             {data.fundingVsSpent.every(m => m.received === 0 && m.spent === 0) ? (
-              <div className="h-48 flex items-center justify-center text-[#183a1d]/30 text-sm">{t('analytics.noFundingData')}</div>
+              <div className="h-48 flex items-center justify-center text-[var(--tulip-forest)]/30 text-sm">{t('analytics.noFundingData')}</div>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={data.fundingVsSpent}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#c8d6c0" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--tulip-sage-dark)" />
                   <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} allowDecimals={false} domain={[0, 'auto']} tickFormatter={formatYAxis} />
                   <Tooltip {...tooltipStyle} />
@@ -937,7 +937,7 @@ export default function AnalyticsPage() {
           {/* Chart 4 — Expenses by Category (donut) */}
           <ChartCard title={t('analytics.expensesByProject')} subtitle={t('analytics.allTime')}>
             {data.expensesByCategory.length === 0 ? (
-              <div className="h-48 flex items-center justify-center text-[#183a1d]/30 text-sm">{t('analytics.noExpensesRecorded')}</div>
+              <div className="h-48 flex items-center justify-center text-[var(--tulip-forest)]/30 text-sm">{t('analytics.noExpensesRecorded')}</div>
             ) : (
               <div className="flex flex-col sm:flex-row items-center gap-4">
                 <ResponsiveContainer width="100%" height={220}>
@@ -964,8 +964,8 @@ export default function AnalyticsPage() {
                   {data.expensesByCategory.slice(0, 6).map((cat, i) => (
                     <div key={cat.category} className="flex items-center gap-2 text-xs">
                       <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: DONUT_COLORS[i % DONUT_COLORS.length] }} />
-                      <span className="text-[#183a1d]/60">{cat.category}</span>
-                      <span className="text-[#183a1d]/40">${cat.amount.toLocaleString()}</span>
+                      <span className="text-[var(--tulip-forest)]/60">{cat.category}</span>
+                      <span className="text-[var(--tulip-forest)]/40">${cat.amount.toLocaleString()}</span>
                     </div>
                   ))}
                 </div>
@@ -978,15 +978,15 @@ export default function AnalyticsPage() {
             {data.donorEngagement.length === 0 ? (
               <div className="h-48 flex items-center justify-center">
                 <div className="text-center">
-                  <UsersIcon size={24} className="text-[#183a1d]/30 mx-auto mb-2" />
-                  <p className="text-[#183a1d]/30 text-sm">{t('analytics.noDonorActivity')}</p>
-                  <p className="text-[#183a1d]/30 text-xs mt-1">{t('analytics.donorPortalDesc')}</p>
+                  <UsersIcon size={24} className="text-[var(--tulip-forest)]/30 mx-auto mb-2" />
+                  <p className="text-[var(--tulip-forest)]/30 text-sm">{t('analytics.noDonorActivity')}</p>
+                  <p className="text-[var(--tulip-forest)]/30 text-xs mt-1">{t('analytics.donorPortalDesc')}</p>
                 </div>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={data.donorEngagement}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#c8d6c0" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--tulip-sage-dark)" />
                   <XAxis dataKey="date" tickFormatter={formatShortDate} tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} allowDecimals={false} domain={[0, 'auto']} tickFormatter={formatYAxis} />
                   <Tooltip {...tooltipStyle} labelFormatter={tooltipLabelFormatter} />

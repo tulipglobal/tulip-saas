@@ -47,14 +47,14 @@ interface AuditEntry {
 
 const statusColors: Record<string, string> = {
   active: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
-  completed: 'bg-[#f6c453]/15 text-[#183a1d] border border-[#f6c453]/30',
+  completed: 'bg-[var(--tulip-gold)]/15 text-[var(--tulip-forest)] border border-[var(--tulip-gold)]/30',
   paused: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30',
-  draft: 'bg-[#e1eedd] text-[#183a1d]/60 border border-[#c8d6c0]',
+  draft: 'bg-[var(--tulip-sage)] text-[var(--tulip-forest)]/60 border border-[var(--tulip-sage-dark)]',
 }
 
 const budgetStatusColors: Record<string, string> = {
-  DRAFT: 'bg-[#e1eedd] text-[#183a1d]/60', APPROVED: 'bg-[#f6c453]/15 text-[#183a1d]',
-  ACTIVE: 'bg-emerald-500/20 text-emerald-400', CLOSED: 'bg-[#e1eedd] text-[#183a1d]/40',
+  DRAFT: 'bg-[var(--tulip-sage)] text-[var(--tulip-forest)]/60', APPROVED: 'bg-[var(--tulip-gold)]/15 text-[var(--tulip-forest)]',
+  ACTIVE: 'bg-emerald-500/20 text-emerald-400', CLOSED: 'bg-[var(--tulip-sage)] text-[var(--tulip-forest)]/40',
 }
 
 const anchorBadge = (status: string) => {
@@ -62,7 +62,7 @@ const anchorBadge = (status: string) => {
     case 'confirmed': return <span className="flex items-center gap-1 text-emerald-400 text-xs"><CheckCircle size={12} /> Confirmed</span>
     case 'pending': return <span className="flex items-center gap-1 text-yellow-400 text-xs"><Clock size={12} /> Pending</span>
     case 'failed': return <span className="flex items-center gap-1 text-red-400 text-xs"><XCircle size={12} /> Failed</span>
-    default: return <span className="flex items-center gap-1 text-[#183a1d]/40 text-xs"><Clock size={12} /> —</span>
+    default: return <span className="flex items-center gap-1 text-[var(--tulip-forest)]/40 text-xs"><Clock size={12} /> —</span>
   }
 }
 
@@ -245,16 +245,16 @@ export default function ProjectDetailPage() {
   }
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-screen bg-[#fefbe9]">
-      <div className="w-8 h-8 border-2 border-[#f6c453] border-t-transparent rounded-full animate-spin" />
+    <div className="flex items-center justify-center min-h-screen bg-[var(--tulip-cream)]">
+      <div className="w-8 h-8 border-2 border-[var(--tulip-gold)] border-t-transparent rounded-full animate-spin" />
     </div>
   )
 
   if (error || !project) return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#fefbe9] text-[#183a1d]/70 gap-4">
-      <FolderOpen size={48} className="text-[#183a1d]/30" />
+    <div className="flex flex-col items-center justify-center min-h-screen bg-[var(--tulip-cream)] text-[var(--tulip-forest)]/70 gap-4">
+      <FolderOpen size={48} className="text-[var(--tulip-forest)]/30" />
       <p>{error || 'Project not found'}</p>
-      <Link href="/dashboard/projects" className="text-[#183a1d] hover:text-[#f6c453] text-sm">Back to Projects</Link>
+      <Link href="/dashboard/projects" className="text-[var(--tulip-forest)] hover:text-[var(--tulip-gold)] text-sm">Back to Projects</Link>
     </div>
   )
 
@@ -266,54 +266,54 @@ export default function ProjectDetailPage() {
   const remaining = totalBudget - totalSpent
 
   return (
-    <div className="min-h-screen bg-[#fefbe9] text-[#183a1d] p-6 max-w-6xl mx-auto">
-      <Link href="/dashboard/projects" className="inline-flex items-center gap-2 text-[#183a1d]/60 hover:text-[#183a1d] text-sm mb-6 transition-colors">
+    <div className="min-h-screen bg-[var(--tulip-cream)] text-[var(--tulip-forest)] p-6 max-w-6xl mx-auto">
+      <Link href="/dashboard/projects" className="inline-flex items-center gap-2 text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] text-sm mb-6 transition-colors">
         <ArrowLeft size={14} /> Back to Projects
       </Link>
 
       {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-xl bg-[#f6c453]/10 border border-[#f6c453]/30 flex items-center justify-center">
-            <FolderOpen size={22} className="text-[#183a1d]" />
+          <div className="w-12 h-12 rounded-xl bg-[var(--tulip-gold)]/10 border border-[var(--tulip-gold)]/30 flex items-center justify-center">
+            <FolderOpen size={22} className="text-[var(--tulip-forest)]" />
           </div>
           <div>
-            <h1 className="text-2xl font-semibold text-[#183a1d]">{project.name}</h1>
-            {project.description && <p className="text-[#183a1d]/60 text-sm mt-1">{project.description}</p>}
+            <h1 className="text-2xl font-semibold text-[var(--tulip-forest)]">{project.name}</h1>
+            {project.description && <p className="text-[var(--tulip-forest)]/60 text-sm mt-1">{project.description}</p>}
             <div className="flex items-center gap-3 mt-2">
               <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${statusColors[project.status] ?? statusColors.draft}`}>
                 {project.status}
               </span>
-              <span className="text-[#183a1d]/40 text-xs flex items-center gap-1">
+              <span className="text-[var(--tulip-forest)]/40 text-xs flex items-center gap-1">
                 <Calendar size={11} /> Created {new Date(project.createdAt).toLocaleDateString()}
               </span>
             </div>
           </div>
         </div>
         <Link href={`/dashboard/budgets/new?projectId=${id}`}
-          className="flex items-center gap-2 text-sm font-medium text-[#183a1d] px-4 py-2 rounded-lg transition-all shrink-0 bg-[#f6c453] hover:bg-[#f0a04b]">
+          className="flex items-center gap-2 text-sm font-medium text-[var(--tulip-forest)] px-4 py-2 rounded-lg transition-all shrink-0 bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)]">
           <Plus size={14} /> Create Budget
         </Link>
       </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl p-4">
-          <p className="text-[#183a1d]/60 text-xs mb-1">Total Budget</p>
-          <p className="text-[#183a1d] font-semibold text-lg">${totalBudget.toLocaleString()}</p>
+        <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-4">
+          <p className="text-[var(--tulip-forest)]/60 text-xs mb-1">Total Budget</p>
+          <p className="text-[var(--tulip-forest)] font-semibold text-lg">${totalBudget.toLocaleString()}</p>
         </div>
-        <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl p-4">
-          <p className="text-[#183a1d]/60 text-xs mb-1">Total Funded</p>
+        <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-4">
+          <p className="text-[var(--tulip-forest)]/60 text-xs mb-1">Total Funded</p>
           <p className={`font-semibold text-lg ${totalFunded >= totalBudget && totalBudget > 0 ? 'text-green-400' : 'text-yellow-400'}`}>
             ${totalFunded.toLocaleString()}
           </p>
         </div>
-        <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl p-4">
-          <p className="text-[#183a1d]/60 text-xs mb-1">Total Spent</p>
+        <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-4">
+          <p className="text-[var(--tulip-forest)]/60 text-xs mb-1">Total Spent</p>
           <p className="text-orange-400 font-semibold text-lg">${totalSpent.toLocaleString()}</p>
         </div>
-        <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl p-4">
-          <p className="text-[#183a1d]/60 text-xs mb-1">Remaining</p>
+        <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-4">
+          <p className="text-[var(--tulip-forest)]/60 text-xs mb-1">Remaining</p>
           <p className={`font-semibold text-lg ${remaining >= 0 ? 'text-green-400' : 'text-red-400'}`}>
             ${remaining.toLocaleString()}
           </p>
@@ -321,7 +321,7 @@ export default function ProjectDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-[#e1eedd] p-1 rounded-lg w-fit">
+      <div className="flex gap-1 mb-6 bg-[var(--tulip-sage)] p-1 rounded-lg w-fit">
         {([
           { key: 'expenses' as TabKey, label: 'Expenses', count: expenses.length },
           { key: 'documents' as TabKey, label: 'Documents', count: project.documents?.length ?? 0 },
@@ -332,7 +332,7 @@ export default function ProjectDetailPage() {
           { key: 'audit' as TabKey, label: 'Audit', count: audit.length },
         ]).map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
-            className={`px-4 py-1.5 rounded-md text-sm transition-all ${tab === t.key ? 'bg-[#e1eedd] text-[#183a1d]' : 'text-[#183a1d]/60 hover:text-[#183a1d]'}`}>
+            className={`px-4 py-1.5 rounded-md text-sm transition-all ${tab === t.key ? 'bg-[var(--tulip-sage)] text-[var(--tulip-forest)]' : 'text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]'}`}>
             {t.label}{t.count != null ? ` (${t.count})` : ''}
           </button>
         ))}
@@ -340,34 +340,34 @@ export default function ProjectDetailPage() {
 
       {/* Tab: Expenses */}
       {tab === 'expenses' && (
-        <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl overflow-hidden">
+        <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl overflow-hidden">
           {expenses.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-[#183a1d]/40 gap-3">
-              <DollarSign size={36} className="text-[#183a1d]/30" />
+            <div className="flex flex-col items-center justify-center py-16 text-[var(--tulip-forest)]/40 gap-3">
+              <DollarSign size={36} className="text-[var(--tulip-forest)]/30" />
               <p className="text-sm">No expenses logged for this project</p>
-              <Link href="/dashboard/expenses/new" className="text-[#183a1d] hover:text-[#f6c453] text-xs">+ Log first expense</Link>
+              <Link href="/dashboard/expenses/new" className="text-[var(--tulip-forest)] hover:text-[var(--tulip-gold)] text-xs">+ Log first expense</Link>
             </div>
           ) : (
             <table className="w-full">
               <thead>
-                <tr className="border-b border-[#c8d6c0]">
-                  <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3">DESCRIPTION</th>
-                  <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3">AMOUNT</th>
-                  <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3">HASH</th>
-                  <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3">STATUS</th>
-                  <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3">DATE</th>
+                <tr className="border-b border-[var(--tulip-sage-dark)]">
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">DESCRIPTION</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">AMOUNT</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">HASH</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">STATUS</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">DATE</th>
                 </tr>
               </thead>
               <tbody>
                 {expenses.map((exp, i) => (
-                  <tr key={exp.id} className={`border-b border-[#c8d6c0] hover:bg-[#e1eedd]/50 transition-colors ${i % 2 === 0 ? '' : 'bg-[#e1eedd]'}`}>
-                    <td className="px-4 py-3 text-sm text-[#183a1d]">{exp.description}</td>
-                    <td className="px-4 py-3 text-sm text-[#183a1d] font-medium">{exp.currency} {exp.amount.toLocaleString()}</td>
+                  <tr key={exp.id} className={`border-b border-[var(--tulip-sage-dark)] hover:bg-[var(--tulip-sage)]/50 transition-colors ${i % 2 === 0 ? '' : 'bg-[var(--tulip-sage)]'}`}>
+                    <td className="px-4 py-3 text-sm text-[var(--tulip-forest)]">{exp.description}</td>
+                    <td className="px-4 py-3 text-sm text-[var(--tulip-forest)] font-medium">{exp.currency} {exp.amount.toLocaleString()}</td>
                     <td className="px-4 py-3">
-                      {exp.dataHash ? <span className="text-xs font-mono text-[#183a1d]/40">{exp.dataHash.slice(0, 12)}...</span> : <span className="text-xs text-[#183a1d]/30">-</span>}
+                      {exp.dataHash ? <span className="text-xs font-mono text-[var(--tulip-forest)]/40">{exp.dataHash.slice(0, 12)}...</span> : <span className="text-xs text-[var(--tulip-forest)]/30">-</span>}
                     </td>
                     <td className="px-4 py-3">{anchorBadge(exp.anchorStatus ?? '')}</td>
-                    <td className="px-4 py-3 text-xs text-[#183a1d]/40">{new Date(exp.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</td>
+                    <td className="px-4 py-3 text-xs text-[var(--tulip-forest)]/40">{new Date(exp.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</td>
                   </tr>
                 ))}
               </tbody>
@@ -382,32 +382,32 @@ export default function ProjectDetailPage() {
           <DocumentUploadSection entityType="project" entityId={id} onUploaded={() => {
             apiGet(`/api/projects/${id}`).then(r => r.ok ? r.json() : null).then(p => { if (p) setProject(p) })
           }} />
-          <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl overflow-hidden">
+          <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl overflow-hidden">
             {(!project.documents || project.documents.length === 0) ? (
-              <div className="flex flex-col items-center justify-center py-12 text-[#183a1d]/40 gap-2">
-                <FileText size={32} className="text-[#183a1d]/30" />
+              <div className="flex flex-col items-center justify-center py-12 text-[var(--tulip-forest)]/40 gap-2">
+                <FileText size={32} className="text-[var(--tulip-forest)]/30" />
                 <p className="text-sm">No documents yet - upload one above</p>
               </div>
             ) : (
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-[#c8d6c0]">
-                    <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3">NAME</th>
-                    <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3">TYPE</th>
-                    <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3">HASH</th>
-                    <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3">SEAL</th>
-                    <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3">DATE</th>
+                  <tr className="border-b border-[var(--tulip-sage-dark)]">
+                    <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">NAME</th>
+                    <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">TYPE</th>
+                    <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">HASH</th>
+                    <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">SEAL</th>
+                    <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">DATE</th>
                   </tr>
                 </thead>
                 <tbody>
                   {project.documents.map((doc: any) => {
                     const seal = doc.sha256Hash ? sealMap[doc.sha256Hash] : null
                     return (
-                    <tr key={doc.id} className="border-b border-[#c8d6c0] hover:bg-[#e1eedd]/50 transition-colors">
-                      <td className="px-4 py-3 text-sm text-[#183a1d]">{doc.name}</td>
-                      <td className="px-4 py-3 text-xs text-[#183a1d]/60 uppercase">{doc.fileType ?? '-'}</td>
+                    <tr key={doc.id} className="border-b border-[var(--tulip-sage-dark)] hover:bg-[var(--tulip-sage)]/50 transition-colors">
+                      <td className="px-4 py-3 text-sm text-[var(--tulip-forest)]">{doc.name}</td>
+                      <td className="px-4 py-3 text-xs text-[var(--tulip-forest)]/60 uppercase">{doc.fileType ?? '-'}</td>
                       <td className="px-4 py-3">
-                        {doc.sha256Hash ? <span className="text-xs font-mono text-[#183a1d]/40">{doc.sha256Hash.slice(0, 12)}...</span> : <span className="text-xs text-[#183a1d]/30">-</span>}
+                        {doc.sha256Hash ? <span className="text-xs font-mono text-[var(--tulip-forest)]/40">{doc.sha256Hash.slice(0, 12)}...</span> : <span className="text-xs text-[var(--tulip-forest)]/30">-</span>}
                       </td>
                       <td className="px-4 py-3">
                         {seal ? (
@@ -416,7 +416,7 @@ export default function ProjectDetailPage() {
                           <BlockchainStatusPill onClick={() => {}} />
                         )}
                       </td>
-                      <td className="px-4 py-3 text-xs text-[#183a1d]/40">{new Date(doc.uploadedAt ?? doc.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</td>
+                      <td className="px-4 py-3 text-xs text-[var(--tulip-forest)]/40">{new Date(doc.uploadedAt ?? doc.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</td>
                     </tr>
                     )
                   })}
@@ -429,38 +429,38 @@ export default function ProjectDetailPage() {
 
       {/* Tab: Budgets */}
       {tab === 'budgets' && (
-        <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl overflow-hidden">
+        <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl overflow-hidden">
           {!hasBudgets ? (
-            <div className="flex flex-col items-center justify-center py-16 text-[#183a1d]/40 gap-3">
-              <Wallet size={36} className="text-[#183a1d]/30" />
+            <div className="flex flex-col items-center justify-center py-16 text-[var(--tulip-forest)]/40 gap-3">
+              <Wallet size={36} className="text-[var(--tulip-forest)]/30" />
               <p className="text-sm">No budgets linked to this project</p>
-              <Link href={`/dashboard/budgets/new?projectId=${id}`} className="text-[#183a1d] hover:text-[#f6c453] text-xs">+ Create budget</Link>
+              <Link href={`/dashboard/budgets/new?projectId=${id}`} className="text-[var(--tulip-forest)] hover:text-[var(--tulip-gold)] text-xs">+ Create budget</Link>
             </div>
           ) : (
             <table className="w-full">
               <thead>
-                <tr className="border-b border-[#c8d6c0]">
-                  <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3">NAME</th>
-                  <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3">STATUS</th>
-                  <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3">PERIOD</th>
-                  <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3">LINES</th>
-                  <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3">TOTAL APPROVED</th>
-                  <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3"></th>
+                <tr className="border-b border-[var(--tulip-sage-dark)]">
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">NAME</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">STATUS</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">PERIOD</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">LINES</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">TOTAL APPROVED</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3"></th>
                 </tr>
               </thead>
               <tbody>
                 {project.budgets.map(b => {
                   const total = b.lines.reduce((s, l) => s + l.approvedAmount, 0)
                   return (
-                    <tr key={b.id} className="border-b border-[#c8d6c0] hover:bg-[#e1eedd]/50 transition-colors">
-                      <td className="px-4 py-3 text-sm text-[#183a1d]">{b.name}</td>
+                    <tr key={b.id} className="border-b border-[var(--tulip-sage-dark)] hover:bg-[var(--tulip-sage)]/50 transition-colors">
+                      <td className="px-4 py-3 text-sm text-[var(--tulip-forest)]">{b.name}</td>
                       <td className="px-4 py-3">
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${budgetStatusColors[b.status] ?? 'bg-[#e1eedd] text-[#183a1d]/60'}`}>{b.status}</span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${budgetStatusColors[b.status] ?? 'bg-[var(--tulip-sage)] text-[var(--tulip-forest)]/60'}`}>{b.status}</span>
                       </td>
-                      <td className="px-4 py-3 text-xs text-[#183a1d]/60">{new Date(b.periodFrom).toLocaleDateString()} - {new Date(b.periodTo).toLocaleDateString()}</td>
-                      <td className="px-4 py-3 text-sm text-[#183a1d]/60">{b.lines.length}</td>
-                      <td className="px-4 py-3 text-sm text-[#183a1d] font-medium">${total.toLocaleString()}</td>
-                      <td className="px-4 py-3"><Link href={`/dashboard/budgets/${b.id}`} className="text-[#183a1d] hover:text-[#f6c453] text-xs">View</Link></td>
+                      <td className="px-4 py-3 text-xs text-[var(--tulip-forest)]/60">{new Date(b.periodFrom).toLocaleDateString()} - {new Date(b.periodTo).toLocaleDateString()}</td>
+                      <td className="px-4 py-3 text-sm text-[var(--tulip-forest)]/60">{b.lines.length}</td>
+                      <td className="px-4 py-3 text-sm text-[var(--tulip-forest)] font-medium">${total.toLocaleString()}</td>
+                      <td className="px-4 py-3"><Link href={`/dashboard/budgets/${b.id}`} className="text-[var(--tulip-forest)] hover:text-[var(--tulip-gold)] text-xs">View</Link></td>
                     </tr>
                   )
                 })}
@@ -476,42 +476,42 @@ export default function ProjectDetailPage() {
           {/* Header */}
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-[#183a1d] flex items-center gap-2">
+              <h2 className="text-lg font-semibold text-[var(--tulip-forest)] flex items-center gap-2">
                 <Target size={18} /> Logical Framework
               </h2>
-              <p className="text-[#183a1d]/60 text-sm mt-0.5">Track outputs, indicators and progress</p>
+              <p className="text-[var(--tulip-forest)]/60 text-sm mt-0.5">Track outputs, indicators and progress</p>
             </div>
             <button onClick={() => setShowAddOutput(true)}
-              className="flex items-center gap-2 text-sm font-medium text-[#183a1d] px-4 py-2 rounded-lg bg-[#f6c453] hover:bg-[#f0a04b] transition-all">
+              className="flex items-center gap-2 text-sm font-medium text-[var(--tulip-forest)] px-4 py-2 rounded-lg bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)] transition-all">
               <Plus size={14} /> Add Output
             </button>
           </div>
 
           {/* Empty state */}
           {logframeOutputs.length === 0 && (
-            <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl flex flex-col items-center justify-center py-16 gap-3">
-              <Target size={36} className="text-[#183a1d]/30" />
-              <p className="text-[#183a1d]/40 text-sm">No outputs defined yet</p>
-              <button onClick={() => setShowAddOutput(true)} className="text-[#183a1d] hover:text-[#f6c453] text-xs">+ Add your first output</button>
+            <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl flex flex-col items-center justify-center py-16 gap-3">
+              <Target size={36} className="text-[var(--tulip-forest)]/30" />
+              <p className="text-[var(--tulip-forest)]/40 text-sm">No outputs defined yet</p>
+              <button onClick={() => setShowAddOutput(true)} className="text-[var(--tulip-forest)] hover:text-[var(--tulip-gold)] text-xs">+ Add your first output</button>
             </div>
           )}
 
           {/* Outputs */}
           {logframeOutputs.map(output => (
-            <div key={output.id} className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl overflow-hidden">
+            <div key={output.id} className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl overflow-hidden">
               {/* Output header */}
-              <div className="px-5 py-3 border-b border-[#c8d6c0] bg-[#183a1d]/5 flex items-center justify-between">
+              <div className="px-5 py-3 border-b border-[var(--tulip-sage-dark)] bg-[var(--tulip-forest)]/5 flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-semibold text-[#183a1d]">
+                  <h3 className="text-sm font-semibold text-[var(--tulip-forest)]">
                     Output {output.outputNumber}: {output.title}
                   </h3>
-                  {output.description && <p className="text-xs text-[#183a1d]/50 mt-0.5">{output.description}</p>}
+                  {output.description && <p className="text-xs text-[var(--tulip-forest)]/50 mt-0.5">{output.description}</p>}
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => setEditingOutput(output)} className="text-[#183a1d]/40 hover:text-[#183a1d] transition-colors" title="Edit">
+                  <button onClick={() => setEditingOutput(output)} className="text-[var(--tulip-forest)]/40 hover:text-[var(--tulip-forest)] transition-colors" title="Edit">
                     <Edit3 size={13} />
                   </button>
-                  <button onClick={() => handleDeleteOutput(output.id)} className="text-[#183a1d]/40 hover:text-red-500 transition-colors" title="Delete">
+                  <button onClick={() => handleDeleteOutput(output.id)} className="text-[var(--tulip-forest)]/40 hover:text-red-500 transition-colors" title="Delete">
                     <Trash2 size={13} />
                   </button>
                 </div>
@@ -522,9 +522,9 @@ export default function ProjectDetailPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-[#c8d6c0]">
+                      <tr className="border-b border-[var(--tulip-sage-dark)]">
                         {['Indicator', 'Baseline', 'Target', 'Actual', 'Unit', 'Method', 'Period', 'RAG', 'Notes', 'Action'].map(h => (
-                          <th key={h} className="text-left text-[10px] text-[#183a1d]/40 font-normal px-3 py-2 uppercase tracking-wide whitespace-nowrap">{h}</th>
+                          <th key={h} className="text-left text-[10px] text-[var(--tulip-forest)]/40 font-normal px-3 py-2 uppercase tracking-wide whitespace-nowrap">{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -532,26 +532,26 @@ export default function ProjectDetailPage() {
                       {output.indicators.map(ind => {
                         const rag = RAG_STYLES[ind.ragStatus || 'NOT_STARTED']
                         return (
-                          <tr key={ind.id} className="border-b border-[#c8d6c0] last:border-0 hover:bg-[#fefbe9]/30">
-                            <td className="px-3 py-2.5 text-[#183a1d] max-w-[200px]">{ind.indicator}</td>
-                            <td className="px-3 py-2.5 text-[#183a1d]/60">{ind.baselineValue ?? '—'}</td>
-                            <td className="px-3 py-2.5 text-[#183a1d]/60">{ind.targetValue ?? '—'}</td>
-                            <td className="px-3 py-2.5 text-[#183a1d] font-medium">{ind.actualValue ?? '—'}</td>
-                            <td className="px-3 py-2.5 text-[#183a1d]/50 text-xs">{ind.unit ?? '—'}</td>
-                            <td className="px-3 py-2.5 text-[#183a1d]/50 text-xs">{ind.measurementMethod ?? '—'}</td>
-                            <td className="px-3 py-2.5 text-[#183a1d]/50 text-xs whitespace-nowrap">{ind.reportingPeriod ?? '—'}</td>
+                          <tr key={ind.id} className="border-b border-[var(--tulip-sage-dark)] last:border-0 hover:bg-[var(--tulip-cream)]/30">
+                            <td className="px-3 py-2.5 text-[var(--tulip-forest)] max-w-[200px]">{ind.indicator}</td>
+                            <td className="px-3 py-2.5 text-[var(--tulip-forest)]/60">{ind.baselineValue ?? '—'}</td>
+                            <td className="px-3 py-2.5 text-[var(--tulip-forest)]/60">{ind.targetValue ?? '—'}</td>
+                            <td className="px-3 py-2.5 text-[var(--tulip-forest)] font-medium">{ind.actualValue ?? '—'}</td>
+                            <td className="px-3 py-2.5 text-[var(--tulip-forest)]/50 text-xs">{ind.unit ?? '—'}</td>
+                            <td className="px-3 py-2.5 text-[var(--tulip-forest)]/50 text-xs">{ind.measurementMethod ?? '—'}</td>
+                            <td className="px-3 py-2.5 text-[var(--tulip-forest)]/50 text-xs whitespace-nowrap">{ind.reportingPeriod ?? '—'}</td>
                             <td className="px-3 py-2.5">
                               <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${rag.bg} ${rag.text}`}>
                                 {rag.label}
                               </span>
                             </td>
-                            <td className="px-3 py-2.5 text-[#183a1d]/50 text-xs max-w-[120px] truncate">{ind.notes ?? '—'}</td>
+                            <td className="px-3 py-2.5 text-[var(--tulip-forest)]/50 text-xs max-w-[120px] truncate">{ind.notes ?? '—'}</td>
                             <td className="px-3 py-2.5">
                               <div className="flex items-center gap-1.5">
                                 <button onClick={() => { setUpdateIndicator(ind); setUpdateActual(ind.actualValue || ''); setUpdateRAG((ind.ragStatus || 'NOT_STARTED') as RAGStatus); setUpdateNotes(ind.notes || '') }}
-                                  className="text-[#183a1d]/40 hover:text-[#183a1d] text-xs font-medium">Update</button>
+                                  className="text-[var(--tulip-forest)]/40 hover:text-[var(--tulip-forest)] text-xs font-medium">Update</button>
                                 <button onClick={() => handleDeleteIndicator(ind.id)}
-                                  className="text-[#183a1d]/30 hover:text-red-500 transition-colors"><Trash2 size={11} /></button>
+                                  className="text-[var(--tulip-forest)]/30 hover:text-red-500 transition-colors"><Trash2 size={11} /></button>
                               </div>
                             </td>
                           </tr>
@@ -563,13 +563,13 @@ export default function ProjectDetailPage() {
               )}
 
               {output.indicators.length === 0 && (
-                <div className="px-5 py-4 text-center text-[#183a1d]/40 text-xs">No indicators yet</div>
+                <div className="px-5 py-4 text-center text-[var(--tulip-forest)]/40 text-xs">No indicators yet</div>
               )}
 
               {/* Add indicator button */}
-              <div className="px-5 py-2.5 border-t border-[#c8d6c0]">
+              <div className="px-5 py-2.5 border-t border-[var(--tulip-sage-dark)]">
                 <button onClick={() => setShowAddIndicator(output.id)}
-                  className="text-xs text-[#183a1d]/60 hover:text-[#183a1d] flex items-center gap-1 transition-colors">
+                  className="text-xs text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] flex items-center gap-1 transition-colors">
                   <Plus size={12} /> Add Indicator
                 </button>
               </div>
@@ -579,28 +579,28 @@ export default function ProjectDetailPage() {
           {/* Add Output Modal */}
           {showAddOutput && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setShowAddOutput(false)}>
-              <div className="bg-[#fefbe9] rounded-xl border border-[#c8d6c0] p-6 max-w-md w-full space-y-4 shadow-xl" onClick={e => e.stopPropagation()}>
-                <h3 className="text-lg font-bold text-[#183a1d]">Add Output</h3>
+              <div className="bg-[var(--tulip-cream)] rounded-xl border border-[var(--tulip-sage-dark)] p-6 max-w-md w-full space-y-4 shadow-xl" onClick={e => e.stopPropagation()}>
+                <h3 className="text-lg font-bold text-[var(--tulip-forest)]">Add Output</h3>
                 <div>
-                  <label className="text-xs text-[#183a1d]/40 block mb-1">Output Number</label>
-                  <input className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] outline-none" value={logframeOutputs.length + 1} disabled />
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Output Number</label>
+                  <input className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] outline-none" value={logframeOutputs.length + 1} disabled />
                 </div>
                 <div>
-                  <label className="text-xs text-[#183a1d]/40 block mb-1">Title *</label>
-                  <input className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453]"
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Title *</label>
+                  <input className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)]"
                     value={newOutput.title} onChange={e => setNewOutput(p => ({ ...p, title: e.target.value }))} placeholder="e.g. Improved water access in target communities" />
                 </div>
                 <div>
-                  <label className="text-xs text-[#183a1d]/40 block mb-1">Description</label>
-                  <textarea className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] resize-none"
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Description</label>
+                  <textarea className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] resize-none"
                     rows={3} value={newOutput.description} onChange={e => setNewOutput(p => ({ ...p, description: e.target.value }))} placeholder="Optional description..." />
                 </div>
                 <div className="flex items-center gap-3 pt-2">
                   <button onClick={handleAddOutput} disabled={savingOutput || !newOutput.title.trim()}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50">
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] disabled:opacity-50">
                     {savingOutput ? 'Saving...' : 'Add Output'}
                   </button>
-                  <button onClick={() => setShowAddOutput(false)} className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d]">Cancel</button>
+                  <button onClick={() => setShowAddOutput(false)} className="px-4 py-2 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]">Cancel</button>
                 </div>
               </div>
             </div>
@@ -609,24 +609,24 @@ export default function ProjectDetailPage() {
           {/* Edit Output Modal */}
           {editingOutput && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setEditingOutput(null)}>
-              <div className="bg-[#fefbe9] rounded-xl border border-[#c8d6c0] p-6 max-w-md w-full space-y-4 shadow-xl" onClick={e => e.stopPropagation()}>
-                <h3 className="text-lg font-bold text-[#183a1d]">Edit Output</h3>
+              <div className="bg-[var(--tulip-cream)] rounded-xl border border-[var(--tulip-sage-dark)] p-6 max-w-md w-full space-y-4 shadow-xl" onClick={e => e.stopPropagation()}>
+                <h3 className="text-lg font-bold text-[var(--tulip-forest)]">Edit Output</h3>
                 <div>
-                  <label className="text-xs text-[#183a1d]/40 block mb-1">Title *</label>
-                  <input className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] outline-none focus:border-[#f6c453]"
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Title *</label>
+                  <input className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] outline-none focus:border-[var(--tulip-gold)]"
                     value={editingOutput.title} onChange={e => setEditingOutput(p => p ? { ...p, title: e.target.value } : p)} />
                 </div>
                 <div>
-                  <label className="text-xs text-[#183a1d]/40 block mb-1">Description</label>
-                  <textarea className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] outline-none focus:border-[#f6c453] resize-none"
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Description</label>
+                  <textarea className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] outline-none focus:border-[var(--tulip-gold)] resize-none"
                     rows={3} value={editingOutput.description || ''} onChange={e => setEditingOutput(p => p ? { ...p, description: e.target.value } : p)} />
                 </div>
                 <div className="flex items-center gap-3 pt-2">
                   <button onClick={handleEditOutput} disabled={savingOutput || !editingOutput.title.trim()}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50">
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] disabled:opacity-50">
                     {savingOutput ? 'Saving...' : 'Save Changes'}
                   </button>
-                  <button onClick={() => setEditingOutput(null)} className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d]">Cancel</button>
+                  <button onClick={() => setEditingOutput(null)} className="px-4 py-2 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]">Cancel</button>
                 </div>
               </div>
             </div>
@@ -635,49 +635,49 @@ export default function ProjectDetailPage() {
           {/* Add Indicator Modal */}
           {showAddIndicator && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setShowAddIndicator(null)}>
-              <div className="bg-[#fefbe9] rounded-xl border border-[#c8d6c0] p-6 max-w-lg w-full space-y-4 shadow-xl" onClick={e => e.stopPropagation()}>
-                <h3 className="text-lg font-bold text-[#183a1d]">Add Indicator</h3>
+              <div className="bg-[var(--tulip-cream)] rounded-xl border border-[var(--tulip-sage-dark)] p-6 max-w-lg w-full space-y-4 shadow-xl" onClick={e => e.stopPropagation()}>
+                <h3 className="text-lg font-bold text-[var(--tulip-forest)]">Add Indicator</h3>
                 <div>
-                  <label className="text-xs text-[#183a1d]/40 block mb-1">Indicator *</label>
-                  <textarea className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] resize-none"
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Indicator *</label>
+                  <textarea className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] resize-none"
                     rows={2} value={newIndicator.indicator} onChange={e => setNewIndicator(p => ({ ...p, indicator: e.target.value }))}
                     placeholder="e.g. Number of households with access to clean water" />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs text-[#183a1d]/40 block mb-1">Baseline Value</label>
-                    <input className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453]"
+                    <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Baseline Value</label>
+                    <input className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)]"
                       value={newIndicator.baselineValue} onChange={e => setNewIndicator(p => ({ ...p, baselineValue: e.target.value }))} placeholder="e.g. 0" />
                   </div>
                   <div>
-                    <label className="text-xs text-[#183a1d]/40 block mb-1">Target Value *</label>
-                    <input className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453]"
+                    <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Target Value *</label>
+                    <input className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)]"
                       value={newIndicator.targetValue} onChange={e => setNewIndicator(p => ({ ...p, targetValue: e.target.value }))} placeholder="e.g. 500" />
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="text-xs text-[#183a1d]/40 block mb-1">Unit</label>
-                    <input className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453]"
+                    <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Unit</label>
+                    <input className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)]"
                       value={newIndicator.unit} onChange={e => setNewIndicator(p => ({ ...p, unit: e.target.value }))} placeholder="e.g. households" />
                   </div>
                   <div>
-                    <label className="text-xs text-[#183a1d]/40 block mb-1">Measurement Method</label>
-                    <input className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453]"
+                    <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Measurement Method</label>
+                    <input className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)]"
                       value={newIndicator.measurementMethod} onChange={e => setNewIndicator(p => ({ ...p, measurementMethod: e.target.value }))} placeholder="e.g. Survey" />
                   </div>
                   <div>
-                    <label className="text-xs text-[#183a1d]/40 block mb-1">Reporting Period</label>
-                    <input className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453]"
+                    <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Reporting Period</label>
+                    <input className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)]"
                       value={newIndicator.reportingPeriod} onChange={e => setNewIndicator(p => ({ ...p, reportingPeriod: e.target.value }))} placeholder="e.g. Quarterly" />
                   </div>
                 </div>
                 <div className="flex items-center gap-3 pt-2">
                   <button onClick={() => handleAddIndicator(showAddIndicator)} disabled={savingIndicator || !newIndicator.indicator.trim() || !newIndicator.targetValue.trim()}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50">
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] disabled:opacity-50">
                     {savingIndicator ? 'Saving...' : 'Add Indicator'}
                   </button>
-                  <button onClick={() => setShowAddIndicator(null)} className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d]">Cancel</button>
+                  <button onClick={() => setShowAddIndicator(null)} className="px-4 py-2 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]">Cancel</button>
                 </div>
               </div>
             </div>
@@ -686,26 +686,26 @@ export default function ProjectDetailPage() {
           {/* Update Indicator Modal */}
           {updateIndicator && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setUpdateIndicator(null)}>
-              <div className="bg-[#fefbe9] rounded-xl border border-[#c8d6c0] p-6 max-w-md w-full space-y-4 shadow-xl" onClick={e => e.stopPropagation()}>
-                <h3 className="text-lg font-bold text-[#183a1d]">Update Indicator</h3>
+              <div className="bg-[var(--tulip-cream)] rounded-xl border border-[var(--tulip-sage-dark)] p-6 max-w-md w-full space-y-4 shadow-xl" onClick={e => e.stopPropagation()}>
+                <h3 className="text-lg font-bold text-[var(--tulip-forest)]">Update Indicator</h3>
                 <div>
-                  <label className="text-xs text-[#183a1d]/40 block mb-1">Indicator</label>
-                  <p className="text-sm text-[#183a1d] bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5">{updateIndicator.indicator}</p>
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Indicator</label>
+                  <p className="text-sm text-[var(--tulip-forest)] bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5">{updateIndicator.indicator}</p>
                 </div>
                 <div>
-                  <label className="text-xs text-[#183a1d]/40 block mb-1">Actual Value</label>
-                  <input className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453]"
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Actual Value</label>
+                  <input className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)]"
                     value={updateActual} onChange={e => setUpdateActual(e.target.value)} placeholder="Enter current actual value" />
                 </div>
                 <div>
-                  <label className="text-xs text-[#183a1d]/40 block mb-2">RAG Status</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-2">RAG Status</label>
                   <div className="flex gap-2 flex-wrap">
                     {(Object.entries(RAG_STYLES) as [RAGStatus, typeof RAG_STYLES[string]][]).map(([key, style]) => (
                       <button key={key} onClick={() => setUpdateRAG(key)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                           updateRAG === key
                             ? `${style.bg} ${style.text} border-current ring-1 ring-current`
-                            : 'bg-[#e1eedd] text-[#183a1d]/60 border-[#c8d6c0] hover:border-[#c8d6c0]'
+                            : 'bg-[var(--tulip-sage)] text-[var(--tulip-forest)]/60 border-[var(--tulip-sage-dark)] hover:border-[var(--tulip-sage-dark)]'
                         }`}>
                         {style.label}
                       </button>
@@ -713,16 +713,16 @@ export default function ProjectDetailPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs text-[#183a1d]/40 block mb-1">Notes</label>
-                  <textarea className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] resize-none"
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Notes</label>
+                  <textarea className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] resize-none"
                     rows={2} value={updateNotes} onChange={e => setUpdateNotes(e.target.value)} placeholder="Optional notes..." />
                 </div>
                 <div className="flex items-center gap-3 pt-2">
                   <button onClick={handleUpdateIndicator} disabled={savingUpdate}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50">
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] disabled:opacity-50">
                     {savingUpdate ? 'Saving...' : 'Update'}
                   </button>
-                  <button onClick={() => setUpdateIndicator(null)} className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d]">Cancel</button>
+                  <button onClick={() => setUpdateIndicator(null)} className="px-4 py-2 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]">Cancel</button>
                 </div>
               </div>
             </div>
@@ -738,38 +738,38 @@ export default function ProjectDetailPage() {
 
       {/* Tab: Audit */}
       {tab === 'audit' && (
-        <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl overflow-hidden">
+        <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl overflow-hidden">
           {audit.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-[#183a1d]/40 gap-3">
-              <Activity size={36} className="text-[#183a1d]/30" />
+            <div className="flex flex-col items-center justify-center py-16 text-[var(--tulip-forest)]/40 gap-3">
+              <Activity size={36} className="text-[var(--tulip-forest)]/30" />
               <p className="text-sm">No audit entries for this project</p>
             </div>
           ) : (
             <table className="w-full">
               <thead>
-                <tr className="border-b border-[#c8d6c0]">
-                  <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3">ACTION</th>
-                  <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3">HASH</th>
-                  <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3">TX</th>
-                  <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3">STATUS</th>
-                  <th className="text-left text-xs text-[#183a1d]/40 font-normal px-4 py-3">DATE</th>
+                <tr className="border-b border-[var(--tulip-sage-dark)]">
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">ACTION</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">HASH</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">TX</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">STATUS</th>
+                  <th className="text-left text-xs text-[var(--tulip-forest)]/40 font-normal px-4 py-3">DATE</th>
                 </tr>
               </thead>
               <tbody>
                 {audit.map(entry => (
-                  <tr key={entry.id} className="border-b border-[#c8d6c0] hover:bg-[#e1eedd]/50 transition-colors">
-                    <td className="px-4 py-3 text-sm text-[#183a1d]">{entry.action.replace(/_/g, ' ')}</td>
-                    <td className="px-4 py-3"><span className="text-xs font-mono text-[#183a1d]/40">{entry.dataHash?.slice(0, 12)}...</span></td>
+                  <tr key={entry.id} className="border-b border-[var(--tulip-sage-dark)] hover:bg-[var(--tulip-sage)]/50 transition-colors">
+                    <td className="px-4 py-3 text-sm text-[var(--tulip-forest)]">{entry.action.replace(/_/g, ' ')}</td>
+                    <td className="px-4 py-3"><span className="text-xs font-mono text-[var(--tulip-forest)]/40">{entry.dataHash?.slice(0, 12)}...</span></td>
                     <td className="px-4 py-3">
                       {entry.blockchainTx
                         ? <a href={`https://polygonscan.com/tx/${entry.blockchainTx}`} target="_blank" rel="noopener noreferrer"
-                            className="text-xs font-mono text-[#183a1d] hover:text-[#f6c453] flex items-center gap-1">
+                            className="text-xs font-mono text-[var(--tulip-forest)] hover:text-[var(--tulip-gold)] flex items-center gap-1">
                             {entry.blockchainTx.slice(0, 10)}... <ExternalLink size={10} />
                           </a>
-                        : <span className="text-xs text-[#183a1d]/30">-</span>}
+                        : <span className="text-xs text-[var(--tulip-forest)]/30">-</span>}
                     </td>
                     <td className="px-4 py-3">{anchorBadge(entry.anchorStatus)}</td>
-                    <td className="px-4 py-3 text-xs text-[#183a1d]/40">{new Date(entry.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</td>
+                    <td className="px-4 py-3 text-xs text-[var(--tulip-forest)]/40">{new Date(entry.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</td>
                   </tr>
                 ))}
               </tbody>

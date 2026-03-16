@@ -127,33 +127,33 @@ function DeliveryLogModal({ webhookId, onClose }: { webhookId: string; onClose: 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-none md:rounded-2xl w-full h-full md:h-auto md:max-w-3xl md:max-h-[80vh] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-[#c8d6c0]">
-          <h3 className="text-[#183a1d] font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>{t('deliveryLog')}</h3>
-          <button onClick={onClose} className="text-[#183a1d]/40 hover:text-[#183a1d]/70 transition-colors"><X size={18} /></button>
+      <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-none md:rounded-2xl w-full h-full md:h-auto md:max-w-3xl md:max-h-[80vh] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-[var(--tulip-sage-dark)]">
+          <h3 className="text-[var(--tulip-forest)] font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>{t('deliveryLog')}</h3>
+          <button onClick={onClose} className="text-[var(--tulip-forest)]/40 hover:text-[var(--tulip-forest)]/70 transition-colors"><X size={18} /></button>
         </div>
 
         <div className="overflow-y-auto max-h-[calc(80vh-60px)]">
           {loading ? (
-            <div className="p-8 text-center text-[#183a1d]/40 text-sm">{t('loadingDeliveries')}</div>
+            <div className="p-8 text-center text-[var(--tulip-forest)]/40 text-sm">{t('loadingDeliveries')}</div>
           ) : deliveries.length === 0 ? (
-            <div className="p-8 text-center text-[#183a1d]/40 text-sm">{t('noDeliveries')}</div>
+            <div className="p-8 text-center text-[var(--tulip-forest)]/40 text-sm">{t('noDeliveries')}</div>
           ) : (
-            <div className="divide-y divide-[#c8d6c0]">
+            <div className="divide-y divide-[var(--tulip-sage-dark)]">
               {deliveries.map(d => (
                 <div key={d.id}>
                   <button
                     onClick={() => setExpanded(expanded === d.id ? null : d.id)}
-                    className="w-full grid grid-cols-[1fr_80px_80px] md:grid-cols-[1.5fr_1fr_80px_80px_80px] gap-3 items-center px-4 md:px-6 py-3 hover:bg-[#e1eedd] transition-colors text-left"
+                    className="w-full grid grid-cols-[1fr_80px_80px] md:grid-cols-[1.5fr_1fr_80px_80px_80px] gap-3 items-center px-4 md:px-6 py-3 hover:bg-[var(--tulip-sage)] transition-colors text-left"
                   >
                     <div className="flex items-center gap-2">
-                      {expanded === d.id ? <ChevronDown size={12} className="text-[#183a1d]/30" /> : <ChevronRight size={12} className="text-[#183a1d]/30" />}
-                      <span className="text-[#183a1d]/70 text-xs font-medium">{d.event}</span>
+                      {expanded === d.id ? <ChevronDown size={12} className="text-[var(--tulip-forest)]/30" /> : <ChevronRight size={12} className="text-[var(--tulip-forest)]/30" />}
+                      <span className="text-[var(--tulip-forest)]/70 text-xs font-medium">{d.event}</span>
                     </div>
-                    <span className="text-[#183a1d]/40 text-xs">
+                    <span className="text-[var(--tulip-forest)]/40 text-xs">
                       {new Date(d.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                     </span>
-                    <span className="text-xs font-mono text-[#183a1d]/60">{d.statusCode || '—'}</span>
+                    <span className="text-xs font-mono text-[var(--tulip-forest)]/60">{d.statusCode || '—'}</span>
                     <div>
                       {d.status === 'success' ? (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">
@@ -169,20 +169,20 @@ function DeliveryLogModal({ webhookId, onClose }: { webhookId: string; onClose: 
                         </span>
                       )}
                     </div>
-                    <span className="text-[#183a1d]/30 text-xs">#{d.attempts}</span>
+                    <span className="text-[var(--tulip-forest)]/30 text-xs">#{d.attempts}</span>
                   </button>
                   {expanded === d.id && (
                     <div className="px-6 pb-4 space-y-2">
                       <div>
-                        <p className="text-[#183a1d]/40 text-[10px] uppercase tracking-wider mb-1">{t('payload')}</p>
-                        <pre className="text-xs text-[#183a1d]/60 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg p-3 overflow-x-auto max-h-48">
+                        <p className="text-[var(--tulip-forest)]/40 text-[10px] uppercase tracking-wider mb-1">{t('payload')}</p>
+                        <pre className="text-xs text-[var(--tulip-forest)]/60 bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg p-3 overflow-x-auto max-h-48">
                           {JSON.stringify(d.payload, null, 2)}
                         </pre>
                       </div>
                       {d.responseBody && (
                         <div>
-                          <p className="text-[#183a1d]/40 text-[10px] uppercase tracking-wider mb-1">{t('response')}</p>
-                          <pre className="text-xs text-[#183a1d]/40 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg p-3 overflow-x-auto max-h-32">
+                          <p className="text-[var(--tulip-forest)]/40 text-[10px] uppercase tracking-wider mb-1">{t('response')}</p>
+                          <pre className="text-xs text-[var(--tulip-forest)]/40 bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg p-3 overflow-x-auto max-h-32">
                             {d.responseBody}
                           </pre>
                         </div>
@@ -191,7 +191,7 @@ function DeliveryLogModal({ webhookId, onClose }: { webhookId: string; onClose: 
                         <button
                           onClick={() => handleResend(d.id)}
                           disabled={resending === d.id}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[#183a1d] bg-[#f6c453]/20 hover:bg-[#f6c453]/30 border border-[#f6c453]/30 transition-colors disabled:opacity-40"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--tulip-forest)] bg-[var(--tulip-gold)]/20 hover:bg-[var(--tulip-gold)]/30 border border-[var(--tulip-gold)]/30 transition-colors disabled:opacity-40"
                         >
                           <RotateCcw size={12} className={resending === d.id ? 'animate-spin' : ''} />
                           {resending === d.id ? t('resending') : t('resend')}
@@ -264,12 +264,12 @@ function WebhookFormModal({ webhook, onClose, onSaved }: {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-none md:rounded-2xl w-full h-full md:h-auto md:max-w-lg md:max-h-[85vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-[#c8d6c0]">
-          <h3 className="text-[#183a1d] font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
+      <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-none md:rounded-2xl w-full h-full md:h-auto md:max-w-lg md:max-h-[85vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-[var(--tulip-sage-dark)]">
+          <h3 className="text-[var(--tulip-forest)] font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
             {isEdit ? t('editWebhook') : t('addWebhookModal')}
           </h3>
-          <button onClick={onClose} className="text-[#183a1d]/40 hover:text-[#183a1d]/70 transition-colors"><X size={18} /></button>
+          <button onClick={onClose} className="text-[var(--tulip-forest)]/40 hover:text-[var(--tulip-forest)]/70 transition-colors"><X size={18} /></button>
         </div>
 
         <div className="px-6 py-5 space-y-5">
@@ -279,44 +279,44 @@ function WebhookFormModal({ webhook, onClose, onSaved }: {
 
           {/* URL */}
           <div>
-            <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-1.5 block">{t('endpointUrl')}</label>
+            <label className="text-[var(--tulip-forest)]/60 text-xs font-medium uppercase tracking-wider mb-1.5 block">{t('endpointUrl')}</label>
             <input
               value={url} onChange={e => setUrl(e.target.value)}
               placeholder="https://your-server.com/webhook"
-              className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-white/20 outline-none focus:border-[#f6c453] transition-colors"
+              className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-white/20 outline-none focus:border-[var(--tulip-gold)] transition-colors"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider mb-1.5 block">{t('descriptionOptional')}</label>
+            <label className="text-[var(--tulip-forest)]/60 text-xs font-medium uppercase tracking-wider mb-1.5 block">{t('descriptionOptional')}</label>
             <input
               value={description} onChange={e => setDescription(e.target.value)}
               placeholder="e.g., Slack notifications, Zapier integration"
-              className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-white/20 outline-none focus:border-[#f6c453] transition-colors"
+              className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-white/20 outline-none focus:border-[var(--tulip-gold)] transition-colors"
             />
           </div>
 
           {/* Events */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[#183a1d]/60 text-xs font-medium uppercase tracking-wider">{t('events')}</label>
+              <label className="text-[var(--tulip-forest)]/60 text-xs font-medium uppercase tracking-wider">{t('events')}</label>
               <div className="flex gap-2">
-                <button onClick={selectAll} className="text-[10px] text-[#183a1d] hover:underline">{t('selectAll')}</button>
-                <button onClick={deselectAll} className="text-[10px] text-[#183a1d]/40 hover:underline">{t('deselectAll')}</button>
+                <button onClick={selectAll} className="text-[10px] text-[var(--tulip-forest)] hover:underline">{t('selectAll')}</button>
+                <button onClick={deselectAll} className="text-[10px] text-[var(--tulip-forest)]/40 hover:underline">{t('deselectAll')}</button>
               </div>
             </div>
             <div className="space-y-3">
               {EVENT_GROUPS.map(group => (
                 <div key={group.label}>
-                  <p className="text-[#183a1d]/30 text-[10px] uppercase tracking-widest font-medium mb-1.5">{group.label}</p>
+                  <p className="text-[var(--tulip-forest)]/30 text-[10px] uppercase tracking-widest font-medium mb-1.5">{group.label}</p>
                   <div className="flex flex-wrap gap-1.5">
                     {group.events.map(ev => (
                       <button key={ev.id} onClick={() => toggleEvent(ev.id)}
                         className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
                           selectedEvents.includes(ev.id)
-                            ? 'bg-[#f6c453]/10 text-[#183a1d] border-[#f6c453]/30'
-                            : 'text-[#183a1d]/40 border-[#c8d6c0] hover:text-[#183a1d]/60 hover:border-[#c8d6c0]'
+                            ? 'bg-[var(--tulip-gold)]/10 text-[var(--tulip-forest)] border-[var(--tulip-gold)]/30'
+                            : 'text-[var(--tulip-forest)]/40 border-[var(--tulip-sage-dark)] hover:text-[var(--tulip-forest)]/60 hover:border-[var(--tulip-sage-dark)]'
                         }`}>
                         {ev.id}
                       </button>
@@ -328,10 +328,10 @@ function WebhookFormModal({ webhook, onClose, onSaved }: {
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t border-[#c8d6c0] flex items-center justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d]/70 transition-colors">{t('cancel')}</button>
+        <div className="px-6 py-4 border-t border-[var(--tulip-sage-dark)] flex items-center justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]/70 transition-colors">{t('cancel')}</button>
           <button onClick={handleSave} disabled={saving}
-            className="px-5 py-2 rounded-lg text-sm font-medium text-[#183a1d] disabled:opacity-40 bg-[#f6c453] hover:bg-[#f0a04b]">
+            className="px-5 py-2 rounded-lg text-sm font-medium text-[var(--tulip-forest)] disabled:opacity-40 bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)]">
             {saving ? t('saving') : isEdit ? t('update') : t('createWebhook')}
           </button>
         </div>
@@ -415,14 +415,14 @@ export default function WebhooksPage() {
 
   if (loading) return (
     <div className="p-6 animate-fade-up">
-      <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('title')}</h1>
-      <p className="text-[#183a1d]/40 text-sm mt-4">{t('loading')}</p>
+      <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('title')}</h1>
+      <p className="text-[var(--tulip-forest)]/40 text-sm mt-4">{t('loading')}</p>
     </div>
   )
 
   if (error && webhooks.length === 0) return (
     <div className="p-6 animate-fade-up">
-      <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('title')}</h1>
+      <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('title')}</h1>
       <div className="mt-6 rounded-xl border border-red-400/20 bg-red-400/5 px-5 py-4">
         <p className="text-red-400 text-sm">{error}</p>
       </div>
@@ -435,11 +435,11 @@ export default function WebhooksPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('title')}</h1>
-          <p className="text-[#183a1d]/60 text-sm mt-1">{t('subtitle')}</p>
+          <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('title')}</h1>
+          <p className="text-[var(--tulip-forest)]/60 text-sm mt-1">{t('subtitle')}</p>
         </div>
         <button onClick={() => setFormModal({ open: true, webhook: null })}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] self-start bg-[#f6c453] hover:bg-[#f0a04b]">
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-forest)] self-start bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)]">
           <Plus size={16} /> {t('addWebhook')}
         </button>
       </div>
@@ -452,61 +452,61 @@ export default function WebhooksPage() {
             {t('signingSecret')}
           </div>
           <div className="flex items-center gap-2">
-            <code className="text-xs text-[#183a1d] bg-[#e1eedd] px-3 py-2 rounded-lg flex-1 overflow-x-auto font-mono">{revealedSecret}</code>
-            <button onClick={copySecret} className="px-3 py-2 rounded-lg bg-[#e1eedd] hover:bg-[#e1eedd] transition-colors">
-              {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} className="text-[#183a1d]/60" />}
+            <code className="text-xs text-[var(--tulip-forest)] bg-[var(--tulip-sage)] px-3 py-2 rounded-lg flex-1 overflow-x-auto font-mono">{revealedSecret}</code>
+            <button onClick={copySecret} className="px-3 py-2 rounded-lg bg-[var(--tulip-sage)] hover:bg-[var(--tulip-sage)] transition-colors">
+              {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} className="text-[var(--tulip-forest)]/60" />}
             </button>
           </div>
-          <button onClick={() => setRevealedSecret(null)} className="text-xs text-[#183a1d]/40 hover:text-[#183a1d]/60">{t('dismiss')}</button>
+          <button onClick={() => setRevealedSecret(null)} className="text-xs text-[var(--tulip-forest)]/40 hover:text-[var(--tulip-forest)]/60">{t('dismiss')}</button>
         </div>
       )}
 
       {/* Webhooks list */}
       {webhooks.length === 0 ? (
-        <div className="rounded-xl border border-[#c8d6c0] px-5 py-16 text-center bg-[#e1eedd]">
-          <Webhook size={36} className="text-[#183a1d]/30 mx-auto mb-3" />
-          <p className="text-[#183a1d]/40 text-sm font-medium">{t('noWebhooks')}</p>
-          <p className="text-[#183a1d]/30 text-xs mt-1 mb-4">{t('noWebhooksDesc')}</p>
+        <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-5 py-16 text-center bg-[var(--tulip-sage)]">
+          <Webhook size={36} className="text-[var(--tulip-forest)]/30 mx-auto mb-3" />
+          <p className="text-[var(--tulip-forest)]/40 text-sm font-medium">{t('noWebhooks')}</p>
+          <p className="text-[var(--tulip-forest)]/30 text-xs mt-1 mb-4">{t('noWebhooksDesc')}</p>
           <button onClick={() => setFormModal({ open: true, webhook: null })}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] bg-[#f6c453] hover:bg-[#f0a04b]">
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-forest)] bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)]">
             <Plus size={14} /> {t('addWebhook')}
           </button>
         </div>
       ) : (
         <div className="space-y-3">
           {webhooks.map(wh => (
-            <div key={wh.id} className="rounded-xl border border-[#c8d6c0] p-5 bg-[#e1eedd]">
+            <div key={wh.id} className="rounded-xl border border-[var(--tulip-sage-dark)] p-5 bg-[var(--tulip-sage)]">
               <div className="flex items-start justify-between gap-4 mb-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-medium text-[#183a1d] truncate">{wh.url}</span>
+                    <span className="text-sm font-medium text-[var(--tulip-forest)] truncate">{wh.url}</span>
                     <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                      wh.active ? 'bg-emerald-400/10 text-emerald-400' : 'bg-[#e1eedd] text-[#183a1d]/40'
+                      wh.active ? 'bg-emerald-400/10 text-emerald-400' : 'bg-[var(--tulip-sage)] text-[var(--tulip-forest)]/40'
                     }`}>
                       {wh.active ? t('active') : t('inactive')}
                     </span>
                   </div>
-                  {wh.description && <p className="text-[#183a1d]/40 text-xs">{wh.description}</p>}
+                  {wh.description && <p className="text-[var(--tulip-forest)]/40 text-xs">{wh.description}</p>}
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <button onClick={() => handleToggle(wh)} title={wh.active ? 'Deactivate' : 'Activate'}
-                    className="p-1.5 rounded-md text-[#183a1d]/30 hover:text-[#183a1d]/60 hover:bg-[#e1eedd]/50 transition-colors">
+                    className="p-1.5 rounded-md text-[var(--tulip-forest)]/30 hover:text-[var(--tulip-forest)]/60 hover:bg-[var(--tulip-sage)]/50 transition-colors">
                     {wh.active ? <ToggleRight size={16} className="text-emerald-400" /> : <ToggleLeft size={16} />}
                   </button>
                   <button onClick={() => handleTest(wh.id)} disabled={testing === wh.id} title="Send test event"
-                    className="p-1.5 rounded-md text-[#183a1d]/30 hover:text-[#183a1d] hover:bg-[#f6c453]/10 transition-colors disabled:opacity-30">
+                    className="p-1.5 rounded-md text-[var(--tulip-forest)]/30 hover:text-[var(--tulip-forest)] hover:bg-[var(--tulip-gold)]/10 transition-colors disabled:opacity-30">
                     <Send size={14} />
                   </button>
                   <button onClick={() => setDeliveryModal(wh.id)} title="View delivery log"
-                    className="p-1.5 rounded-md text-[#183a1d]/30 hover:text-[#183a1d]/60 hover:bg-[#e1eedd]/50 transition-colors">
+                    className="p-1.5 rounded-md text-[var(--tulip-forest)]/30 hover:text-[var(--tulip-forest)]/60 hover:bg-[var(--tulip-sage)]/50 transition-colors">
                     <Eye size={14} />
                   </button>
                   <button onClick={() => setFormModal({ open: true, webhook: wh })} title="Edit"
-                    className="p-1.5 rounded-md text-[#183a1d]/30 hover:text-[#183a1d]/60 hover:bg-[#e1eedd]/50 transition-colors">
+                    className="p-1.5 rounded-md text-[var(--tulip-forest)]/30 hover:text-[var(--tulip-forest)]/60 hover:bg-[var(--tulip-sage)]/50 transition-colors">
                     <Pencil size={14} />
                   </button>
                   <button onClick={() => handleDelete(wh.id)} title="Delete"
-                    className="p-1.5 rounded-md text-[#183a1d]/30 hover:text-red-400 hover:bg-red-400/5 transition-colors">
+                    className="p-1.5 rounded-md text-[var(--tulip-forest)]/30 hover:text-red-400 hover:bg-red-400/5 transition-colors">
                     <Trash2 size={14} />
                   </button>
                 </div>
@@ -515,7 +515,7 @@ export default function WebhooksPage() {
               {/* Events */}
               <div className="flex flex-wrap gap-1.5">
                 {wh.events.map(ev => (
-                  <span key={ev} className="px-2 py-0.5 rounded-full text-[10px] bg-[#e1eedd] text-[#183a1d]/40 border border-[#c8d6c0] font-medium">{ev}</span>
+                  <span key={ev} className="px-2 py-0.5 rounded-full text-[10px] bg-[var(--tulip-sage)] text-[var(--tulip-forest)]/40 border border-[var(--tulip-sage-dark)] font-medium">{ev}</span>
                 ))}
               </div>
 
@@ -534,15 +534,15 @@ export default function WebhooksPage() {
       )}
 
       {/* Verification guide */}
-      <div className="rounded-xl border border-[#c8d6c0] p-5 bg-[#e1eedd]">
+      <div className="rounded-xl border border-[var(--tulip-sage-dark)] p-5 bg-[var(--tulip-sage)]">
         <div className="flex items-center gap-2 mb-3">
-          <Code size={16} className="text-[#183a1d]/40" />
-          <h3 className="text-[#183a1d]/70 text-sm font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>{t('howToVerify')}</h3>
+          <Code size={16} className="text-[var(--tulip-forest)]/40" />
+          <h3 className="text-[var(--tulip-forest)]/70 text-sm font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>{t('howToVerify')}</h3>
         </div>
-        <p className="text-[#183a1d]/40 text-xs mb-3 leading-relaxed">
+        <p className="text-[var(--tulip-forest)]/40 text-xs mb-3 leading-relaxed">
           {t('howToVerifyDesc')}
         </p>
-        <pre className="text-xs text-[#183a1d]/80 bg-[#0c1a2e] border border-[#c8d6c0] rounded-lg p-4 overflow-x-auto leading-relaxed">
+        <pre className="text-xs text-[var(--tulip-forest)]/80 bg-[#0c1a2e] border border-[var(--tulip-sage-dark)] rounded-lg p-4 overflow-x-auto leading-relaxed">
 {`const crypto = require('crypto')
 
 // Parse the Tulip-Signature header

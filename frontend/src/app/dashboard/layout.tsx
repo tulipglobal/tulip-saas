@@ -260,20 +260,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <>
       {/* Logo */}
       <div className={clsx(
-        'flex items-center border-b border-[#fefbe9]/10 h-16 shrink-0',
+        'flex items-center border-b border-[var(--tulip-cream)]/10 h-16 shrink-0',
         collapsed && !mobileOpen ? 'justify-center px-0' : 'px-5 gap-3'
       )}>
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-[#f6c453]">
-          <span className="text-[#183a1d] font-bold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>T</span>
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-[var(--tulip-gold)]">
+          <span className="text-[var(--tulip-forest)] font-bold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>T</span>
         </div>
         {(!collapsed || mobileOpen) && (
-          <span className="font-bold text-[#fefbe9] text-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
-            tulip<span style={{ color: '#f6c453' }}>ds</span>
+          <span className="font-bold text-[var(--tulip-cream)] text-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
+            tulip<span style={{ color: 'var(--tulip-gold)' }}>ds</span>
           </span>
         )}
         {/* Close button — mobile only */}
         {mobileOpen && (
-          <button onClick={() => setMobileOpen(false)} className="ml-auto text-[#fefbe9]/60 hover:text-[#fefbe9] md:hidden">
+          <button onClick={() => setMobileOpen(false)} className="ml-auto text-[var(--tulip-cream)]/60 hover:text-[var(--tulip-cream)] md:hidden">
             <X size={20} />
           </button>
         )}
@@ -292,16 +292,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link key={href} href={href} className={clsx(
               'relative flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg mb-0.5 transition-all group',
               active
-                ? 'bg-[#f6c453]/20 text-[#f6c453]'
-                : 'text-[#fefbe9]/70 hover:text-[#fefbe9] hover:bg-[#fefbe9]/10'
+                ? 'bg-[var(--tulip-gold)]/20 text-[var(--tulip-gold)]'
+                : 'text-[var(--tulip-cream)]/70 hover:text-[var(--tulip-cream)] hover:bg-[var(--tulip-cream)]/10'
             )}>
               <Icon size={18} className="shrink-0" />
               {(!collapsed || mobileOpen) && <span className="text-sm font-medium">{label}</span>}
               {isWorkflow && pendingCount > 0 && (!collapsed || mobileOpen) && (
-                <span className="ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#f6c453]/20 text-[#f6c453] leading-none">{pendingCount}</span>
+                <span className="ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[var(--tulip-gold)]/20 text-[var(--tulip-gold)] leading-none">{pendingCount}</span>
               )}
               {isWorkflow && pendingCount > 0 && collapsed && !mobileOpen && (
-                <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#f6c453]" />
+                <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[var(--tulip-gold)]" />
               )}
               {isDonorFlags && donorFlagCount > 0 && (!collapsed || mobileOpen) && (
                 <span className="ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-red-500/20 text-red-500 leading-none">{donorFlagCount}</span>
@@ -316,10 +316,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <div className="absolute top-1 right-1 w-2 h-2 rounded-full" style={{ background: '#F59E0B' }} />
               )}
               {active && (!collapsed || mobileOpen) && !isWorkflow && !(isDonorFlags && donorFlagCount > 0) && !(isDeliverables && deliverableCount > 0) && (
-                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#f6c453]" />
+                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[var(--tulip-gold)]" />
               )}
               {active && (!collapsed || mobileOpen) && isWorkflow && pendingCount === 0 && (
-                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#f6c453]" />
+                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[var(--tulip-gold)]" />
               )}
             </Link>
           )
@@ -327,14 +327,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </nav>
 
       {/* Bottom */}
-      <div className="border-t border-[#fefbe9]/10 p-3 space-y-1">
+      <div className="border-t border-[var(--tulip-cream)]/10 p-3 space-y-1">
         {/* Admin — superadmin only */}
         {isSuperadmin && (
           <Link href="/dashboard/admin" className={clsx(
             'flex items-center gap-3 w-full px-3 py-2.5 rounded-lg transition-all',
             pathname === '/dashboard/admin'
-              ? 'bg-[#f0a04b]/20 text-[#f0a04b]'
-              : 'text-[#f0a04b]/60 hover:text-[#f0a04b] hover:bg-[#f0a04b]/10'
+              ? 'bg-[var(--tulip-orange)]/20 text-[var(--tulip-orange)]'
+              : 'text-[var(--tulip-orange)]/60 hover:text-[var(--tulip-orange)] hover:bg-[var(--tulip-orange)]/10'
           )}>
             <Crown size={18} className="shrink-0" />
             {(!collapsed || mobileOpen) && <span className="text-sm font-medium">{t('admin')}</span>}
@@ -343,14 +343,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Collapse toggle — desktop only */}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="hidden md:flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-[#fefbe9]/60 hover:text-[#fefbe9] hover:bg-[#fefbe9]/10 transition-all"
+          className="hidden md:flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-[var(--tulip-cream)]/60 hover:text-[var(--tulip-cream)] hover:bg-[var(--tulip-cream)]/10 transition-all"
         >
           {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
           {!collapsed && <span className="text-sm">{t('collapse')}</span>}
         </button>
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-[#fefbe9]/60 hover:text-red-400 hover:bg-red-400/10 transition-all"
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-[var(--tulip-cream)]/60 hover:text-red-400 hover:bg-red-400/10 transition-all"
         >
           <LogOut size={18} className="shrink-0" />
           {(!collapsed || mobileOpen) && <span className="text-sm">{t('signOut')}</span>}
@@ -360,7 +360,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   )
 
   return (
-    <div className="flex h-screen bg-[#fefbe9] text-[#183a1d] overflow-hidden">
+    <div className="flex h-screen bg-[var(--tulip-cream)] text-[var(--tulip-forest)] overflow-hidden">
 
       {/* Mobile sidebar overlay */}
       {mobileOpen && (
@@ -371,17 +371,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Mobile sidebar drawer */}
       <aside className={clsx(
-        'fixed inset-y-0 left-0 z-50 w-60 flex flex-col border-r border-[#fefbe9]/10 transition-transform duration-300 md:hidden',
+        'fixed inset-y-0 left-0 z-50 w-60 flex flex-col border-r border-[var(--tulip-cream)]/10 transition-transform duration-300 md:hidden',
         mobileOpen ? 'translate-x-0' : '-translate-x-full'
-      )} style={{ background: '#183a1d' }}>
+      )} style={{ background: 'var(--tulip-forest)' }}>
         {sidebarContent}
       </aside>
 
       {/* Desktop sidebar */}
       <aside className={clsx(
-        'hidden md:flex flex-col border-r border-[#fefbe9]/10 transition-all duration-300 shrink-0',
+        'hidden md:flex flex-col border-r border-[var(--tulip-cream)]/10 transition-all duration-300 shrink-0',
         collapsed ? 'w-16' : 'w-60'
-      )} style={{ background: '#183a1d' }}>
+      )} style={{ background: 'var(--tulip-forest)' }}>
         {sidebarContent}
       </aside>
 
@@ -389,34 +389,34 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="flex-1 flex flex-col overflow-hidden">
 
         {/* Topbar */}
-        <header className="h-16 border-b border-[#c8d6c0] flex items-center justify-between px-4 md:px-6 shrink-0"
-          style={{ background: '#fefbe9' }}>
+        <header className="h-16 border-b border-[var(--tulip-sage-dark)] flex items-center justify-between px-4 md:px-6 shrink-0"
+          style={{ background: 'var(--tulip-cream)' }}>
 
           {/* Left: hamburger (mobile) + search (desktop) */}
           <div className="flex items-center gap-3">
             <button onClick={() => setMobileOpen(true)}
-              className="md:hidden w-9 h-9 rounded-lg bg-[#e1eedd] border border-[#c8d6c0] flex items-center justify-center hover:bg-[#c8d6c0] transition-all">
-              <Menu size={18} className="text-[#183a1d]" />
+              className="md:hidden w-9 h-9 rounded-lg bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] flex items-center justify-center hover:bg-[var(--tulip-sage-dark)] transition-all">
+              <Menu size={18} className="text-[var(--tulip-forest)]" />
             </button>
 
             {/* Logo — mobile only (centered feel) */}
             <div className="md:hidden flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-[#f6c453]">
-                <span className="text-[#183a1d] font-bold text-xs" style={{ fontFamily: 'Inter, sans-serif' }}>T</span>
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-[var(--tulip-gold)]">
+                <span className="text-[var(--tulip-forest)] font-bold text-xs" style={{ fontFamily: 'Inter, sans-serif' }}>T</span>
               </div>
-              <span className="font-bold text-[#183a1d] text-base" style={{ fontFamily: 'Inter, sans-serif' }}>
-                tulip<span style={{ color: '#f6c453' }}>ds</span>
+              <span className="font-bold text-[var(--tulip-forest)] text-base" style={{ fontFamily: 'Inter, sans-serif' }}>
+                tulip<span style={{ color: 'var(--tulip-gold)' }}>ds</span>
               </span>
             </div>
 
             {/* Search — desktop only */}
             <button
               onClick={() => setSearchOpen(true)}
-              className="hidden md:flex items-center gap-3 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 w-72 hover:bg-[#c8d6c0] transition-colors cursor-pointer"
+              className="hidden md:flex items-center gap-3 bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2 w-72 hover:bg-[var(--tulip-sage-dark)] transition-colors cursor-pointer"
             >
-              <Search size={15} className="text-[#183a1d]/40" />
-              <span className="text-sm text-[#183a1d]/40 flex-1 text-left">{t('searchPlaceholder')}</span>
-              <kbd className="text-[10px] font-medium text-[#183a1d]/30 bg-[#fefbe9] border border-[#c8d6c0] rounded px-1.5 py-0.5">{typeof navigator !== 'undefined' && /Mac/.test(navigator.userAgent) ? '\u2318' : 'Ctrl+'}K</kbd>
+              <Search size={15} className="text-[var(--tulip-forest)]/40" />
+              <span className="text-sm text-[var(--tulip-forest)]/40 flex-1 text-left">{t('searchPlaceholder')}</span>
+              <kbd className="text-[10px] font-medium text-[var(--tulip-forest)]/30 bg-[var(--tulip-cream)] border border-[var(--tulip-sage-dark)] rounded px-1.5 py-0.5">{typeof navigator !== 'undefined' && /Mac/.test(navigator.userAgent) ? '\u2318' : 'Ctrl+'}K</kbd>
             </button>
           </div>
 
@@ -428,11 +428,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <button
                 ref={notifBtnRef}
                 onClick={toggleNotifications}
-                className="relative w-9 h-9 rounded-lg bg-[#e1eedd] border border-[#c8d6c0] flex items-center justify-center hover:bg-[#c8d6c0] transition-all"
+                className="relative w-9 h-9 rounded-lg bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] flex items-center justify-center hover:bg-[var(--tulip-sage-dark)] transition-all"
               >
-                <Bell size={16} className="text-[#183a1d]" />
+                <Bell size={16} className="text-[var(--tulip-forest)]" />
                 {hasRecent && (
-                  <div className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#f6c453]" />
+                  <div className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[var(--tulip-gold)]" />
                 )}
               </button>
 
@@ -440,28 +440,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {showNotifications && (
                 <div
                   ref={notifPanelRef}
-                  className="absolute right-0 top-11 w-80 sm:w-96 max-h-[28rem] bg-[#fefbe9] border border-[#c8d6c0] rounded-xl shadow-xl z-50 flex flex-col overflow-hidden"
+                  className="absolute right-0 top-11 w-80 sm:w-96 max-h-[28rem] bg-[var(--tulip-cream)] border border-[var(--tulip-sage-dark)] rounded-xl shadow-xl z-50 flex flex-col overflow-hidden"
                   style={{ animation: 'slideInRight 0.2s ease-out' }}
                 >
                   {/* Header */}
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-[#c8d6c0] bg-[#e1eedd]">
-                    <h3 className="text-sm font-semibold text-[#183a1d]">Notifications</h3>
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]">
+                    <h3 className="text-sm font-semibold text-[var(--tulip-forest)]">Notifications</h3>
                     <button
                       onClick={() => setShowNotifications(false)}
-                      className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-[#c8d6c0] transition-colors"
+                      className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-[var(--tulip-sage-dark)] transition-colors"
                     >
-                      <X size={14} className="text-[#183a1d]" />
+                      <X size={14} className="text-[var(--tulip-forest)]" />
                     </button>
                   </div>
 
                   {/* Body */}
                   <div className="flex-1 overflow-y-auto">
                     {notifLoading && notifications.length === 0 ? (
-                      <div className="flex items-center justify-center py-10 text-sm text-[#183a1d]/50">
+                      <div className="flex items-center justify-center py-10 text-sm text-[var(--tulip-forest)]/50">
                         Loading...
                       </div>
                     ) : notifications.length === 0 ? (
-                      <div className="flex items-center justify-center py-10 text-sm text-[#183a1d]/50">
+                      <div className="flex items-center justify-center py-10 text-sm text-[var(--tulip-forest)]/50">
                         No recent activity
                       </div>
                     ) : (
@@ -471,27 +471,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                           <button
                             key={entry.id}
                             onClick={() => handleNotifClick(entry)}
-                            className="w-full text-left px-4 py-3 border-b border-[#c8d6c0]/50 hover:bg-[#e1eedd] transition-colors group"
+                            className="w-full text-left px-4 py-3 border-b border-[var(--tulip-sage-dark)]/50 hover:bg-[var(--tulip-sage)] transition-colors group"
                           >
                             <div className="flex items-start gap-3">
-                              <div className="mt-0.5 w-7 h-7 rounded-lg bg-[#f6c453]/20 flex items-center justify-center shrink-0">
-                                <Shield size={13} className="text-[#183a1d]" />
+                              <div className="mt-0.5 w-7 h-7 rounded-lg bg-[var(--tulip-gold)]/20 flex items-center justify-center shrink-0">
+                                <Shield size={13} className="text-[var(--tulip-forest)]" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-[#183a1d] truncate">
+                                <p className="text-sm font-medium text-[var(--tulip-forest)] truncate">
                                   {actionLabel(entry.action)}
                                 </p>
-                                <p className="text-xs text-[#183a1d]/60 mt-0.5 truncate">
+                                <p className="text-xs text-[var(--tulip-forest)]/60 mt-0.5 truncate">
                                   {entry.entityType}
                                   {entry.projectName ? ` — ${entry.projectName}` : ''}
                                 </p>
                               </div>
-                              <span className="text-[10px] text-[#183a1d]/40 whitespace-nowrap mt-0.5">
+                              <span className="text-[10px] text-[var(--tulip-forest)]/40 whitespace-nowrap mt-0.5">
                                 {formatRelativeTime(entry.createdAt)}
                               </span>
                             </div>
                             {route && (
-                              <p className="text-[10px] text-[#183a1d]/30 mt-1 ml-10 group-hover:text-[#183a1d]/50">
+                              <p className="text-[10px] text-[var(--tulip-forest)]/30 mt-1 ml-10 group-hover:text-[var(--tulip-forest)]/50">
                                 View {entry.entityType.toLowerCase()}s
                               </p>
                             )}
@@ -505,7 +505,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <Link
                     href="/dashboard/audit"
                     onClick={() => setShowNotifications(false)}
-                    className="block text-center text-xs font-medium text-[#183a1d]/60 hover:text-[#183a1d] py-2.5 border-t border-[#c8d6c0] bg-[#e1eedd]/50 transition-colors"
+                    className="block text-center text-xs font-medium text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] py-2.5 border-t border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]/50 transition-colors"
                   >
                     View all audit logs
                   </Link>
@@ -514,22 +514,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
             <button
               onClick={() => { setMessengerOpen(true); setMessengerTarget(null) }}
-              className="relative w-9 h-9 rounded-lg bg-[#e1eedd] border border-[#c8d6c0] flex items-center justify-center hover:bg-[#c8d6c0] transition-all"
+              className="relative w-9 h-9 rounded-lg bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] flex items-center justify-center hover:bg-[var(--tulip-sage-dark)] transition-all"
             >
-              <MessageCircle size={16} className="text-[#183a1d]" />
+              <MessageCircle size={16} className="text-[var(--tulip-forest)]" />
               {messengerUnread > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-[#f6c453] text-[#183a1d] text-[10px] font-bold flex items-center justify-center px-1 leading-none">
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-[var(--tulip-gold)] text-[var(--tulip-forest)] text-[10px] font-bold flex items-center justify-center px-1 leading-none">
                   {messengerUnread > 99 ? '99+' : messengerUnread}
                 </span>
               )}
             </button>
-            <div className="flex items-center gap-2.5 pl-3 border-l border-[#c8d6c0]">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-[#183a1d] bg-[#f6c453]">
+            <div className="flex items-center gap-2.5 pl-3 border-l border-[var(--tulip-sage-dark)]">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-[var(--tulip-forest)] bg-[var(--tulip-gold)]">
                 N
               </div>
               <div className="hidden sm:block">
-                <div className="text-sm font-medium text-[#183a1d]">NGO Admin</div>
-                <div className="text-xs text-[#183a1d]/50">Administrator</div>
+                <div className="text-sm font-medium text-[var(--tulip-forest)]">NGO Admin</div>
+                <div className="text-xs text-[var(--tulip-forest)]/50">Administrator</div>
               </div>
             </div>
           </div>

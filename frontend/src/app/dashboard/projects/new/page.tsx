@@ -43,25 +43,25 @@ export default function NewProjectPage() {
     setSaving(false)
   }
 
-  const inputCls = "w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] focus:bg-[#e1eedd] transition-all"
-  const labelCls = "block text-xs font-medium text-[#183a1d]/60 mb-1.5 uppercase tracking-wide"
+  const inputCls = "w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] focus:bg-[var(--tulip-sage)] transition-all"
+  const labelCls = "block text-xs font-medium text-[var(--tulip-forest)]/60 mb-1.5 uppercase tracking-wide"
 
   return (
     <div className="p-6 max-w-2xl animate-fade-up">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/dashboard/projects" className="text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">
+        <Link href="/dashboard/projects" className="text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] transition-colors">
           <ArrowLeft size={18} />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('projects.newProject')}</h1>
-          <p className="text-[#183a1d]/60 text-sm">{t('projects.projectAnchored')}</p>
+          <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('projects.newProject')}</h1>
+          <p className="text-[var(--tulip-forest)]/60 text-sm">{t('projects.projectAnchored')}</p>
         </div>
       </div>
 
       <div className="space-y-4">
         {!savedProjectId ? (
-          <div className="rounded-xl border border-[#c8d6c0] p-6 space-y-5"
-            style={{ background: '#e1eedd' }}>
+          <div className="rounded-xl border border-[var(--tulip-sage-dark)] p-6 space-y-5"
+            style={{ background: 'var(--tulip-sage)' }}>
 
             <div>
               <label className={labelCls}>{t('projects.projectName')}</label>
@@ -103,11 +103,11 @@ export default function NewProjectPage() {
 
             <div className="flex items-center gap-3 pt-2">
               <button onClick={submit} disabled={saving}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-[#183a1d] disabled:opacity-50 transition-all bg-[#f6c453] hover:bg-[#f0a04b]">
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-[var(--tulip-forest)] disabled:opacity-50 transition-all bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)]">
                 <Save size={15} />
                 {saving ? t('common.creating') : t('projects.createProject')}
               </button>
-              <Link href="/dashboard/projects" className="px-5 py-2.5 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">
+              <Link href="/dashboard/projects" className="px-5 py-2.5 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] transition-colors">
                 {t('common.cancel')}
               </Link>
             </div>
@@ -124,11 +124,11 @@ export default function NewProjectPage() {
             <DocumentUploadSection entityType="project" entityId={savedProjectId} />
             <div className="flex items-center gap-3">
               <button onClick={() => router.push(`/dashboard/projects/${savedProjectId}`)}
-                className="px-5 py-2.5 rounded-lg text-sm font-medium text-[#183a1d] bg-[#f6c453] hover:bg-[#f0a04b]">
+                className="px-5 py-2.5 rounded-lg text-sm font-medium text-[var(--tulip-forest)] bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)]">
                 {t('projects.viewProject')}
               </button>
               <button onClick={() => router.push('/dashboard/projects/new')}
-                className="px-5 py-2.5 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">
+                className="px-5 py-2.5 rounded-lg text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] transition-colors">
                 {t('projects.createAnother')}
               </button>
             </div>

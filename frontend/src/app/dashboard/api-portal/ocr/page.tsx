@@ -31,7 +31,7 @@ interface OcrJob {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof Loader2 }> = {
-  pending:         { label: 'Pending',        color: 'text-[#183a1d]/60 bg-[#e1eedd] border-[#c8d6c0]',              icon: Clock },
+  pending:         { label: 'Pending',        color: 'text-[var(--tulip-forest)]/60 bg-[var(--tulip-sage)] border-[var(--tulip-sage-dark)]',              icon: Clock },
   processing:      { label: 'Processing',     color: 'text-blue-400 bg-blue-400/10 border-blue-400/20',      icon: Loader2 },
   extracting:      { label: 'Extracting',     color: 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20', icon: Loader2 },
   normalising:     { label: 'Normalising',    color: 'text-purple-400 bg-purple-400/10 border-purple-400/20', icon: Sparkles },
@@ -60,7 +60,7 @@ function RiskBadge({ level, score }: { level: string; score: number | null }) {
     high: 'bg-red-400/10 text-red-400 border-red-400/20',
   }
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase border ${map[level] ?? 'bg-[#e1eedd] text-[#183a1d]/60 border-[#c8d6c0]'}`}>
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase border ${map[level] ?? 'bg-[var(--tulip-sage)] text-[var(--tulip-forest)]/60 border-[var(--tulip-sage-dark)]'}`}>
       {level === 'high' && <AlertTriangle size={10} />}
       {level} risk{score != null ? ` · ${score}/100` : ''}
     </span>
@@ -207,17 +207,17 @@ export default function OcrPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#f6c453]">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[var(--tulip-gold)]">
               <ScanLine size={20} />
             </div>
             OCR Engine
           </h1>
-          <p className="text-[#183a1d]/60 text-sm mt-1">
+          <p className="text-[var(--tulip-forest)]/60 text-sm mt-1">
             Extract text from documents, normalise with AI, and generate compliance reports.
           </p>
         </div>
         <button onClick={fetchJobs}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#e1eedd] border border-[#c8d6c0] text-sm text-[#183a1d]/70 hover:text-[#183a1d] hover:bg-[#e1eedd] transition-all">
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] text-sm text-[var(--tulip-forest)]/70 hover:text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] transition-all">
           <RefreshCw size={14} />
           Refresh
         </button>
@@ -227,8 +227,8 @@ export default function OcrPage() {
       <div
         className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${
           dragActive
-            ? 'border-[#f6c453] bg-[#f6c453]/5'
-            : 'border-[#c8d6c0] hover:border-[#183a1d]/30 bg-[#e1eedd]'
+            ? 'border-[var(--tulip-gold)] bg-[var(--tulip-gold)]/5'
+            : 'border-[var(--tulip-sage-dark)] hover:border-[var(--tulip-forest)]/30 bg-[var(--tulip-sage)]'
         }`}
         onDragOver={(e) => { e.preventDefault(); setDragActive(true) }}
         onDragLeave={() => setDragActive(false)}
@@ -239,17 +239,17 @@ export default function OcrPage() {
 
         {uploading ? (
           <div className="flex flex-col items-center gap-3">
-            <Loader2 size={32} className="text-[#f6c453] animate-spin" />
-            <p className="text-[#183a1d]/70 text-sm">Uploading and starting OCR...</p>
+            <Loader2 size={32} className="text-[var(--tulip-gold)] animate-spin" />
+            <p className="text-[var(--tulip-forest)]/70 text-sm">Uploading and starting OCR...</p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-3">
-            <div className="w-14 h-14 rounded-2xl bg-[#f6c453]/10 flex items-center justify-center">
-              <Upload size={24} className="text-[#183a1d]" />
+            <div className="w-14 h-14 rounded-2xl bg-[var(--tulip-gold)]/10 flex items-center justify-center">
+              <Upload size={24} className="text-[var(--tulip-forest)]" />
             </div>
             <div>
-              <p className="text-[#183a1d] font-medium">Drop a document here or click to upload</p>
-              <p className="text-[#183a1d]/40 text-xs mt-1">PDF, JPG, PNG, TIFF, WEBP — up to 20MB</p>
+              <p className="text-[var(--tulip-forest)] font-medium">Drop a document here or click to upload</p>
+              <p className="text-[var(--tulip-forest)]/40 text-xs mt-1">PDF, JPG, PNG, TIFF, WEBP — up to 20MB</p>
             </div>
           </div>
         )}
@@ -265,17 +265,17 @@ export default function OcrPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Jobs list */}
         <div className="lg:col-span-1 space-y-3">
-          <h2 className="text-sm font-semibold text-[#183a1d]/60 uppercase tracking-wider">Jobs ({jobs.length})</h2>
+          <h2 className="text-sm font-semibold text-[var(--tulip-forest)]/60 uppercase tracking-wider">Jobs ({jobs.length})</h2>
 
           {loading && (
-            <div className="text-center py-8 text-[#183a1d]/40">
+            <div className="text-center py-8 text-[var(--tulip-forest)]/40">
               <Loader2 size={20} className="animate-spin mx-auto mb-2" />
               Loading...
             </div>
           )}
 
           {!loading && jobs.length === 0 && (
-            <div className="text-center py-8 text-[#183a1d]/40 text-sm">
+            <div className="text-center py-8 text-[var(--tulip-forest)]/40 text-sm">
               No OCR jobs yet. Upload a document to get started.
             </div>
           )}
@@ -286,14 +286,14 @@ export default function OcrPage() {
               onClick={() => setSelectedJob(job)}
               className={`w-full text-left p-4 rounded-xl border transition-all ${
                 selectedJob?.id === job.id
-                  ? 'bg-[#f6c453]/10 border-[#f6c453]/30'
-                  : 'bg-[#e1eedd] border-[#c8d6c0] hover:bg-[#e1eedd]/50'
+                  ? 'bg-[var(--tulip-gold)]/10 border-[var(--tulip-gold)]/30'
+                  : 'bg-[var(--tulip-sage)] border-[var(--tulip-sage-dark)] hover:bg-[var(--tulip-sage)]/50'
               }`}
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-[#183a1d] truncate">{job.originalFilename}</p>
-                  <p className="text-xs text-[#183a1d]/40 mt-0.5">
+                  <p className="text-sm font-medium text-[var(--tulip-forest)] truncate">{job.originalFilename}</p>
+                  <p className="text-xs text-[var(--tulip-forest)]/40 mt-0.5">
                     {new Date(job.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                     {' · '}{formatSize(job.fileSize)}
                   </p>
@@ -312,8 +312,8 @@ export default function OcrPage() {
         {/* Detail panel */}
         <div className="lg:col-span-2">
           {!selectedJob ? (
-            <div className="flex items-center justify-center h-64 rounded-2xl border border-[#c8d6c0] bg-[#e1eedd]">
-              <div className="text-center text-[#183a1d]/40">
+            <div className="flex items-center justify-center h-64 rounded-2xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]">
+              <div className="text-center text-[var(--tulip-forest)]/40">
                 <Eye size={32} className="mx-auto mb-2 opacity-40" />
                 <p className="text-sm">Select a job to view results</p>
               </div>
@@ -321,41 +321,41 @@ export default function OcrPage() {
           ) : (
             <div className="space-y-4">
               {/* Job header */}
-              <div className="p-5 rounded-2xl border border-[#c8d6c0] bg-[#e1eedd]">
+              <div className="p-5 rounded-2xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-lg truncate pr-3">{selectedJob.originalFilename}</h3>
                   <StatusBadge status={selectedJob.status} />
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                   <div>
-                    <span className="text-[#183a1d]/40">Type</span>
-                    <p className="text-[#183a1d] mt-0.5">{selectedJob.documentType || selectedJob.fileType || '—'}</p>
+                    <span className="text-[var(--tulip-forest)]/40">Type</span>
+                    <p className="text-[var(--tulip-forest)] mt-0.5">{selectedJob.documentType || selectedJob.fileType || '—'}</p>
                   </div>
                   <div>
-                    <span className="text-[#183a1d]/40">Size</span>
-                    <p className="text-[#183a1d] mt-0.5">{formatSize(selectedJob.fileSize)}</p>
+                    <span className="text-[var(--tulip-forest)]/40">Size</span>
+                    <p className="text-[var(--tulip-forest)] mt-0.5">{formatSize(selectedJob.fileSize)}</p>
                   </div>
                   <div>
-                    <span className="text-[#183a1d]/40">Language</span>
-                    <p className="text-[#183a1d] mt-0.5 uppercase">{selectedJob.detectedLanguage || '—'}</p>
+                    <span className="text-[var(--tulip-forest)]/40">Language</span>
+                    <p className="text-[var(--tulip-forest)] mt-0.5 uppercase">{selectedJob.detectedLanguage || '—'}</p>
                   </div>
                   <div>
-                    <span className="text-[#183a1d]/40">Confidence</span>
-                    <p className="text-[#183a1d] mt-0.5">{selectedJob.confidence != null ? `${selectedJob.confidence}%` : '—'}</p>
+                    <span className="text-[var(--tulip-forest)]/40">Confidence</span>
+                    <p className="text-[var(--tulip-forest)] mt-0.5">{selectedJob.confidence != null ? `${selectedJob.confidence}%` : '—'}</p>
                   </div>
                 </div>
 
                 {/* Hash */}
                 {selectedJob.hashValue && (
-                  <div className="mt-3 p-3 rounded-lg bg-[#e1eedd] border border-[#c8d6c0]">
+                  <div className="mt-3 p-3 rounded-lg bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)]">
                     <div className="flex items-center gap-2 text-xs">
-                      <Hash size={12} className="text-[#183a1d]" />
-                      <span className="text-[#183a1d]/40">SHA-256</span>
-                      <code className="text-[#183a1d]/60 font-mono text-[11px] break-all">{selectedJob.hashValue}</code>
+                      <Hash size={12} className="text-[var(--tulip-forest)]" />
+                      <span className="text-[var(--tulip-forest)]/40">SHA-256</span>
+                      <code className="text-[var(--tulip-forest)]/60 font-mono text-[11px] break-all">{selectedJob.hashValue}</code>
                     </div>
                     {selectedJob.anchorTxHash && (
                       <div className="flex items-center gap-2 text-xs mt-1">
-                        <span className="text-[#183a1d]/40 ml-5">Polygon TX</span>
+                        <span className="text-[var(--tulip-forest)]/40 ml-5">Polygon TX</span>
                         <code className="text-green-400/70 font-mono text-[11px]">{selectedJob.anchorTxHash}</code>
                       </div>
                     )}
@@ -366,7 +366,7 @@ export default function OcrPage() {
                 {selectedJob.normalisedPdfS3 && (
                   <button
                     onClick={() => handleDownloadPdf(selectedJob.id)}
-                    className="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] transition-all hover:opacity-90 bg-[#f6c453] hover:bg-[#f0a04b]"
+                    className="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-forest)] transition-all hover:opacity-90 bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)]"
                   >
                     <Download size={14} />
                     Download Normalised PDF
@@ -376,18 +376,18 @@ export default function OcrPage() {
 
               {/* Original document preview */}
               {selectedJob.status === 'completed' && (
-                <div className="p-5 rounded-2xl border border-[#c8d6c0] bg-[#e1eedd]">
-                  <h4 className="font-semibold text-sm text-[#183a1d]/70 uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <Eye size={14} className="text-[#183a1d]" />
+                <div className="p-5 rounded-2xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]">
+                  <h4 className="font-semibold text-sm text-[var(--tulip-forest)]/70 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <Eye size={14} className="text-[var(--tulip-forest)]" />
                     Original Document
                   </h4>
                   {docPreviewLoading ? (
                     <div className="flex items-center justify-center py-12">
-                      <Loader2 size={20} className="animate-spin text-[#f6c453]" />
-                      <span className="ml-3 text-sm text-[#183a1d]/60">Loading preview...</span>
+                      <Loader2 size={20} className="animate-spin text-[var(--tulip-gold)]" />
+                      <span className="ml-3 text-sm text-[var(--tulip-forest)]/60">Loading preview...</span>
                     </div>
                   ) : docPreviewUrl ? (
-                    <div className="rounded-xl overflow-hidden border border-[#c8d6c0] bg-[#e1eedd]">
+                    <div className="rounded-xl overflow-hidden border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]">
                       {selectedJob.originalFilename.match(/\.(jpg|jpeg|png|gif|webp|tif|tiff)$/i) ? (
                         <img src={docPreviewUrl} alt={selectedJob.originalFilename} className="max-h-[400px] w-full object-contain" />
                       ) : (
@@ -395,7 +395,7 @@ export default function OcrPage() {
                       )}
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center py-8 text-sm text-[#183a1d]/40">
+                    <div className="flex items-center justify-center py-8 text-sm text-[var(--tulip-forest)]/40">
                       Preview not available
                     </div>
                   )}
@@ -404,8 +404,8 @@ export default function OcrPage() {
 
               {/* Risk assessment */}
               {selectedJob.assessmentResult && (
-                <div className="p-5 rounded-2xl border border-[#c8d6c0] bg-[#e1eedd]">
-                  <h4 className="font-semibold text-sm text-[#183a1d]/70 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <div className="p-5 rounded-2xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]">
+                  <h4 className="font-semibold text-sm text-[var(--tulip-forest)]/70 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <AlertTriangle size={14} className="text-yellow-400" />
                     Risk Assessment
                   </h4>
@@ -413,24 +413,24 @@ export default function OcrPage() {
                     <RiskBadge level={selectedJob.assessmentResult} score={selectedJob.assessmentScore} />
                   </div>
                   {selectedJob.assessmentNotes ? (
-                    <p className="text-sm text-[#183a1d]/70">{selectedJob.assessmentNotes}</p>
+                    <p className="text-sm text-[var(--tulip-forest)]/70">{selectedJob.assessmentNotes}</p>
                   ) : null}
 
                   {/* Flags */}
                   {Array.isArray(flags) && flags.length > 0 ? (
                     <div className="mt-4 space-y-2">
-                      <span className="text-[#183a1d]/40 text-xs uppercase tracking-wider">Flags</span>
+                      <span className="text-[var(--tulip-forest)]/40 text-xs uppercase tracking-wider">Flags</span>
                       {flags.map((flag, i) => {
-                        const sevColor = flag.severity === 'high' ? 'text-red-400' : flag.severity === 'medium' ? 'text-yellow-400' : 'text-[#183a1d]/60'
+                        const sevColor = flag.severity === 'high' ? 'text-red-400' : flag.severity === 'medium' ? 'text-yellow-400' : 'text-[var(--tulip-forest)]/60'
                         return (
-                          <div key={i} className="p-3 rounded-lg bg-[#e1eedd] border border-[#c8d6c0]">
+                          <div key={i} className="p-3 rounded-lg bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)]">
                             <div className="flex items-center gap-2">
                               <span className={`text-[10px] font-bold uppercase ${sevColor}`}>{flag.severity}</span>
-                              <span className="text-xs text-[#183a1d]/60">{flag.field}</span>
+                              <span className="text-xs text-[var(--tulip-forest)]/60">{flag.field}</span>
                             </div>
-                            <p className="text-sm text-[#183a1d] mt-1">{flag.issue}</p>
+                            <p className="text-sm text-[var(--tulip-forest)] mt-1">{flag.issue}</p>
                             {flag.recommendation ? (
-                              <p className="text-xs text-[#183a1d]/60 mt-1">{'→ '}{flag.recommendation}</p>
+                              <p className="text-xs text-[var(--tulip-forest)]/60 mt-1">{'→ '}{flag.recommendation}</p>
                             ) : null}
                           </div>
                         )
@@ -442,62 +442,62 @@ export default function OcrPage() {
 
               {/* Normalised data */}
               {norm && (
-                <div className="p-5 rounded-2xl border border-[#c8d6c0] bg-[#e1eedd]">
-                  <h4 className="font-semibold text-sm text-[#183a1d]/70 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <div className="p-5 rounded-2xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]">
+                  <h4 className="font-semibold text-sm text-[var(--tulip-forest)]/70 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <Sparkles size={14} className="text-purple-400" />
                     Extracted Document Data
                   </h4>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     {norm.documentNumber ? (
                       <div>
-                        <span className="text-[#183a1d]/40 text-xs">Doc Number</span>
-                        <p className="text-[#183a1d]">{String(norm.documentNumber)}</p>
+                        <span className="text-[var(--tulip-forest)]/40 text-xs">Doc Number</span>
+                        <p className="text-[var(--tulip-forest)]">{String(norm.documentNumber)}</p>
                       </div>
                     ) : null}
                     {norm.documentDate ? (
                       <div>
-                        <span className="text-[#183a1d]/40 text-xs">Date</span>
-                        <p className="text-[#183a1d]">{String(norm.documentDate)}</p>
+                        <span className="text-[var(--tulip-forest)]/40 text-xs">Date</span>
+                        <p className="text-[var(--tulip-forest)]">{String(norm.documentDate)}</p>
                       </div>
                     ) : null}
                     {norm.currency ? (
                       <div>
-                        <span className="text-[#183a1d]/40 text-xs">Currency</span>
-                        <p className="text-[#183a1d]">{String(norm.currency)}</p>
+                        <span className="text-[var(--tulip-forest)]/40 text-xs">Currency</span>
+                        <p className="text-[var(--tulip-forest)]">{String(norm.currency)}</p>
                       </div>
                     ) : null}
                     {norm.total != null ? (
                       <div>
-                        <span className="text-[#183a1d]/40 text-xs">Total</span>
-                        <p className="text-[#183a1d] font-mono">{String(norm.currency || '')} {Number(norm.total).toLocaleString()}</p>
+                        <span className="text-[var(--tulip-forest)]/40 text-xs">Total</span>
+                        <p className="text-[var(--tulip-forest)] font-mono">{String(norm.currency || '')} {Number(norm.total).toLocaleString()}</p>
                       </div>
                     ) : null}
                     {norm.vendor ? (
                       <div>
-                        <span className="text-[#183a1d]/40 text-xs">Vendor</span>
-                        <p className="text-[#183a1d]">{String((norm.vendor as Record<string, unknown>)?.name || '—')}</p>
+                        <span className="text-[var(--tulip-forest)]/40 text-xs">Vendor</span>
+                        <p className="text-[var(--tulip-forest)]">{String((norm.vendor as Record<string, unknown>)?.name || '—')}</p>
                       </div>
                     ) : null}
                     {norm.buyer ? (
                       <div>
-                        <span className="text-[#183a1d]/40 text-xs">Buyer</span>
-                        <p className="text-[#183a1d]">{String((norm.buyer as Record<string, unknown>)?.name || '—')}</p>
+                        <span className="text-[var(--tulip-forest)]/40 text-xs">Buyer</span>
+                        <p className="text-[var(--tulip-forest)]">{String((norm.buyer as Record<string, unknown>)?.name || '—')}</p>
                       </div>
                     ) : null}
                     {norm.paymentTerms ? (
                       <div className="col-span-2">
-                        <span className="text-[#183a1d]/40 text-xs">Payment Terms</span>
-                        <p className="text-[#183a1d]/70">{String(norm.paymentTerms)}</p>
+                        <span className="text-[var(--tulip-forest)]/40 text-xs">Payment Terms</span>
+                        <p className="text-[var(--tulip-forest)]/70">{String(norm.paymentTerms)}</p>
                       </div>
                     ) : null}
                     {Array.isArray(norm.lineItems) && norm.lineItems.length > 0 ? (
                       <div className="col-span-2">
-                        <span className="text-[#183a1d]/40 text-xs">Line Items ({norm.lineItems.length})</span>
+                        <span className="text-[var(--tulip-forest)]/40 text-xs">Line Items ({norm.lineItems.length})</span>
                         <div className="mt-2 space-y-1">
                           {(norm.lineItems as Array<Record<string, unknown>>).slice(0, 10).map((item, i) => (
-                            <div key={i} className="flex justify-between text-xs p-2 rounded bg-[#e1eedd]">
-                              <span className="text-[#183a1d]/70 truncate flex-1">{String(item.description || '—')}</span>
-                              <span className="text-[#183a1d] font-mono ml-4">
+                            <div key={i} className="flex justify-between text-xs p-2 rounded bg-[var(--tulip-sage)]">
+                              <span className="text-[var(--tulip-forest)]/70 truncate flex-1">{String(item.description || '—')}</span>
+                              <span className="text-[var(--tulip-forest)] font-mono ml-4">
                                 {item.total != null ? `${norm.currency || ''} ${Number(item.total).toLocaleString()}` : '—'}
                               </span>
                             </div>
@@ -511,11 +511,11 @@ export default function OcrPage() {
 
               {/* Raw text */}
               {selectedJob.rawText && (
-                <details className="rounded-2xl border border-[#c8d6c0] bg-[#e1eedd] overflow-hidden">
-                  <summary className="px-5 py-3 cursor-pointer text-sm font-medium text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">
+                <details className="rounded-2xl border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] overflow-hidden">
+                  <summary className="px-5 py-3 cursor-pointer text-sm font-medium text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] transition-colors">
                     Raw Extracted Text
                   </summary>
-                  <pre className="px-5 pb-4 text-xs text-[#183a1d]/60 whitespace-pre-wrap font-mono max-h-64 overflow-y-auto">
+                  <pre className="px-5 pb-4 text-xs text-[var(--tulip-forest)]/60 whitespace-pre-wrap font-mono max-h-64 overflow-y-auto">
                     {selectedJob.rawText.slice(0, 5000)}
                     {selectedJob.rawText.length > 5000 && '\n\n... (truncated)'}
                   </pre>

@@ -811,7 +811,7 @@ function VerifyPageInner() {
             <div className="space-y-4">
 
               {/* ── Record info card ── */}
-              <div className="rounded-2xl border border-gray-200 overflow-hidden" style={{ background: '#FFFFFF' }}>
+              <div className="rounded-2xl border border-gray-200 overflow-hidden" style={{ background: 'var(--bg-card)' }}>
                 <div className="p-5 sm:p-6">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
@@ -907,7 +907,7 @@ function VerifyPageInner() {
 
               {/* ── Per-page verification ── */}
               {result.pageHashes && Array.isArray(result.pageHashes) && result.pageHashes.length > 0 && (
-                <div className="rounded-2xl border border-gray-200 overflow-hidden" style={{ background: '#FFFFFF' }}>
+                <div className="rounded-2xl border border-gray-200 overflow-hidden" style={{ background: 'var(--bg-card)' }}>
                   <div className="p-5 sm:p-6">
                     <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">{t('verify.pageIntegrity')}</p>
                     {pageVerifying ? (
@@ -972,7 +972,7 @@ function VerifyPageInner() {
               </div>
 
               {/* ── Advanced / Technical section ── */}
-              <div className="rounded-2xl border border-gray-200 overflow-hidden" style={{ background: '#FFFFFF' }}>
+              <div className="rounded-2xl border border-gray-200 overflow-hidden" style={{ background: 'var(--bg-card)' }}>
                 <button onClick={() => setShowAdvanced(!showAdvanced)}
                   className="w-full flex items-center justify-between px-5 sm:px-6 py-4 text-left hover:bg-white transition-colors">
                   <span className="text-gray-500 text-sm font-medium">{t('verify.technicalDetails')}</span>

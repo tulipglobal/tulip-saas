@@ -62,29 +62,29 @@ export default function LanguageSwitcher() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm hover:bg-[#e1eedd] border border-transparent hover:border-[#c8d6c0] transition-all"
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm hover:bg-[var(--tulip-sage)] border border-transparent hover:border-[var(--tulip-sage-dark)] transition-all"
       >
         <span>{currentLang.flag}</span>
-        <span className="font-medium text-[#183a1d]/70">{currentLang.label}</span>
-        <svg className="w-3 h-3 text-[#183a1d]/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <span className="font-medium text-[var(--tulip-forest)]/70">{currentLang.label}</span>
+        <svg className="w-3 h-3 text-[var(--tulip-forest)]/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-1 w-44 bg-[#fefbe9] rounded-lg shadow-lg border border-[#c8d6c0] z-50">
+        <div className="absolute right-0 mt-1 w-44 bg-[var(--tulip-cream)] rounded-lg shadow-lg border border-[var(--tulip-sage-dark)] z-50">
           {languages.map(lang => (
             <button
               key={lang.code}
               onClick={() => switchLanguage(lang.code)}
-              className={`w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-[#e1eedd] first:rounded-t-lg last:rounded-b-lg transition-colors ${
-                current === lang.code ? 'bg-[#e1eedd] text-[#183a1d] font-medium' : 'text-[#183a1d]/70'
+              className={`w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-[var(--tulip-sage)] first:rounded-t-lg last:rounded-b-lg transition-colors ${
+                current === lang.code ? 'bg-[var(--tulip-sage)] text-[var(--tulip-forest)] font-medium' : 'text-[var(--tulip-forest)]/70'
               }`}
             >
               <span className="text-base">{lang.flag}</span>
               <span>{t('language.' + lang.code)}</span>
               {current === lang.code && (
-                <svg className="w-4 h-4 ml-auto text-[#183a1d]" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-4 h-4 ml-auto text-[var(--tulip-forest)]" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
               )}

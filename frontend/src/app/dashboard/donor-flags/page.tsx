@@ -90,40 +90,40 @@ function RespondModal({ challenge, onClose, onSuccess }: { challenge: Challenge;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div ref={modalRef} className="bg-[#fefbe9] rounded-2xl border border-[#c8d6c0] shadow-xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col overflow-hidden">
+      <div ref={modalRef} className="bg-[var(--tulip-cream)] rounded-2xl border border-[var(--tulip-sage-dark)] shadow-xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-[#c8d6c0] flex items-center justify-between">
-          <h2 className="text-lg font-bold text-[#183a1d]">Respond to Donor Flag</h2>
-          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#e1eedd] text-[#183a1d]"><X size={18} /></button>
+        <div className="px-6 py-4 border-b border-[var(--tulip-sage-dark)] flex items-center justify-between">
+          <h2 className="text-lg font-bold text-[var(--tulip-forest)]">Respond to Donor Flag</h2>
+          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[var(--tulip-sage)] text-[var(--tulip-forest)]"><X size={18} /></button>
         </div>
 
         <div className="overflow-y-auto p-6 space-y-5">
           {/* Donor's flag */}
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide mb-2 text-[#183a1d]/60">The donor&apos;s flag</p>
+            <p className="text-xs font-medium uppercase tracking-wide mb-2 text-[var(--tulip-forest)]/60">The donor&apos;s flag</p>
             <div className="rounded-xl px-4 py-3 bg-amber-50 border border-amber-200">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-semibold text-amber-700">{challenge.donorOrg?.name || 'Donor'}</span>
-                <span className="text-xs text-[#183a1d]/50">{fmtDate(challenge.createdAt)}</span>
+                <span className="text-xs text-[var(--tulip-forest)]/50">{fmtDate(challenge.createdAt)}</span>
               </div>
-              <p className="text-sm text-[#183a1d]">{challenge.note}</p>
+              <p className="text-sm text-[var(--tulip-forest)]">{challenge.note}</p>
             </div>
           </div>
 
           {/* Previous responses */}
           {challenge.responses.length > 0 && (
             <div>
-              <p className="text-xs font-medium uppercase tracking-wide mb-2 text-[#183a1d]/60">Previous responses</p>
+              <p className="text-xs font-medium uppercase tracking-wide mb-2 text-[var(--tulip-forest)]/60">Previous responses</p>
               <div className="space-y-2">
                 {challenge.responses.map(r => (
-                  <div key={r.id} className="rounded-xl px-4 py-3 border border-[#c8d6c0] bg-[#e1eedd]">
+                  <div key={r.id} className="rounded-xl px-4 py-3 border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-semibold text-[#183a1d]">
+                      <span className="text-xs font-semibold text-[var(--tulip-forest)]">
                         {r.respondedByType === 'NGO' ? 'Your response' : 'Donor'} — {r.action === 'EXPLAIN' ? 'Explanation' : r.action === 'VOID_REQUESTED' ? 'Void offered' : r.action === 'CONFIRM' ? 'Confirmed' : r.action === 'ESCALATE' ? 'Re-flagged' : r.action}
                       </span>
-                      <span className="text-xs text-[#183a1d]/50">{fmtDate(r.createdAt)}</span>
+                      <span className="text-xs text-[var(--tulip-forest)]/50">{fmtDate(r.createdAt)}</span>
                     </div>
-                    <p className="text-sm text-[#183a1d]">{r.note}</p>
+                    <p className="text-sm text-[var(--tulip-forest)]">{r.note}</p>
                   </div>
                 ))}
               </div>
@@ -132,44 +132,44 @@ function RespondModal({ challenge, onClose, onSuccess }: { challenge: Challenge;
 
           {/* Your response */}
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide mb-3 text-[#183a1d]/60">Your response</p>
+            <p className="text-xs font-medium uppercase tracking-wide mb-3 text-[var(--tulip-forest)]/60">Your response</p>
 
             <div className="space-y-3">
               <label className="flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all"
-                style={{ borderColor: action === 'EXPLAIN' ? '#f6c453' : '#c8d6c0', background: action === 'EXPLAIN' ? '#fefbe9' : 'transparent' }}>
+                style={{ borderColor: action === 'EXPLAIN' ? 'var(--tulip-gold)' : 'var(--tulip-sage-dark)', background: action === 'EXPLAIN' ? 'var(--tulip-cream)' : 'transparent' }}>
                 <input type="radio" name="action" checked={action === 'EXPLAIN'} onChange={() => setAction('EXPLAIN')}
-                  className="mt-0.5 accent-[#f6c453]" />
+                  className="mt-0.5 accent-[var(--tulip-gold)]" />
                 <div>
-                  <p className="text-sm font-medium text-[#183a1d]">Provide explanation</p>
-                  <p className="text-xs text-[#183a1d]/60">I will keep this expense and explain why it is valid</p>
+                  <p className="text-sm font-medium text-[var(--tulip-forest)]">Provide explanation</p>
+                  <p className="text-xs text-[var(--tulip-forest)]/60">I will keep this expense and explain why it is valid</p>
                 </div>
               </label>
 
               <label className="flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all"
-                style={{ borderColor: action === 'VOID_REQUESTED' ? '#f6c453' : '#c8d6c0', background: action === 'VOID_REQUESTED' ? '#fefbe9' : 'transparent' }}>
+                style={{ borderColor: action === 'VOID_REQUESTED' ? 'var(--tulip-gold)' : 'var(--tulip-sage-dark)', background: action === 'VOID_REQUESTED' ? 'var(--tulip-cream)' : 'transparent' }}>
                 <input type="radio" name="action" checked={action === 'VOID_REQUESTED'} onChange={() => setAction('VOID_REQUESTED')}
-                  className="mt-0.5 accent-[#f6c453]" />
+                  className="mt-0.5 accent-[var(--tulip-gold)]" />
                 <div>
-                  <p className="text-sm font-medium text-[#183a1d]">Offer to void</p>
-                  <p className="text-xs text-[#183a1d]/60">I will remove this expense from the project</p>
+                  <p className="text-sm font-medium text-[var(--tulip-forest)]">Offer to void</p>
+                  <p className="text-xs text-[var(--tulip-forest)]/60">I will remove this expense from the project</p>
                 </div>
               </label>
             </div>
 
             <textarea value={note} onChange={e => setNote(e.target.value.slice(0, 500))} rows={3}
-              className="w-full mt-3 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all"
+              className="w-full mt-3 bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] transition-all"
               placeholder="Your response to the donor..." />
             <div className="flex justify-between mt-1">
-              <span className="text-xs text-[#183a1d]/40">{note.length}/500</span>
+              <span className="text-xs text-[var(--tulip-forest)]/40">{note.length}/500</span>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-[#c8d6c0] flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] hover:bg-[#e1eedd] transition-all">Cancel</button>
+        <div className="px-6 py-4 border-t border-[var(--tulip-sage-dark)] flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] transition-all">Cancel</button>
           <button onClick={handleSubmit} disabled={submitting || !note.trim()}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50 transition-all">
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] disabled:opacity-50 transition-all">
             <Send size={14} />
             {submitting ? 'Sending...' : 'Send Response'}
           </button>
@@ -220,9 +220,9 @@ export default function DonorFlagsPage() {
   if (loading) {
     return (
       <div className="p-6 space-y-6 animate-fade-up">
-        <div className="h-8 w-48 rounded bg-[#e1eedd] animate-pulse" />
-        <div className="h-10 w-full rounded-xl bg-[#e1eedd] animate-pulse" />
-        {[1,2,3].map(i => <div key={i} className="h-16 w-full rounded-xl bg-[#e1eedd] animate-pulse" />)}
+        <div className="h-8 w-48 rounded bg-[var(--tulip-sage)] animate-pulse" />
+        <div className="h-10 w-full rounded-xl bg-[var(--tulip-sage)] animate-pulse" />
+        {[1,2,3].map(i => <div key={i} className="h-16 w-full rounded-xl bg-[var(--tulip-sage)] animate-pulse" />)}
       </div>
     )
   }
@@ -231,38 +231,38 @@ export default function DonorFlagsPage() {
     <div className="p-4 md:p-6 space-y-6 animate-fade-up">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-[#183a1d]">Donor Flags</h1>
-        <p className="text-sm text-[#183a1d]/60 mt-1">Expenses flagged by your donors for review</p>
+        <h1 className="text-2xl font-bold text-[var(--tulip-forest)]">Donor Flags</h1>
+        <p className="text-sm text-[var(--tulip-forest)]/60 mt-1">Expenses flagged by your donors for review</p>
       </div>
 
       {/* Summary stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="rounded-xl border border-[#c8d6c0] px-4 py-3 bg-[#e1eedd]">
-          <p className="text-xs text-[#183a1d]/60">Open</p>
+        <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-4 py-3 bg-[var(--tulip-sage)]">
+          <p className="text-xs text-[var(--tulip-forest)]/60">Open</p>
           <p className="text-xl font-bold text-amber-600">{counts.open}</p>
         </div>
-        <div className="rounded-xl border border-[#c8d6c0] px-4 py-3 bg-[#e1eedd]">
-          <p className="text-xs text-[#183a1d]/60">Responded</p>
+        <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-4 py-3 bg-[var(--tulip-sage)]">
+          <p className="text-xs text-[var(--tulip-forest)]/60">Responded</p>
           <p className="text-xl font-bold text-blue-600">{counts.responded}</p>
         </div>
-        <div className="rounded-xl border border-[#c8d6c0] px-4 py-3 bg-[#e1eedd]">
-          <p className="text-xs text-[#183a1d]/60">Escalated</p>
+        <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-4 py-3 bg-[var(--tulip-sage)]">
+          <p className="text-xs text-[var(--tulip-forest)]/60">Escalated</p>
           <p className="text-xl font-bold text-red-600">{counts.escalated}</p>
         </div>
-        <div className="rounded-xl border border-[#c8d6c0] px-4 py-3 bg-[#e1eedd]">
-          <p className="text-xs text-[#183a1d]/60">Resolved</p>
+        <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-4 py-3 bg-[var(--tulip-sage)]">
+          <p className="text-xs text-[var(--tulip-forest)]/60">Resolved</p>
           <p className="text-xl font-bold text-green-600">{counts.confirmed}</p>
         </div>
       </div>
 
       {/* Filter tabs */}
-      <div className="flex gap-1 rounded-lg p-1 bg-[#e1eedd]">
+      <div className="flex gap-1 rounded-lg p-1 bg-[var(--tulip-sage)]">
         {tabs.map(tab => (
           <button key={tab.key} onClick={() => setFilter(tab.key)}
             className="px-3 py-1.5 rounded-md text-xs font-medium transition-all"
             style={{
-              background: filter === tab.key ? '#fefbe9' : 'transparent',
-              color: filter === tab.key ? '#183a1d' : '#183a1d99',
+              background: filter === tab.key ? 'var(--tulip-cream)' : 'transparent',
+              color: filter === tab.key ? 'var(--tulip-forest)' : 'var(--text-secondary)',
               boxShadow: filter === tab.key ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
             }}>
             {tab.label}{tab.count !== null ? ` (${tab.count})` : ''}
@@ -271,49 +271,49 @@ export default function DonorFlagsPage() {
       </div>
 
       {/* Table */}
-      <div className="rounded-2xl border border-[#c8d6c0] overflow-hidden bg-[#fefbe9]">
+      <div className="rounded-2xl border border-[var(--tulip-sage-dark)] overflow-hidden bg-[var(--tulip-cream)]">
         {filtered.length === 0 ? (
           <div className="px-6 py-12 text-center">
-            <Flag size={32} className="mx-auto mb-3 text-[#183a1d]/20" />
-            <p className="text-sm text-[#183a1d]/50">No flags in this category.</p>
+            <Flag size={32} className="mx-auto mb-3 text-[var(--tulip-forest)]/20" />
+            <p className="text-sm text-[var(--tulip-forest)]/50">No flags in this category.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[#c8d6c0]">
-                  <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wide text-[#183a1d]/50">Project</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wide text-[#183a1d]/50">Expense</th>
-                  <th className="text-right px-4 py-3 text-xs font-medium uppercase tracking-wide text-[#183a1d]/50">Amount</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wide text-[#183a1d]/50">Donor Org</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wide text-[#183a1d]/50">Flagged</th>
-                  <th className="text-center px-4 py-3 text-xs font-medium uppercase tracking-wide text-[#183a1d]/50">Status</th>
-                  <th className="text-center px-4 py-3 text-xs font-medium uppercase tracking-wide text-[#183a1d]/50">Action</th>
+                <tr className="border-b border-[var(--tulip-sage-dark)]">
+                  <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/50">Project</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/50">Expense</th>
+                  <th className="text-right px-4 py-3 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/50">Amount</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/50">Donor Org</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/50">Flagged</th>
+                  <th className="text-center px-4 py-3 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/50">Status</th>
+                  <th className="text-center px-4 py-3 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/50">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map(c => (
-                  <tr key={c.id} className="border-b border-[#c8d6c0] last:border-0 hover:bg-[#e1eedd]/50 transition-all">
-                    <td className="px-4 py-3 font-medium text-[#183a1d]">{c.project?.name || '—'}</td>
-                    <td className="px-4 py-3 text-[#183a1d]">
+                  <tr key={c.id} className="border-b border-[var(--tulip-sage-dark)] last:border-0 hover:bg-[var(--tulip-sage)]/50 transition-all">
+                    <td className="px-4 py-3 font-medium text-[var(--tulip-forest)]">{c.project?.name || '—'}</td>
+                    <td className="px-4 py-3 text-[var(--tulip-forest)]">
                       {c.expense?.vendor || '—'}
-                      <span className="block text-xs text-[#183a1d]/50">{fmtDate(c.expense?.expenseDate)}</span>
+                      <span className="block text-xs text-[var(--tulip-forest)]/50">{fmtDate(c.expense?.expenseDate)}</span>
                     </td>
-                    <td className="px-4 py-3 text-right font-mono text-[#183a1d]">
+                    <td className="px-4 py-3 text-right font-mono text-[var(--tulip-forest)]">
                       {c.expense?.currency || 'USD'} {(c.expense?.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </td>
-                    <td className="px-4 py-3 text-[#183a1d]">{c.donorOrg?.name || '—'}</td>
-                    <td className="px-4 py-3 text-[#183a1d]/70" title={fmtDate(c.createdAt)}>{timeAgo(c.createdAt)}</td>
+                    <td className="px-4 py-3 text-[var(--tulip-forest)]">{c.donorOrg?.name || '—'}</td>
+                    <td className="px-4 py-3 text-[var(--tulip-forest)]/70" title={fmtDate(c.createdAt)}>{timeAgo(c.createdAt)}</td>
                     <td className="px-4 py-3 text-center"><StatusPill status={c.status} /></td>
                     <td className="px-4 py-3 text-center">
                       {['OPEN', 'ESCALATED'].includes(c.status) ? (
                         <button onClick={() => setRespondChallenge(c)}
-                          className="px-3 py-1 rounded-lg text-xs font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] transition-all">
+                          className="px-3 py-1 rounded-lg text-xs font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] transition-all">
                           Respond
                         </button>
                       ) : (
                         <button onClick={() => setRespondChallenge(c)}
-                          className="text-xs text-[#183a1d]/50 hover:underline">View</button>
+                          className="text-xs text-[var(--tulip-forest)]/50 hover:underline">View</button>
                       )}
                     </td>
                   </tr>

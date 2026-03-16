@@ -33,11 +33,11 @@ export default async function OGImage() {
               width: '64px',
               height: '64px',
               borderRadius: '16px',
-              background: '#f6c453',
+              background: 'var(--tulip-gold)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#183a1d',
+              color: 'var(--tulip-forest)',
               fontSize: '28px',
               fontWeight: 800,
             }}
@@ -46,7 +46,7 @@ export default async function OGImage() {
           </div>
           <span style={{ color: 'white', fontSize: '48px', fontWeight: 800 }}>
             tulip
-            <span style={{ color: '#f6c453' }}>ds</span>
+            <span style={{ color: 'var(--tulip-gold)' }}>ds</span>
           </span>
         </div>
         <div
@@ -63,7 +63,7 @@ export default async function OGImage() {
         </div>
         <div
           style={{
-            color: '#e1eedd',
+            color: 'var(--tulip-sage)',
             fontSize: '20px',
             marginTop: '20px',
             textAlign: 'center',

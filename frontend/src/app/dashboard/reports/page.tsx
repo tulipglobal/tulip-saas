@@ -475,20 +475,20 @@ export default function ReportsPage() {
     <div className="p-4 md:p-8 max-w-[1400px] mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#183a1d]">Reports</h1>
-        <p className="text-sm text-[#183a1d]/60 mt-1">Generate, manage and share project reports</p>
+        <h1 className="text-2xl font-bold text-[var(--tulip-forest)]">Reports</h1>
+        <p className="text-sm text-[var(--tulip-forest)]/60 mt-1">Generate, manage and share project reports</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-[#e1eedd] rounded-lg p-1 w-fit">
+      <div className="flex gap-1 mb-6 bg-[var(--tulip-sage)] rounded-lg p-1 w-fit">
         {(['generated', 'scheduled', 'templates'] as const).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-all capitalize ${
               activeTab === tab
-                ? 'bg-[#183a1d] text-[#fefbe9] shadow-sm'
-                : 'text-[#183a1d]/70 hover:text-[#183a1d] hover:bg-[#fefbe9]/50'
+                ? 'bg-[var(--tulip-forest)] text-[var(--tulip-cream)] shadow-sm'
+                : 'text-[var(--tulip-forest)]/70 hover:text-[var(--tulip-forest)] hover:bg-[var(--tulip-cream)]/50'
             }`}
           >
             {tab}
@@ -502,28 +502,28 @@ export default function ReportsPage() {
       {activeTab === 'generated' && (
         <>
           {/* Generate Report Section (collapsible) */}
-          <div className="mb-6 border border-[#c8d6c0] rounded-xl bg-[#fefbe9] overflow-hidden">
+          <div className="mb-6 border border-[var(--tulip-sage-dark)] rounded-xl bg-[var(--tulip-cream)] overflow-hidden">
             <button
               onClick={() => setGenerateOpen(!generateOpen)}
-              className="w-full flex items-center justify-between px-5 py-4 hover:bg-[#e1eedd]/50 transition-colors"
+              className="w-full flex items-center justify-between px-5 py-4 hover:bg-[var(--tulip-sage)]/50 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-[#183a1d] flex items-center justify-center">
-                  <Plus size={16} className="text-[#f6c453]" />
+                <div className="w-9 h-9 rounded-lg bg-[var(--tulip-forest)] flex items-center justify-center">
+                  <Plus size={16} className="text-[var(--tulip-gold)]" />
                 </div>
                 <div className="text-left">
-                  <div className="text-sm font-semibold text-[#183a1d]">Generate Report</div>
-                  <div className="text-xs text-[#183a1d]/50">Create a new report from templates</div>
+                  <div className="text-sm font-semibold text-[var(--tulip-forest)]">Generate Report</div>
+                  <div className="text-xs text-[var(--tulip-forest)]/50">Create a new report from templates</div>
                 </div>
               </div>
-              {generateOpen ? <ChevronUp size={18} className="text-[#183a1d]/40" /> : <ChevronDown size={18} className="text-[#183a1d]/40" />}
+              {generateOpen ? <ChevronUp size={18} className="text-[var(--tulip-forest)]/40" /> : <ChevronDown size={18} className="text-[var(--tulip-forest)]/40" />}
             </button>
 
             {generateOpen && (
-              <div className="px-5 pb-5 border-t border-[#c8d6c0]">
+              <div className="px-5 pb-5 border-t border-[var(--tulip-sage-dark)]">
                 {/* Type selector */}
                 <div className="mt-4">
-                  <label className="text-xs font-medium text-[#183a1d]/60 uppercase tracking-wider">Standard</label>
+                  <label className="text-xs font-medium text-[var(--tulip-forest)]/60 uppercase tracking-wider">Standard</label>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {REPORT_TYPES.standard.map(type => (
                       <button
@@ -531,7 +531,7 @@ export default function ReportsPage() {
                         onClick={() => { setSelectedReportType(type); setGenError(''); setGenSuccess(null) }}
                         className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
                           selectedReportType === type
-                            ? 'bg-[#183a1d] text-[#fefbe9]'
+                            ? 'bg-[var(--tulip-forest)] text-[var(--tulip-cream)]'
                             : `${TYPE_COLORS[type] || 'bg-gray-100 text-gray-700'} hover:opacity-80`
                         }`}
                       >
@@ -542,7 +542,7 @@ export default function ReportsPage() {
                 </div>
 
                 <div className="mt-3">
-                  <label className="text-xs font-medium text-[#183a1d]/60 uppercase tracking-wider">Institutional</label>
+                  <label className="text-xs font-medium text-[var(--tulip-forest)]/60 uppercase tracking-wider">Institutional</label>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {REPORT_TYPES.institutional.map(type => (
                       <button
@@ -556,7 +556,7 @@ export default function ReportsPage() {
                         }}
                         className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
                           selectedReportType === type
-                            ? 'bg-[#183a1d] text-[#fefbe9]'
+                            ? 'bg-[var(--tulip-forest)] text-[var(--tulip-cream)]'
                             : `${TYPE_COLORS[type] || 'bg-gray-100 text-gray-700'} hover:opacity-80`
                         }`}
                       >
@@ -568,16 +568,16 @@ export default function ReportsPage() {
 
                 {/* Form fields based on selected type */}
                 {selectedReportType && !['USAID SF-425', 'World Bank'].includes(selectedReportType) && (
-                  <div className="mt-5 p-4 bg-[#e1eedd]/50 rounded-lg border border-[#c8d6c0]">
+                  <div className="mt-5 p-4 bg-[var(--tulip-sage)]/50 rounded-lg border border-[var(--tulip-sage-dark)]">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Project */}
                       {selectedReportType !== 'Annual' && (
                         <div>
-                          <label className="block text-sm font-medium text-[#183a1d] mb-1">Project</label>
+                          <label className="block text-sm font-medium text-[var(--tulip-forest)] mb-1">Project</label>
                           <select
                             value={genProjectId}
                             onChange={e => setGenProjectId(e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-[#c8d6c0] bg-[#fefbe9] text-sm text-[#183a1d] focus:outline-none focus:ring-2 focus:ring-[#183a1d]/20"
+                            className="w-full px-3 py-2 rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)] text-sm text-[var(--tulip-forest)] focus:outline-none focus:ring-2 focus:ring-[var(--tulip-forest)]/20"
                           >
                             <option value="">Select project...</option>
                             {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -587,11 +587,11 @@ export default function ReportsPage() {
 
                       {selectedReportType === 'Annual' && (
                         <div>
-                          <label className="block text-sm font-medium text-[#183a1d] mb-1">Project</label>
+                          <label className="block text-sm font-medium text-[var(--tulip-forest)] mb-1">Project</label>
                           <select
                             value={genProjectId}
                             onChange={e => setGenProjectId(e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-[#c8d6c0] bg-[#fefbe9] text-sm text-[#183a1d] focus:outline-none focus:ring-2 focus:ring-[#183a1d]/20"
+                            className="w-full px-3 py-2 rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)] text-sm text-[var(--tulip-forest)] focus:outline-none focus:ring-2 focus:ring-[var(--tulip-forest)]/20"
                           >
                             <option value="">All Projects</option>
                             {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -603,16 +603,16 @@ export default function ReportsPage() {
                       {selectedReportType === 'Monthly' && (
                         <>
                           <div>
-                            <label className="block text-sm font-medium text-[#183a1d] mb-1">Month</label>
+                            <label className="block text-sm font-medium text-[var(--tulip-forest)] mb-1">Month</label>
                             <select value={genMonth} onChange={e => setGenMonth(e.target.value)}
-                              className="w-full px-3 py-2 rounded-lg border border-[#c8d6c0] bg-[#fefbe9] text-sm text-[#183a1d] focus:outline-none focus:ring-2 focus:ring-[#183a1d]/20">
+                              className="w-full px-3 py-2 rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)] text-sm text-[var(--tulip-forest)] focus:outline-none focus:ring-2 focus:ring-[var(--tulip-forest)]/20">
                               {MONTHS.map((m, i) => <option key={i} value={i}>{m}</option>)}
                             </select>
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-[#183a1d] mb-1">Year</label>
+                            <label className="block text-sm font-medium text-[var(--tulip-forest)] mb-1">Year</label>
                             <input type="number" value={genYear} onChange={e => setGenYear(e.target.value)}
-                              className="w-full px-3 py-2 rounded-lg border border-[#c8d6c0] bg-[#fefbe9] text-sm text-[#183a1d] focus:outline-none focus:ring-2 focus:ring-[#183a1d]/20" />
+                              className="w-full px-3 py-2 rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)] text-sm text-[var(--tulip-forest)] focus:outline-none focus:ring-2 focus:ring-[var(--tulip-forest)]/20" />
                           </div>
                         </>
                       )}
@@ -621,16 +621,16 @@ export default function ReportsPage() {
                       {selectedReportType === 'Quarterly' && (
                         <>
                           <div>
-                            <label className="block text-sm font-medium text-[#183a1d] mb-1">Quarter</label>
+                            <label className="block text-sm font-medium text-[var(--tulip-forest)] mb-1">Quarter</label>
                             <select value={genQuarter} onChange={e => setGenQuarter(e.target.value)}
-                              className="w-full px-3 py-2 rounded-lg border border-[#c8d6c0] bg-[#fefbe9] text-sm text-[#183a1d] focus:outline-none focus:ring-2 focus:ring-[#183a1d]/20">
+                              className="w-full px-3 py-2 rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)] text-sm text-[var(--tulip-forest)] focus:outline-none focus:ring-2 focus:ring-[var(--tulip-forest)]/20">
                               {QUARTERS.map((q, i) => <option key={i} value={i}>{q}</option>)}
                             </select>
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-[#183a1d] mb-1">Year</label>
+                            <label className="block text-sm font-medium text-[var(--tulip-forest)] mb-1">Year</label>
                             <input type="number" value={genYear} onChange={e => setGenYear(e.target.value)}
-                              className="w-full px-3 py-2 rounded-lg border border-[#c8d6c0] bg-[#fefbe9] text-sm text-[#183a1d] focus:outline-none focus:ring-2 focus:ring-[#183a1d]/20" />
+                              className="w-full px-3 py-2 rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)] text-sm text-[var(--tulip-forest)] focus:outline-none focus:ring-2 focus:ring-[var(--tulip-forest)]/20" />
                           </div>
                         </>
                       )}
@@ -638,9 +638,9 @@ export default function ReportsPage() {
                       {/* Year picker */}
                       {selectedReportType === 'Annual' && (
                         <div>
-                          <label className="block text-sm font-medium text-[#183a1d] mb-1">Year</label>
+                          <label className="block text-sm font-medium text-[var(--tulip-forest)] mb-1">Year</label>
                           <input type="number" value={genYear} onChange={e => setGenYear(e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-[#c8d6c0] bg-[#fefbe9] text-sm text-[#183a1d] focus:outline-none focus:ring-2 focus:ring-[#183a1d]/20" />
+                            className="w-full px-3 py-2 rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)] text-sm text-[var(--tulip-forest)] focus:outline-none focus:ring-2 focus:ring-[var(--tulip-forest)]/20" />
                         </div>
                       )}
 
@@ -648,14 +648,14 @@ export default function ReportsPage() {
                       {selectedReportType === 'Interim' && (
                         <>
                           <div>
-                            <label className="block text-sm font-medium text-[#183a1d] mb-1">From</label>
+                            <label className="block text-sm font-medium text-[var(--tulip-forest)] mb-1">From</label>
                             <input type="date" value={genDateFrom} onChange={e => setGenDateFrom(e.target.value)}
-                              className="w-full px-3 py-2 rounded-lg border border-[#c8d6c0] bg-[#fefbe9] text-sm text-[#183a1d] focus:outline-none focus:ring-2 focus:ring-[#183a1d]/20" />
+                              className="w-full px-3 py-2 rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)] text-sm text-[var(--tulip-forest)] focus:outline-none focus:ring-2 focus:ring-[var(--tulip-forest)]/20" />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-[#183a1d] mb-1">To</label>
+                            <label className="block text-sm font-medium text-[var(--tulip-forest)] mb-1">To</label>
                             <input type="date" value={genDateTo} onChange={e => setGenDateTo(e.target.value)}
-                              className="w-full px-3 py-2 rounded-lg border border-[#c8d6c0] bg-[#fefbe9] text-sm text-[#183a1d] focus:outline-none focus:ring-2 focus:ring-[#183a1d]/20" />
+                              className="w-full px-3 py-2 rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)] text-sm text-[var(--tulip-forest)] focus:outline-none focus:ring-2 focus:ring-[var(--tulip-forest)]/20" />
                           </div>
                         </>
                       )}
@@ -664,9 +664,9 @@ export default function ReportsPage() {
                     {/* Notes/Lessons for Interim/Closing */}
                     {(selectedReportType === 'Interim' || selectedReportType === 'Closing') && (
                       <div className="mt-4">
-                        <label className="block text-sm font-medium text-[#183a1d] mb-1">Notes / Lessons Learned</label>
+                        <label className="block text-sm font-medium text-[var(--tulip-forest)] mb-1">Notes / Lessons Learned</label>
                         <textarea value={genNotes} onChange={e => setGenNotes(e.target.value)} rows={3}
-                          className="w-full px-3 py-2 rounded-lg border border-[#c8d6c0] bg-[#fefbe9] text-sm text-[#183a1d] focus:outline-none focus:ring-2 focus:ring-[#183a1d]/20 resize-none"
+                          className="w-full px-3 py-2 rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)] text-sm text-[var(--tulip-forest)] focus:outline-none focus:ring-2 focus:ring-[var(--tulip-forest)]/20 resize-none"
                           placeholder="Optional notes or lessons learned..." />
                       </div>
                     )}
@@ -674,7 +674,7 @@ export default function ReportsPage() {
                     {/* Generate button */}
                     <div className="mt-4 flex items-center gap-3">
                       <button onClick={handleGenerate} disabled={generating}
-                        className="px-5 py-2.5 rounded-lg bg-[#183a1d] text-[#fefbe9] text-sm font-medium hover:bg-[#183a1d]/90 transition-all disabled:opacity-50 flex items-center gap-2">
+                        className="px-5 py-2.5 rounded-lg bg-[var(--tulip-forest)] text-[var(--tulip-cream)] text-sm font-medium hover:bg-[var(--tulip-forest)]/90 transition-all disabled:opacity-50 flex items-center gap-2">
                         {generating ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
                         Generate Now
                       </button>
@@ -701,70 +701,70 @@ export default function ReportsPage() {
           {/* Filters */}
           <div className="flex flex-wrap gap-3 mb-4">
             <div className="relative flex-1 min-w-[200px] max-w-sm">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#183a1d]/40" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--tulip-forest)]/40" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Search by project or type..."
-                className="w-full pl-9 pr-3 py-2 rounded-lg border border-[#c8d6c0] bg-[#fefbe9] text-sm text-[#183a1d] focus:outline-none focus:ring-2 focus:ring-[#183a1d]/20"
+                className="w-full pl-9 pr-3 py-2 rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)] text-sm text-[var(--tulip-forest)] focus:outline-none focus:ring-2 focus:ring-[var(--tulip-forest)]/20"
               />
             </div>
             <select value={filterType} onChange={e => setFilterType(e.target.value)}
-              className="px-3 py-2 rounded-lg border border-[#c8d6c0] bg-[#fefbe9] text-sm text-[#183a1d] focus:outline-none focus:ring-2 focus:ring-[#183a1d]/20">
+              className="px-3 py-2 rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)] text-sm text-[var(--tulip-forest)] focus:outline-none focus:ring-2 focus:ring-[var(--tulip-forest)]/20">
               <option value="">All Types</option>
               {ALL_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
             <select value={filterProject} onChange={e => setFilterProject(e.target.value)}
-              className="px-3 py-2 rounded-lg border border-[#c8d6c0] bg-[#fefbe9] text-sm text-[#183a1d] focus:outline-none focus:ring-2 focus:ring-[#183a1d]/20">
+              className="px-3 py-2 rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)] text-sm text-[var(--tulip-forest)] focus:outline-none focus:ring-2 focus:ring-[var(--tulip-forest)]/20">
               <option value="">All Projects</option>
               {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
             <input type="date" value={filterFrom} onChange={e => setFilterFrom(e.target.value)}
-              className="px-3 py-2 rounded-lg border border-[#c8d6c0] bg-[#fefbe9] text-sm text-[#183a1d] focus:outline-none focus:ring-2 focus:ring-[#183a1d]/20" />
+              className="px-3 py-2 rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)] text-sm text-[var(--tulip-forest)] focus:outline-none focus:ring-2 focus:ring-[var(--tulip-forest)]/20" />
             <input type="date" value={filterTo} onChange={e => setFilterTo(e.target.value)}
-              className="px-3 py-2 rounded-lg border border-[#c8d6c0] bg-[#fefbe9] text-sm text-[#183a1d] focus:outline-none focus:ring-2 focus:ring-[#183a1d]/20" />
+              className="px-3 py-2 rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)] text-sm text-[var(--tulip-forest)] focus:outline-none focus:ring-2 focus:ring-[var(--tulip-forest)]/20" />
           </div>
 
           {/* Reports Table */}
-          <div className="border border-[#c8d6c0] rounded-xl overflow-hidden bg-[#fefbe9]">
+          <div className="border border-[var(--tulip-sage-dark)] rounded-xl overflow-hidden bg-[var(--tulip-cream)]">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-[#e1eedd] border-b border-[#c8d6c0]">
-                    <th className="text-left px-4 py-3 font-semibold text-[#183a1d]/70 text-xs uppercase tracking-wider">Type</th>
-                    <th className="text-left px-4 py-3 font-semibold text-[#183a1d]/70 text-xs uppercase tracking-wider">Project</th>
-                    <th className="text-left px-4 py-3 font-semibold text-[#183a1d]/70 text-xs uppercase tracking-wider">Period</th>
-                    <th className="text-left px-4 py-3 font-semibold text-[#183a1d]/70 text-xs uppercase tracking-wider">Generated</th>
-                    <th className="text-left px-4 py-3 font-semibold text-[#183a1d]/70 text-xs uppercase tracking-wider">Size</th>
-                    <th className="text-left px-4 py-3 font-semibold text-[#183a1d]/70 text-xs uppercase tracking-wider">Seal Status</th>
-                    <th className="text-right px-4 py-3 font-semibold text-[#183a1d]/70 text-xs uppercase tracking-wider">Actions</th>
+                  <tr className="bg-[var(--tulip-sage)] border-b border-[var(--tulip-sage-dark)]">
+                    <th className="text-left px-4 py-3 font-semibold text-[var(--tulip-forest)]/70 text-xs uppercase tracking-wider">Type</th>
+                    <th className="text-left px-4 py-3 font-semibold text-[var(--tulip-forest)]/70 text-xs uppercase tracking-wider">Project</th>
+                    <th className="text-left px-4 py-3 font-semibold text-[var(--tulip-forest)]/70 text-xs uppercase tracking-wider">Period</th>
+                    <th className="text-left px-4 py-3 font-semibold text-[var(--tulip-forest)]/70 text-xs uppercase tracking-wider">Generated</th>
+                    <th className="text-left px-4 py-3 font-semibold text-[var(--tulip-forest)]/70 text-xs uppercase tracking-wider">Size</th>
+                    <th className="text-left px-4 py-3 font-semibold text-[var(--tulip-forest)]/70 text-xs uppercase tracking-wider">Seal Status</th>
+                    <th className="text-right px-4 py-3 font-semibold text-[var(--tulip-forest)]/70 text-xs uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan={7} className="text-center py-12 text-[#183a1d]/50">
+                    <tr><td colSpan={7} className="text-center py-12 text-[var(--tulip-forest)]/50">
                       <Loader2 size={20} className="animate-spin mx-auto mb-2" />Loading reports...
                     </td></tr>
                   ) : filteredReports.length === 0 ? (
                     <tr><td colSpan={7} className="text-center py-12">
-                      <FileText size={32} className="mx-auto mb-3 text-[#183a1d]/20" />
-                      <p className="text-[#183a1d]/50 text-sm">No reports generated yet.</p>
-                      <p className="text-[#183a1d]/40 text-xs mt-1">Use the templates below to generate your first report.</p>
+                      <FileText size={32} className="mx-auto mb-3 text-[var(--tulip-forest)]/20" />
+                      <p className="text-[var(--tulip-forest)]/50 text-sm">No reports generated yet.</p>
+                      <p className="text-[var(--tulip-forest)]/40 text-xs mt-1">Use the templates below to generate your first report.</p>
                     </td></tr>
                   ) : filteredReports.map(report => (
-                    <tr key={report.id} className="border-b border-[#c8d6c0]/50 hover:bg-[#e1eedd]/30 transition-colors">
+                    <tr key={report.id} className="border-b border-[var(--tulip-sage-dark)]/50 hover:bg-[var(--tulip-sage)]/30 transition-colors">
                       <td className="px-4 py-3">
                         <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-medium ${TYPE_COLORS[report.type] || 'bg-gray-100 text-gray-700'}`}>
                           {report.type}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-[#183a1d] font-medium">{report.projectName}</td>
-                      <td className="px-4 py-3 text-[#183a1d]/70 text-xs">
+                      <td className="px-4 py-3 text-[var(--tulip-forest)] font-medium">{report.projectName}</td>
+                      <td className="px-4 py-3 text-[var(--tulip-forest)]/70 text-xs">
                         {formatDate(report.periodStart)} - {formatDate(report.periodEnd)}
                       </td>
-                      <td className="px-4 py-3 text-[#183a1d]/60 text-xs">{formatRelative(report.generatedAt)}</td>
-                      <td className="px-4 py-3 text-[#183a1d]/60 text-xs">{formatBytes(report.size)}</td>
+                      <td className="px-4 py-3 text-[var(--tulip-forest)]/60 text-xs">{formatRelative(report.generatedAt)}</td>
+                      <td className="px-4 py-3 text-[var(--tulip-forest)]/60 text-xs">{formatBytes(report.size)}</td>
                       <td className="px-4 py-3">
                         {report.sealStatus === 'anchored' ? (
                           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
@@ -780,12 +780,12 @@ export default function ReportsPage() {
                         <div className="flex items-center justify-end gap-1">
                           {report.downloadUrl && (
                             <a href={report.downloadUrl} title="Download"
-                              className="p-1.5 rounded-md hover:bg-[#e1eedd] transition-colors text-[#183a1d]/60 hover:text-[#183a1d]">
+                              className="p-1.5 rounded-md hover:bg-[var(--tulip-sage)] transition-colors text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]">
                               <Download size={14} />
                             </a>
                           )}
                           <button onClick={() => openShare(report)} title="Share"
-                            className="p-1.5 rounded-md hover:bg-[#e1eedd] transition-colors text-[#183a1d]/60 hover:text-[#183a1d]">
+                            className="p-1.5 rounded-md hover:bg-[var(--tulip-sage)] transition-colors text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]">
                             <Share2 size={14} />
                           </button>
                           <button onClick={() => {
@@ -793,11 +793,11 @@ export default function ReportsPage() {
                             setGenProjectId(report.projectId)
                             setGenerateOpen(true)
                           }} title="Regenerate"
-                            className="p-1.5 rounded-md hover:bg-[#e1eedd] transition-colors text-[#183a1d]/60 hover:text-[#183a1d]">
+                            className="p-1.5 rounded-md hover:bg-[var(--tulip-sage)] transition-colors text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]">
                             <RefreshCw size={14} />
                           </button>
                           <button title="Email"
-                            className="p-1.5 rounded-md hover:bg-[#e1eedd] transition-colors text-[#183a1d]/60 hover:text-[#183a1d]">
+                            className="p-1.5 rounded-md hover:bg-[var(--tulip-sage)] transition-colors text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]">
                             <Mail size={14} />
                           </button>
                         </div>
@@ -815,41 +815,41 @@ export default function ReportsPage() {
       {/*  SCHEDULED TAB                                                */}
       {/* ============================================================ */}
       {activeTab === 'scheduled' && (
-        <div className="border border-[#c8d6c0] rounded-xl overflow-hidden bg-[#fefbe9]">
+        <div className="border border-[var(--tulip-sage-dark)] rounded-xl overflow-hidden bg-[var(--tulip-cream)]">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-[#e1eedd] border-b border-[#c8d6c0]">
-                  <th className="text-left px-4 py-3 font-semibold text-[#183a1d]/70 text-xs uppercase tracking-wider">Type</th>
-                  <th className="text-left px-4 py-3 font-semibold text-[#183a1d]/70 text-xs uppercase tracking-wider">Project</th>
-                  <th className="text-left px-4 py-3 font-semibold text-[#183a1d]/70 text-xs uppercase tracking-wider">Next Generation</th>
-                  <th className="text-right px-4 py-3 font-semibold text-[#183a1d]/70 text-xs uppercase tracking-wider">Status</th>
+                <tr className="bg-[var(--tulip-sage)] border-b border-[var(--tulip-sage-dark)]">
+                  <th className="text-left px-4 py-3 font-semibold text-[var(--tulip-forest)]/70 text-xs uppercase tracking-wider">Type</th>
+                  <th className="text-left px-4 py-3 font-semibold text-[var(--tulip-forest)]/70 text-xs uppercase tracking-wider">Project</th>
+                  <th className="text-left px-4 py-3 font-semibold text-[var(--tulip-forest)]/70 text-xs uppercase tracking-wider">Next Generation</th>
+                  <th className="text-right px-4 py-3 font-semibold text-[var(--tulip-forest)]/70 text-xs uppercase tracking-wider">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {scheduledReports.length === 0 ? (
-                  <tr><td colSpan={4} className="text-center py-12 text-[#183a1d]/50 text-sm">No scheduled reports</td></tr>
+                  <tr><td colSpan={4} className="text-center py-12 text-[var(--tulip-forest)]/50 text-sm">No scheduled reports</td></tr>
                 ) : scheduledReports.map(sched => {
                   const enabled = schedules[sched.key] !== false
                   return (
-                    <tr key={sched.key} className="border-b border-[#c8d6c0]/50 hover:bg-[#e1eedd]/30 transition-colors">
+                    <tr key={sched.key} className="border-b border-[var(--tulip-sage-dark)]/50 hover:bg-[var(--tulip-sage)]/30 transition-colors">
                       <td className="px-4 py-3">
                         <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-medium ${TYPE_COLORS[sched.type] || 'bg-gray-100 text-gray-700'}`}>
                           {sched.type}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-[#183a1d] font-medium">{sched.project}</td>
-                      <td className="px-4 py-3 text-[#183a1d]/70 text-xs flex items-center gap-2">
+                      <td className="px-4 py-3 text-[var(--tulip-forest)] font-medium">{sched.project}</td>
+                      <td className="px-4 py-3 text-[var(--tulip-forest)]/70 text-xs flex items-center gap-2">
                         <Calendar size={13} /> {sched.nextGen}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button
                           onClick={() => setSchedules(prev => ({ ...prev, [sched.key]: !enabled }))}
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            enabled ? 'bg-[#183a1d]' : 'bg-[#c8d6c0]'
+                            enabled ? 'bg-[var(--tulip-forest)]' : 'bg-[var(--tulip-sage-dark)]'
                           }`}
                         >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-[#fefbe9] transition-transform ${
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-[var(--tulip-cream)] transition-transform ${
                             enabled ? 'translate-x-6' : 'translate-x-1'
                           }`} />
                         </button>
@@ -869,16 +869,16 @@ export default function ReportsPage() {
       {activeTab === 'templates' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {templates.map(tmpl => (
-            <div key={tmpl.name} className="border border-[#c8d6c0] rounded-xl p-5 bg-[#fefbe9] hover:shadow-md transition-shadow">
+            <div key={tmpl.name} className="border border-[var(--tulip-sage-dark)] rounded-xl p-5 bg-[var(--tulip-cream)] hover:shadow-md transition-shadow">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-lg bg-[#e1eedd] flex items-center justify-center shrink-0">
-                  <FileText size={18} className="text-[#183a1d]" />
+                <div className="w-10 h-10 rounded-lg bg-[var(--tulip-sage)] flex items-center justify-center shrink-0">
+                  <FileText size={18} className="text-[var(--tulip-forest)]" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-[#183a1d]">{tmpl.name}</h3>
-                  <p className="text-xs text-[#183a1d]/60 mt-1 leading-relaxed">{tmpl.desc}</p>
+                  <h3 className="text-sm font-semibold text-[var(--tulip-forest)]">{tmpl.name}</h3>
+                  <p className="text-xs text-[var(--tulip-forest)]/60 mt-1 leading-relaxed">{tmpl.desc}</p>
                   <button onClick={tmpl.action}
-                    className="mt-3 px-4 py-2 rounded-lg bg-[#183a1d] text-[#fefbe9] text-xs font-medium hover:bg-[#183a1d]/90 transition-all flex items-center gap-1.5">
+                    className="mt-3 px-4 py-2 rounded-lg bg-[var(--tulip-forest)] text-[var(--tulip-cream)] text-xs font-medium hover:bg-[var(--tulip-forest)]/90 transition-all flex items-center gap-1.5">
                     Generate <ArrowRight size={12} />
                   </button>
                 </div>
@@ -894,29 +894,29 @@ export default function ReportsPage() {
       {sf425Open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setSf425Open(false)}>
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-          <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-[#fefbe9] rounded-2xl shadow-2xl border border-[#c8d6c0]"
+          <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-[var(--tulip-cream)] rounded-2xl shadow-2xl border border-[var(--tulip-sage-dark)]"
             onClick={e => e.stopPropagation()}>
             {/* Header */}
-            <div className="sticky top-0 flex items-center justify-between px-6 py-4 border-b border-[#c8d6c0] bg-[#fefbe9] z-10">
+            <div className="sticky top-0 flex items-center justify-between px-6 py-4 border-b border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)] z-10">
               <div>
-                <h2 className="text-lg font-bold text-[#183a1d]">USAID SF-425 Report</h2>
-                <p className="text-xs text-[#183a1d]/50">Step {sf425Step} of 5</p>
+                <h2 className="text-lg font-bold text-[var(--tulip-forest)]">USAID SF-425 Report</h2>
+                <p className="text-xs text-[var(--tulip-forest)]/50">Step {sf425Step} of 5</p>
               </div>
-              <button onClick={() => setSf425Open(false)} className="p-1.5 rounded-md hover:bg-[#e1eedd] transition-colors">
-                <X size={18} className="text-[#183a1d]/60" />
+              <button onClick={() => setSf425Open(false)} className="p-1.5 rounded-md hover:bg-[var(--tulip-sage)] transition-colors">
+                <X size={18} className="text-[var(--tulip-forest)]/60" />
               </button>
             </div>
 
             {/* Progress bar */}
-            <div className="h-1 bg-[#e1eedd]">
-              <div className="h-full bg-[#183a1d] transition-all" style={{ width: `${(sf425Step / 5) * 100}%` }} />
+            <div className="h-1 bg-[var(--tulip-sage)]">
+              <div className="h-full bg-[var(--tulip-forest)] transition-all" style={{ width: `${(sf425Step / 5) * 100}%` }} />
             </div>
 
             <div className="p-6">
               {/* Step 1 — Review Sealayer Data */}
               {sf425Step === 1 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-[#183a1d] mb-4">Review Sealayer Data</h3>
+                  <h3 className="text-sm font-semibold text-[var(--tulip-forest)] mb-4">Review Sealayer Data</h3>
                   {sf425Data ? (
                     <div className="space-y-3">
                       <div className="grid grid-cols-2 gap-3">
@@ -932,12 +932,12 @@ export default function ReportsPage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 text-sm text-[#183a1d]/50">
+                    <div className="flex items-center gap-2 text-sm text-[var(--tulip-forest)]/50">
                       <Loader2 size={14} className="animate-spin" /> Loading data...
                     </div>
                   )}
                   <div className="mt-6 flex justify-end">
-                    <button onClick={() => setSf425Step(2)} className="px-5 py-2.5 rounded-lg bg-[#183a1d] text-[#fefbe9] text-sm font-medium hover:bg-[#183a1d]/90 flex items-center gap-2">
+                    <button onClick={() => setSf425Step(2)} className="px-5 py-2.5 rounded-lg bg-[var(--tulip-forest)] text-[var(--tulip-cream)] text-sm font-medium hover:bg-[var(--tulip-forest)]/90 flex items-center gap-2">
                       Continue <ArrowRight size={14} />
                     </button>
                   </div>
@@ -947,7 +947,7 @@ export default function ReportsPage() {
               {/* Step 2 — Organisation Details */}
               {sf425Step === 2 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-[#183a1d] mb-4">Organisation Details</h3>
+                  <h3 className="text-sm font-semibold text-[var(--tulip-forest)] mb-4">Organisation Details</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormInput label="Federal Agency" value={sf425Org.federalAgency} onChange={v => setSf425Org(p => ({ ...p, federalAgency: v }))} />
                     <FormInput label="Organizational Element" value={sf425Org.orgElement} onChange={v => setSf425Org(p => ({ ...p, orgElement: v }))} />
@@ -955,12 +955,12 @@ export default function ReportsPage() {
                     <FormInput label="Recipient Account Number" value={sf425Org.recipientAccount} onChange={v => setSf425Org(p => ({ ...p, recipientAccount: v }))} />
                   </div>
                   <div className="mt-4">
-                    <label className="block text-sm font-medium text-[#183a1d] mb-2">Basis of Accounting</label>
+                    <label className="block text-sm font-medium text-[var(--tulip-forest)] mb-2">Basis of Accounting</label>
                     <div className="flex gap-2">
                       {(['cash', 'accrual'] as const).map(basis => (
                         <button key={basis} onClick={() => setSf425Org(p => ({ ...p, accountingBasis: basis }))}
                           className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all ${
-                            sf425Org.accountingBasis === basis ? 'bg-[#183a1d] text-[#fefbe9]' : 'bg-[#e1eedd] text-[#183a1d] hover:bg-[#c8d6c0]'
+                            sf425Org.accountingBasis === basis ? 'bg-[var(--tulip-forest)] text-[var(--tulip-cream)]' : 'bg-[var(--tulip-sage)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage-dark)]'
                           }`}>
                           {basis}
                         </button>
@@ -971,9 +971,9 @@ export default function ReportsPage() {
                     <FormInput label="Indirect Expense Type" value={sf425Org.indirectType} onChange={v => setSf425Org(p => ({ ...p, indirectType: v }))} />
                     <FormInput label="Indirect Expense Rate (%)" value={sf425Org.indirectRate} onChange={v => setSf425Org(p => ({ ...p, indirectRate: v }))} />
                   </div>
-                  <label className="flex items-center gap-2 mt-4 text-sm text-[#183a1d]/70 cursor-pointer">
+                  <label className="flex items-center gap-2 mt-4 text-sm text-[var(--tulip-forest)]/70 cursor-pointer">
                     <input type="checkbox" checked={sf425Org.saveForFuture} onChange={e => setSf425Org(p => ({ ...p, saveForFuture: e.target.checked }))}
-                      className="rounded border-[#c8d6c0]" />
+                      className="rounded border-[var(--tulip-sage-dark)]" />
                     Save for future reports
                   </label>
                   <WizardNav onBack={() => setSf425Step(1)} onNext={() => setSf425Step(3)} />
@@ -983,13 +983,13 @@ export default function ReportsPage() {
               {/* Step 3 — Grant Details */}
               {sf425Step === 3 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-[#183a1d] mb-4">Grant Details</h3>
+                  <h3 className="text-sm font-semibold text-[var(--tulip-forest)] mb-4">Grant Details</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormInput label="Federal Grant Number *" value={sf425Grant.grantNumber} onChange={v => setSf425Grant(p => ({ ...p, grantNumber: v }))} required />
                     <div>
-                      <label className="block text-sm font-medium text-[#183a1d] mb-1">Report Type</label>
+                      <label className="block text-sm font-medium text-[var(--tulip-forest)] mb-1">Report Type</label>
                       <select value={sf425Grant.reportType} onChange={e => setSf425Grant(p => ({ ...p, reportType: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-lg border border-[#c8d6c0] bg-[#fefbe9] text-sm text-[#183a1d] focus:outline-none focus:ring-2 focus:ring-[#183a1d]/20">
+                        className="w-full px-3 py-2 rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)] text-sm text-[var(--tulip-forest)] focus:outline-none focus:ring-2 focus:ring-[var(--tulip-forest)]/20">
                         <option>Annual</option><option>Quarterly</option><option>Final</option>
                       </select>
                     </div>
@@ -998,9 +998,9 @@ export default function ReportsPage() {
                     <FormInput label="Program Income Expended ($)" value={sf425Grant.programIncomeExpended} onChange={v => setSf425Grant(p => ({ ...p, programIncomeExpended: v }))} type="number" />
                   </div>
                   <div className="mt-4">
-                    <label className="block text-sm font-medium text-[#183a1d] mb-1">Remarks</label>
+                    <label className="block text-sm font-medium text-[var(--tulip-forest)] mb-1">Remarks</label>
                     <textarea value={sf425Grant.remarks} onChange={e => setSf425Grant(p => ({ ...p, remarks: e.target.value }))} rows={3}
-                      className="w-full px-3 py-2 rounded-lg border border-[#c8d6c0] bg-[#fefbe9] text-sm text-[#183a1d] focus:outline-none focus:ring-2 focus:ring-[#183a1d]/20 resize-none" />
+                      className="w-full px-3 py-2 rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)] text-sm text-[var(--tulip-forest)] focus:outline-none focus:ring-2 focus:ring-[var(--tulip-forest)]/20 resize-none" />
                   </div>
                   <WizardNav onBack={() => setSf425Step(2)} onNext={() => setSf425Step(4)} />
                 </div>
@@ -1009,20 +1009,20 @@ export default function ReportsPage() {
               {/* Step 4 — Review & Certify */}
               {sf425Step === 4 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-[#183a1d] mb-4">Review & Certify</h3>
+                  <h3 className="text-sm font-semibold text-[var(--tulip-forest)] mb-4">Review & Certify</h3>
                   {sf425Data && (
-                    <div className="mb-4 p-4 bg-[#e1eedd]/50 rounded-lg border border-[#c8d6c0] space-y-2 text-xs text-[#183a1d]">
+                    <div className="mb-4 p-4 bg-[var(--tulip-sage)]/50 rounded-lg border border-[var(--tulip-sage-dark)] space-y-2 text-xs text-[var(--tulip-forest)]">
                       <h4 className="font-semibold text-sm mb-2">SF-425 Line Items</h4>
                       {Object.entries(sf425Data.lineItems || {}).map(([key, val]) => (
-                        <div key={key} className="flex justify-between py-1 border-b border-[#c8d6c0]/30">
-                          <span className="text-[#183a1d]/70">{key}</span>
+                        <div key={key} className="flex justify-between py-1 border-b border-[var(--tulip-sage-dark)]/30">
+                          <span className="text-[var(--tulip-forest)]/70">{key}</span>
                           <span className="font-medium">{formatCurrency(val)}</span>
                         </div>
                       ))}
                     </div>
                   )}
-                  <div className="p-4 bg-[#e1eedd]/50 rounded-lg border border-[#c8d6c0]">
-                    <h4 className="text-sm font-semibold text-[#183a1d] mb-3">Certification</h4>
+                  <div className="p-4 bg-[var(--tulip-sage)]/50 rounded-lg border border-[var(--tulip-sage-dark)]">
+                    <h4 className="text-sm font-semibold text-[var(--tulip-forest)] mb-3">Certification</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormInput label="Full Name *" value={sf425Cert.fullName} onChange={v => setSf425Cert(p => ({ ...p, fullName: v }))} required />
                       <FormInput label="Title *" value={sf425Cert.title} onChange={v => setSf425Cert(p => ({ ...p, title: v }))} required />
@@ -1032,18 +1032,18 @@ export default function ReportsPage() {
                     <div className="mt-3">
                       <InfoField label="Date" value={sf425Cert.date} />
                     </div>
-                    <p className="mt-3 text-xs text-[#183a1d]/60 leading-relaxed">
+                    <p className="mt-3 text-xs text-[var(--tulip-forest)]/60 leading-relaxed">
                       By signing this report, I certify to the best of my knowledge and belief that the report is true, complete, and accurate,
                       and the expenditures, disbursements and cash receipts are for the purposes and objectives set forth in the terms and conditions
                       of the Federal award.
                     </p>
                   </div>
                   <div className="mt-6 flex items-center justify-between">
-                    <button onClick={() => setSf425Step(3)} className="px-4 py-2.5 rounded-lg border border-[#c8d6c0] text-sm font-medium text-[#183a1d] hover:bg-[#e1eedd] transition-all flex items-center gap-2">
+                    <button onClick={() => setSf425Step(3)} className="px-4 py-2.5 rounded-lg border border-[var(--tulip-sage-dark)] text-sm font-medium text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] transition-all flex items-center gap-2">
                       <ArrowLeft size={14} /> Back
                     </button>
                     <button onClick={generateSF425} disabled={generating || !sf425Cert.fullName || !sf425Grant.grantNumber}
-                      className="px-5 py-2.5 rounded-lg bg-[#183a1d] text-[#fefbe9] text-sm font-medium hover:bg-[#183a1d]/90 transition-all disabled:opacity-50 flex items-center gap-2">
+                      className="px-5 py-2.5 rounded-lg bg-[var(--tulip-forest)] text-[var(--tulip-cream)] text-sm font-medium hover:bg-[var(--tulip-forest)]/90 transition-all disabled:opacity-50 flex items-center gap-2">
                       {generating ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
                       Generate SF-425 Report
                     </button>
@@ -1058,29 +1058,29 @@ export default function ReportsPage() {
                   <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
                     <Check size={28} className="text-green-600" />
                   </div>
-                  <h3 className="text-lg font-bold text-[#183a1d]">SF-425 Report Generated</h3>
-                  <p className="text-sm text-[#183a1d]/60 mt-1">Your report has been created and sealed.</p>
+                  <h3 className="text-lg font-bold text-[var(--tulip-forest)]">SF-425 Report Generated</h3>
+                  <p className="text-sm text-[var(--tulip-forest)]/60 mt-1">Your report has been created and sealed.</p>
 
                   <div className="flex items-center justify-center gap-3 mt-6">
                     {sf425Result.downloadUrl && (
                       <a href={sf425Result.downloadUrl}
-                        className="px-4 py-2.5 rounded-lg bg-[#183a1d] text-[#fefbe9] text-sm font-medium hover:bg-[#183a1d]/90 flex items-center gap-2">
+                        className="px-4 py-2.5 rounded-lg bg-[var(--tulip-forest)] text-[var(--tulip-cream)] text-sm font-medium hover:bg-[var(--tulip-forest)]/90 flex items-center gap-2">
                         <Download size={14} /> Download PDF
                       </a>
                     )}
                     <button onClick={() => openShare(sf425Result!)}
-                      className="px-4 py-2.5 rounded-lg border border-[#c8d6c0] text-sm font-medium text-[#183a1d] hover:bg-[#e1eedd] flex items-center gap-2">
+                      className="px-4 py-2.5 rounded-lg border border-[var(--tulip-sage-dark)] text-sm font-medium text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] flex items-center gap-2">
                       <Link2 size={14} /> Share Link
                     </button>
                     <button onClick={() => { setSf425Step(1); setSf425Result(null) }}
-                      className="px-4 py-2.5 rounded-lg border border-[#c8d6c0] text-sm font-medium text-[#183a1d] hover:bg-[#e1eedd] flex items-center gap-2">
+                      className="px-4 py-2.5 rounded-lg border border-[var(--tulip-sage-dark)] text-sm font-medium text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] flex items-center gap-2">
                       <RefreshCw size={14} /> Generate Another
                     </button>
                   </div>
 
                   {(sf425Result.sha256 || sf425Result.polygonTx) && (
-                    <div className="mt-6 p-4 bg-[#e1eedd]/50 rounded-lg border border-[#c8d6c0] text-left text-xs space-y-2">
-                      <h4 className="font-semibold text-sm text-[#183a1d]">Seal Details</h4>
+                    <div className="mt-6 p-4 bg-[var(--tulip-sage)]/50 rounded-lg border border-[var(--tulip-sage-dark)] text-left text-xs space-y-2">
+                      <h4 className="font-semibold text-sm text-[var(--tulip-forest)]">Seal Details</h4>
                       {sf425Result.sha256 && <InfoField label="SHA-256" value={sf425Result.sha256} />}
                       {sf425Result.anchorDate && <InfoField label="Anchor Date" value={formatDate(sf425Result.anchorDate)} />}
                       {sf425Result.polygonTx && <InfoField label="Polygon TX" value={sf425Result.polygonTx} />}
@@ -1099,43 +1099,43 @@ export default function ReportsPage() {
       {wbOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setWbOpen(false)}>
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-          <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-[#fefbe9] rounded-2xl shadow-2xl border border-[#c8d6c0]"
+          <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-[var(--tulip-cream)] rounded-2xl shadow-2xl border border-[var(--tulip-sage-dark)]"
             onClick={e => e.stopPropagation()}>
-            <div className="sticky top-0 flex items-center justify-between px-6 py-4 border-b border-[#c8d6c0] bg-[#fefbe9] z-10">
+            <div className="sticky top-0 flex items-center justify-between px-6 py-4 border-b border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)] z-10">
               <div>
-                <h2 className="text-lg font-bold text-[#183a1d]">World Bank IFR</h2>
-                <p className="text-xs text-[#183a1d]/50">Step {wbStep} of 5</p>
+                <h2 className="text-lg font-bold text-[var(--tulip-forest)]">World Bank IFR</h2>
+                <p className="text-xs text-[var(--tulip-forest)]/50">Step {wbStep} of 5</p>
               </div>
-              <button onClick={() => setWbOpen(false)} className="p-1.5 rounded-md hover:bg-[#e1eedd] transition-colors">
-                <X size={18} className="text-[#183a1d]/60" />
+              <button onClick={() => setWbOpen(false)} className="p-1.5 rounded-md hover:bg-[var(--tulip-sage)] transition-colors">
+                <X size={18} className="text-[var(--tulip-forest)]/60" />
               </button>
             </div>
-            <div className="h-1 bg-[#e1eedd]">
-              <div className="h-full bg-[#183a1d] transition-all" style={{ width: `${(wbStep / 5) * 100}%` }} />
+            <div className="h-1 bg-[var(--tulip-sage)]">
+              <div className="h-full bg-[var(--tulip-forest)] transition-all" style={{ width: `${(wbStep / 5) * 100}%` }} />
             </div>
 
             <div className="p-6">
               {/* Step 1 — Review component + contract data */}
               {wbStep === 1 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-[#183a1d] mb-4">Review Component & Contract Data</h3>
+                  <h3 className="text-sm font-semibold text-[var(--tulip-forest)] mb-4">Review Component & Contract Data</h3>
                   {wbData ? (
                     <div className="space-y-4">
                       <div>
-                        <h4 className="text-xs font-medium text-[#183a1d]/60 uppercase tracking-wider mb-2">Components</h4>
-                        <div className="border border-[#c8d6c0] rounded-lg overflow-hidden">
+                        <h4 className="text-xs font-medium text-[var(--tulip-forest)]/60 uppercase tracking-wider mb-2">Components</h4>
+                        <div className="border border-[var(--tulip-sage-dark)] rounded-lg overflow-hidden">
                           <table className="w-full text-xs">
-                            <thead><tr className="bg-[#e1eedd]">
-                              <th className="text-left px-3 py-2 font-medium text-[#183a1d]/70">Component</th>
-                              <th className="text-right px-3 py-2 font-medium text-[#183a1d]/70">Budget</th>
-                              <th className="text-right px-3 py-2 font-medium text-[#183a1d]/70">Spent</th>
+                            <thead><tr className="bg-[var(--tulip-sage)]">
+                              <th className="text-left px-3 py-2 font-medium text-[var(--tulip-forest)]/70">Component</th>
+                              <th className="text-right px-3 py-2 font-medium text-[var(--tulip-forest)]/70">Budget</th>
+                              <th className="text-right px-3 py-2 font-medium text-[var(--tulip-forest)]/70">Spent</th>
                             </tr></thead>
                             <tbody>
                               {wbData.components.map((c, i) => (
-                                <tr key={i} className="border-t border-[#c8d6c0]/50">
-                                  <td className="px-3 py-2 text-[#183a1d]">{c.name}</td>
-                                  <td className="px-3 py-2 text-right text-[#183a1d]/70">{formatCurrency(c.budget)}</td>
-                                  <td className="px-3 py-2 text-right text-[#183a1d]/70">{formatCurrency(c.spent)}</td>
+                                <tr key={i} className="border-t border-[var(--tulip-sage-dark)]/50">
+                                  <td className="px-3 py-2 text-[var(--tulip-forest)]">{c.name}</td>
+                                  <td className="px-3 py-2 text-right text-[var(--tulip-forest)]/70">{formatCurrency(c.budget)}</td>
+                                  <td className="px-3 py-2 text-right text-[var(--tulip-forest)]/70">{formatCurrency(c.spent)}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -1143,20 +1143,20 @@ export default function ReportsPage() {
                         </div>
                       </div>
                       <div>
-                        <h4 className="text-xs font-medium text-[#183a1d]/60 uppercase tracking-wider mb-2">Contracts</h4>
-                        <div className="border border-[#c8d6c0] rounded-lg overflow-hidden">
+                        <h4 className="text-xs font-medium text-[var(--tulip-forest)]/60 uppercase tracking-wider mb-2">Contracts</h4>
+                        <div className="border border-[var(--tulip-sage-dark)] rounded-lg overflow-hidden">
                           <table className="w-full text-xs">
-                            <thead><tr className="bg-[#e1eedd]">
-                              <th className="text-left px-3 py-2 font-medium text-[#183a1d]/70">Ref</th>
-                              <th className="text-left px-3 py-2 font-medium text-[#183a1d]/70">Vendor</th>
-                              <th className="text-right px-3 py-2 font-medium text-[#183a1d]/70">Amount</th>
+                            <thead><tr className="bg-[var(--tulip-sage)]">
+                              <th className="text-left px-3 py-2 font-medium text-[var(--tulip-forest)]/70">Ref</th>
+                              <th className="text-left px-3 py-2 font-medium text-[var(--tulip-forest)]/70">Vendor</th>
+                              <th className="text-right px-3 py-2 font-medium text-[var(--tulip-forest)]/70">Amount</th>
                             </tr></thead>
                             <tbody>
                               {wbData.contracts.map((c, i) => (
-                                <tr key={i} className="border-t border-[#c8d6c0]/50">
-                                  <td className="px-3 py-2 text-[#183a1d]">{c.ref}</td>
-                                  <td className="px-3 py-2 text-[#183a1d]/70">{c.vendor}</td>
-                                  <td className="px-3 py-2 text-right text-[#183a1d]/70">{formatCurrency(c.amount)}</td>
+                                <tr key={i} className="border-t border-[var(--tulip-sage-dark)]/50">
+                                  <td className="px-3 py-2 text-[var(--tulip-forest)]">{c.ref}</td>
+                                  <td className="px-3 py-2 text-[var(--tulip-forest)]/70">{c.vendor}</td>
+                                  <td className="px-3 py-2 text-right text-[var(--tulip-forest)]/70">{formatCurrency(c.amount)}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -1168,12 +1168,12 @@ export default function ReportsPage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 text-sm text-[#183a1d]/50">
+                    <div className="flex items-center gap-2 text-sm text-[var(--tulip-forest)]/50">
                       <Loader2 size={14} className="animate-spin" /> Loading data...
                     </div>
                   )}
                   <div className="mt-6 flex justify-end">
-                    <button onClick={() => setWbStep(2)} className="px-5 py-2.5 rounded-lg bg-[#183a1d] text-[#fefbe9] text-sm font-medium hover:bg-[#183a1d]/90 flex items-center gap-2">
+                    <button onClick={() => setWbStep(2)} className="px-5 py-2.5 rounded-lg bg-[var(--tulip-forest)] text-[var(--tulip-cream)] text-sm font-medium hover:bg-[var(--tulip-forest)]/90 flex items-center gap-2">
                       Continue <ArrowRight size={14} />
                     </button>
                   </div>
@@ -1183,16 +1183,16 @@ export default function ReportsPage() {
               {/* Step 2 — Organisation details */}
               {wbStep === 2 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-[#183a1d] mb-4">Organisation Details</h3>
+                  <h3 className="text-sm font-semibold text-[var(--tulip-forest)] mb-4">Organisation Details</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormInput label="Organisation Name" value={wbOrg.orgName} onChange={v => setWbOrg(p => ({ ...p, orgName: v }))} />
                     <FormInput label="Bank Name" value={wbOrg.bankName} onChange={v => setWbOrg(p => ({ ...p, bankName: v }))} />
                     <FormInput label="Bank Account Number" value={wbOrg.bankAccount} onChange={v => setWbOrg(p => ({ ...p, bankAccount: v }))} />
                     <FormInput label="SWIFT Code" value={wbOrg.swiftCode} onChange={v => setWbOrg(p => ({ ...p, swiftCode: v }))} />
                   </div>
-                  <label className="flex items-center gap-2 mt-4 text-sm text-[#183a1d]/70 cursor-pointer">
+                  <label className="flex items-center gap-2 mt-4 text-sm text-[var(--tulip-forest)]/70 cursor-pointer">
                     <input type="checkbox" checked={wbOrg.saveForFuture} onChange={e => setWbOrg(p => ({ ...p, saveForFuture: e.target.checked }))}
-                      className="rounded border-[#c8d6c0]" />
+                      className="rounded border-[var(--tulip-sage-dark)]" />
                     Save for future reports
                   </label>
                   <WizardNav onBack={() => setWbStep(1)} onNext={() => setWbStep(3)} />
@@ -1202,7 +1202,7 @@ export default function ReportsPage() {
               {/* Step 3 — Period financials */}
               {wbStep === 3 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-[#183a1d] mb-4">Period Financials</h3>
+                  <h3 className="text-sm font-semibold text-[var(--tulip-forest)] mb-4">Period Financials</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormInput label="Opening Balance ($)" value={wbFinancials.openingBalance} onChange={v => setWbFinancials(p => ({ ...p, openingBalance: v }))} type="number" />
                     <FormInput label="World Bank Funds Received ($)" value={wbFinancials.wbFunds} onChange={v => setWbFinancials(p => ({ ...p, wbFunds: v }))} type="number" />
@@ -1217,17 +1217,17 @@ export default function ReportsPage() {
               {/* Step 4 — Review & Certify */}
               {wbStep === 4 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-[#183a1d] mb-4">Review & Certify</h3>
+                  <h3 className="text-sm font-semibold text-[var(--tulip-forest)] mb-4">Review & Certify</h3>
                   <div className="space-y-3 mb-4">
-                    <div className="p-4 bg-[#e1eedd]/50 rounded-lg border border-[#c8d6c0]">
-                      <h4 className="text-xs font-semibold text-[#183a1d] mb-2 uppercase tracking-wider">Organisation</h4>
+                    <div className="p-4 bg-[var(--tulip-sage)]/50 rounded-lg border border-[var(--tulip-sage-dark)]">
+                      <h4 className="text-xs font-semibold text-[var(--tulip-forest)] mb-2 uppercase tracking-wider">Organisation</h4>
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <InfoField label="Name" value={wbOrg.orgName} />
                         <InfoField label="Bank" value={wbOrg.bankName} />
                       </div>
                     </div>
-                    <div className="p-4 bg-[#e1eedd]/50 rounded-lg border border-[#c8d6c0]">
-                      <h4 className="text-xs font-semibold text-[#183a1d] mb-2 uppercase tracking-wider">Financials</h4>
+                    <div className="p-4 bg-[var(--tulip-sage)]/50 rounded-lg border border-[var(--tulip-sage-dark)]">
+                      <h4 className="text-xs font-semibold text-[var(--tulip-forest)] mb-2 uppercase tracking-wider">Financials</h4>
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <InfoField label="Opening Balance" value={formatCurrency(parseFloat(wbFinancials.openingBalance) || 0)} />
                         <InfoField label="WB Funds" value={formatCurrency(parseFloat(wbFinancials.wbFunds) || 0)} />
@@ -1236,8 +1236,8 @@ export default function ReportsPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="p-4 bg-[#e1eedd]/50 rounded-lg border border-[#c8d6c0]">
-                    <h4 className="text-sm font-semibold text-[#183a1d] mb-3">Certification</h4>
+                  <div className="p-4 bg-[var(--tulip-sage)]/50 rounded-lg border border-[var(--tulip-sage-dark)]">
+                    <h4 className="text-sm font-semibold text-[var(--tulip-forest)] mb-3">Certification</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormInput label="Full Name *" value={wbCert.fullName} onChange={v => setWbCert(p => ({ ...p, fullName: v }))} required />
                       <FormInput label="Title *" value={wbCert.title} onChange={v => setWbCert(p => ({ ...p, title: v }))} required />
@@ -1245,17 +1245,17 @@ export default function ReportsPage() {
                       <FormInput label="Email *" value={wbCert.email} onChange={v => setWbCert(p => ({ ...p, email: v }))} type="email" required />
                     </div>
                     <div className="mt-3"><InfoField label="Date" value={wbCert.date} /></div>
-                    <p className="mt-3 text-xs text-[#183a1d]/60 leading-relaxed">
+                    <p className="mt-3 text-xs text-[var(--tulip-forest)]/60 leading-relaxed">
                       I certify that this Interim Financial Report is true, complete, and accurate to the best of my knowledge,
                       and that the expenditures reported have been incurred in accordance with the terms of the Financing Agreement.
                     </p>
                   </div>
                   <div className="mt-6 flex items-center justify-between">
-                    <button onClick={() => setWbStep(3)} className="px-4 py-2.5 rounded-lg border border-[#c8d6c0] text-sm font-medium text-[#183a1d] hover:bg-[#e1eedd] transition-all flex items-center gap-2">
+                    <button onClick={() => setWbStep(3)} className="px-4 py-2.5 rounded-lg border border-[var(--tulip-sage-dark)] text-sm font-medium text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] transition-all flex items-center gap-2">
                       <ArrowLeft size={14} /> Back
                     </button>
                     <button onClick={generateWorldBank} disabled={generating || !wbCert.fullName}
-                      className="px-5 py-2.5 rounded-lg bg-[#183a1d] text-[#fefbe9] text-sm font-medium hover:bg-[#183a1d]/90 transition-all disabled:opacity-50 flex items-center gap-2">
+                      className="px-5 py-2.5 rounded-lg bg-[var(--tulip-forest)] text-[var(--tulip-cream)] text-sm font-medium hover:bg-[var(--tulip-forest)]/90 transition-all disabled:opacity-50 flex items-center gap-2">
                       {generating ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
                       Generate World Bank IFR
                     </button>
@@ -1270,27 +1270,27 @@ export default function ReportsPage() {
                   <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
                     <Check size={28} className="text-green-600" />
                   </div>
-                  <h3 className="text-lg font-bold text-[#183a1d]">World Bank IFR Generated</h3>
-                  <p className="text-sm text-[#183a1d]/60 mt-1">Your report has been created and sealed.</p>
+                  <h3 className="text-lg font-bold text-[var(--tulip-forest)]">World Bank IFR Generated</h3>
+                  <p className="text-sm text-[var(--tulip-forest)]/60 mt-1">Your report has been created and sealed.</p>
                   <div className="flex items-center justify-center gap-3 mt-6">
                     {wbResult.downloadUrl && (
                       <a href={wbResult.downloadUrl}
-                        className="px-4 py-2.5 rounded-lg bg-[#183a1d] text-[#fefbe9] text-sm font-medium hover:bg-[#183a1d]/90 flex items-center gap-2">
+                        className="px-4 py-2.5 rounded-lg bg-[var(--tulip-forest)] text-[var(--tulip-cream)] text-sm font-medium hover:bg-[var(--tulip-forest)]/90 flex items-center gap-2">
                         <Download size={14} /> Download PDF
                       </a>
                     )}
                     <button onClick={() => openShare(wbResult!)}
-                      className="px-4 py-2.5 rounded-lg border border-[#c8d6c0] text-sm font-medium text-[#183a1d] hover:bg-[#e1eedd] flex items-center gap-2">
+                      className="px-4 py-2.5 rounded-lg border border-[var(--tulip-sage-dark)] text-sm font-medium text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] flex items-center gap-2">
                       <Link2 size={14} /> Share Link
                     </button>
                     <button onClick={() => { setWbStep(1); setWbResult(null) }}
-                      className="px-4 py-2.5 rounded-lg border border-[#c8d6c0] text-sm font-medium text-[#183a1d] hover:bg-[#e1eedd] flex items-center gap-2">
+                      className="px-4 py-2.5 rounded-lg border border-[var(--tulip-sage-dark)] text-sm font-medium text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] flex items-center gap-2">
                       <RefreshCw size={14} /> Generate Another
                     </button>
                   </div>
                   {(wbResult.sha256 || wbResult.polygonTx) && (
-                    <div className="mt-6 p-4 bg-[#e1eedd]/50 rounded-lg border border-[#c8d6c0] text-left text-xs space-y-2">
-                      <h4 className="font-semibold text-sm text-[#183a1d]">Seal Details</h4>
+                    <div className="mt-6 p-4 bg-[var(--tulip-sage)]/50 rounded-lg border border-[var(--tulip-sage-dark)] text-left text-xs space-y-2">
+                      <h4 className="font-semibold text-sm text-[var(--tulip-forest)]">Seal Details</h4>
                       {wbResult.sha256 && <InfoField label="SHA-256" value={wbResult.sha256} />}
                       {wbResult.anchorDate && <InfoField label="Anchor Date" value={formatDate(wbResult.anchorDate)} />}
                       {wbResult.polygonTx && <InfoField label="Polygon TX" value={wbResult.polygonTx} />}
@@ -1309,28 +1309,28 @@ export default function ReportsPage() {
       {shareReport && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShareReport(null)}>
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-          <div className="relative w-full max-w-md bg-[#fefbe9] rounded-2xl shadow-2xl border border-[#c8d6c0] overflow-hidden"
+          <div className="relative w-full max-w-md bg-[var(--tulip-cream)] rounded-2xl shadow-2xl border border-[var(--tulip-sage-dark)] overflow-hidden"
             onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-5 py-4 border-b border-[#c8d6c0]">
-              <h2 className="text-base font-bold text-[#183a1d]">Share Report</h2>
-              <button onClick={() => setShareReport(null)} className="p-1.5 rounded-md hover:bg-[#e1eedd] transition-colors">
-                <X size={18} className="text-[#183a1d]/60" />
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--tulip-sage-dark)]">
+              <h2 className="text-base font-bold text-[var(--tulip-forest)]">Share Report</h2>
+              <button onClick={() => setShareReport(null)} className="p-1.5 rounded-md hover:bg-[var(--tulip-sage)] transition-colors">
+                <X size={18} className="text-[var(--tulip-forest)]/60" />
               </button>
             </div>
             <div className="p-5 space-y-4">
               {/* Generate new share */}
               <div>
-                <label className="block text-sm font-medium text-[#183a1d] mb-2">Create Share Link</label>
+                <label className="block text-sm font-medium text-[var(--tulip-forest)] mb-2">Create Share Link</label>
                 <div className="flex gap-2">
                   <select value={shareExpiry} onChange={e => setShareExpiry(e.target.value)}
-                    className="px-3 py-2 rounded-lg border border-[#c8d6c0] bg-[#fefbe9] text-sm text-[#183a1d] focus:outline-none focus:ring-2 focus:ring-[#183a1d]/20">
+                    className="px-3 py-2 rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)] text-sm text-[var(--tulip-forest)] focus:outline-none focus:ring-2 focus:ring-[var(--tulip-forest)]/20">
                     <option value="7">7 days</option>
                     <option value="14">14 days</option>
                     <option value="30">30 days</option>
                     <option value="90">90 days</option>
                   </select>
                   <button onClick={createShareLink} disabled={shareGenerating}
-                    className="px-4 py-2 rounded-lg bg-[#183a1d] text-[#fefbe9] text-sm font-medium hover:bg-[#183a1d]/90 flex items-center gap-2 disabled:opacity-50">
+                    className="px-4 py-2 rounded-lg bg-[var(--tulip-forest)] text-[var(--tulip-cream)] text-sm font-medium hover:bg-[var(--tulip-forest)]/90 flex items-center gap-2 disabled:opacity-50">
                     {shareGenerating ? <Loader2 size={14} className="animate-spin" /> : <Link2 size={14} />}
                     Create Link
                   </button>
@@ -1340,13 +1340,13 @@ export default function ReportsPage() {
               {/* Existing share links */}
               {shareLinks.length > 0 && (
                 <div>
-                  <label className="block text-sm font-medium text-[#183a1d] mb-2">Active Shares</label>
+                  <label className="block text-sm font-medium text-[var(--tulip-forest)] mb-2">Active Shares</label>
                   <div className="space-y-2">
                     {shareLinks.map(link => (
-                      <div key={link.id} className="p-3 bg-[#e1eedd]/50 rounded-lg border border-[#c8d6c0] text-xs">
+                      <div key={link.id} className="p-3 bg-[var(--tulip-sage)]/50 rounded-lg border border-[var(--tulip-sage-dark)] text-xs">
                         <div className="flex items-center justify-between mb-2">
                           <button onClick={() => copyShareUrl(link.token)}
-                            className="flex items-center gap-1.5 text-[#183a1d] hover:text-[#183a1d]/80 font-mono text-[10px] truncate max-w-[200px]">
+                            className="flex items-center gap-1.5 text-[var(--tulip-forest)] hover:text-[var(--tulip-forest)]/80 font-mono text-[10px] truncate max-w-[200px]">
                             {shareCopied ? <Check size={12} className="text-green-600 shrink-0" /> : <Copy size={12} className="shrink-0" />}
                             https://donor.sealayer.io/share/report/{link.token}
                           </button>
@@ -1355,7 +1355,7 @@ export default function ReportsPage() {
                             Revoke
                           </button>
                         </div>
-                        <div className="flex items-center gap-4 text-[#183a1d]/50">
+                        <div className="flex items-center gap-4 text-[var(--tulip-forest)]/50">
                           <span>Created: {formatDate(link.createdAt)}</span>
                           <span>Expires: {formatDate(link.expiresAt)}</span>
                           <span>Views: {link.views}</span>
@@ -1380,8 +1380,8 @@ export default function ReportsPage() {
 function InfoField({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <span className="text-[#183a1d]/50 text-xs">{label}</span>
-      <p className="text-[#183a1d] text-sm font-medium break-all">{value || '-'}</p>
+      <span className="text-[var(--tulip-forest)]/50 text-xs">{label}</span>
+      <p className="text-[var(--tulip-forest)] text-sm font-medium break-all">{value || '-'}</p>
     </div>
   )
 }
@@ -1391,9 +1391,9 @@ function FormInput({ label, value, onChange, type = 'text', required }: {
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-[#183a1d] mb-1">{label}</label>
+      <label className="block text-sm font-medium text-[var(--tulip-forest)] mb-1">{label}</label>
       <input type={type} value={value} onChange={e => onChange(e.target.value)} required={required}
-        className="w-full px-3 py-2 rounded-lg border border-[#c8d6c0] bg-[#fefbe9] text-sm text-[#183a1d] focus:outline-none focus:ring-2 focus:ring-[#183a1d]/20" />
+        className="w-full px-3 py-2 rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-cream)] text-sm text-[var(--tulip-forest)] focus:outline-none focus:ring-2 focus:ring-[var(--tulip-forest)]/20" />
     </div>
   )
 }
@@ -1402,11 +1402,11 @@ function WizardNav({ onBack, onNext }: { onBack: () => void; onNext: () => void 
   return (
     <div className="mt-6 flex items-center justify-between">
       <button onClick={onBack}
-        className="px-4 py-2.5 rounded-lg border border-[#c8d6c0] text-sm font-medium text-[#183a1d] hover:bg-[#e1eedd] transition-all flex items-center gap-2">
+        className="px-4 py-2.5 rounded-lg border border-[var(--tulip-sage-dark)] text-sm font-medium text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] transition-all flex items-center gap-2">
         <ArrowLeft size={14} /> Back
       </button>
       <button onClick={onNext}
-        className="px-5 py-2.5 rounded-lg bg-[#183a1d] text-[#fefbe9] text-sm font-medium hover:bg-[#183a1d]/90 transition-all flex items-center gap-2">
+        className="px-5 py-2.5 rounded-lg bg-[var(--tulip-forest)] text-[var(--tulip-cream)] text-sm font-medium hover:bg-[var(--tulip-forest)]/90 transition-all flex items-center gap-2">
         Continue <ArrowRight size={14} />
       </button>
     </div>

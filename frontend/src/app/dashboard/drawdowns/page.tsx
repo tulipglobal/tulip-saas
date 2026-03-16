@@ -181,31 +181,31 @@ export default function DrawdownsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
+          <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>
             Drawdown Requests
           </h1>
-          <p className="text-[#183a1d]/60 text-sm mt-1">
+          <p className="text-[var(--tulip-forest)]/60 text-sm mt-1">
             Request and track funding drawdowns from investors
           </p>
         </div>
         <button
           onClick={() => { setShowRequestModal(true); setReqInvestmentId(''); setReqAmount(''); setReqPurpose('') }}
-          className="px-4 py-2 rounded-lg text-sm font-medium text-[#fefbe9] bg-[#183a1d] hover:bg-[#183a1d]/90 transition-colors self-start"
+          className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-cream)] bg-[var(--tulip-forest)] hover:bg-[var(--tulip-forest)]/90 transition-colors self-start"
         >
           Request Drawdown
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 rounded-lg border border-[#c8d6c0] p-1 w-fit" style={{ background: '#e1eedd' }}>
+      <div className="flex gap-1 rounded-lg border border-[var(--tulip-sage-dark)] p-1 w-fit" style={{ background: 'var(--tulip-sage)' }}>
         {tabs.map(t => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
               tab === t.key
-                ? 'bg-[#183a1d] text-[#fefbe9]'
-                : 'text-[#183a1d]/60 hover:text-[#183a1d] hover:bg-[#d5e5cc]'
+                ? 'bg-[var(--tulip-forest)] text-[var(--tulip-cream)]'
+                : 'text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] hover:bg-[#d5e5cc]'
             }`}
           >
             {t.label}
@@ -214,9 +214,9 @@ export default function DrawdownsPage() {
       </div>
 
       {/* Table */}
-      <div className="rounded-xl border border-[#c8d6c0] overflow-hidden" style={{ background: '#e1eedd' }}>
+      <div className="rounded-xl border border-[var(--tulip-sage-dark)] overflow-hidden" style={{ background: 'var(--tulip-sage)' }}>
         {/* Desktop header */}
-        <div className="hidden lg:grid grid-cols-[1.2fr_1.2fr_1fr_1.5fr_90px_100px_100px_120px] gap-4 px-5 py-3 border-b border-[#c8d6c0] text-[10px] text-[#183a1d]/40 uppercase tracking-wider font-medium">
+        <div className="hidden lg:grid grid-cols-[1.2fr_1.2fr_1fr_1.5fr_90px_100px_100px_120px] gap-4 px-5 py-3 border-b border-[var(--tulip-sage-dark)] text-[10px] text-[var(--tulip-forest)]/40 uppercase tracking-wider font-medium">
           <span>Project</span>
           <span>Investor</span>
           <span>Amount</span>
@@ -228,27 +228,27 @@ export default function DrawdownsPage() {
         </div>
 
         {loading ? (
-          <div className="p-12 text-center text-[#183a1d]/40 text-sm">Loading drawdowns...</div>
+          <div className="p-12 text-center text-[var(--tulip-forest)]/40 text-sm">Loading drawdowns...</div>
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center">
-            <p className="text-[#183a1d]/40 text-sm">No drawdowns found</p>
+            <p className="text-[var(--tulip-forest)]/40 text-sm">No drawdowns found</p>
           </div>
         ) : (
-          <div className="divide-y divide-[#c8d6c0]">
+          <div className="divide-y divide-[var(--tulip-sage-dark)]">
             {filtered.map(dd => (
               <div key={dd.id}>
                 {/* Desktop row */}
                 <div className="hidden lg:grid grid-cols-[1.2fr_1.2fr_1fr_1.5fr_90px_100px_100px_120px] gap-4 px-5 py-3 items-center">
-                  <div className="text-sm text-[#183a1d] font-medium truncate">{dd.projectName}</div>
-                  <div className="text-sm text-[#183a1d]/70 truncate">{dd.donorOrgName}</div>
-                  <div className="text-sm font-medium text-[#183a1d]">{fmtCurrency(dd.amount, dd.currency)}</div>
-                  <div className="text-xs text-[#183a1d]/60 truncate">{dd.purpose}</div>
+                  <div className="text-sm text-[var(--tulip-forest)] font-medium truncate">{dd.projectName}</div>
+                  <div className="text-sm text-[var(--tulip-forest)]/70 truncate">{dd.donorOrgName}</div>
+                  <div className="text-sm font-medium text-[var(--tulip-forest)]">{fmtCurrency(dd.amount, dd.currency)}</div>
+                  <div className="text-xs text-[var(--tulip-forest)]/60 truncate">{dd.purpose}</div>
                   <div><StatusPill status={dd.status} /></div>
-                  <div className="text-xs text-[#183a1d]/50">{fmtDate(dd.requestedAt)}</div>
-                  <div className="text-xs text-[#183a1d]/50">{fmtDate(dd.approvedAt)}</div>
+                  <div className="text-xs text-[var(--tulip-forest)]/50">{fmtDate(dd.requestedAt)}</div>
+                  <div className="text-xs text-[var(--tulip-forest)]/50">{fmtDate(dd.approvedAt)}</div>
                   <div>
                     {dd.status === 'REQUESTED' && (
-                      <span className="text-xs text-[#183a1d]/40">Awaiting approval</span>
+                      <span className="text-xs text-[var(--tulip-forest)]/40">Awaiting approval</span>
                     )}
                     {dd.status === 'APPROVED' && (
                       <button
@@ -270,18 +270,18 @@ export default function DrawdownsPage() {
                 {/* Mobile card */}
                 <div className="lg:hidden px-5 py-3.5 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-[#183a1d]">{dd.projectName}</span>
+                    <span className="text-sm font-medium text-[var(--tulip-forest)]">{dd.projectName}</span>
                     <StatusPill status={dd.status} />
                   </div>
-                  <div className="text-xs text-[#183a1d]/60">{dd.donorOrgName}</div>
+                  <div className="text-xs text-[var(--tulip-forest)]/60">{dd.donorOrgName}</div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-[#183a1d]">{fmtCurrency(dd.amount, dd.currency)}</span>
-                    <span className="text-[10px] text-[#183a1d]/40">{fmtDate(dd.requestedAt)}</span>
+                    <span className="text-sm font-bold text-[var(--tulip-forest)]">{fmtCurrency(dd.amount, dd.currency)}</span>
+                    <span className="text-[10px] text-[var(--tulip-forest)]/40">{fmtDate(dd.requestedAt)}</span>
                   </div>
-                  <p className="text-xs text-[#183a1d]/50">{dd.purpose}</p>
+                  <p className="text-xs text-[var(--tulip-forest)]/50">{dd.purpose}</p>
                   <div>
                     {dd.status === 'REQUESTED' && (
-                      <span className="text-xs text-[#183a1d]/40">Awaiting approval</span>
+                      <span className="text-xs text-[var(--tulip-forest)]/40">Awaiting approval</span>
                     )}
                     {dd.status === 'APPROVED' && (
                       <button
@@ -309,26 +309,26 @@ export default function DrawdownsPage() {
       {showRequestModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setShowRequestModal(false)}>
           <div
-            className="w-full max-w-md rounded-xl border border-[#c8d6c0] p-6 space-y-4 shadow-xl"
-            style={{ background: '#fefbe9' }}
+            className="w-full max-w-md rounded-xl border border-[var(--tulip-sage-dark)] p-6 space-y-4 shadow-xl"
+            style={{ background: 'var(--tulip-cream)' }}
             onClick={e => e.stopPropagation()}
           >
-            <h3 className="text-lg font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <h3 className="text-lg font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>
               Request Drawdown
             </h3>
 
             {/* Project / Investment select */}
             <div>
-              <label className="block text-xs font-medium text-[#183a1d]/70 mb-1">Project</label>
+              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">Project</label>
               {investmentOptions.length === 0 ? (
-                <div className="rounded-lg border border-[#c8d6c0] bg-[#e1eedd] px-3 py-3 text-sm text-[#183a1d]/60">
+                <div className="rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] px-3 py-3 text-sm text-[var(--tulip-forest)]/60">
                   No active impact investments found. Create one via Budgets &rarr; Add Funding Source &rarr; Impact Investment.
                 </div>
               ) : (
                 <select
                   value={reqInvestmentId}
                   onChange={e => { setReqInvestmentId(e.target.value); setReqAmount('') }}
-                  className="w-full rounded-lg border border-[#c8d6c0] bg-[#e1eedd] px-3 py-2 text-sm text-[#183a1d] outline-none focus:border-[#183a1d]/40"
+                  className="w-full rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] px-3 py-2 text-sm text-[var(--tulip-forest)] outline-none focus:border-[var(--tulip-forest)]/40"
                 >
                   <option value="">Select a project...</option>
                   {investmentOptions.map(o => (
@@ -342,7 +342,7 @@ export default function DrawdownsPage() {
 
             {/* Amount */}
             <div>
-              <label className="block text-xs font-medium text-[#183a1d]/70 mb-1">Amount</label>
+              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">Amount</label>
               <input
                 type="number"
                 min={0}
@@ -350,30 +350,30 @@ export default function DrawdownsPage() {
                 value={reqAmount}
                 onChange={e => setReqAmount(e.target.value)}
                 placeholder="0.00"
-                className="w-full rounded-lg border border-[#c8d6c0] bg-[#e1eedd] px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/30 outline-none focus:border-[#183a1d]/40"
+                className="w-full rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/30 outline-none focus:border-[var(--tulip-forest)]/40"
               />
             </div>
 
             {/* Currency */}
             <div>
-              <label className="block text-xs font-medium text-[#183a1d]/70 mb-1">Currency</label>
+              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">Currency</label>
               <input
                 type="text"
                 value={selectedInvestment?.currency ?? ''}
                 readOnly
-                className="w-full rounded-lg border border-[#c8d6c0] bg-[#e1eedd]/60 px-3 py-2 text-sm text-[#183a1d]/60 outline-none cursor-not-allowed"
+                className="w-full rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]/60 px-3 py-2 text-sm text-[var(--tulip-forest)]/60 outline-none cursor-not-allowed"
               />
             </div>
 
             {/* Purpose */}
             <div>
-              <label className="block text-xs font-medium text-[#183a1d]/70 mb-1">Purpose <span className="text-red-500">*</span></label>
+              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">Purpose <span className="text-red-500">*</span></label>
               <textarea
                 value={reqPurpose}
                 onChange={e => setReqPurpose(e.target.value)}
                 rows={3}
                 placeholder="Describe the purpose of this drawdown..."
-                className="w-full rounded-lg border border-[#c8d6c0] bg-[#e1eedd] px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/30 outline-none focus:border-[#183a1d]/40 resize-none"
+                className="w-full rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/30 outline-none focus:border-[var(--tulip-forest)]/40 resize-none"
               />
             </div>
 
@@ -381,14 +381,14 @@ export default function DrawdownsPage() {
             <div className="flex justify-end gap-3 pt-2">
               <button
                 onClick={() => setShowRequestModal(false)}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d]/60 border border-[#c8d6c0] hover:bg-[#e1eedd] transition-colors"
+                className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-forest)]/60 border border-[var(--tulip-sage-dark)] hover:bg-[var(--tulip-sage)] transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={submitRequest}
                 disabled={reqSubmitting || !reqInvestmentId || !reqAmount || !reqPurpose.trim()}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-[#fefbe9] bg-[#183a1d] hover:bg-[#183a1d]/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-cream)] bg-[var(--tulip-forest)] hover:bg-[var(--tulip-forest)]/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 {reqSubmitting ? 'Submitting...' : 'Submit Request'}
               </button>
@@ -401,33 +401,33 @@ export default function DrawdownsPage() {
       {utilDrawdown && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setUtilDrawdown(null)}>
           <div
-            className="w-full max-w-md rounded-xl border border-[#c8d6c0] p-6 space-y-4 shadow-xl"
-            style={{ background: '#fefbe9' }}
+            className="w-full max-w-md rounded-xl border border-[var(--tulip-sage-dark)] p-6 space-y-4 shadow-xl"
+            style={{ background: 'var(--tulip-cream)' }}
             onClick={e => e.stopPropagation()}
           >
-            <h3 className="text-lg font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <h3 className="text-lg font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>
               Record Utilisation
             </h3>
 
             {/* Drawdown details */}
-            <div className="rounded-lg border border-[#c8d6c0] p-3 space-y-1" style={{ background: '#e1eedd' }}>
+            <div className="rounded-lg border border-[var(--tulip-sage-dark)] p-3 space-y-1" style={{ background: 'var(--tulip-sage)' }}>
               <div className="flex justify-between text-xs">
-                <span className="text-[#183a1d]/50">Project</span>
-                <span className="text-[#183a1d] font-medium">{utilDrawdown.projectName}</span>
+                <span className="text-[var(--tulip-forest)]/50">Project</span>
+                <span className="text-[var(--tulip-forest)] font-medium">{utilDrawdown.projectName}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-[#183a1d]/50">Drawdown Amount</span>
-                <span className="text-[#183a1d] font-medium">{fmtCurrency(utilDrawdown.amount, utilDrawdown.currency)}</span>
+                <span className="text-[var(--tulip-forest)]/50">Drawdown Amount</span>
+                <span className="text-[var(--tulip-forest)] font-medium">{fmtCurrency(utilDrawdown.amount, utilDrawdown.currency)}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-[#183a1d]/50">Purpose</span>
-                <span className="text-[#183a1d]">{utilDrawdown.purpose}</span>
+                <span className="text-[var(--tulip-forest)]/50">Purpose</span>
+                <span className="text-[var(--tulip-forest)]">{utilDrawdown.purpose}</span>
               </div>
             </div>
 
             {/* Amount utilised */}
             <div>
-              <label className="block text-xs font-medium text-[#183a1d]/70 mb-1">Amount Utilised</label>
+              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">Amount Utilised</label>
               <input
                 type="number"
                 min={0}
@@ -435,19 +435,19 @@ export default function DrawdownsPage() {
                 value={utilAmount}
                 onChange={e => setUtilAmount(e.target.value)}
                 placeholder="0.00"
-                className="w-full rounded-lg border border-[#c8d6c0] bg-[#e1eedd] px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/30 outline-none focus:border-[#183a1d]/40"
+                className="w-full rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/30 outline-none focus:border-[var(--tulip-forest)]/40"
               />
             </div>
 
             {/* Note */}
             <div>
-              <label className="block text-xs font-medium text-[#183a1d]/70 mb-1">Note</label>
+              <label className="block text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">Note</label>
               <textarea
                 value={utilNote}
                 onChange={e => setUtilNote(e.target.value)}
                 rows={3}
                 placeholder="Add a note about how the funds were used..."
-                className="w-full rounded-lg border border-[#c8d6c0] bg-[#e1eedd] px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/30 outline-none focus:border-[#183a1d]/40 resize-none"
+                className="w-full rounded-lg border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)] px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/30 outline-none focus:border-[var(--tulip-forest)]/40 resize-none"
               />
             </div>
 
@@ -455,14 +455,14 @@ export default function DrawdownsPage() {
             <div className="flex justify-end gap-3 pt-2">
               <button
                 onClick={() => setUtilDrawdown(null)}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d]/60 border border-[#c8d6c0] hover:bg-[#e1eedd] transition-colors"
+                className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-forest)]/60 border border-[var(--tulip-sage-dark)] hover:bg-[var(--tulip-sage)] transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={submitUtilisation}
                 disabled={utilSubmitting || !utilAmount}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-[#fefbe9] bg-[#183a1d] hover:bg-[#183a1d]/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-cream)] bg-[var(--tulip-forest)] hover:bg-[var(--tulip-forest)]/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 {utilSubmitting ? 'Recording...' : 'Record Utilisation'}
               </button>

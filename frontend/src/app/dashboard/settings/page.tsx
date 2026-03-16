@@ -253,96 +253,96 @@ export default function SettingsPage() {
 
   if (loading) return (
     <div className="p-6 animate-fade-up">
-      <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('settings.title')}</h1>
-      <p className="text-[#183a1d]/40 text-sm mt-4">{t('common.loading')}</p>
+      <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('settings.title')}</h1>
+      <p className="text-[var(--tulip-forest)]/40 text-sm mt-4">{t('common.loading')}</p>
     </div>
   )
 
-  const inputClass = 'w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-4 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] focus:ring-1 focus:ring-[#f6c453] transition-all'
+  const inputClass = 'w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] focus:ring-1 focus:ring-[var(--tulip-gold)] transition-all'
 
   return (
     <div className="p-6 space-y-6 animate-fade-up max-w-3xl">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       <div>
-        <h1 className="text-2xl font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('settings.title')}</h1>
-        <p className="text-[#183a1d]/60 text-sm mt-1">{t('settings.subtitle')}</p>
+        <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>{t('settings.title')}</h1>
+        <p className="text-[var(--tulip-forest)]/60 text-sm mt-1">{t('settings.subtitle')}</p>
       </div>
 
       {/* Theme Section */}
-      <div className="rounded-xl border border-[#c8d6c0] px-5 py-5 space-y-4 bg-[#e1eedd]">
+      <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-5 py-5 space-y-4 bg-[var(--tulip-sage)]">
         <div className="flex items-center gap-3">
-          <Palette size={18} className="text-[#183a1d]/60" />
-          <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide">Theme</h2>
+          <Palette size={18} className="text-[var(--tulip-forest)]/60" />
+          <h2 className="text-sm font-medium text-[var(--tulip-forest)]/60 uppercase tracking-wide">Theme</h2>
         </div>
-        <p className="text-xs text-[#183a1d]/50">Choose your preferred appearance. System will follow your device settings.</p>
+        <p className="text-xs text-[var(--tulip-forest)]/50">Choose your preferred appearance. System will follow your device settings.</p>
         <ThemeToggle />
       </div>
 
       {/* Profile Section */}
-      <div className="rounded-xl border border-[#c8d6c0] px-5 py-5 space-y-4 bg-[#e1eedd]">
+      <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-5 py-5 space-y-4 bg-[var(--tulip-sage)]">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-[#183a1d] bg-[#f6c453]">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-[var(--tulip-forest)] bg-[var(--tulip-gold)]">
             {profile?.name?.charAt(0)?.toUpperCase() ?? 'U'}
           </div>
           <div>
-            <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide">{t('settings.profile')}</h2>
+            <h2 className="text-sm font-medium text-[var(--tulip-forest)]/60 uppercase tracking-wide">{t('settings.profile')}</h2>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="text-xs text-[#183a1d]/40 block mb-1">{t('settings.fullName')}</label>
+            <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('settings.fullName')}</label>
             <input className={inputClass} value={profileName} onChange={e => setProfileName(e.target.value)} />
           </div>
           <div>
-            <label className="text-xs text-[#183a1d]/40 block mb-1">{t('settings.email')}</label>
+            <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('settings.email')}</label>
             <input className={inputClass} type="email" value={profileEmail} onChange={e => setProfileEmail(e.target.value)} />
           </div>
         </div>
         <div className="flex items-center gap-3 pt-1">
           <button onClick={saveProfile} disabled={savingProfile}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50 transition-all">
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] disabled:opacity-50 transition-all">
             <Save size={14} />
             {savingProfile ? t('common.saving') : t('settings.saveProfile')}
           </button>
-          <span className="text-xs text-[#183a1d]/30">{t('settings.memberSince')} {profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}</span>
+          <span className="text-xs text-[var(--tulip-forest)]/30">{t('settings.memberSince')} {profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}</span>
         </div>
       </div>
 
       {/* Security / Password Section */}
-      <div className="rounded-xl border border-[#c8d6c0] px-5 py-5 space-y-4 bg-[#e1eedd]">
+      <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-5 py-5 space-y-4 bg-[var(--tulip-sage)]">
         <div className="flex items-center gap-3">
-          <Shield size={18} className="text-[#183a1d]/60" />
-          <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide">{t('settings.changePassword')}</h2>
+          <Shield size={18} className="text-[var(--tulip-forest)]/60" />
+          <h2 className="text-sm font-medium text-[var(--tulip-forest)]/60 uppercase tracking-wide">{t('settings.changePassword')}</h2>
         </div>
         <div className="grid grid-cols-1 gap-4 max-w-md">
           <div>
-            <label className="text-xs text-[#183a1d]/40 block mb-1">{t('settings.currentPassword')}</label>
+            <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('settings.currentPassword')}</label>
             <input className={inputClass} type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} placeholder="Enter current password" />
           </div>
           <div>
-            <label className="text-xs text-[#183a1d]/40 block mb-1">{t('settings.newPassword')}</label>
+            <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('settings.newPassword')}</label>
             <input className={inputClass} type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="At least 8 characters" />
           </div>
           <div>
-            <label className="text-xs text-[#183a1d]/40 block mb-1">{t('settings.confirmPassword')}</label>
+            <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('settings.confirmPassword')}</label>
             <input className={inputClass} type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirm new password" />
           </div>
         </div>
         <button onClick={savePassword} disabled={savingPassword || !currentPassword || !newPassword}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50 transition-all">
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] disabled:opacity-50 transition-all">
           <Save size={14} />
           {savingPassword ? t('common.saving') : t('settings.changePassword')}
         </button>
       </div>
 
       {/* Email Notifications Section */}
-      <div className="rounded-xl border border-[#c8d6c0] px-5 py-5 space-y-4 bg-[#e1eedd]">
+      <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-5 py-5 space-y-4 bg-[var(--tulip-sage)]">
         <div className="flex items-center gap-3">
-          <Bell size={18} className="text-[#183a1d]/60" />
-          <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide">{t('settings.emailNotifications')}</h2>
+          <Bell size={18} className="text-[var(--tulip-forest)]/60" />
+          <h2 className="text-sm font-medium text-[var(--tulip-forest)]/60 uppercase tracking-wide">{t('settings.emailNotifications')}</h2>
         </div>
-        <p className="text-xs text-[#183a1d]/50">{t('settings.notifDesc')}</p>
+        <p className="text-xs text-[var(--tulip-forest)]/50">{t('settings.notifDesc')}</p>
         <div className="space-y-3">
           {[
             { key: 'fraud', labelKey: 'settings.fraudAlerts', descKey: 'settings.fraudAlertsDesc' },
@@ -351,14 +351,14 @@ export default function SettingsPage() {
             { key: 'void', labelKey: 'settings.voidNotif', descKey: 'settings.voidNotifDesc' },
             { key: 'seal', labelKey: 'settings.sealConfirmations', descKey: 'settings.sealConfirmationsDesc' },
           ].map(({ key, labelKey, descKey }) => (
-            <div key={key} className="flex items-center justify-between py-2 border-b border-[#c8d6c0]/50 last:border-0">
+            <div key={key} className="flex items-center justify-between py-2 border-b border-[var(--tulip-sage-dark)]/50 last:border-0">
               <div>
-                <p className="text-sm font-medium text-[#183a1d]">{t(labelKey)}</p>
-                <p className="text-xs text-[#183a1d]/40">{t(descKey)}</p>
+                <p className="text-sm font-medium text-[var(--tulip-forest)]">{t(labelKey)}</p>
+                <p className="text-xs text-[var(--tulip-forest)]/40">{t(descKey)}</p>
               </div>
               <button
                 onClick={() => toggleNotif(key)}
-                className={`relative w-10 h-5 rounded-full transition-colors ${notifPrefs[key as keyof typeof notifPrefs] ? 'bg-[#0d9488]' : 'bg-[#c8d6c0]'}`}
+                className={`relative w-10 h-5 rounded-full transition-colors ${notifPrefs[key as keyof typeof notifPrefs] ? 'bg-[#0d9488]' : 'bg-[var(--tulip-sage-dark)]'}`}
               >
                 <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${notifPrefs[key as keyof typeof notifPrefs] ? 'translate-x-5' : ''}`} />
               </button>
@@ -366,68 +366,68 @@ export default function SettingsPage() {
           ))}
         </div>
         <button onClick={saveNotif} disabled={savingNotif}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50 transition-all">
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] disabled:opacity-50 transition-all">
           <Save size={14} />
           {savingNotif ? t('common.saving') : t('settings.saveNotifications')}
         </button>
       </div>
 
       {/* Organisation Section */}
-      <div className="rounded-xl border border-[#c8d6c0] px-5 py-5 space-y-4 bg-[#e1eedd]">
+      <div className="rounded-xl border border-[var(--tulip-sage-dark)] px-5 py-5 space-y-4 bg-[var(--tulip-sage)]">
         <div className="flex items-center gap-3">
-          <Building2 size={18} className="text-[#183a1d]/60" />
-          <h2 className="text-sm font-medium text-[#183a1d]/60 uppercase tracking-wide">{t('settings.organization')}</h2>
+          <Building2 size={18} className="text-[var(--tulip-forest)]/60" />
+          <h2 className="text-sm font-medium text-[var(--tulip-forest)]/60 uppercase tracking-wide">{t('settings.organization')}</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="text-xs text-[#183a1d]/40 block mb-1">{t('settings.orgName')}</label>
+            <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('settings.orgName')}</label>
             <input className={inputClass} value={orgName} onChange={e => setOrgName(e.target.value)} />
           </div>
           <div>
-            <label className="text-xs text-[#183a1d]/40 block mb-1">{t('settings.country')}</label>
+            <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('settings.country')}</label>
             <CountrySelect value={orgCountry} onChange={setOrgCountry} />
           </div>
           <div>
-            <label className="text-xs text-[#183a1d]/40 block mb-1">{t('settings.baseCurrency')}</label>
+            <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('settings.baseCurrency')}</label>
             <CurrencySelect value={orgCurrency} onChange={setOrgCurrency} />
           </div>
           <div>
-            <label className="text-xs text-[#183a1d]/40 block mb-1">{t('settings.website')}</label>
+            <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('settings.website')}</label>
             <input className={inputClass} value={orgWebsite} onChange={e => setOrgWebsite(e.target.value)} placeholder="https://..." />
           </div>
           <div>
-            <label className="text-xs text-[#183a1d]/40 block mb-1">{t('settings.registrationNumber')}</label>
+            <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('settings.registrationNumber')}</label>
             <input className={inputClass} value={orgRegNumber} onChange={e => setOrgRegNumber(e.target.value)} placeholder="e.g. REG-12345" />
           </div>
           <div className="md:col-span-2">
-            <label className="text-xs text-[#183a1d]/40 block mb-1">{t('settings.description')}</label>
+            <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">{t('settings.description')}</label>
             <textarea className={inputClass + ' min-h-[80px] resize-y'} value={orgDescription} onChange={e => setOrgDescription(e.target.value)} placeholder="Brief description of your organisation" />
           </div>
         </div>
         <div className="flex items-center gap-3 pt-1">
           <button onClick={saveOrg} disabled={savingOrg}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50 transition-all">
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] disabled:opacity-50 transition-all">
             <Save size={14} />
             {savingOrg ? t('common.saving') : t('settings.saveOrganisation')}
           </button>
-          {org?.id && <span className="text-xs text-[#183a1d]/30 font-mono">Tenant: {org.id.slice(0, 8)}...</span>}
+          {org?.id && <span className="text-xs text-[var(--tulip-forest)]/30 font-mono">Tenant: {org.id.slice(0, 8)}...</span>}
         </div>
       </div>
 
       {/* ── Enterprise SSO ──────────────────────── */}
-      <div className="rounded-xl border border-[#c8d6c0] p-5" style={{ background: '#e1eedd' }}>
+      <div className="rounded-xl border border-[var(--tulip-sage-dark)] p-5" style={{ background: 'var(--tulip-sage)' }}>
         <div className="flex items-center gap-2 mb-4">
-          <Key size={18} className="text-[#183a1d]" />
-          <h3 className="text-base font-semibold text-[#183a1d]">Enterprise SSO</h3>
+          <Key size={18} className="text-[var(--tulip-forest)]" />
+          <h3 className="text-base font-semibold text-[var(--tulip-forest)]">Enterprise SSO</h3>
         </div>
 
         {!ssoConfig?.isEnabled ? (
           /* Locked state — SSO not enabled for this tenant */
-          <div className="flex items-center gap-4 p-4 rounded-lg" style={{ background: '#fefbe9', border: '1px solid #c8d6c0' }}>
-            <Lock size={24} className="text-[#183a1d]/30 shrink-0" />
+          <div className="flex items-center gap-4 p-4 rounded-lg" style={{ background: 'var(--tulip-cream)', border: '1px solid var(--tulip-sage-dark)' }}>
+            <Lock size={24} className="text-[var(--tulip-forest)]/30 shrink-0" />
             <div>
-              <p className="text-sm font-medium text-[#183a1d]">Single Sign-On is not enabled</p>
-              <p className="text-xs text-[#183a1d]/50 mt-1">Connect your identity provider (Google, Microsoft, Okta, SAML) for seamless single sign-on. Contact us to enable this feature for your organisation.</p>
+              <p className="text-sm font-medium text-[var(--tulip-forest)]">Single Sign-On is not enabled</p>
+              <p className="text-xs text-[var(--tulip-forest)]/50 mt-1">Connect your identity provider (Google, Microsoft, Okta, SAML) for seamless single sign-on. Contact us to enable this feature for your organisation.</p>
               <a href="mailto:support@sealayer.io?subject=Enable%20SSO" className="text-xs font-medium text-[#0c7aed] hover:underline mt-2 inline-block">Contact us to enable →</a>
             </div>
           </div>
@@ -440,11 +440,11 @@ export default function SettingsPage() {
             </div>
 
             <div>
-              <label className="text-xs text-[#183a1d]/40 block mb-2">Provider</label>
+              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-2">Provider</label>
               <div className="flex gap-2">
                 {['SAML', 'GOOGLE', 'MICROSOFT', 'OKTA'].map(p => (
                   <button key={p} onClick={() => setSsoProvider(p)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${ssoProvider === p ? 'bg-[#f6c453] text-[#183a1d]' : 'bg-white text-[#183a1d]/60 border border-[#c8d6c0] hover:border-[#f6c453]'}`}>
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${ssoProvider === p ? 'bg-[var(--tulip-gold)] text-[var(--tulip-forest)]' : 'bg-white text-[var(--tulip-forest)]/60 border border-[var(--tulip-sage-dark)] hover:border-[var(--tulip-gold)]'}`}>
                     {p}
                   </button>
                 ))}
@@ -454,15 +454,15 @@ export default function SettingsPage() {
             {(ssoProvider === 'GOOGLE' || ssoProvider === 'MICROSOFT') && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-[#183a1d]/40 block mb-1">Client ID</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Client ID</label>
                   <input className={inputClass} value={ssoClientId} onChange={e => setSsoClientId(e.target.value)} placeholder="your-client-id.apps.googleusercontent.com" />
                 </div>
                 <div>
-                  <label className="text-xs text-[#183a1d]/40 block mb-1">Client Secret</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Client Secret</label>
                   <input className={inputClass} type="password" value={ssoClientSecret} onChange={e => setSsoClientSecret(e.target.value)} placeholder="••••••••" />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="text-xs text-[#183a1d]/40 block mb-1">Callback URL</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Callback URL</label>
                   <input className={inputClass} value={ssoCallbackUrl} onChange={e => setSsoCallbackUrl(e.target.value)} placeholder={`https://api.tulipds.com/api/auth/sso/callback/${ssoProvider.toLowerCase()}`} />
                 </div>
               </div>
@@ -471,19 +471,19 @@ export default function SettingsPage() {
             {(ssoProvider === 'SAML' || ssoProvider === 'OKTA') && (
               <div className="grid grid-cols-1 gap-3">
                 <div>
-                  <label className="text-xs text-[#183a1d]/40 block mb-1">Entry Point URL</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Entry Point URL</label>
                   <input className={inputClass} value={ssoEntryPoint} onChange={e => setSsoEntryPoint(e.target.value)} placeholder="https://idp.example.com/sso/saml" />
                 </div>
                 <div>
-                  <label className="text-xs text-[#183a1d]/40 block mb-1">Issuer</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Issuer</label>
                   <input className={inputClass} value={ssoIssuer} onChange={e => setSsoIssuer(e.target.value)} placeholder="https://idp.example.com" />
                 </div>
                 <div>
-                  <label className="text-xs text-[#183a1d]/40 block mb-1">Certificate (PEM)</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Certificate (PEM)</label>
                   <textarea className={inputClass + ' min-h-[80px] resize-y font-mono text-xs'} value={ssoCert} onChange={e => setSsoCert(e.target.value)} placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----" />
                 </div>
                 <div>
-                  <label className="text-xs text-[#183a1d]/40 block mb-1">Callback URL (ACS)</label>
+                  <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Callback URL (ACS)</label>
                   <input className={inputClass} value={ssoCallbackUrl} onChange={e => setSsoCallbackUrl(e.target.value)} placeholder="https://api.tulipds.com/api/auth/sso/callback/saml" />
                 </div>
               </div>
@@ -504,7 +504,7 @@ export default function SettingsPage() {
                 } catch { setToast({ message: 'Failed to save SSO config', type: 'error' }) }
                 setSavingSSO(false)
               }} disabled={savingSSO}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50 transition-all">
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] disabled:opacity-50 transition-all">
                 <Save size={14} />
                 {savingSSO ? 'Saving...' : 'Save Configuration'}
               </button>
@@ -523,12 +523,12 @@ export default function SettingsPage() {
       </div>
 
       {/* ── Grant Reporting Settings ──────────────── */}
-      <div className="rounded-xl border border-[#c8d6c0] p-5 space-y-5" style={{ background: '#e1eedd' }}>
+      <div className="rounded-xl border border-[var(--tulip-sage-dark)] p-5 space-y-5" style={{ background: 'var(--tulip-sage)' }}>
         <div className="flex items-center gap-2">
-          <FileText size={18} className="text-[#183a1d]" />
+          <FileText size={18} className="text-[var(--tulip-forest)]" />
           <div>
-            <h3 className="text-base font-semibold text-[#183a1d]">Grant Reporting</h3>
-            <p className="text-xs text-[#183a1d]/50 mt-0.5">Configure organisation details that pre-fill donor grant reports (SF-425, EU, World Bank).</p>
+            <h3 className="text-base font-semibold text-[var(--tulip-forest)]">Grant Reporting</h3>
+            <p className="text-xs text-[var(--tulip-forest)]/50 mt-0.5">Configure organisation details that pre-fill donor grant reports (SF-425, EU, World Bank).</p>
           </div>
         </div>
 
@@ -542,18 +542,18 @@ export default function SettingsPage() {
 
         {/* Organisation Details */}
         <div>
-          <h4 className="text-xs font-semibold text-[#183a1d]/60 uppercase tracking-wide mb-3">Organisation Details</h4>
+          <h4 className="text-xs font-semibold text-[var(--tulip-forest)]/60 uppercase tracking-wide mb-3">Organisation Details</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-[#183a1d]/40 block mb-1">Legal Name</label>
+              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Legal Name</label>
               <input className={inputClass} value={grantConfig.legalName} onChange={e => setGrantField('legalName', e.target.value)} placeholder="Registered legal name" />
             </div>
             <div>
-              <label className="text-xs text-[#183a1d]/40 block mb-1">Country</label>
+              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Country</label>
               <input className={inputClass} value={grantConfig.country} onChange={e => setGrantField('country', e.target.value)} placeholder="Country of registration" />
             </div>
             <div className="md:col-span-2">
-              <label className="text-xs text-[#183a1d]/40 block mb-1">Registered Address</label>
+              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Registered Address</label>
               <input className={inputClass} value={grantConfig.registeredAddress} onChange={e => setGrantField('registeredAddress', e.target.value)} placeholder="Full registered address" />
             </div>
           </div>
@@ -561,22 +561,22 @@ export default function SettingsPage() {
 
         {/* Tax & Registration */}
         <div>
-          <h4 className="text-xs font-semibold text-[#183a1d]/60 uppercase tracking-wide mb-3">Tax & Registration</h4>
+          <h4 className="text-xs font-semibold text-[var(--tulip-forest)]/60 uppercase tracking-wide mb-3">Tax & Registration</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-[#183a1d]/40 block mb-1">EIN (US)</label>
+              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">EIN (US)</label>
               <input className={inputClass} value={grantConfig.ein} onChange={e => setGrantField('ein', e.target.value)} placeholder="e.g. 12-3456789" />
             </div>
             <div>
-              <label className="text-xs text-[#183a1d]/40 block mb-1">UEI Number (SAM.gov)</label>
+              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">UEI Number (SAM.gov)</label>
               <input className={inputClass} value={grantConfig.ueiNumber} onChange={e => setGrantField('ueiNumber', e.target.value)} placeholder="e.g. ZQGGKJL84DN7" />
             </div>
             <div>
-              <label className="text-xs text-[#183a1d]/40 block mb-1">VAT Number</label>
+              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">VAT Number</label>
               <input className={inputClass} value={grantConfig.vatNumber} onChange={e => setGrantField('vatNumber', e.target.value)} placeholder="e.g. GB123456789" />
             </div>
             <div>
-              <label className="text-xs text-[#183a1d]/40 block mb-1">Charity Registration Number</label>
+              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Charity Registration Number</label>
               <input className={inputClass} value={grantConfig.charityRegNumber} onChange={e => setGrantField('charityRegNumber', e.target.value)} placeholder="e.g. 1234567" />
             </div>
           </div>
@@ -584,22 +584,22 @@ export default function SettingsPage() {
 
         {/* Authorised Representative */}
         <div>
-          <h4 className="text-xs font-semibold text-[#183a1d]/60 uppercase tracking-wide mb-3">Authorised Representative</h4>
+          <h4 className="text-xs font-semibold text-[var(--tulip-forest)]/60 uppercase tracking-wide mb-3">Authorised Representative</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-[#183a1d]/40 block mb-1">Full Name</label>
+              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Full Name</label>
               <input className={inputClass} value={grantConfig.legalRepName} onChange={e => setGrantField('legalRepName', e.target.value)} placeholder="e.g. Jane Smith" />
             </div>
             <div>
-              <label className="text-xs text-[#183a1d]/40 block mb-1">Title / Position</label>
+              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Title / Position</label>
               <input className={inputClass} value={grantConfig.legalRepTitle} onChange={e => setGrantField('legalRepTitle', e.target.value)} placeholder="e.g. Executive Director" />
             </div>
             <div>
-              <label className="text-xs text-[#183a1d]/40 block mb-1">Email</label>
+              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Email</label>
               <input className={inputClass} type="email" value={grantConfig.legalRepEmail} onChange={e => setGrantField('legalRepEmail', e.target.value)} placeholder="e.g. jane@example.org" />
             </div>
             <div>
-              <label className="text-xs text-[#183a1d]/40 block mb-1">Phone</label>
+              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Phone</label>
               <input className={inputClass} value={grantConfig.legalRepPhone} onChange={e => setGrantField('legalRepPhone', e.target.value)} placeholder="e.g. +1 555 123 4567" />
             </div>
           </div>
@@ -607,26 +607,26 @@ export default function SettingsPage() {
 
         {/* USAID Settings */}
         <div>
-          <h4 className="text-xs font-semibold text-[#183a1d]/60 uppercase tracking-wide mb-3">USAID Settings</h4>
+          <h4 className="text-xs font-semibold text-[var(--tulip-forest)]/60 uppercase tracking-wide mb-3">USAID Settings</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-[#183a1d]/40 block mb-1">Federal Agency Name</label>
+              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Federal Agency Name</label>
               <input className={inputClass} value={grantConfig.federalAgencyName} onChange={e => setGrantField('federalAgencyName', e.target.value)} placeholder="e.g. USAID" />
             </div>
             <div>
-              <label className="text-xs text-[#183a1d]/40 block mb-1">Organisational Element</label>
+              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Organisational Element</label>
               <input className={inputClass} value={grantConfig.organizationalElement} onChange={e => setGrantField('organizationalElement', e.target.value)} placeholder="e.g. Bureau for Global Health" />
             </div>
             <div>
-              <label className="text-xs text-[#183a1d]/40 block mb-1">Basis of Accounting</label>
+              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Basis of Accounting</label>
               <div className="flex gap-2">
                 {['Cash', 'Accrual'].map(basis => (
                   <button key={basis} type="button"
                     onClick={() => setGrantField('basisOfAccounting', basis)}
                     className={`flex-1 py-2.5 rounded-lg text-sm font-medium border transition-all ${
                       grantConfig.basisOfAccounting === basis
-                        ? 'bg-[#f6c453]/20 border-[#f6c453]/40 text-[#183a1d]'
-                        : 'bg-[#e1eedd] border-[#c8d6c0] text-[#183a1d]/60 hover:border-[#c8d6c0]'
+                        ? 'bg-[var(--tulip-gold)]/20 border-[var(--tulip-gold)]/40 text-[var(--tulip-forest)]'
+                        : 'bg-[var(--tulip-sage)] border-[var(--tulip-sage-dark)] text-[var(--tulip-forest)]/60 hover:border-[var(--tulip-sage-dark)]'
                     }`}>
                     {basis}
                   </button>
@@ -634,11 +634,11 @@ export default function SettingsPage() {
               </div>
             </div>
             <div>
-              <label className="text-xs text-[#183a1d]/40 block mb-1">Indirect Expense Type</label>
+              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Indirect Expense Type</label>
               <input className={inputClass} value={grantConfig.indirectExpenseType} onChange={e => setGrantField('indirectExpenseType', e.target.value)} placeholder="e.g. Provisional" />
             </div>
             <div>
-              <label className="text-xs text-[#183a1d]/40 block mb-1">Indirect Expense Rate (%)</label>
+              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Indirect Expense Rate (%)</label>
               <input className={inputClass} type="number" step="0.01" value={grantConfig.indirectExpenseRate} onChange={e => setGrantField('indirectExpenseRate', e.target.value)} placeholder="e.g. 10" />
             </div>
           </div>
@@ -646,10 +646,10 @@ export default function SettingsPage() {
 
         {/* EU Settings */}
         <div>
-          <h4 className="text-xs font-semibold text-[#183a1d]/60 uppercase tracking-wide mb-3">EU Settings</h4>
+          <h4 className="text-xs font-semibold text-[var(--tulip-forest)]/60 uppercase tracking-wide mb-3">EU Settings</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-[#183a1d]/40 block mb-1">EU Indirect Cost Rate (%)</label>
+              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">EU Indirect Cost Rate (%)</label>
               <input className={inputClass} type="number" step="0.01" value={grantConfig.euIndirectCostRate} onChange={e => setGrantField('euIndirectCostRate', e.target.value)} placeholder="e.g. 7" />
             </div>
           </div>
@@ -657,25 +657,25 @@ export default function SettingsPage() {
 
         {/* World Bank Settings */}
         <div>
-          <h4 className="text-xs font-semibold text-[#183a1d]/60 uppercase tracking-wide mb-3">World Bank Settings</h4>
+          <h4 className="text-xs font-semibold text-[var(--tulip-forest)]/60 uppercase tracking-wide mb-3">World Bank Settings</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-[#183a1d]/40 block mb-1">Designated Bank Name</label>
+              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Designated Bank Name</label>
               <input className={inputClass} value={grantConfig.designatedBankName} onChange={e => setGrantField('designatedBankName', e.target.value)} placeholder="e.g. Standard Chartered" />
             </div>
             <div>
-              <label className="text-xs text-[#183a1d]/40 block mb-1">Designated Account Number</label>
+              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Designated Account Number</label>
               <input className={inputClass} value={grantConfig.designatedAccountNumber} onChange={e => setGrantField('designatedAccountNumber', e.target.value)} placeholder="Account number" />
             </div>
             <div className="md:col-span-2">
-              <label className="text-xs text-[#183a1d]/40 block mb-1">Designated Bank Address</label>
+              <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Designated Bank Address</label>
               <input className={inputClass} value={grantConfig.designatedBankAddress} onChange={e => setGrantField('designatedBankAddress', e.target.value)} placeholder="Full bank address" />
             </div>
           </div>
         </div>
 
         <button onClick={saveGrantConfig} disabled={savingGrant}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50 transition-all">
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] disabled:opacity-50 transition-all">
           <Save size={14} />
           {savingGrant ? 'Saving...' : 'Save Grant Reporting Settings'}
         </button>

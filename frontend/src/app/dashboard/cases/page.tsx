@@ -53,7 +53,7 @@ interface BundleJob {
 }
 
 const TYPE_COLORS: Record<string, string> = {
-  MORTGAGE: 'bg-[#f6c453]/15 text-[#183a1d]',
+  MORTGAGE: 'bg-[var(--tulip-gold)]/15 text-[var(--tulip-forest)]',
   INSURANCE: 'bg-purple-400/15 text-purple-400',
   REAL_ESTATE: 'bg-emerald-400/15 text-emerald-400',
   KYC: 'bg-amber-400/15 text-amber-400',
@@ -62,12 +62,12 @@ const TYPE_COLORS: Record<string, string> = {
 
 const STATUS_CONFIG: Record<string, { color: string; icon: any }> = {
   OPEN: { color: 'bg-green-400/15 text-green-400', icon: Clock },
-  COMPLETE: { color: 'bg-[#f6c453]/15 text-[#183a1d]', icon: CheckCircle },
+  COMPLETE: { color: 'bg-[var(--tulip-gold)]/15 text-[var(--tulip-forest)]', icon: CheckCircle },
   ARCHIVED: { color: 'bg-gray-400/15 text-gray-400', icon: Archive },
 }
 
 function riskColor(score: number | null) {
-  if (score === null) return 'text-[#183a1d]/60'
+  if (score === null) return 'text-[var(--tulip-forest)]/60'
   if (score >= 80) return 'text-green-400'
   if (score >= 60) return 'text-yellow-400'
   return 'text-red-400'
@@ -258,14 +258,14 @@ export default function CasesPage() {
     return (
       <div className="p-4 md:p-8 space-y-6 max-w-6xl">
         {/* Back + Header */}
-        <button onClick={() => setSelectedCase(null)} className="flex items-center gap-2 text-sm text-[#183a1d]/60 hover:text-[#183a1d] transition-colors">
+        <button onClick={() => setSelectedCase(null)} className="flex items-center gap-2 text-sm text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] transition-colors">
           <ChevronRight size={14} className="rotate-180" /> {t('backToCases')}
         </button>
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-[#183a1d]">{c.name}</h1>
-            <p className="text-[#183a1d]/60 mt-1">{t('client')}: {c.clientName} {c.clientEmail && `(${c.clientEmail})`}</p>
+            <h1 className="text-2xl font-bold text-[var(--tulip-forest)]">{c.name}</h1>
+            <p className="text-[var(--tulip-forest)]/60 mt-1">{t('client')}: {c.clientName} {c.clientEmail && `(${c.clientEmail})`}</p>
           </div>
           <div className="flex items-center gap-3">
             <span className={`px-3 py-1 rounded-full text-xs font-medium ${TYPE_COLORS[c.caseType] || TYPE_COLORS.OTHER}`}>
@@ -280,11 +280,11 @@ export default function CasesPage() {
         {/* Actions */}
         <div className="flex flex-wrap gap-3">
           <button onClick={() => copyShareLink(c.shareToken)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#f6c453]/10 text-[#183a1d] hover:bg-[#f6c453]/30 transition-all text-sm font-medium">
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--tulip-gold)]/10 text-[var(--tulip-forest)] hover:bg-[var(--tulip-gold)]/30 transition-all text-sm font-medium">
             <Copy size={14} /> {t(copied ? 'copied' : 'copyShareLink')}
           </button>
           <a href={`https://verify.tulipds.com/case/${c.shareToken}`} target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#e1eedd] text-[#183a1d] hover:bg-[#e1eedd] transition-all text-sm font-medium">
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--tulip-sage)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] transition-all text-sm font-medium">
             <ExternalLink size={14} /> {t('previewPublicPage')}
           </a>
           {c.status === 'OPEN' && (
@@ -309,56 +309,56 @@ export default function CasesPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl p-4">
-            <div className="text-xs text-[#183a1d]/60 mb-1">{t('documents')}</div>
-            <div className="text-2xl font-bold text-[#183a1d]">{c.ocrJobs?.length || 0}</div>
+          <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-4">
+            <div className="text-xs text-[var(--tulip-forest)]/60 mb-1">{t('documents')}</div>
+            <div className="text-2xl font-bold text-[var(--tulip-forest)]">{c.ocrJobs?.length || 0}</div>
           </div>
-          <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl p-4">
-            <div className="text-xs text-[#183a1d]/60 mb-1">{t('bundles')}</div>
-            <div className="text-2xl font-bold text-[#183a1d]">{c.bundleJobs?.length || 0}</div>
+          <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-4">
+            <div className="text-xs text-[var(--tulip-forest)]/60 mb-1">{t('bundles')}</div>
+            <div className="text-2xl font-bold text-[var(--tulip-forest)]">{c.bundleJobs?.length || 0}</div>
           </div>
-          <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl p-4">
-            <div className="text-xs text-[#183a1d]/60 mb-1">{t('overallRisk')}</div>
+          <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-4">
+            <div className="text-xs text-[var(--tulip-forest)]/60 mb-1">{t('overallRisk')}</div>
             <div className={`text-2xl font-bold ${riskColor(c.overallRiskScore)}`}>
               {c.overallRiskScore !== null ? `${c.overallRiskScore}/100` : 'N/A'}
             </div>
           </div>
-          <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl p-4">
-            <div className="text-xs text-[#183a1d]/60 mb-1">{t('created')}</div>
-            <div className="text-sm font-medium text-[#183a1d]">{new Date(c.createdAt).toLocaleDateString()}</div>
+          <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-4">
+            <div className="text-xs text-[var(--tulip-forest)]/60 mb-1">{t('created')}</div>
+            <div className="text-sm font-medium text-[var(--tulip-forest)]">{new Date(c.createdAt).toLocaleDateString()}</div>
           </div>
         </div>
 
         {/* Documents */}
-        <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl">
-          <div className="flex items-center justify-between p-4 border-b border-[#c8d6c0]">
-            <h2 className="font-semibold text-[#183a1d] flex items-center gap-2"><FileCheck size={16} /> {t('documents')}</h2>
+        <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl">
+          <div className="flex items-center justify-between p-4 border-b border-[var(--tulip-sage-dark)]">
+            <h2 className="font-semibold text-[var(--tulip-forest)] flex items-center gap-2"><FileCheck size={16} /> {t('documents')}</h2>
             <button onClick={loadAvailableJobs}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#f6c453]/10 text-[#183a1d] hover:bg-[#f6c453]/30 transition-all text-xs font-medium">
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--tulip-gold)]/10 text-[var(--tulip-forest)] hover:bg-[var(--tulip-gold)]/30 transition-all text-xs font-medium">
               <Plus size={12} /> {t('addDocument')}
             </button>
           </div>
           {(!c.ocrJobs || c.ocrJobs.length === 0) ? (
-            <div className="p-8 text-center text-[#183a1d]/40 text-sm">{t('noDocuments')}</div>
+            <div className="p-8 text-center text-[var(--tulip-forest)]/40 text-sm">{t('noDocuments')}</div>
           ) : (
             <div className="divide-y divide-white/[0.06]">
               {c.ocrJobs.map(job => (
                 <div key={job.id} className="p-4 flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-[#f6c453]/10 flex items-center justify-center">
-                    <FileCheck size={18} className="text-[#183a1d]" />
+                  <div className="w-10 h-10 rounded-lg bg-[var(--tulip-gold)]/10 flex items-center justify-center">
+                    <FileCheck size={18} className="text-[var(--tulip-forest)]" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-[#183a1d] truncate">{job.originalFilename}</div>
-                    <div className="text-xs text-[#183a1d]/60 mt-0.5">{job.documentType || t('unknown')}</div>
+                    <div className="text-sm font-medium text-[var(--tulip-forest)] truncate">{job.originalFilename}</div>
+                    <div className="text-xs text-[var(--tulip-forest)]/60 mt-0.5">{job.documentType || t('unknown')}</div>
                   </div>
                   <div className="text-right">
                     <div className={`text-sm font-semibold ${riskColor(job.assessmentScore)}`}>
                       {job.assessmentScore !== null ? `${job.assessmentScore}/100` : '—'}
                     </div>
-                    <div className="text-xs text-[#183a1d]/60">{job.assessmentResult || ''}</div>
+                    <div className="text-xs text-[var(--tulip-forest)]/60">{job.assessmentResult || ''}</div>
                   </div>
                   {job.hashValue && (
-                    <code className="hidden md:block text-[10px] text-[#183a1d]/40 font-mono max-w-[120px] truncate">{job.hashValue}</code>
+                    <code className="hidden md:block text-[10px] text-[var(--tulip-forest)]/40 font-mono max-w-[120px] truncate">{job.hashValue}</code>
                   )}
                   {job.anchorTxHash ? (
                     <a href={`https://polygonscan.com/tx/${job.anchorTxHash}`} target="_blank" rel="noopener noreferrer"
@@ -367,7 +367,7 @@ export default function CasesPage() {
                     <span className="text-xs text-yellow-400/60 whitespace-nowrap">{t('pendingLabel')}</span>
                   )}
                   <button onClick={() => openDocPreview(job)}
-                    className="w-8 h-8 rounded-lg bg-[#e1eedd] flex items-center justify-center text-[#183a1d]/40 hover:text-[#183a1d] hover:bg-[#e1eedd] transition-all shrink-0"
+                    className="w-8 h-8 rounded-lg bg-[var(--tulip-sage)] flex items-center justify-center text-[var(--tulip-forest)]/40 hover:text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] transition-all shrink-0"
                     title="Preview document">
                     <Eye size={14} />
                   </button>
@@ -378,16 +378,16 @@ export default function CasesPage() {
         </div>
 
         {/* Bundles */}
-        <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl">
-          <div className="flex items-center justify-between p-4 border-b border-[#c8d6c0]">
-            <h2 className="font-semibold text-[#183a1d] flex items-center gap-2"><FolderSearch size={16} /> {t('bundles')}</h2>
+        <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl">
+          <div className="flex items-center justify-between p-4 border-b border-[var(--tulip-sage-dark)]">
+            <h2 className="font-semibold text-[var(--tulip-forest)] flex items-center gap-2"><FolderSearch size={16} /> {t('bundles')}</h2>
             <button onClick={loadAvailableBundles}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#f6c453]/10 text-[#183a1d] hover:bg-[#f6c453]/30 transition-all text-xs font-medium">
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--tulip-gold)]/10 text-[var(--tulip-forest)] hover:bg-[var(--tulip-gold)]/30 transition-all text-xs font-medium">
               <Plus size={12} /> {t('addBundle')}
             </button>
           </div>
           {(!c.bundleJobs || c.bundleJobs.length === 0) ? (
-            <div className="p-8 text-center text-[#183a1d]/40 text-sm">{t('noBundles')}</div>
+            <div className="p-8 text-center text-[var(--tulip-forest)]/40 text-sm">{t('noBundles')}</div>
           ) : (
             <div className="divide-y divide-white/[0.06]">
               {c.bundleJobs.map(bundle => (
@@ -397,14 +397,14 @@ export default function CasesPage() {
                       <FolderSearch size={18} className="text-purple-400" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-[#183a1d]">{bundle.name}</div>
-                      <div className="text-xs text-[#183a1d]/60 mt-0.5">{bundle.fileCount} {t('files')}</div>
+                      <div className="text-sm font-medium text-[var(--tulip-forest)]">{bundle.name}</div>
+                      <div className="text-xs text-[var(--tulip-forest)]/60 mt-0.5">{bundle.fileCount} {t('files')}</div>
                     </div>
                     <div className="text-right">
                       <div className={`text-sm font-semibold ${riskColor(bundle.overallRiskScore)}`}>
                         {bundle.overallRiskScore !== null ? `${bundle.overallRiskScore}/100` : '—'}
                       </div>
-                      <div className="text-xs text-[#183a1d]/60">{bundle.overallRiskLevel || ''}</div>
+                      <div className="text-xs text-[var(--tulip-forest)]/60">{bundle.overallRiskLevel || ''}</div>
                     </div>
                     {bundle.anchorTxHash ? (
                       <a href={`https://polygonscan.com/tx/${bundle.anchorTxHash}`} target="_blank" rel="noopener noreferrer"
@@ -427,21 +427,21 @@ export default function CasesPage() {
                     return (
                       <div className="mt-3 ml-14 space-y-3">
                         {analysis.summary && (
-                          <div className="p-3 rounded-lg bg-[#e1eedd] border border-[#c8d6c0]">
-                            <div className="text-xs font-medium text-[#183a1d]/70 mb-1.5">{t('summary')}</div>
-                            <div className="text-sm text-[#183a1d] leading-relaxed">{analysis.summary}</div>
+                          <div className="p-3 rounded-lg bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)]">
+                            <div className="text-xs font-medium text-[var(--tulip-forest)]/70 mb-1.5">{t('summary')}</div>
+                            <div className="text-sm text-[var(--tulip-forest)] leading-relaxed">{analysis.summary}</div>
                           </div>
                         )}
                         {analysis.findings && Array.isArray(analysis.findings) && analysis.findings.length > 0 && (
-                          <div className="p-3 rounded-lg bg-[#e1eedd] border border-[#c8d6c0]">
-                            <div className="text-xs font-medium text-[#183a1d]/70 mb-2">{t('findings')}</div>
+                          <div className="p-3 rounded-lg bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)]">
+                            <div className="text-xs font-medium text-[var(--tulip-forest)]/70 mb-2">{t('findings')}</div>
                             <div className="space-y-2">
                               {analysis.findings.map((f: any, idx: number) => (
                                 <div key={idx} className="flex items-start gap-2">
                                   <span className={`shrink-0 mt-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase border ${severityColor(f.severity || f.level || 'low')}`}>
                                     {f.severity || f.level || 'info'}
                                   </span>
-                                  <span className="text-xs text-[#183a1d]/60 leading-relaxed">{f.description || f.message || f.text || JSON.stringify(f)}</span>
+                                  <span className="text-xs text-[var(--tulip-forest)]/60 leading-relaxed">{f.description || f.message || f.text || JSON.stringify(f)}</span>
                                 </div>
                               ))}
                             </div>
@@ -471,9 +471,9 @@ export default function CasesPage() {
                           </div>
                         )}
                         {!analysis.summary && !analysis.findings && !analysis.inconsistencies && (
-                          <div className="p-3 rounded-lg bg-[#e1eedd] border border-[#c8d6c0]">
-                            <div className="text-xs font-medium text-[#183a1d]/70 mb-1">{t('crossAnalysis')}</div>
-                            <div className="text-xs text-[#183a1d]/60 whitespace-pre-wrap">{JSON.stringify(analysis, null, 2)}</div>
+                          <div className="p-3 rounded-lg bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)]">
+                            <div className="text-xs font-medium text-[var(--tulip-forest)]/70 mb-1">{t('crossAnalysis')}</div>
+                            <div className="text-xs text-[var(--tulip-forest)]/60 whitespace-pre-wrap">{JSON.stringify(analysis, null, 2)}</div>
                           </div>
                         )}
                       </div>
@@ -489,20 +489,20 @@ export default function CasesPage() {
         {previewDoc && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setPreviewDoc(null)}>
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-            <div className="relative bg-[#e1eedd] border border-[#c8d6c0] rounded-xl w-full max-w-2xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-              <div className="flex items-center justify-between p-5 border-b border-[#c8d6c0]">
-                <h3 className="font-semibold text-[#183a1d] text-lg truncate pr-4">{previewDoc.originalFilename}</h3>
-                <button onClick={() => setPreviewDoc(null)} className="text-[#183a1d]/60 hover:text-[#183a1d] shrink-0"><X size={18} /></button>
+            <div className="relative bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl w-full max-w-2xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between p-5 border-b border-[var(--tulip-sage-dark)]">
+                <h3 className="font-semibold text-[var(--tulip-forest)] text-lg truncate pr-4">{previewDoc.originalFilename}</h3>
+                <button onClick={() => setPreviewDoc(null)} className="text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] shrink-0"><X size={18} /></button>
               </div>
               <div className="p-5 space-y-4">
                 {/* Document preview */}
                 {previewLoading ? (
-                  <div className="flex items-center justify-center py-16 bg-[#e1eedd] rounded-xl border border-[#c8d6c0]">
-                    <div className="w-6 h-6 border-2 border-[#f6c453] border-t-transparent rounded-full animate-spin" />
-                    <span className="ml-3 text-sm text-[#183a1d]/60">{t('loadingDocument')}</span>
+                  <div className="flex items-center justify-center py-16 bg-[var(--tulip-sage)] rounded-xl border border-[var(--tulip-sage-dark)]">
+                    <div className="w-6 h-6 border-2 border-[var(--tulip-gold)] border-t-transparent rounded-full animate-spin" />
+                    <span className="ml-3 text-sm text-[var(--tulip-forest)]/60">{t('loadingDocument')}</span>
                   </div>
                 ) : previewUrl ? (
-                  <div className="rounded-xl overflow-hidden border border-[#c8d6c0] bg-[#e1eedd]">
+                  <div className="rounded-xl overflow-hidden border border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]">
                     {previewUrl.match(/\.(jpg|jpeg|png|gif|webp)/i) || previewDoc.originalFilename.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
                       <img src={previewUrl} alt={previewDoc.originalFilename} className="max-h-[400px] w-full object-contain" />
                     ) : (
@@ -510,28 +510,28 @@ export default function CasesPage() {
                     )}
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center py-12 bg-[#e1eedd] rounded-xl border border-[#c8d6c0]">
-                    <span className="text-sm text-[#183a1d]/40">{t('previewNotAvailable')}</span>
+                  <div className="flex items-center justify-center py-12 bg-[var(--tulip-sage)] rounded-xl border border-[var(--tulip-sage-dark)]">
+                    <span className="text-sm text-[var(--tulip-forest)]/40">{t('previewNotAvailable')}</span>
                   </div>
                 )}
 
                 {/* Details */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-lg p-3">
-                    <div className="text-[10px] text-[#183a1d]/60 uppercase font-medium mb-1">{t('documentType')}</div>
-                    <div className="text-sm text-[#183a1d]">{previewDoc.documentType || t('unknown')}</div>
+                  <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg p-3">
+                    <div className="text-[10px] text-[var(--tulip-forest)]/60 uppercase font-medium mb-1">{t('documentType')}</div>
+                    <div className="text-sm text-[var(--tulip-forest)]">{previewDoc.documentType || t('unknown')}</div>
                   </div>
-                  <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-lg p-3">
-                    <div className="text-[10px] text-[#183a1d]/60 uppercase font-medium mb-1">{t('riskScore')}</div>
+                  <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg p-3">
+                    <div className="text-[10px] text-[var(--tulip-forest)]/60 uppercase font-medium mb-1">{t('riskScore')}</div>
                     <div className={`text-sm font-semibold ${riskColor(previewDoc.assessmentScore)}`}>
                       {previewDoc.assessmentScore !== null ? `${previewDoc.assessmentScore}/100` : 'N/A'}
                     </div>
                     {previewDoc.assessmentResult && (
-                      <div className="text-xs text-[#183a1d]/60 mt-0.5">{previewDoc.assessmentResult}</div>
+                      <div className="text-xs text-[var(--tulip-forest)]/60 mt-0.5">{previewDoc.assessmentResult}</div>
                     )}
                   </div>
-                  <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-lg p-3">
-                    <div className="text-[10px] text-[#183a1d]/60 uppercase font-medium mb-1">{t('blockchain')}</div>
+                  <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg p-3">
+                    <div className="text-[10px] text-[var(--tulip-forest)]/60 uppercase font-medium mb-1">{t('blockchain')}</div>
                     {previewDoc.anchorTxHash ? (
                       <a href={`https://polygonscan.com/tx/${previewDoc.anchorTxHash}`} target="_blank" rel="noopener noreferrer"
                         className="text-xs text-green-400 hover:underline flex items-center gap-1">
@@ -541,40 +541,40 @@ export default function CasesPage() {
                       <span className="text-xs text-yellow-400 flex items-center gap-1"><Clock size={12} /> {t('pendingLabel')}</span>
                     )}
                   </div>
-                  <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-lg p-3">
-                    <div className="text-[10px] text-[#183a1d]/60 uppercase font-medium mb-1">{t('processed')}</div>
-                    <div className="text-sm text-[#183a1d]">{new Date(previewDoc.createdAt).toLocaleDateString()}</div>
+                  <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg p-3">
+                    <div className="text-[10px] text-[var(--tulip-forest)]/60 uppercase font-medium mb-1">{t('processed')}</div>
+                    <div className="text-sm text-[var(--tulip-forest)]">{new Date(previewDoc.createdAt).toLocaleDateString()}</div>
                   </div>
                 </div>
 
                 {/* Hash */}
                 {previewDoc.hashValue && (
-                  <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-lg p-3">
-                    <div className="text-[10px] text-[#183a1d]/60 uppercase font-medium mb-1">{t('sha256Hash')}</div>
-                    <code className="text-xs text-[#183a1d]/70 font-mono break-all">{previewDoc.hashValue}</code>
+                  <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg p-3">
+                    <div className="text-[10px] text-[var(--tulip-forest)]/60 uppercase font-medium mb-1">{t('sha256Hash')}</div>
+                    <code className="text-xs text-[var(--tulip-forest)]/70 font-mono break-all">{previewDoc.hashValue}</code>
                   </div>
                 )}
 
                 {/* Polygon TX */}
                 {previewDoc.anchorTxHash && (
-                  <div className="bg-[#e1eedd] border border-[#c8d6c0] rounded-lg p-3">
-                    <div className="text-[10px] text-[#183a1d]/60 uppercase font-medium mb-1">{t('polygonTransaction')}</div>
+                  <div className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg p-3">
+                    <div className="text-[10px] text-[var(--tulip-forest)]/60 uppercase font-medium mb-1">{t('polygonTransaction')}</div>
                     <a href={`https://polygonscan.com/tx/${previewDoc.anchorTxHash}`} target="_blank" rel="noopener noreferrer"
-                      className="text-xs text-[#183a1d] hover:underline font-mono break-all">
+                      className="text-xs text-[var(--tulip-forest)] hover:underline font-mono break-all">
                       {previewDoc.anchorTxHash}
                     </a>
                   </div>
                 )}
               </div>
-              <div className="flex justify-end gap-3 p-5 border-t border-[#c8d6c0]">
+              <div className="flex justify-end gap-3 p-5 border-t border-[var(--tulip-sage-dark)]">
                 {previewUrl && (
                   <a href={previewUrl} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#e1eedd] text-[#183a1d] hover:bg-[#e1eedd] transition-all text-sm">
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--tulip-sage)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] transition-all text-sm">
                     <Download size={14} /> {t('download')}
                   </a>
                 )}
                 <button onClick={() => setPreviewDoc(null)}
-                  className="px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] transition-all hover:opacity-90 bg-[#f6c453] hover:bg-[#f0a04b]">
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-forest)] transition-all hover:opacity-90 bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)]">
                   {t('close')}
                 </button>
               </div>
@@ -586,24 +586,24 @@ export default function CasesPage() {
         {showAddDoc && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowAddDoc(false)}>
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-            <div className="relative bg-[#e1eedd] border border-[#c8d6c0] rounded-xl w-full max-w-lg max-h-[70vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-              <div className="flex items-center justify-between p-4 border-b border-[#c8d6c0]">
-                <h3 className="font-semibold text-[#183a1d]">{t('addDocToCase')}</h3>
-                <button onClick={() => setShowAddDoc(false)} className="text-[#183a1d]/60 hover:text-[#183a1d]"><X size={16} /></button>
+            <div className="relative bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl w-full max-w-lg max-h-[70vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between p-4 border-b border-[var(--tulip-sage-dark)]">
+                <h3 className="font-semibold text-[var(--tulip-forest)]">{t('addDocToCase')}</h3>
+                <button onClick={() => setShowAddDoc(false)} className="text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]"><X size={16} /></button>
               </div>
               {availableJobs.length === 0 ? (
-                <div className="p-8 text-center text-[#183a1d]/40 text-sm">{t('noOcrJobs')}</div>
+                <div className="p-8 text-center text-[var(--tulip-forest)]/40 text-sm">{t('noOcrJobs')}</div>
               ) : (
                 <div className="divide-y divide-white/[0.06]">
                   {availableJobs.map(job => (
                     <button key={job.id} onClick={() => addDocToCase(job.id)}
-                      className="w-full p-4 flex items-center gap-3 hover:bg-[#e1eedd]/50 transition-colors text-left">
-                      <FileCheck size={16} className="text-[#183a1d] shrink-0" />
+                      className="w-full p-4 flex items-center gap-3 hover:bg-[var(--tulip-sage)]/50 transition-colors text-left">
+                      <FileCheck size={16} className="text-[var(--tulip-forest)] shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm text-[#183a1d] truncate">{job.originalFilename}</div>
-                        <div className="text-xs text-[#183a1d]/60">{job.documentType || 'Unknown'} {job.assessmentScore !== null ? `— ${job.assessmentScore}/100` : ''}</div>
+                        <div className="text-sm text-[var(--tulip-forest)] truncate">{job.originalFilename}</div>
+                        <div className="text-xs text-[var(--tulip-forest)]/60">{job.documentType || 'Unknown'} {job.assessmentScore !== null ? `— ${job.assessmentScore}/100` : ''}</div>
                       </div>
-                      <Plus size={14} className="text-[#183a1d]/40" />
+                      <Plus size={14} className="text-[var(--tulip-forest)]/40" />
                     </button>
                   ))}
                 </div>
@@ -616,24 +616,24 @@ export default function CasesPage() {
         {showAddBundle && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowAddBundle(false)}>
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-            <div className="relative bg-[#e1eedd] border border-[#c8d6c0] rounded-xl w-full max-w-lg max-h-[70vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-              <div className="flex items-center justify-between p-4 border-b border-[#c8d6c0]">
-                <h3 className="font-semibold text-[#183a1d]">{t('addBundleToCase')}</h3>
-                <button onClick={() => setShowAddBundle(false)} className="text-[#183a1d]/60 hover:text-[#183a1d]"><X size={16} /></button>
+            <div className="relative bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl w-full max-w-lg max-h-[70vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between p-4 border-b border-[var(--tulip-sage-dark)]">
+                <h3 className="font-semibold text-[var(--tulip-forest)]">{t('addBundleToCase')}</h3>
+                <button onClick={() => setShowAddBundle(false)} className="text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]"><X size={16} /></button>
               </div>
               {availableBundles.length === 0 ? (
-                <div className="p-8 text-center text-[#183a1d]/40 text-sm">{t('noBundlesAvailable')}</div>
+                <div className="p-8 text-center text-[var(--tulip-forest)]/40 text-sm">{t('noBundlesAvailable')}</div>
               ) : (
                 <div className="divide-y divide-white/[0.06]">
                   {availableBundles.map(b => (
                     <button key={b.id} onClick={() => addBundleToCase(b.id)}
-                      className="w-full p-4 flex items-center gap-3 hover:bg-[#e1eedd]/50 transition-colors text-left">
+                      className="w-full p-4 flex items-center gap-3 hover:bg-[var(--tulip-sage)]/50 transition-colors text-left">
                       <FolderSearch size={16} className="text-purple-400 shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm text-[#183a1d] truncate">{b.name}</div>
-                        <div className="text-xs text-[#183a1d]/60">{b.fileCount} {t('files')} {b.overallRiskScore !== null ? `— ${b.overallRiskScore}/100` : ''}</div>
+                        <div className="text-sm text-[var(--tulip-forest)] truncate">{b.name}</div>
+                        <div className="text-xs text-[var(--tulip-forest)]/60">{b.fileCount} {t('files')} {b.overallRiskScore !== null ? `— ${b.overallRiskScore}/100` : ''}</div>
                       </div>
-                      <Plus size={14} className="text-[#183a1d]/40" />
+                      <Plus size={14} className="text-[var(--tulip-forest)]/40" />
                     </button>
                   ))}
                 </div>
@@ -651,24 +651,24 @@ export default function CasesPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#183a1d]">{t('title')}</h1>
-          <p className="text-sm text-[#183a1d]/60 mt-1">{t('subtitle')}</p>
+          <h1 className="text-2xl font-bold text-[var(--tulip-forest)]">{t('title')}</h1>
+          <p className="text-sm text-[var(--tulip-forest)]/60 mt-1">{t('subtitle')}</p>
         </div>
         <button onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-[#183a1d] transition-all hover:opacity-90 bg-[#f6c453] hover:bg-[#f0a04b]">
+          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-[var(--tulip-forest)] transition-all hover:opacity-90 bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)]">
           <Plus size={16} /> {t('newCase')}
         </button>
       </div>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
-        <div className="flex items-center gap-2 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 flex-1 min-w-[200px] max-w-md">
-          <Search size={14} className="text-[#183a1d]/40" />
+        <div className="flex items-center gap-2 bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2 flex-1 min-w-[200px] max-w-md">
+          <Search size={14} className="text-[var(--tulip-forest)]/40" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('searchCases')}
-            className="bg-transparent text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none w-full" />
+            className="bg-transparent text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none w-full" />
         </div>
         <select value={filterType} onChange={e => setFilterType(e.target.value)}
-          className="bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] outline-none">
+          className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2 text-sm text-[var(--tulip-forest)] outline-none">
           <option value="">{t('allTypes')}</option>
           <option value="MORTGAGE">Mortgage</option>
           <option value="INSURANCE">Insurance</option>
@@ -677,7 +677,7 @@ export default function CasesPage() {
           <option value="OTHER">Other</option>
         </select>
         <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-          className="bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] outline-none">
+          className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2 text-sm text-[var(--tulip-forest)] outline-none">
           <option value="">{t('allStatuses')}</option>
           <option value="OPEN">Open</option>
           <option value="COMPLETE">Complete</option>
@@ -688,13 +688,13 @@ export default function CasesPage() {
       {/* Cases Grid */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-2 border-[#f6c453] border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-[var(--tulip-gold)] border-t-transparent rounded-full animate-spin" />
         </div>
       ) : cases.length === 0 ? (
         <div className="text-center py-20">
-          <Briefcase size={48} className="mx-auto text-[#183a1d]/30 mb-4" />
-          <h3 className="text-lg font-semibold text-[#183a1d]/70">{t('noCases')}</h3>
-          <p className="text-sm text-[#183a1d]/40 mt-1">{t('noCasesDesc')}</p>
+          <Briefcase size={48} className="mx-auto text-[var(--tulip-forest)]/30 mb-4" />
+          <h3 className="text-lg font-semibold text-[var(--tulip-forest)]/70">{t('noCases')}</h3>
+          <p className="text-sm text-[var(--tulip-forest)]/40 mt-1">{t('noCasesDesc')}</p>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -704,7 +704,7 @@ export default function CasesPage() {
             const bundleCount = c._count?.bundleJobs || 0
             return (
               <button key={c.id} onClick={() => openDetail(c)}
-                className="bg-[#e1eedd] border border-[#c8d6c0] rounded-xl p-5 text-left hover:bg-[#e1eedd]/50 hover:border-[#c8d6c0] transition-all group">
+                className="bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl p-5 text-left hover:bg-[var(--tulip-sage)]/50 hover:border-[var(--tulip-sage-dark)] transition-all group">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase ${TYPE_COLORS[c.caseType] || TYPE_COLORS.OTHER}`}>
@@ -714,12 +714,12 @@ export default function CasesPage() {
                       <StatusIcon size={10} /> {c.status}
                     </span>
                   </div>
-                  <ChevronRight size={14} className="text-[#183a1d]/30 group-hover:text-[#183a1d]/60 transition-colors" />
+                  <ChevronRight size={14} className="text-[var(--tulip-forest)]/30 group-hover:text-[var(--tulip-forest)]/60 transition-colors" />
                 </div>
-                <h3 className="text-sm font-semibold text-[#183a1d] mb-1 truncate">{c.name}</h3>
-                <p className="text-xs text-[#183a1d]/60 truncate">{c.clientName}</p>
-                <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#c8d6c0]">
-                  <div className="flex items-center gap-3 text-xs text-[#183a1d]/60">
+                <h3 className="text-sm font-semibold text-[var(--tulip-forest)] mb-1 truncate">{c.name}</h3>
+                <p className="text-xs text-[var(--tulip-forest)]/60 truncate">{c.clientName}</p>
+                <div className="flex items-center justify-between mt-4 pt-3 border-t border-[var(--tulip-sage-dark)]">
+                  <div className="flex items-center gap-3 text-xs text-[var(--tulip-forest)]/60">
                     <span className="flex items-center gap-1"><FileCheck size={12} /> {docCount}</span>
                     <span className="flex items-center gap-1"><FolderSearch size={12} /> {bundleCount}</span>
                   </div>
@@ -737,31 +737,31 @@ export default function CasesPage() {
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowCreate(false)}>
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-          <div className="relative bg-[#e1eedd] border border-[#c8d6c0] rounded-xl w-full max-w-md" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-5 border-b border-[#c8d6c0]">
-              <h3 className="font-semibold text-[#183a1d] text-lg">{t('createNewCase')}</h3>
-              <button onClick={() => setShowCreate(false)} className="text-[#183a1d]/60 hover:text-[#183a1d]"><X size={18} /></button>
+          <div className="relative bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-xl w-full max-w-md" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-5 border-b border-[var(--tulip-sage-dark)]">
+              <h3 className="font-semibold text-[var(--tulip-forest)] text-lg">{t('createNewCase')}</h3>
+              <button onClick={() => setShowCreate(false)} className="text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)]"><X size={18} /></button>
             </div>
             <div className="p-5 space-y-4">
               <div>
-                <label className="text-xs font-medium text-[#183a1d]/70 mb-1.5 block">{t('caseName')} *</label>
+                <label className="text-xs font-medium text-[var(--tulip-forest)]/70 mb-1.5 block">{t('caseName')} *</label>
                 <input value={createName} onChange={e => setCreateName(e.target.value)} placeholder="e.g. Smith Mortgage Application"
-                  className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453]" />
+                  className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)]" />
               </div>
               <div>
-                <label className="text-xs font-medium text-[#183a1d]/70 mb-1.5 block">{t('clientName')} *</label>
+                <label className="text-xs font-medium text-[var(--tulip-forest)]/70 mb-1.5 block">{t('clientName')} *</label>
                 <input value={createClient} onChange={e => setCreateClient(e.target.value)} placeholder="e.g. John Smith"
-                  className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453]" />
+                  className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)]" />
               </div>
               <div>
-                <label className="text-xs font-medium text-[#183a1d]/70 mb-1.5 block">{t('clientEmail')}</label>
+                <label className="text-xs font-medium text-[var(--tulip-forest)]/70 mb-1.5 block">{t('clientEmail')}</label>
                 <input value={createEmail} onChange={e => setCreateEmail(e.target.value)} placeholder="john@example.com" type="email"
-                  className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2.5 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453]" />
+                  className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)]" />
               </div>
               <div>
-                <label className="text-xs font-medium text-[#183a1d]/70 mb-1.5 block">{t('caseType')}</label>
+                <label className="text-xs font-medium text-[var(--tulip-forest)]/70 mb-1.5 block">{t('caseType')}</label>
                 <select value={createType} onChange={e => setCreateType(e.target.value)}
-                  className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2.5 text-sm text-[#183a1d] outline-none focus:border-[#f6c453]">
+                  className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2.5 text-sm text-[var(--tulip-forest)] outline-none focus:border-[var(--tulip-gold)]">
                   <option value="MORTGAGE">Mortgage</option>
                   <option value="INSURANCE">Insurance</option>
                   <option value="REAL_ESTATE">Real Estate</option>
@@ -770,11 +770,11 @@ export default function CasesPage() {
                 </select>
               </div>
             </div>
-            <div className="flex justify-end gap-3 p-5 border-t border-[#c8d6c0]">
+            <div className="flex justify-end gap-3 p-5 border-t border-[var(--tulip-sage-dark)]">
               <button onClick={() => setShowCreate(false)}
-                className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/70 hover:text-[#183a1d] transition-colors">{t('cancel')}</button>
+                className="px-4 py-2 rounded-lg text-sm text-[var(--tulip-forest)]/70 hover:text-[var(--tulip-forest)] transition-colors">{t('cancel')}</button>
               <button onClick={handleCreate} disabled={creating || !createName.trim() || !createClient.trim()}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-[#183a1d] disabled:opacity-40 transition-all hover:opacity-90 bg-[#f6c453] hover:bg-[#f0a04b]">
+                className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--tulip-forest)] disabled:opacity-40 transition-all hover:opacity-90 bg-[var(--tulip-gold)] hover:bg-[var(--tulip-orange)]">
                 {creating ? t('creating') : t('createCase')}
               </button>
             </div>

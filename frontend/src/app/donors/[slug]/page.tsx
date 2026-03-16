@@ -53,10 +53,10 @@ function HashBadge({ hash }: { hash: string }) {
   const copy = () => { navigator.clipboard.writeText(hash); setCopied(true); setTimeout(() => setCopied(false), 1500) }
   return (
     <button onClick={copy}
-      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#e1eedd] border border-[#c8d6c0] hover:border-[#c8d6c0] transition-all group"
+      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] hover:border-[var(--tulip-sage-dark)] transition-all group"
       title="Copy hash">
-      <span className="hash-mono text-[#183a1d]/40" style={{ fontSize: 10 }}>{hash.slice(0,8)}…{hash.slice(-6)}</span>
-      {copied ? <Check size={10} className="text-green-400" /> : <Copy size={10} className="text-[#183a1d]/30 group-hover:text-[#183a1d]/60" />}
+      <span className="hash-mono text-[var(--tulip-forest)]/40" style={{ fontSize: 10 }}>{hash.slice(0,8)}…{hash.slice(-6)}</span>
+      {copied ? <Check size={10} className="text-green-400" /> : <Copy size={10} className="text-[var(--tulip-forest)]/30 group-hover:text-[var(--tulip-forest)]/60" />}
     </button>
   )
 }
@@ -92,13 +92,13 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
   }, [slug])
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#fefbe9' }}>
-      <div className="text-[#183a1d]/40 text-sm">{t('loadingProfile')}</div>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--tulip-cream)' }}>
+      <div className="text-[var(--tulip-forest)]/40 text-sm">{t('loadingProfile')}</div>
     </div>
   )
   if (!profile) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#fefbe9' }}>
-      <div className="text-[#183a1d]/40 text-sm">{t('ngoNotFound')}</div>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--tulip-cream)' }}>
+      <div className="text-[var(--tulip-forest)]/40 text-sm">{t('ngoNotFound')}</div>
     </div>
   )
 
@@ -111,22 +111,22 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
 
   return (
     <div className="min-h-screen" style={{
-      background: '#fefbe9',
+      background: 'var(--tulip-cream)',
       backgroundImage: 'radial-gradient(at 20% 10%, rgba(246,196,83,0.1) 0px, transparent 50%)'
     }}>
       {/* Nav */}
-      <nav className="border-b border-[#c8d6c0] px-6 h-16 flex items-center justify-between sticky top-0 z-10"
+      <nav className="border-b border-[var(--tulip-sage-dark)] px-6 h-16 flex items-center justify-between sticky top-0 z-10"
         style={{ background: 'rgba(254,251,233,0.95)', backdropFilter: 'blur(12px)' }}>
-        <Link href="/donors" className="flex items-center gap-2 text-[#183a1d]/60 hover:text-[#183a1d] transition-colors text-sm">
+        <Link href="/donors" className="flex items-center gap-2 text-[var(--tulip-forest)]/60 hover:text-[var(--tulip-forest)] transition-colors text-sm">
           <ArrowLeft size={16} /> {t('allOrganisations')}
         </Link>
         <Link href="/" className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-md flex items-center justify-center"
-            style={{ background: '#f6c453' }}>
-            <span className="text-[#183a1d] font-bold" style={{ fontFamily: 'Inter, sans-serif', fontSize: 10 }}>T</span>
+            style={{ background: 'var(--tulip-gold)' }}>
+            <span className="text-[var(--tulip-forest)] font-bold" style={{ fontFamily: 'Inter, sans-serif', fontSize: 10 }}>T</span>
           </div>
-          <span className="font-bold text-[#183a1d] text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
-            tulip<span style={{ color: '#f6c453' }}>ds</span>
+          <span className="font-bold text-[var(--tulip-forest)] text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
+            tulip<span style={{ color: 'var(--tulip-gold)' }}>ds</span>
           </span>
         </Link>
       </nav>
@@ -134,50 +134,50 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
       <div className="max-w-4xl mx-auto px-6 py-10 space-y-8">
 
         {/* Profile header */}
-        <div className="rounded-2xl border border-[#c8d6c0] p-8"
-          style={{ background: '#e1eedd' }}>
+        <div className="rounded-2xl border border-[var(--tulip-sage-dark)] p-8"
+          style={{ background: 'var(--tulip-sage)' }}>
           <div className="flex items-start justify-between flex-wrap gap-6">
             <div className="flex items-start gap-5">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-[#183a1d] shrink-0"
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-[var(--tulip-forest)] shrink-0"
                 style={{ background: 'rgba(246,196,83,0.15)', border: '1px solid rgba(246,196,83,0.3)' }}>
                 {profile.name.charAt(0)}
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-[#183a1d] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                <h1 className="text-2xl font-bold text-[var(--tulip-forest)] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
                   {profile.name}
                 </h1>
                 <div className="flex items-center gap-3 flex-wrap">
                   {profile.country && (
-                    <div className="flex items-center gap-1.5 text-sm text-[#183a1d]/60">
+                    <div className="flex items-center gap-1.5 text-sm text-[var(--tulip-forest)]/60">
                       <Globe size={13} /> {profile.country}
                     </div>
                   )}
                   {profile.verifiedAt && (
-                    <div className="flex items-center gap-1.5 text-sm text-[#183a1d]/60">
+                    <div className="flex items-center gap-1.5 text-sm text-[var(--tulip-forest)]/60">
                       <Calendar size={13} />
                       {t('verified')} {new Date(profile.verifiedAt).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
                     </div>
                   )}
                   {profile.website && (
                     <Link href={profile.website} target="_blank"
-                      className="flex items-center gap-1 text-sm text-[#183a1d] hover:underline">
+                      className="flex items-center gap-1 text-sm text-[var(--tulip-forest)] hover:underline">
                       <ExternalLink size={12} /> {t('website')}
                     </Link>
                   )}
                 </div>
                 {profile.description && (
-                  <p className="text-[#183a1d]/60 text-sm mt-3 max-w-lg">{profile.description}</p>
+                  <p className="text-[var(--tulip-forest)]/60 text-sm mt-3 max-w-lg">{profile.description}</p>
                 )}
               </div>
             </div>
 
             {/* Integrity score */}
-            <div className="rounded-xl border border-[#c8d6c0] p-5 text-center min-w-[120px]"
-              style={{ background: '#e1eedd' }}>
+            <div className="rounded-xl border border-[var(--tulip-sage-dark)] p-5 text-center min-w-[120px]"
+              style={{ background: 'var(--tulip-sage)' }}>
               <div className="text-3xl font-bold mb-1" style={{ fontFamily: 'Inter, sans-serif', color: scoreColor }}>
                 {pct}%
               </div>
-              <div className="text-xs text-[#183a1d]/60">{t('integrityScore')}</div>
+              <div className="text-xs text-[var(--tulip-forest)]/60">{t('integrityScore')}</div>
               <div className="flex items-center justify-center gap-1 mt-2">
                 <CheckCircle size={11} className="text-green-400" />
                 <span className="text-xs text-green-400">{t('verified')}</span>
@@ -186,17 +186,17 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
           </div>
 
           {/* Stats row */}
-          <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-[#c8d6c0]/50">
+          <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-[var(--tulip-sage-dark)]/50">
             {[
               { label: t('projects'), value: profile.projects.length, icon: FolderOpen },
               { label: t('totalExpenses'), value: profile.totalExpenses, icon: Receipt },
               { label: t('blockchainAnchored'), value: profile.totalAnchored, icon: Shield },
             ].map(({ label, value, icon: Icon }) => (
               <div key={label} className="flex items-center gap-3">
-                <Icon size={16} className="text-[#f6c453]" />
+                <Icon size={16} className="text-[var(--tulip-gold)]" />
                 <div>
-                  <div className="text-lg font-bold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
-                  <div className="text-xs text-[#183a1d]/40">{label}</div>
+                  <div className="text-lg font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>{value}</div>
+                  <div className="text-xs text-[var(--tulip-forest)]/40">{label}</div>
                 </div>
               </div>
             ))}
@@ -211,12 +211,12 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
             { label: t('rfc3161'), sub: t('rfc3161Sub') },
             { label: t('eidasCompliant'), sub: t('eidasSub') },
           ].map(({ label, sub }) => (
-            <div key={label} className="rounded-xl border border-[#c8d6c0] p-4 flex items-start gap-3"
-              style={{ background: '#e1eedd' }}>
+            <div key={label} className="rounded-xl border border-[var(--tulip-sage-dark)] p-4 flex items-start gap-3"
+              style={{ background: 'var(--tulip-sage)' }}>
               <CheckCircle size={14} className="text-green-400 shrink-0 mt-0.5" />
               <div>
-                <div className="text-xs font-semibold text-[#183a1d]">{label}</div>
-                <div className="text-xs text-[#183a1d]/40 mt-0.5">{sub}</div>
+                <div className="text-xs font-semibold text-[var(--tulip-forest)]">{label}</div>
+                <div className="text-xs text-[var(--tulip-forest)]/40 mt-0.5">{sub}</div>
               </div>
             </div>
           ))}
@@ -225,7 +225,7 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
         {/* Projects */}
         {profile.projects.length > 0 && (
           <div>
-            <h2 className="font-semibold text-[#183a1d] mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <h2 className="font-semibold text-[var(--tulip-forest)] mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
               {t('projects')}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -234,14 +234,14 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
                   onClick={() => setActiveProject(activeProject === project.id ? null : project.id)}
                   className={`text-left rounded-xl border p-4 transition-all ${
                     activeProject === project.id
-                      ? 'border-[#f6c453]/50 bg-[#f6c453]/8'
-                      : 'border-[#c8d6c0] hover:border-[#c8d6c0]'
+                      ? 'border-[var(--tulip-gold)]/50 bg-[var(--tulip-gold)]/8'
+                      : 'border-[var(--tulip-sage-dark)] hover:border-[var(--tulip-sage-dark)]'
                   }`}
-                  style={{ background: activeProject === project.id ? undefined : '#e1eedd' }}>
+                  style={{ background: activeProject === project.id ? undefined : 'var(--tulip-sage)' }}>
                   <div className="flex items-start justify-between">
                     <div>
-                      <div className="text-sm font-medium text-[#183a1d]">{project.name}</div>
-                      <div className="text-xs text-[#183a1d]/40 mt-1">
+                      <div className="text-sm font-medium text-[var(--tulip-forest)]">{project.name}</div>
+                      <div className="text-xs text-[var(--tulip-forest)]/40 mt-1">
                         {project._count?.expenses ?? 0} {t('expenses')}
                         {project.budget && ` · ${t('budget')}: ${project.currency} ${project.budget.toLocaleString()}`}
                       </div>
@@ -249,7 +249,7 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
                     <span className={`text-xs px-2 py-0.5 rounded-full capitalize font-medium ${
                       project.status === 'active' ? 'bg-green-400/10 text-green-400' :
                       project.status === 'completed' ? 'bg-blue-400/10 text-blue-400' :
-                      'bg-[#e1eedd] text-[#183a1d]/60'
+                      'bg-[var(--tulip-sage)] text-[var(--tulip-forest)]/60'
                     }`}>{project.status}</span>
                   </div>
                 </button>
@@ -261,37 +261,37 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
         {/* Expenses */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-[#183a1d]" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <h2 className="font-semibold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>
               {activeProject ? t('projectExpenses') : t('recentExpenses')}
             </h2>
-            <div className="flex items-center gap-1.5 text-xs text-[#183a1d]/40">
-              <Shield size={11} className="text-[#f6c453]" />
+            <div className="flex items-center gap-1.5 text-xs text-[var(--tulip-forest)]/40">
+              <Shield size={11} className="text-[var(--tulip-gold)]" />
               {t('allVerifiedOnChain')}
             </div>
           </div>
 
-          <div className="rounded-xl border border-[#c8d6c0] overflow-hidden"
-            style={{ background: '#e1eedd' }}>
+          <div className="rounded-xl border border-[var(--tulip-sage-dark)] overflow-hidden"
+            style={{ background: 'var(--tulip-sage)' }}>
             {filteredExpenses.length === 0 ? (
-              <div className="p-8 text-center text-[#183a1d]/40 text-sm">{t('noExpenses')}</div>
+              <div className="p-8 text-center text-[var(--tulip-forest)]/40 text-sm">{t('noExpenses')}</div>
             ) : (
-              <div className="divide-y divide-[#c8d6c0]/50">
+              <div className="divide-y divide-[var(--tulip-sage-dark)]/50">
                 {filteredExpenses.map(expense => (
-                  <div key={expense.id} className="flex items-center gap-4 px-5 py-4 hover:bg-[#e1eedd]/50 transition-colors">
-                    <div className="w-9 h-9 rounded-lg bg-[#f6c453]/10 flex items-center justify-center shrink-0">
-                      <Receipt size={15} className="text-[#f6c453]" />
+                  <div key={expense.id} className="flex items-center gap-4 px-5 py-4 hover:bg-[var(--tulip-sage)]/50 transition-colors">
+                    <div className="w-9 h-9 rounded-lg bg-[var(--tulip-gold)]/10 flex items-center justify-center shrink-0">
+                      <Receipt size={15} className="text-[var(--tulip-gold)]" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-[#183a1d]">{expense.title}</div>
+                      <div className="text-sm font-medium text-[var(--tulip-forest)]">{expense.title}</div>
                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                        {expense.vendor && <span className="text-xs text-[#183a1d]/40">{expense.vendor}</span>}
-                        {expense.project && <span className="text-xs text-[#183a1d]/30">· {expense.project.name}</span>}
-                        <span className="text-xs text-[#183a1d]/30">
+                        {expense.vendor && <span className="text-xs text-[var(--tulip-forest)]/40">{expense.vendor}</span>}
+                        {expense.project && <span className="text-xs text-[var(--tulip-forest)]/30">· {expense.project.name}</span>}
+                        <span className="text-xs text-[var(--tulip-forest)]/30">
                           · {new Date(expense.expenseDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
                         </span>
                       </div>
                     </div>
-                    <div className="text-sm font-semibold text-[#183a1d] shrink-0">
+                    <div className="text-sm font-semibold text-[var(--tulip-forest)] shrink-0">
                       {expense.currency} {expense.amount.toLocaleString()}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
@@ -308,13 +308,13 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
                       )}
                       {expense.dataHash && (
                         <Link href={`/verify?hash=${expense.dataHash}`} target="_blank"
-                          className="text-[#183a1d]/30 hover:text-[#f6c453] transition-colors" title="Verify on Tulip DS">
+                          className="text-[var(--tulip-forest)]/30 hover:text-[var(--tulip-gold)] transition-colors" title="Verify on Tulip DS">
                           <Shield size={14} />
                         </Link>
                       )}
                       {expense.blockchainTx && (
                         <Link href={`https://polygonscan.com/tx/${expense.blockchainTx}`} target="_blank"
-                          className="text-[#183a1d]/30 hover:text-[#f6c453] transition-colors" title="View on Polygonscan">
+                          className="text-[var(--tulip-forest)]/30 hover:text-[var(--tulip-gold)] transition-colors" title="View on Polygonscan">
                           <ExternalLink size={14} />
                         </Link>
                       )}
@@ -327,26 +327,26 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
         </div>
 
         {/* CTA */}
-        <div className="rounded-2xl border border-[#f6c453]/20 p-8 text-center"
+        <div className="rounded-2xl border border-[var(--tulip-gold)]/20 p-8 text-center"
           style={{ background: 'rgba(246,196,83,0.08)' }}>
-          <Shield size={28} className="text-[#f6c453] mx-auto mb-3" />
-          <h3 className="font-bold text-[#183a1d] text-lg mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+          <Shield size={28} className="text-[var(--tulip-gold)] mx-auto mb-3" />
+          <h3 className="font-bold text-[var(--tulip-forest)] text-lg mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
             {t('everyFigureVerifiable')}
           </h3>
-          <p className="text-[#183a1d]/60 text-sm max-w-sm mx-auto mb-4">
+          <p className="text-[var(--tulip-forest)]/60 text-sm max-w-sm mx-auto mb-4">
             {t('verifyShieldDesc')}
           </p>
           <Link href="/verify"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-[#183a1d]"
-            style={{ background: '#f6c453' }}>
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-[var(--tulip-forest)]"
+            style={{ background: 'var(--tulip-gold)' }}>
             <Shield size={15} /> {t('openVerifier')}
           </Link>
         </div>
 
       </div>
 
-      <footer className="border-t border-[#c8d6c0] py-8 text-center">
-        <p className="text-[#183a1d]/30 text-xs">{t('footer')}</p>
+      <footer className="border-t border-[var(--tulip-sage-dark)] py-8 text-center">
+        <p className="text-[var(--tulip-forest)]/30 text-xs">{t('footer')}</p>
       </footer>
     </div>
   )

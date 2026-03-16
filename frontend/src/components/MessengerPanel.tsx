@@ -443,12 +443,12 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
       {/* Incoming call overlay */}
       {incomingCall && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#fefbe9] rounded-2xl border border-[#c8d6c0] shadow-2xl p-8 text-center max-w-sm mx-4">
+          <div className="bg-[var(--tulip-cream)] rounded-2xl border border-[var(--tulip-sage-dark)] shadow-2xl p-8 text-center max-w-sm mx-4">
             <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
               <Phone size={28} className="text-green-600" />
             </div>
-            <h3 className="text-lg font-bold text-[#183a1d] mb-1">Incoming Call</h3>
-            <p className="text-sm text-[#183a1d]/60 mb-6">{incomingCall.callerName}</p>
+            <h3 className="text-lg font-bold text-[var(--tulip-forest)] mb-1">Incoming Call</h3>
+            <p className="text-sm text-[var(--tulip-forest)]/60 mb-6">{incomingCall.callerName}</p>
             <div className="flex items-center justify-center gap-4">
               <button onClick={handleDeclineCall}
                 className="w-14 h-14 rounded-full bg-red-500 flex items-center justify-center text-white hover:bg-red-600 transition-all">
@@ -483,45 +483,45 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
       {/* Panel */}
       <div
         ref={panelRef}
-        className="fixed top-0 right-0 bottom-0 z-50 w-[380px] max-w-full bg-[#fefbe9] border-l border-[#c8d6c0] shadow-2xl flex flex-col"
+        className="fixed top-0 right-0 bottom-0 z-50 w-[380px] max-w-full bg-[var(--tulip-cream)] border-l border-[var(--tulip-sage-dark)] shadow-2xl flex flex-col"
         style={{ animation: 'slideInFromRight 0.25s ease-out' }}
       >
         {/* Header */}
-        <div className="h-14 border-b border-[#c8d6c0] flex items-center justify-between px-4 shrink-0 bg-[#183a1d]">
+        <div className="h-14 border-b border-[var(--tulip-sage-dark)] flex items-center justify-between px-4 shrink-0 bg-[var(--tulip-forest)]">
           {activeContact ? (
             <>
               <button onClick={() => { if (activeConvoId && socketRef.current) socketRef.current.emit('leave_conversation', { conversationId: activeConvoId }); setActiveContact(null); setActiveConvoId(null); setMessages([]) }}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-[#fefbe9]/70 hover:text-[#fefbe9] hover:bg-[#fefbe9]/10 transition-all">
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--tulip-cream)]/70 hover:text-[var(--tulip-cream)] hover:bg-[var(--tulip-cream)]/10 transition-all">
                 <ArrowLeft size={16} />
               </button>
               <div className="flex-1 min-w-0 ml-2">
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full shrink-0 ${statusColor(getContactStatus(activeContact.id))}`} />
-                  <span className="text-sm font-medium text-[#fefbe9] truncate">{activeContact.name}</span>
+                  <span className="text-sm font-medium text-[var(--tulip-cream)] truncate">{activeContact.name}</span>
                 </div>
-                <p className="text-[10px] text-[#fefbe9]/50">
+                <p className="text-[10px] text-[var(--tulip-cream)]/50">
                   {statusLabel(getContactStatus(activeContact.id))}
                 </p>
               </div>
             </>
           ) : (
             <div className="flex items-center gap-2">
-              <MessageCircle size={16} className="text-[#f6c453]" />
-              <span className="text-sm font-semibold text-[#fefbe9]">Messages</span>
+              <MessageCircle size={16} className="text-[var(--tulip-gold)]" />
+              <span className="text-sm font-semibold text-[var(--tulip-cream)]">Messages</span>
             </div>
           )}
           <div className="flex items-center gap-1">
             {/* Status selector */}
             <div className="relative">
               <button onClick={() => setShowStatusMenu(!showStatusMenu)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-[#fefbe9]/70 hover:text-[#fefbe9] hover:bg-[#fefbe9]/10 transition-all">
-                <div className={`w-3 h-3 rounded-full border-2 border-[#fefbe9]/30 ${statusColor(myStatus)}`} />
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--tulip-cream)]/70 hover:text-[var(--tulip-cream)] hover:bg-[var(--tulip-cream)]/10 transition-all">
+                <div className={`w-3 h-3 rounded-full border-2 border-[var(--tulip-cream)]/30 ${statusColor(myStatus)}`} />
               </button>
               {showStatusMenu && (
-                <div className="absolute right-0 top-9 bg-[#183a1d] border border-[#c8d6c0]/30 rounded-lg shadow-xl z-50 py-1 min-w-[130px]">
+                <div className="absolute right-0 top-9 bg-[var(--tulip-forest)] border border-[var(--tulip-sage-dark)]/30 rounded-lg shadow-xl z-50 py-1 min-w-[130px]">
                   {(['online', 'away', 'offline'] as const).map(s => (
                     <button key={s} onClick={() => handleSetMyStatus(s)}
-                      className={`w-full px-3 py-2 text-left text-xs flex items-center gap-2 hover:bg-[#fefbe9]/10 transition-colors ${myStatus === s ? 'text-[#f6c453]' : 'text-[#fefbe9]/80'}`}>
+                      className={`w-full px-3 py-2 text-left text-xs flex items-center gap-2 hover:bg-[var(--tulip-cream)]/10 transition-colors ${myStatus === s ? 'text-[var(--tulip-gold)]' : 'text-[var(--tulip-cream)]/80'}`}>
                       <div className={`w-2.5 h-2.5 rounded-full ${statusColor(s)}`} />
                       {s === 'online' ? 'Online' : s === 'away' ? 'Away' : 'Appear Offline'}
                     </button>
@@ -530,7 +530,7 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
               )}
             </div>
             <button onClick={onClose}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-[#fefbe9]/70 hover:text-[#fefbe9] hover:bg-[#fefbe9]/10 transition-all">
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--tulip-cream)]/70 hover:text-[var(--tulip-cream)] hover:bg-[var(--tulip-cream)]/10 transition-all">
               <X size={16} />
             </button>
           </div>
@@ -541,9 +541,9 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
           <>
             <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
               {msgLoading ? (
-                <div className="flex items-center justify-center py-10 text-sm text-[#183a1d]/40">Loading messages...</div>
+                <div className="flex items-center justify-center py-10 text-sm text-[var(--tulip-forest)]/40">Loading messages...</div>
               ) : messages.length === 0 ? (
-                <div className="flex items-center justify-center py-10 text-sm text-[#183a1d]/40">No messages yet. Say hello!</div>
+                <div className="flex items-center justify-center py-10 text-sm text-[var(--tulip-forest)]/40">No messages yet. Say hello!</div>
               ) : (
                 messages.map(msg => {
                   const isOwn = msg.senderType === 'NGO'
@@ -551,24 +551,24 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
                     <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-[75%] rounded-2xl px-3.5 py-2 ${
                         isOwn
-                          ? 'bg-[#f6c453] text-[#183a1d] rounded-br-md'
-                          : 'bg-[#e1eedd] text-[#183a1d] rounded-bl-md'
+                          ? 'bg-[var(--tulip-gold)] text-[var(--tulip-forest)] rounded-br-md'
+                          : 'bg-[var(--tulip-sage)] text-[var(--tulip-forest)] rounded-bl-md'
                       }`}>
                         {!isOwn && (
-                          <p className="text-[10px] font-medium text-[#183a1d]/50 mb-0.5">{msg.senderName}</p>
+                          <p className="text-[10px] font-medium text-[var(--tulip-forest)]/50 mb-0.5">{msg.senderName}</p>
                         )}
                         {msg.fileUrl ? (
                           <div>
                             <p className="text-sm">{msg.content}</p>
                             <a href={msg.fileUrl} target="_blank" rel="noopener noreferrer"
-                              className="text-xs underline text-[#183a1d]/70 hover:text-[#183a1d] mt-1 inline-block">
+                              className="text-xs underline text-[var(--tulip-forest)]/70 hover:text-[var(--tulip-forest)] mt-1 inline-block">
                               {msg.fileName || 'Attachment'}
                             </a>
                           </div>
                         ) : (
                           <p className="text-sm">{msg.content}</p>
                         )}
-                        <p className={`text-[10px] mt-1 ${isOwn ? 'text-[#183a1d]/40' : 'text-[#183a1d]/30'}`}>
+                        <p className={`text-[10px] mt-1 ${isOwn ? 'text-[var(--tulip-forest)]/40' : 'text-[var(--tulip-forest)]/30'}`}>
                           {formatTime(msg.createdAt)}
                         </p>
                       </div>
@@ -580,10 +580,10 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
             </div>
 
             {/* Input bar */}
-            <div className="border-t border-[#c8d6c0] px-3 py-2.5 flex items-center gap-2 shrink-0 bg-[#e1eedd]">
+            <div className="border-t border-[var(--tulip-sage-dark)] px-3 py-2.5 flex items-center gap-2 shrink-0 bg-[var(--tulip-sage)]">
               <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileAttach} />
               <button onClick={() => fileInputRef.current?.click()}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-[#183a1d]/50 hover:text-[#183a1d] hover:bg-[#c8d6c0] transition-all">
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--tulip-forest)]/50 hover:text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage-dark)] transition-all">
                 <Paperclip size={16} />
               </button>
               <input
@@ -591,14 +591,14 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
                 onChange={e => setMsgText(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }}
                 placeholder="Type a message..."
-                className="flex-1 bg-[#fefbe9] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all"
+                className="flex-1 bg-[var(--tulip-cream)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] transition-all"
               />
               <button onClick={handleCall}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-[#183a1d]/50 hover:text-green-600 hover:bg-green-100 transition-all">
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--tulip-forest)]/50 hover:text-green-600 hover:bg-green-100 transition-all">
                 <Phone size={16} />
               </button>
               <button onClick={handleSend} disabled={!msgText.trim()}
-                className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-30 transition-all">
+                className="w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--tulip-gold)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-orange)] disabled:opacity-30 transition-all">
                 <Send size={14} />
               </button>
             </div>
@@ -606,29 +606,29 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
         ) : (
           /* ── Contact List ─────────────────────────────────── */
           <>
-            <div className="px-3 py-2 border-b border-[#c8d6c0]">
-              <div className="flex items-center gap-2 bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-1.5">
-                <Search size={14} className="text-[#183a1d]/40 shrink-0" />
+            <div className="px-3 py-2 border-b border-[var(--tulip-sage-dark)]">
+              <div className="flex items-center gap-2 bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-1.5">
+                <Search size={14} className="text-[var(--tulip-forest)]/40 shrink-0" />
                 <input
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   placeholder="Search contacts..."
-                  className="bg-transparent text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none w-full"
+                  className="bg-transparent text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none w-full"
                 />
               </div>
             </div>
 
             <div className="flex-1 overflow-y-auto">
               {loading ? (
-                <div className="flex items-center justify-center py-10 text-sm text-[#183a1d]/40">Loading...</div>
+                <div className="flex items-center justify-center py-10 text-sm text-[var(--tulip-forest)]/40">Loading...</div>
               ) : filteredContacts.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center px-6">
-                  <MessageCircle size={32} className="text-[#183a1d]/20 mb-3" />
-                  <p className="text-sm text-[#183a1d]/40">
+                  <MessageCircle size={32} className="text-[var(--tulip-forest)]/20 mb-3" />
+                  <p className="text-sm text-[var(--tulip-forest)]/40">
                     {searchQuery ? 'No contacts match your search' : 'No connected donors yet'}
                   </p>
                   {!searchQuery && (
-                    <p className="text-xs text-[#183a1d]/30 mt-1">Invite donors via Settings to start messaging</p>
+                    <p className="text-xs text-[var(--tulip-forest)]/30 mt-1">Invite donors via Settings to start messaging</p>
                   )}
                 </div>
               ) : (
@@ -636,27 +636,27 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
                   <button
                     key={contact.id}
                     onClick={() => openChat(contact)}
-                    className="w-full text-left px-4 py-3 border-b border-[#c8d6c0]/50 hover:bg-[#e1eedd] transition-colors flex items-center gap-3"
+                    className="w-full text-left px-4 py-3 border-b border-[var(--tulip-sage-dark)]/50 hover:bg-[var(--tulip-sage)] transition-colors flex items-center gap-3"
                   >
                     <div className="relative shrink-0">
-                      <div className="w-10 h-10 rounded-full bg-[#183a1d] flex items-center justify-center text-xs font-bold text-[#f6c453]">
+                      <div className="w-10 h-10 rounded-full bg-[var(--tulip-forest)] flex items-center justify-center text-xs font-bold text-[var(--tulip-gold)]">
                         {contact.name.charAt(0).toUpperCase()}
                       </div>
-                      <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#fefbe9] ${statusColor(getContactStatus(contact.id))}`} />
+                      <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[var(--tulip-cream)] ${statusColor(getContactStatus(contact.id))}`} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-[#183a1d] truncate">{contact.name}</span>
+                        <span className="text-sm font-medium text-[var(--tulip-forest)] truncate">{contact.name}</span>
                         {contact.lastMessageAt && (
-                          <span className="text-[10px] text-[#183a1d]/40 shrink-0 ml-2">{formatTime(contact.lastMessageAt)}</span>
+                          <span className="text-[10px] text-[var(--tulip-forest)]/40 shrink-0 ml-2">{formatTime(contact.lastMessageAt)}</span>
                         )}
                       </div>
                       <div className="flex items-center justify-between mt-0.5">
-                        <p className="text-xs text-[#183a1d]/50 truncate">
+                        <p className="text-xs text-[var(--tulip-forest)]/50 truncate">
                           {contact.lastMessage || statusLabel(getContactStatus(contact.id))}
                         </p>
                         {contact.unreadCount > 0 && (
-                          <span className="ml-2 shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#f6c453] text-[#183a1d] leading-none">
+                          <span className="ml-2 shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[var(--tulip-gold)] text-[var(--tulip-forest)] leading-none">
                             {contact.unreadCount}
                           </span>
                         )}

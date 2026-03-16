@@ -42,7 +42,7 @@
   --font-body: 'Inter', sans-serif;
 }
 
-:root {
+:root, [data-theme="light"] {
   --background: 54 91% 95%;
   --foreground: 143 38% 16%;
   --border: 120 20% 78%;
@@ -57,6 +57,20 @@
   --tulip-forest: #183a1d;
   --tulip-sage: #e1eedd;
   --tulip-sage-dark: #c8d6c0;
+}
+
+[data-theme="dark"] {
+  --background: 150 30% 6%;
+  --foreground: 120 30% 90%;
+  --border: 140 20% 22%;
+  --input: 140 20% 22%;
+
+  --tulip-gold: #f6c453;
+  --tulip-cream: #0f1a0f;
+  --tulip-orange: #f0a04b;
+  --tulip-forest: #e1eedd;
+  --tulip-sage: #1a2e1a;
+  --tulip-sage-dark: #2d4a2d;
 }
 
 * { border-color: hsl(var(--border)); }

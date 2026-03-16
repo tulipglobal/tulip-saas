@@ -66,7 +66,7 @@ function log(n, label, result, detail) {
   console.log(`[${String(n).padStart(2)}] ${tag.padEnd(6)} ${label}${d}`);
 }
 
-const TOTAL = 185;
+const TOTAL = 190;
 
 (async () => {
   console.log(`=== REGRESSION CHECKLIST (${TOTAL} items) ===\n`);
@@ -1027,6 +1027,32 @@ const TOTAL = 185;
   // 185 — drawnDown updated on drawdown approval
   log(185, "drawnDown on ImpactInvestment updated when drawdown approved",
     donorInvRoutes.includes('UPDATE "ImpactInvestment"') && donorInvRoutes.includes('"drawnDown"') ? "PASS" : "FAIL");
+
+  // ═══════════════════════════════════════════════════════════
+  //  186–190  REPAYMENT PAYMENT FLOW CHECKS
+  // ═══════════════════════════════════════════════════════════
+
+  // 186 — NGO record-payment endpoint exists with multer upload
+  log(186, "NGO record-payment endpoint with file upload",
+    ngoInvRoutes.includes("record-payment") && ngoInvRoutes.includes("upload.single") && ngoInvRoutes.includes("SUBMITTED") ? "PASS" : "FAIL");
+
+  // 187 — Donor confirm-payment endpoint exists
+  log(187, "Donor confirm-payment endpoint sets PAID/PARTIAL",
+    donorInvRoutes.includes("confirm-payment") && donorInvRoutes.includes("SUBMITTED") ? "PASS" : "FAIL");
+
+  // 188 — Donor reject-payment endpoint resets to PENDING
+  log(188, "Donor reject-payment endpoint resets to PENDING",
+    donorInvRoutes.includes("reject-payment") && donorInvRoutes.includes("PENDING") ? "PASS" : "FAIL");
+
+  // 189 — NGO investments page has Record Payment button
+  const ngoInvPage = fs.existsSync("" + SAAS_ROOT + "/frontend/src/app/dashboard/investments/page.tsx")
+    ? fs.readFileSync("" + SAAS_ROOT + "/frontend/src/app/dashboard/investments/page.tsx", "utf8") : "";
+  log(189, "NGO investments page has Record Payment button and modal",
+    ngoInvPage.includes("Record Payment") && ngoInvPage.includes("submitPayment") && ngoInvPage.includes("proof") ? "PASS" : "FAIL");
+
+  // 190 — Donor project page has confirm/reject payment flow
+  log(190, "Donor project page has confirm/reject payment flow",
+    donorProjectPage.includes("handleConfirmPayment") && donorProjectPage.includes("handleRejectPayment") && donorProjectPage.includes("Review") ? "PASS" : "FAIL");
 
   // ═══════════════════════════════════════════════════════════
   //  SUMMARY

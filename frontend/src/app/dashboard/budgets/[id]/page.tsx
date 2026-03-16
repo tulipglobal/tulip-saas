@@ -152,6 +152,9 @@ export default function BudgetDetailPage() {
   const [utilisationInput, setUtilisationInput] = useState<Record<string, string>>({})
   const [confirmingTranche, setConfirmingTranche] = useState<string | null>(null)
   const [utilisingTranche, setUtilisingTranche] = useState<string | null>(null)
+  const [showConditionsModal, setShowConditionsModal] = useState<{ trancheId: string; agreementId: string } | null>(null)
+  const [conditionsFile, setConditionsFile] = useState<File | null>(null)
+  const [conditionsNotes, setConditionsNotes] = useState('')
   const [breachModal, setBreachModal] = useState<{ conditionId: string; title: string } | null>(null)
   const [breachNote, setBreachNote] = useState('')
   const [breachSubmitting, setBreachSubmitting] = useState(false)
@@ -263,17 +266,33 @@ export default function BudgetDetailPage() {
     reload()
   }
 
-  // Tranche: confirm conditions met
+  // Tranche: confirm conditions met (with optional file upload)
   const handleConfirmConditions = async (trancheId: string, agreementId: string) => {
     setConfirmingTranche(trancheId)
-    const res = await apiPut(`/api/tranches/ngo/${trancheId}/conditions-met`, {})
-    if (res.ok) {
-      setTranches(prev => ({
-        ...prev,
-        [agreementId]: (prev[agreementId] || []).map(t =>
-          t.id === trancheId ? { ...t, status: 'CONDITIONS_MET' as const, conditionsConfirmedAt: new Date().toISOString() } : t
-        )
-      }))
+    try {
+      const token = localStorage.getItem('tulip_token')
+      const fd = new FormData()
+      if (conditionsNotes) fd.append('notes', conditionsNotes)
+      if (conditionsFile) fd.append('file', conditionsFile)
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tranches/ngo/${trancheId}/conditions-met`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      })
+      if (res.ok) {
+        setTranches(prev => ({
+          ...prev,
+          [agreementId]: (prev[agreementId] || []).map(t =>
+            t.id === trancheId ? { ...t, status: 'CONDITIONS_MET' as const, conditionsConfirmedAt: new Date().toISOString() } : t
+          )
+        }))
+        setShowConditionsModal(null)
+        setConditionsFile(null)
+        setConditionsNotes('')
+      }
+    } catch (err) {
+      console.error('Confirm conditions error:', err)
     }
     setConfirmingTranche(null)
   }
@@ -790,12 +809,11 @@ export default function BudgetDetailPage() {
                       <div>
                         {(tranche.status === 'PENDING' || (tranche.status === 'CONDITIONS_MET' && !tranche.conditionsConfirmedAt)) && (
                           <button
-                            onClick={() => handleConfirmConditions(tranche.id, tranche._agreementId)}
-                            disabled={confirmingTranche === tranche.id}
-                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50 transition-all"
+                            onClick={() => setShowConditionsModal({ trancheId: tranche.id, agreementId: tranche._agreementId })}
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] transition-all"
                           >
                             <Check size={12} />
-                            {confirmingTranche === tranche.id ? 'Confirming...' : 'Confirm conditions met'}
+                            Confirm conditions met
                           </button>
                         )}
                         {tranche.status === 'RELEASED' && (
@@ -897,6 +915,65 @@ export default function BudgetDetailPage() {
               })}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Confirm Conditions Met Modal */}
+      {showConditionsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => { setShowConditionsModal(null); setConditionsFile(null); setConditionsNotes('') }} />
+          <div className="relative bg-[#fefbe9] rounded-2xl border border-[#c8d6c0] shadow-xl w-full max-w-md mx-4">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#c8d6c0]">
+              <div>
+                <h3 className="text-base font-bold text-[#183a1d]">Confirm Conditions Met</h3>
+                <p className="text-xs text-[#183a1d]/50 mt-0.5">Upload supporting evidence and notify the donor</p>
+              </div>
+              <button onClick={() => { setShowConditionsModal(null); setConditionsFile(null); setConditionsNotes('') }}
+                className="text-[#183a1d]/40 hover:text-[#183a1d] transition-all">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="px-5 py-4 space-y-4">
+              <div>
+                <label className="text-xs text-[#183a1d]/60 mb-1 block">Notes</label>
+                <textarea
+                  value={conditionsNotes}
+                  onChange={e => setConditionsNotes(e.target.value)}
+                  rows={3}
+                  placeholder="Describe how conditions have been met..."
+                  className="w-full bg-[#e1eedd] border border-[#c8d6c0] rounded-lg px-3 py-2 text-sm text-[#183a1d] placeholder-[#183a1d]/40 outline-none focus:border-[#f6c453] transition-all resize-none"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-[#183a1d]/60 mb-1 block">Supporting Document (optional)</label>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,.xlsx,.xls,.jpg,.jpeg,.png,.csv"
+                  onChange={e => setConditionsFile(e.target.files?.[0] || null)}
+                  className="w-full text-sm text-[#183a1d]/70 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-[#c8d6c0] file:bg-[#e1eedd] file:text-[#183a1d] file:text-xs file:font-medium hover:file:bg-[#c8d6c0] file:cursor-pointer file:transition-all"
+                />
+                {conditionsFile && (
+                  <p className="text-xs text-[#183a1d]/50 mt-1">
+                    {conditionsFile.name} ({(conditionsFile.size / 1024).toFixed(0)} KB) — will be hashed &amp; stored in Documents
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  onClick={() => handleConfirmConditions(showConditionsModal.trancheId, showConditionsModal.agreementId)}
+                  disabled={confirmingTranche === showConditionsModal.trancheId}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#f6c453] text-[#183a1d] hover:bg-[#f0a04b] disabled:opacity-50 transition-all"
+                >
+                  <Check size={14} />
+                  {confirmingTranche === showConditionsModal.trancheId ? 'Submitting...' : 'Confirm & Notify Donor'}
+                </button>
+                <button onClick={() => { setShowConditionsModal(null); setConditionsFile(null); setConditionsNotes('') }}
+                  className="px-4 py-2 rounded-lg text-sm text-[#183a1d]/60 hover:text-[#183a1d] hover:bg-[#c8d6c0]/40 transition-all">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

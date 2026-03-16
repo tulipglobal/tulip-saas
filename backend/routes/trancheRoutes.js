@@ -6,10 +6,15 @@
 const express = require('express')
 const router = express.Router()
 const jwt = require('jsonwebtoken')
+const multer = require('multer')
 const prisma = require('../lib/client')
 const authenticate = require('../middleware/authenticate')
 const tenantScope = require('../middleware/tenantScope')
 const { createNotification, notifyDonorOrgsForProject } = require('../services/donorNotificationService')
+const { uploadToS3, computeSHA256 } = require('../lib/s3Upload')
+const { createAuditLog } = require('../services/auditService')
+
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } })
 
 const JWT_SECRET = process.env.JWT_SECRET
 
@@ -114,7 +119,7 @@ router.get('/ngo/funding/:agreementId', authenticate, tenantScope, async (req, r
 })
 
 // PUT /api/tranches/ngo/:trancheId/conditions-met
-router.put('/ngo/:trancheId/conditions-met', authenticate, tenantScope, async (req, res) => {
+router.put('/ngo/:trancheId/conditions-met', authenticate, tenantScope, upload.single('file'), async (req, res) => {
   try {
     const { trancheId } = req.params
     const { notes } = req.body
@@ -128,21 +133,68 @@ router.put('/ngo/:trancheId/conditions-met', authenticate, tenantScope, async (r
 
     if (!rows.length) return res.status(404).json({ error: 'Tranche not found' })
 
-    // Notify donor
     const tranche = rows[0]
+    let document = null
+
+    // Upload supporting document if file attached
+    if (req.file) {
+      try {
+        const sha256Hash = computeSHA256(req.file.buffer)
+        const { fileUrl, key } = await uploadToS3(req.file.buffer, req.file.originalname, req.user.tenantId, 'conditions')
+
+        document = await prisma.document.create({
+          data: {
+            name: `Conditions Evidence — Tranche #${tranche.trancheNumber}`,
+            description: notes || `Supporting document for tranche #${tranche.trancheNumber} conditions met`,
+            documentType: 'Condition Evidence',
+            documentLevel: 'project',
+            category: 'contract',
+            fileUrl,
+            fileType: req.file.originalname.split('.').pop()?.toLowerCase() || null,
+            fileSize: req.file.size,
+            sha256Hash,
+            projectId: tranche.projectId || null,
+            tenantId: req.user.tenantId,
+            uploadedById: req.user.id,
+          }
+        })
+
+        // Link document to tranche
+        await prisma.$executeRawUnsafe(
+          `UPDATE "DisbursementTranche" SET "evidenceDocumentId" = $1, "updatedAt" = NOW() WHERE id = $2::uuid`,
+          document.id, trancheId
+        ).catch(() => {
+          // Column may not exist yet — non-blocking
+        })
+
+        await createAuditLog({
+          action: 'document.uploaded',
+          entityType: 'Document',
+          entityId: document.id,
+          userId: req.user.id,
+          tenantId: req.user.tenantId,
+          details: { name: document.name, sha256Hash, trancheId, type: 'condition_evidence' }
+        })
+      } catch (uploadErr) {
+        console.error('Condition evidence upload error:', uploadErr.message)
+        // Non-blocking — tranche status already updated
+      }
+    }
+
+    // Notify donor
     const agreement = await prisma.fundingAgreement.findFirst({ where: { id: tranche.fundingAgreementId }, select: { donorOrgId: true, title: true } })
     if (agreement?.donorOrgId) {
       createNotification({
         donorOrgId: agreement.donorOrgId,
         alertType: 'funding.conditions_met',
         title: `Tranche #${tranche.trancheNumber} conditions met`,
-        body: `NGO has confirmed conditions are met for tranche #${tranche.trancheNumber} of ${agreement.title}`,
+        body: `NGO has confirmed conditions are met for tranche #${tranche.trancheNumber} of ${agreement.title}${document ? ' (evidence attached)' : ''}`,
         entityType: 'DisbursementTranche',
         entityId: tranche.id
       }).catch(() => {})
     }
 
-    res.json({ tranche: rows[0] })
+    res.json({ tranche: rows[0], document })
   } catch (err) {
     console.error('NGO conditions-met error:', err)
     res.status(500).json({ error: 'Failed to update tranche' })

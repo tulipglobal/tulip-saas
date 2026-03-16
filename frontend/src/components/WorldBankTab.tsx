@@ -80,8 +80,8 @@ export default function WorldBankTab({ projectId }: { projectId: string }) {
       apiGet(`/api/ngo/projects/${projectId}/wb-components`).then(r => r.ok ? r.json() : { data: [] }),
       apiGet(`/api/ngo/projects/${projectId}/wb-contracts`).then(r => r.ok ? r.json() : { data: [] }),
     ]).then(([comp, cont]) => {
-      setComponents(comp.data ?? comp ?? [])
-      setContracts(cont.data ?? cont ?? [])
+      setComponents(comp.components ?? comp.data ?? [])
+      setContracts(cont.contracts ?? cont.data ?? [])
     }).catch(() => {})
       .finally(() => setLoading(false))
   }, [projectId])

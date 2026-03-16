@@ -12,6 +12,7 @@
 //    await invalidateForTenant(tenantId)     // rebuild all users in tenant
 // ─────────────────────────────────────────────────────────────
 
+const crypto = require('crypto')
 const prisma = require('../lib/client')
 
 // ── Build cache for a single user ────────────────────────────
@@ -44,7 +45,7 @@ async function buildCache(userId, tenantId) {
   await prisma.userPermissionCache.upsert({
     where:  { userId_tenantId: { userId, tenantId } },
     update: { permissions, updatedAt: new Date() },
-    create: { userId, tenantId, permissions }
+    create: { id: crypto.randomUUID(), userId, tenantId, permissions, updatedAt: new Date() }
   })
 
   return permissions

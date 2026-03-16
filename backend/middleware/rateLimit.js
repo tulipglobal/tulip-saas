@@ -65,10 +65,10 @@ const tenantApiLimiter = rateLimit({
   message:          { error: 'Tenant rate limit exceeded', retryAfter: '15 minutes' },
 })
 
-// ── Auth limiter — strict, per IP ─────────────────────────────
+// ── Auth limiter — per IP ────────────────────────────────────
 const authLimiter = rateLimit({
   windowMs:         15 * 60 * 1000,
-  max:              10,
+  max:              50,
   keyGenerator:     byIP,
   standardHeaders:  true,
   legacyHeaders:    false,

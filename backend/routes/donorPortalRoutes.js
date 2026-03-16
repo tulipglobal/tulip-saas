@@ -823,6 +823,8 @@ router.get('/projects/:projectId', donorAuth, async (req, res) => {
       category: e.category || e.expenseType || 'Other',
       expenditureType: e.expenditureType || 'OPEX',
       fraudRiskLevel: e.fraudRiskLevel || 'LOW',
+      fraudRiskScore: e.fraudRiskScore || 0,
+      approvalStatus: e.approvalStatus || null,
       sealId: e.receiptSealId || null,
       sealStatus: e.receiptSealId ? (sealMap[e.receiptSealId]?.status || 'ISSUED') : null,
       anchorTxHash: e.receiptSealId ? (sealMap[e.receiptSealId]?.anchorTxHash || null) : null,

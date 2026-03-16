@@ -549,7 +549,7 @@ export default function NewExpensePage() {
                 <option value="">{t('common.selectBudget')}</option>
                 {filteredBudgets.map(b => (
                   <option key={b.id} value={b.id}>
-                    {b.name} ({b.status}) — Budget Remaining: ${(b.totalApproved - (b.totalSpent || 0)).toLocaleString()}{disbursementInfo?.hasDisbursements ? ` · Disbursed Available: $${disbursementInfo.available.toLocaleString()}` : ''}
+                    {b.name} ({b.status}) — {disbursementInfo?.hasDisbursements ? `Available from Released: $${disbursementInfo.available.toLocaleString()} (of $${disbursementInfo.totalReleased.toLocaleString()} released)` : `Remaining: $${(b.totalApproved - (b.totalSpent || 0)).toLocaleString()}`}
                   </option>
                 ))}
               </select>
@@ -572,7 +572,9 @@ export default function NewExpensePage() {
             {selectedLine && (
               <div className="text-xs text-[#183a1d]/60 mt-1 flex gap-4">
                 <span>{t('expenses.approved')}: <span className="text-[#183a1d]/70">{selectedLine.currency} {selectedLine.approvedAmount.toLocaleString()}</span></span>
-                {selectedLine.remaining !== undefined && (
+                {disbursementInfo?.hasDisbursements ? (
+                  <span>Available from Released: <span className={disbursementInfo.available > 0 ? 'text-green-400' : 'text-red-400'}>{selectedLine.currency} {disbursementInfo.available.toLocaleString()}</span></span>
+                ) : selectedLine.remaining !== undefined && (
                   <span>{t('expenses.remaining')}: <span className={selectedLine.remaining > 0 ? 'text-green-400' : 'text-red-400'}>{selectedLine.currency} {selectedLine.remaining.toLocaleString()}</span></span>
                 )}
               </div>

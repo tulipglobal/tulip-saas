@@ -121,7 +121,7 @@ router.get('/ngo/project/:projectId/disbursement-info', authenticate, tenantScop
     const portalFunding = await prisma.$queryRawUnsafe(
       `SELECT 1 FROM "FundingAgreement" fa
        JOIN "ProjectFunding" pf ON pf."fundingAgreementId" = fa.id
-       WHERE pf."projectId" = $1::uuid AND fa."funderType" = 'PORTAL' LIMIT 1`, projectId
+       WHERE pf."projectId"::text = $1 AND fa."funderType" = 'PORTAL' LIMIT 1`, projectId
     )
     if (!portalFunding.length) return res.json({ hasDisbursements: false })
 
@@ -130,7 +130,7 @@ router.get('/ngo/project/:projectId/disbursement-info', authenticate, tenantScop
        FROM "DisbursementTranche" dt
        JOIN "FundingAgreement" fa ON fa.id = dt."fundingAgreementId"
        JOIN "ProjectFunding" pf ON pf."fundingAgreementId" = fa.id
-       WHERE pf."projectId" = $1::uuid
+       WHERE pf."projectId"::text = $1
          AND fa."funderType" = 'PORTAL'
          AND dt.status IN ('RELEASED', 'UTILISED')`, projectId
     )
@@ -140,7 +140,7 @@ router.get('/ngo/project/:projectId/disbursement-info', authenticate, tenantScop
       `SELECT COALESCE(SUM(pf."allocatedAmount"), 0)::float as "totalFunded"
        FROM "ProjectFunding" pf
        JOIN "FundingAgreement" fa ON fa.id = pf."fundingAgreementId"
-       WHERE pf."projectId" = $1::uuid AND fa."funderType" = 'PORTAL'`, projectId
+       WHERE pf."projectId"::text = $1 AND fa."funderType" = 'PORTAL'`, projectId
     )
 
     const projectSpentAgg = await prisma.expense.aggregate({

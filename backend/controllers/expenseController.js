@@ -108,7 +108,7 @@ exports.createExpense = async (req, res) => {
            FROM "DisbursementTranche" dt
            JOIN "FundingAgreement" fa ON fa.id = dt."fundingAgreementId"
            JOIN "ProjectFunding" pf ON pf."fundingAgreementId" = fa.id
-           WHERE pf."projectId" = $1::uuid
+           WHERE pf."projectId"::text = $1
              AND fa."funderType" = 'PORTAL'
              AND dt.status IN ('RELEASED', 'UTILISED')`,
           projectId
@@ -119,7 +119,7 @@ exports.createExpense = async (req, res) => {
         if (totalReleased > 0 || await prisma.$queryRawUnsafe(
           `SELECT 1 FROM "FundingAgreement" fa
            JOIN "ProjectFunding" pf ON pf."fundingAgreementId" = fa.id
-           WHERE pf."projectId" = $1::uuid AND fa."funderType" = 'PORTAL' LIMIT 1`, projectId
+           WHERE pf."projectId"::text = $1 AND fa."funderType" = 'PORTAL' LIMIT 1`, projectId
         ).then(r => r.length > 0)) {
           const projectSpentAgg = await prisma.expense.aggregate({
             where: { projectId },

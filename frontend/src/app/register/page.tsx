@@ -220,7 +220,7 @@ export default function RegisterPage() {
         <div className="panel-left">
           <a href="/" className="logo">
             <div className="logo-mark">🌷</div>
-            Tulip DS
+            Sealayer
           </a>
           <div className="left-body">
             <div className="left-eyebrow">{t('eyebrow')}</div>

@@ -186,7 +186,7 @@ export default function SetupWizardPage() {
               <Building2 className="w-3.5 h-3.5 text-[var(--tulip-forest)]" />
             </div>
             <span className="text-[var(--tulip-forest)] font-bold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
-              tulip<span style={{ color: 'var(--tulip-gold)' }}>ds</span>
+              Sealayer
             </span>
             {tenantName && (
               <>

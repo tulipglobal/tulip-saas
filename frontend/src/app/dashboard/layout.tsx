@@ -295,11 +295,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         collapsed && !mobileOpen ? 'justify-center px-0' : 'px-5 gap-3'
       )}>
         <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-[var(--tulip-gold)]">
-          <span className="text-[var(--tulip-forest)] font-bold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>T</span>
+          <span className="text-[var(--tulip-forest)] font-bold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>S</span>
         </div>
         {(!collapsed || mobileOpen) && (
           <span className="font-bold text-[var(--tulip-cream)] text-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
-            tulip<span style={{ color: 'var(--tulip-gold)' }}>ds</span>
+            Sealayer
           </span>
         )}
         {/* Close button — mobile only */}
@@ -433,10 +433,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {/* Logo — mobile only (centered feel) */}
             <div className="md:hidden flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-[var(--tulip-gold)]">
-                <span className="text-[var(--tulip-forest)] font-bold text-xs" style={{ fontFamily: 'Inter, sans-serif' }}>T</span>
+                <span className="text-[var(--tulip-forest)] font-bold text-xs" style={{ fontFamily: 'Inter, sans-serif' }}>S</span>
               </div>
               <span className="font-bold text-[var(--tulip-forest)] text-base" style={{ fontFamily: 'Inter, sans-serif' }}>
-                tulip<span style={{ color: 'var(--tulip-gold)' }}>ds</span>
+                Sealayer
               </span>
             </div>
 

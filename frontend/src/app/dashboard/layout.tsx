@@ -7,8 +7,8 @@ import { apiGet } from '@/lib/api'
 import { useOfflineSync } from '@/hooks/useOfflineSync'
 import {
   LayoutDashboard, FolderOpen, FileCheck, Receipt, Banknote,
-  Key, Webhook, BarChart3, Settings, LogOut, Code2, CreditCard, Users,
-  ChevronLeft, ChevronRight, Shield, Bell, Search, Menu, X, ListChecks, ScanLine, FolderSearch, Briefcase, ShieldCheck, Crown, Flag, DollarSign, ArrowDownUp, MessageCircle, FileText, Coins, LifeBuoy, BookOpen
+  BarChart3, Settings, LogOut, CreditCard, Users,
+  ChevronLeft, ChevronRight, Shield, Bell, Search, Menu, X, ListChecks, Flag, DollarSign, ArrowDownUp, MessageCircle, FileText, Coins, LifeBuoy, BookOpen
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useTranslations } from 'next-intl'
@@ -78,15 +78,6 @@ const navItems = [
   { key: 'drawdowns', href: '/dashboard/drawdowns', icon: ArrowDownUp, fallback: 'Drawdowns' },
   { key: 'donors',     href: '/dashboard/settings/donors', icon: Users, fallback: 'Donors' },
   { key: 'currencyRates', href: '/dashboard/currency-rates', icon: Coins, fallback: 'Currency Rates' },
-  // Developer / integration tools — above Settings
-  { key: 'apiKeys',     href: '/dashboard/api-keys',  icon: Key },
-  { key: 'webhooks',    href: '/dashboard/webhooks',  icon: Webhook },
-  { key: 'trustSeal',   href: '/dashboard/trust-seal',     icon: ShieldCheck },
-  { key: 'cases',       href: '/dashboard/cases',          icon: Briefcase },
-  { key: 'ocrEngine',   href: '/dashboard/api-portal/ocr', icon: ScanLine },
-  { key: 'bundleVerify', href: '/dashboard/api-portal/bundle', icon: FolderSearch },
-  { key: 'developerApi', href: '/dashboard/api-portal/developer', icon: Code2 },
-  { key: 'embed',       href: '/dashboard/embed',     icon: Code2 },
   { key: 'knowledgeBase', href: '/dashboard/knowledge-base', icon: BookOpen, fallback: 'Knowledge Base' },
   { key: 'support',    href: '/dashboard/support',   icon: LifeBuoy, fallback: 'Support' },
   { key: 'settings',   href: '/dashboard/settings',  icon: Settings },
@@ -98,7 +89,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [pendingCount, setPendingCount] = useState(0)
   const [donorFlagCount, setDonorFlagCount] = useState(0)
   const [deliverableCount, setDeliverableCount] = useState(0)
-  const [isSuperadmin, setIsSuperadmin] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [notifications, setNotifications] = useState<AuditEntry[]>([])
   const [notifLoading, setNotifLoading] = useState(false)
@@ -159,10 +149,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     apiGet('/api/workflow/summary')
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d) setPendingCount((d.pending || 0) + (d.inReview || 0)) })
-      .catch(() => {})
-    apiGet('/api/admin/check')
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.isSuperadmin) setIsSuperadmin(true) })
       .catch(() => {})
   }, [pathname])
 
@@ -363,18 +349,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Bottom */}
       <div className="border-t border-[var(--tulip-cream)]/10 p-3 space-y-1">
-        {/* Admin — superadmin only */}
-        {isSuperadmin && (
-          <Link href="/dashboard/admin" className={clsx(
-            'flex items-center gap-3 w-full px-3 py-2.5 rounded-lg transition-all',
-            pathname === '/dashboard/admin'
-              ? 'bg-[var(--tulip-orange)]/20 text-[var(--tulip-orange)]'
-              : 'text-[var(--tulip-orange)]/60 hover:text-[var(--tulip-orange)] hover:bg-[var(--tulip-orange)]/10'
-          )}>
-            <Crown size={18} className="shrink-0" />
-            {(!collapsed || mobileOpen) && <span className="text-sm font-medium">{t('admin')}</span>}
-          </Link>
-        )}
         {/* Collapse toggle — desktop only */}
         <button
           onClick={() => setCollapsed(!collapsed)}
@@ -600,10 +574,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <Link href="/dashboard/billing" onClick={() => setProfileOpen(false)}
                       className="flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] transition-all">
                       <CreditCard size={15} className="text-[var(--tulip-forest)]/40" /> Billing
-                    </Link>
-                    <Link href="/dashboard/api-keys" onClick={() => setProfileOpen(false)}
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] transition-all">
-                      <Key size={15} className="text-[var(--tulip-forest)]/40" /> API Keys
                     </Link>
                   </div>
 

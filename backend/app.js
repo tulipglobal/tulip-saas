@@ -21,7 +21,7 @@ const app = express()
 const httpServer = http.createServer(app)
 initSocketIO(httpServer)
 const cors = require('cors')
-app.use(cors({ origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:4000', 'https://tulipds.com', 'https://www.tulipds.com', 'https://app.tulipds.com', 'https://donor.tulipds.com', 'https://verify.tulipds.com', 'https://app.sealayer.io', 'https://verify.sealayer.io', 'https://ngo.sealayer.io', 'https://donor.sealayer.io'], credentials: true }))
+app.use(cors({ origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:4000', 'http://localhost:4001', 'https://tulipds.com', 'https://www.tulipds.com', 'https://app.tulipds.com', 'https://donor.tulipds.com', 'https://verify.tulipds.com', 'https://app.sealayer.io', 'https://verify.sealayer.io', 'https://ngo.sealayer.io', 'https://donor.sealayer.io', 'https://admin.sealayer.io'], credentials: true }))
 app.set('trust proxy', 1)
 
 const { apiLimiter, authLimiter, uploadLimiter, ocrLimiter, strictLimiter, verifyLimiter } = require('./middleware/rateLimit')
@@ -103,6 +103,7 @@ const knowledgeBaseRoutes = require('./routes/knowledgeBaseRoutes')
 const supportRoutes       = require('./routes/supportRoutes')
 const supportAdminRoutes  = require('./routes/supportAdminRoutes')
 const kbAdminRoutes       = require('./routes/kbAdminRoutes')
+const adminAuthRoutes     = require('./routes/adminAuthRoutes')
 
 app.get('/', (req, res) => res.send('Tulip API Running'))
 
@@ -186,6 +187,7 @@ app.use('/api/kb',            apiLimiter, knowledgeBaseRoutes)
 app.use('/api/support',       apiLimiter, supportRoutes)
 app.use('/api/admin/support', apiLimiter, authenticate, supportAdminRoutes)
 app.use('/api/admin/kb',      apiLimiter, authenticate, kbAdminRoutes)
+app.use('/api/admin-auth',    authLimiter, adminAuthRoutes)
 
 app.use((err, req, res, next) => {
   logger.error('Unhandled error', { error: err.message, path: req.path })

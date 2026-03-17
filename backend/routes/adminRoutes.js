@@ -6,9 +6,15 @@ const express = require('express')
 const router = express.Router()
 const prisma = require('../lib/client')
 
-// Superadmin check middleware — looks up user email from DB
+// Superadmin check middleware — accepts NGO superadmin OR admin panel JWT
 async function superadminOnly(req, res, next) {
   try {
+    // Admin panel JWT (role: SYSTEM_ADMIN)
+    if (req.user && req.user.role === 'SYSTEM_ADMIN') {
+      return next()
+    }
+
+    // Legacy NGO superadmin check (email-based)
     const user = await prisma.user.findUnique({
       where: { id: req.user.userId },
       select: { email: true },

@@ -2,6 +2,17 @@ const express = require('express')
 const router = express.Router()
 const prisma = require('../lib/client')
 
+// Admin auth check — accepts NGO superadmin or admin panel JWT
+async function adminCheck(req, res, next) {
+  if (req.user && req.user.role === 'SYSTEM_ADMIN') return next()
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user.userId }, select: { email: true } })
+    if (user?.email === 'info@tulipglobal.org') return next()
+  } catch {}
+  return res.status(403).json({ error: 'Admin access required' })
+}
+router.use(adminCheck)
+
 // GET /api/admin/support/tickets — all tickets
 router.get('/tickets', async (req, res) => {
   try {

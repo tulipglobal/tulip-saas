@@ -3,13 +3,17 @@ const { getSignedUrl } = require('@aws-sdk/s3-request-presigner')
 const crypto = require('crypto')
 const path = require('path')
 
-const s3 = new S3Client({
-  region: process.env.AWS_REGION || 'ap-south-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  }
-})
+let s3
+try {
+  s3 = new S3Client({
+    region: process.env.AWS_REGION || 'ap-south-1',
+    ...(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY
+      ? { credentials: { accessKeyId: process.env.AWS_ACCESS_KEY_ID, secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY } }
+      : {}),
+  })
+} catch (err) {
+  console.error('S3Client init error:', err)
+}
 
 const BUCKET = process.env.S3_BUCKET || 'tulipglobal.org'
 

@@ -24,7 +24,7 @@ router.get('/:token', async (req, res) => {
     `, token)
 
     if (links.length === 0) {
-      return res.status(404).json({ error: 'Report link not found or expired' })
+      return res.status(400).json({ error: 'Invalid or expired report token' })
     }
 
     const link = links[0]

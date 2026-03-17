@@ -816,11 +816,11 @@ export default function BudgetDetailPage() {
                         <span className="font-semibold text-[var(--tulip-forest)]">{allTranches[0]?.currency || 'USD'} {totalAmount.toLocaleString()}</span>
                       </div>
                       <div>
-                        <span className="text-green-600 block">{t('released')}</span>
+                        <span className="text-green-600 block">Released</span>
                         <span className="font-semibold text-green-700">{allTranches[0]?.currency || 'USD'} {releasedAmount.toLocaleString()} ({releasedPct}%)</span>
                       </div>
                       <div>
-                        <span className="text-amber-600 block">{t('pending')}</span>
+                        <span className="text-amber-600 block">Pending</span>
                         <span className="font-semibold text-amber-700">{allTranches[0]?.currency || 'USD'} {pendingAmount.toLocaleString()}</span>
                       </div>
                     </div>
@@ -835,9 +835,10 @@ export default function BudgetDetailPage() {
                     <thead>
                       <tr className="border-b border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage-dark)]/30">
                         <th className="text-left px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">{t('fundingAgreement')}</th>
+                        <th className="text-right px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">Amount</th>
                         <th className="text-left px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">{t('conditions')}</th>
                         <th className="text-left px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">{t('plannedDate')}</th>
-                        <th className="text-center px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">{t('status')}</th>
+                        <th className="text-center px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">Status</th>
                         <th className="text-right px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">{t('actualRelease')}</th>
                         <th className="text-center px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">{t('evidence')}</th>
                         <th className="text-center px-4 py-2 text-xs font-medium uppercase tracking-wide text-[var(--tulip-forest)]/40">{t('action')}</th>
@@ -855,6 +856,7 @@ export default function BudgetDetailPage() {
                         return (
                           <tr key={tranche.id}>
                             <td className="px-4 py-3 text-xs text-[var(--tulip-forest)]/70">{tranche.agreementTitle || '—'}</td>
+                            <td className="px-4 py-3 text-right text-xs font-medium text-[var(--tulip-forest)]">{tranche.currency || 'USD'} {Number(tranche.amount || 0).toLocaleString()}</td>
                             <td className="px-4 py-3 text-xs text-[var(--tulip-forest)]">{tranche.releaseConditions || tranche.conditions || '—'}</td>
                             <td className="px-4 py-3 text-xs text-[var(--tulip-forest)]">{tranche.plannedReleaseDate ? formatDate(tranche.plannedReleaseDate) : tranche.plannedDate ? formatDate(tranche.plannedDate) : '—'}</td>
                             <td className="px-4 py-3 text-center">

@@ -66,7 +66,7 @@ function log(n, label, result, detail) {
   console.log(`[${String(n).padStart(2)}] ${tag.padEnd(6)} ${label}${d}`);
 }
 
-const TOTAL = 190;
+const TOTAL = 212;
 
 (async () => {
   console.log(`=== REGRESSION CHECKLIST (${TOTAL} items) ===\n`);
@@ -1053,6 +1053,159 @@ const TOTAL = 190;
   // 190 — Donor project page has confirm/reject payment flow
   log(190, "Donor project page has confirm/reject payment flow",
     donorProjectPage.includes("handleConfirmPayment") && donorProjectPage.includes("handleRejectPayment") && donorProjectPage.includes("Review") ? "PASS" : "FAIL");
+
+  // ═══════════════════════════════════════════════════════════
+  //  191–201  SUPPORT + KNOWLEDGE BASE MODULE
+  // ═══════════════════════════════════════════════════════════
+  console.log("\n───  SUPPORT + KNOWLEDGE BASE ───");
+
+  // 191 — KB articles endpoint returns published articles (public, no auth)
+  const kbArticles = await httpReq("GET", "/api/kb/articles");
+  const kbData = JSON.parse(kbArticles.body);
+  log(191, "KB articles endpoint returns published articles",
+    kbArticles.status === 200 && Array.isArray(kbData) && kbData.length > 0 ? "PASS" : "FAIL",
+    "status=" + kbArticles.status + " count=" + (Array.isArray(kbData) ? kbData.length : 0));
+
+  // 192 — KB search returns relevant results
+  const kbSearch = await httpReq("GET", "/api/kb/search?q=blockchain");
+  const kbSearchData = JSON.parse(kbSearch.body);
+  log(192, "KB search returns relevant results",
+    kbSearch.status === 200 && Array.isArray(kbSearchData) && kbSearchData.length > 0 ? "PASS" : "FAIL",
+    "count=" + (Array.isArray(kbSearchData) ? kbSearchData.length : 0));
+
+  // 193 — KB article view count increments
+  if (kbData.length > 0) {
+    const firstSlug = kbData[0].slug;
+    const viewBefore = await httpReq("GET", "/api/kb/articles/" + firstSlug);
+    const vb = JSON.parse(viewBefore.body);
+    const viewAfter = await httpReq("GET", "/api/kb/articles/" + firstSlug);
+    const va = JSON.parse(viewAfter.body);
+    log(193, "KB article view count increments",
+      va.viewCount > vb.viewCount ? "PASS" : "FAIL",
+      "before=" + vb.viewCount + " after=" + va.viewCount);
+  } else {
+    log(193, "KB article view count", "SKIP", "no articles");
+  }
+
+  // 194 — Support ticket creation requires auth (401 without)
+  const ticketNoAuth = await httpReq("POST", "/api/support/tickets", { subject: "test", description: "test", category: "other" });
+  log(194, "Support ticket requires auth",
+    ticketNoAuth.status === 401 ? "PASS" : "FAIL", "status=" + ticketNoAuth.status);
+
+  // 195 — Support routes file exists
+  log(195, "supportRoutes.js exists",
+    fs.existsSync("" + SAAS_ROOT + "/backend/routes/supportRoutes.js") ? "PASS" : "FAIL");
+
+  // 196 — knowledgeBaseRoutes.js exists
+  log(196, "knowledgeBaseRoutes.js exists",
+    fs.existsSync("" + SAAS_ROOT + "/backend/routes/knowledgeBaseRoutes.js") ? "PASS" : "FAIL");
+
+  // 197 — Admin KB endpoint requires auth (401 without)
+  const adminKb = await httpReq("GET", "/api/admin/kb/articles");
+  log(197, "Admin KB endpoint requires auth",
+    adminKb.status === 401 ? "PASS" : "FAIL", "status=" + adminKb.status);
+
+  // 198 — Public KB accessible without authentication
+  const pubKb = await httpReq("GET", "/api/kb/categories");
+  log(198, "Public KB categories accessible without auth",
+    pubKb.status === 200 ? "PASS" : "FAIL", "status=" + pubKb.status);
+
+  // 199 — Featured articles endpoint returns results
+  const featured = await httpReq("GET", "/api/kb/featured");
+  const featData = JSON.parse(featured.body);
+  log(199, "Featured articles endpoint returns results",
+    featured.status === 200 && Array.isArray(featData) && featData.length > 0 ? "PASS" : "FAIL",
+    "count=" + (Array.isArray(featData) ? featData.length : 0));
+
+  // 200 — Category list returns role-filtered results
+  const ngoCats = await httpReq("GET", "/api/kb/categories?role=ngo");
+  const ngoCatData = JSON.parse(ngoCats.body);
+  const donorCats = await httpReq("GET", "/api/kb/categories?role=donor");
+  const donorCatData = JSON.parse(donorCats.body);
+  log(200, "Category list returns role-filtered results",
+    ngoCats.status === 200 && donorCats.status === 200 && ngoCatData.length > 0 && donorCatData.length > 0 ? "PASS" : "FAIL",
+    "ngo=" + ngoCatData.length + " donor=" + donorCatData.length);
+
+  // 201 — NGO support page and KB page exist
+  const ngoSupportPage = fs.existsSync("" + SAAS_ROOT + "/frontend/src/app/dashboard/support/page.tsx");
+  const ngoKbPage = fs.existsSync("" + SAAS_ROOT + "/frontend/src/app/dashboard/knowledge-base/page.tsx");
+  log(201, "NGO support + KB pages exist",
+    ngoSupportPage && ngoKbPage ? "PASS" : "FAIL",
+    "support=" + ngoSupportPage + " kb=" + ngoKbPage);
+
+  // 202 — KB search returns relevant results
+  const searchRes = await httpReq("GET", "/api/kb/search?q=project");
+  const searchData = JSON.parse(searchRes.body);
+  log(202, "KB search returns relevant results",
+    searchRes.status === 200 && Array.isArray(searchData) && searchData.length > 0 ? "PASS" : "FAIL",
+    "count=" + (Array.isArray(searchData) ? searchData.length : 0));
+
+  // 203 — KB articles endpoint returns published articles only for public
+  const pubArticles = await httpReq("GET", "/api/kb/articles");
+  const pubArtData = JSON.parse(pubArticles.body);
+  const allPublished = Array.isArray(pubArtData) && pubArtData.every(a => a.isPublished === true);
+  log(203, "KB articles returns published only",
+    pubArticles.status === 200 && allPublished ? "PASS" : "FAIL",
+    "count=" + (Array.isArray(pubArtData) ? pubArtData.length : 0));
+
+  // 204 — Support ticket creation endpoint exists (requires auth)
+  const ticketCreate = await httpReq("POST", "/api/support/tickets",
+    { subject: "Regression test ticket", description: "Automated test", category: "other" });
+  log(204, "Support ticket create endpoint exists (401)",
+    ticketCreate.status === 401 ? "PASS" : "FAIL",
+    "status=" + ticketCreate.status);
+
+  // 205 — Support ticket message endpoint exists (requires auth)
+  const msgAdd = await httpReq("POST", "/api/support/tickets/fake-id/messages",
+    { message: "Regression test message" });
+  log(205, "Ticket message endpoint exists (401)",
+    msgAdd.status === 401 ? "PASS" : "FAIL", "status=" + msgAdd.status);
+
+  // 206 — List tickets endpoint exists (requires auth)
+  const myTickets = await httpReq("GET", "/api/support/tickets");
+  log(206, "List tickets endpoint exists (401)",
+    myTickets.status === 401 ? "PASS" : "FAIL",
+    "status=" + myTickets.status);
+
+  // 207 — Admin tickets endpoint requires auth
+  const adminTickets = await httpReq("GET", "/api/admin/support/tickets");
+  log(207, "Admin tickets endpoint requires auth (401)",
+    adminTickets.status === 401 ? "PASS" : "FAIL",
+    "status=" + adminTickets.status);
+
+  // 208 — Admin ticket update endpoint requires auth
+  const statusUpdate = await httpReq("PATCH", "/api/admin/support/tickets/fake-id",
+    { status: "in_progress" });
+  log(208, "Admin ticket update endpoint requires auth (401)",
+    statusUpdate.status === 401 ? "PASS" : "FAIL", "status=" + statusUpdate.status);
+
+  // 209 — KB article feedback endpoint works
+  if (firstSlug) {
+    const feedback = await httpReq("POST", "/api/kb/articles/" + firstSlug + "/feedback",
+      { helpful: true });
+    log(209, "KB article feedback endpoint",
+      feedback.status === 200 ? "PASS" : "FAIL", "status=" + feedback.status);
+  } else {
+    log(209, "KB article feedback endpoint", "SKIP", "no articles");
+  }
+
+  // 210 — Public help page file exists
+  log(210, "Public help page exists",
+    fs.existsSync("" + SAAS_ROOT + "/frontend/src/app/help/page.tsx") ? "PASS" : "FAIL");
+
+  // 211 — FloatingHelpButton component exists
+  log(211, "FloatingHelpButton component exists",
+    fs.existsSync("" + SAAS_ROOT + "/frontend/src/components/FloatingHelpButton.tsx") ? "PASS" : "FAIL");
+
+  // 212 — KB admin CRUD endpoints require auth
+  const adminCreateArt = await httpReq("POST", "/api/admin/kb/articles", {
+    title: "Regression Test Article", slug: "regression-test", content: "<p>Test</p>",
+    category: "getting-started", targetRole: "ngo", isPublished: false
+  });
+  const adminDelArt = await httpReq("DELETE", "/api/admin/kb/articles/fake-id");
+  log(212, "KB admin CRUD endpoints require auth",
+    adminCreateArt.status === 401 && adminDelArt.status === 401 ? "PASS" : "FAIL",
+    "create=" + adminCreateArt.status + " delete=" + adminDelArt.status);
 
   // ═══════════════════════════════════════════════════════════
   //  SUMMARY

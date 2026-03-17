@@ -8,7 +8,7 @@ import { useOfflineSync } from '@/hooks/useOfflineSync'
 import {
   LayoutDashboard, FolderOpen, FileCheck, Receipt, Banknote,
   Key, Webhook, BarChart3, Settings, LogOut, Code2, CreditCard, Users,
-  ChevronLeft, ChevronRight, Shield, Bell, Search, Menu, X, ListChecks, ScanLine, FolderSearch, Briefcase, ShieldCheck, Crown, Flag, DollarSign, ArrowDownUp, MessageCircle, FileText, Coins
+  ChevronLeft, ChevronRight, Shield, Bell, Search, Menu, X, ListChecks, ScanLine, FolderSearch, Briefcase, ShieldCheck, Crown, Flag, DollarSign, ArrowDownUp, MessageCircle, FileText, Coins, LifeBuoy, BookOpen
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useTranslations } from 'next-intl'
@@ -16,6 +16,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher'
 import ThemeToggle from '@/components/ThemeToggle'
 import MessengerPanel, { useMessengerUnreadCount } from '@/components/MessengerPanel'
 import SearchModal from '@/components/SearchModal'
+import FloatingHelpButton from '@/components/FloatingHelpButton'
 
 interface AuditEntry {
   id: string
@@ -86,6 +87,8 @@ const navItems = [
   { key: 'bundleVerify', href: '/dashboard/api-portal/bundle', icon: FolderSearch },
   { key: 'developerApi', href: '/dashboard/api-portal/developer', icon: Code2 },
   { key: 'embed',       href: '/dashboard/embed',     icon: Code2 },
+  { key: 'knowledgeBase', href: '/dashboard/knowledge-base', icon: BookOpen, fallback: 'Knowledge Base' },
+  { key: 'support',    href: '/dashboard/support',   icon: LifeBuoy, fallback: 'Support' },
   { key: 'settings',   href: '/dashboard/settings',  icon: Settings },
 ]
 
@@ -632,6 +635,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Search Modal */}
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
+
+      {/* Floating Help Button */}
+      <FloatingHelpButton />
     </div>
   )
 }

@@ -99,6 +99,10 @@ const wbRoutes = require('./routes/wbRoutes')
 const ngoReportRoutes = require('./routes/ngoReportRoutes')
 const reportPublicRoutes = require('./routes/reportPublicRoutes')
 const exchangeRateRoutes = require('./routes/exchangeRateRoutes')
+const knowledgeBaseRoutes = require('./routes/knowledgeBaseRoutes')
+const supportRoutes       = require('./routes/supportRoutes')
+const supportAdminRoutes  = require('./routes/supportAdminRoutes')
+const kbAdminRoutes       = require('./routes/kbAdminRoutes')
 
 app.get('/', (req, res) => res.send('Tulip API Running'))
 
@@ -178,6 +182,10 @@ app.use('/api/ngo', apiLimiter, wbRoutes)
 app.use('/api/ngo/reports', apiLimiter, authenticate, tenantScope, ngoReportRoutes)
 app.use('/api/public/reports', apiLimiter, reportPublicRoutes)
 app.use('/api/exchange-rates', apiLimiter, authenticate, tenantScope, exchangeRateRoutes)
+app.use('/api/kb',            apiLimiter, knowledgeBaseRoutes)
+app.use('/api/support',       apiLimiter, supportRoutes)
+app.use('/api/admin/support', apiLimiter, authenticate, supportAdminRoutes)
+app.use('/api/admin/kb',      apiLimiter, authenticate, kbAdminRoutes)
 
 app.use((err, req, res, next) => {
   logger.error('Unhandled error', { error: err.message, path: req.path })

@@ -41,7 +41,7 @@ router.get('/:id', async (req, res) => {
     const seal = await prisma.trustSeal.findUnique({
       where: { id: req.params.id },
       include: {
-        tenant: { select: { name: true, tenantType: true, logoUrl: true, country: true } },
+        Tenant: { select: { name: true, tenantType: true, logoUrl: true, country: true } },
       },
     })
 
@@ -72,10 +72,10 @@ router.get('/:id', async (req, res) => {
         anchoredAt: seal.anchoredAt || null,
       },
       issuer: {
-        name: seal.tenant.name,
-        type: seal.tenant.tenantType,
-        logoUrl: seal.tenant.logoUrl,
-        country: seal.tenant.country,
+        name: seal.Tenant.name,
+        type: seal.Tenant.tenantType,
+        logoUrl: seal.Tenant.logoUrl,
+        country: seal.Tenant.country,
       },
       fraudRisk: seal.fraudRiskScore != null ? {
         score: seal.fraudRiskScore,

@@ -309,7 +309,8 @@ export default function FloatingHelpButton() {
                         value={ticketSubject}
                         onChange={e => setTicketSubject(e.target.value)}
                         placeholder={t('subjectPlaceholder')}
-                        className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] transition-colors"
+                        className="w-full rounded-lg px-3 py-2 text-sm outline-none transition-colors"
+                        style={{ background: 'var(--tulip-sage)', border: '1px solid var(--tulip-sage-dark)', color: 'var(--tulip-forest)' }}
                       />
                     </div>
                     <div>
@@ -319,7 +320,8 @@ export default function FloatingHelpButton() {
                       <select
                         value={ticketCategory}
                         onChange={e => setTicketCategory(e.target.value)}
-                        className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2 text-sm text-[var(--tulip-forest)] outline-none focus:border-[var(--tulip-gold)] transition-colors"
+                        className="w-full rounded-lg px-3 py-2 text-sm outline-none transition-colors"
+                        style={{ background: 'var(--tulip-sage)', border: '1px solid var(--tulip-sage-dark)', color: 'var(--tulip-forest)' }}
                       >
                         {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                       </select>
@@ -333,7 +335,8 @@ export default function FloatingHelpButton() {
                         onChange={e => setTicketDescription(e.target.value)}
                         placeholder={t('descriptionPlaceholder')}
                         rows={4}
-                        className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-3 py-2 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] resize-none transition-colors"
+                        className="w-full rounded-lg px-3 py-2 text-sm outline-none resize-none transition-colors"
+                        style={{ background: 'var(--tulip-sage)', border: '1px solid var(--tulip-sage-dark)', color: 'var(--tulip-forest)' }}
                       />
                     </div>
                     {submitError && <p className="text-xs text-red-500">{submitError}</p>}

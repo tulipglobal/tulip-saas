@@ -24,9 +24,11 @@ interface Ticket {
 interface TicketMessage {
   id: string
   ticketId: string
-  senderType: 'user' | 'agent' | 'system'
-  senderName: string
-  content: string
+  senderType: 'user' | 'admin' | 'system'
+  senderId?: string
+  message: string
+  content?: string
+  isInternal: boolean
   createdAt: string
 }
 
@@ -157,7 +159,8 @@ function NewTicketModal({ onClose, onCreated, t }: {
             value={subject}
             onChange={e => setSubject(e.target.value)}
             placeholder={t('subjectPlaceholder')}
-            className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] transition-colors"
+            className="w-full rounded-lg px-4 py-2.5 text-sm outline-none transition-colors"
+            style={{ background: 'var(--tulip-sage)', border: '1px solid var(--tulip-sage-dark)', color: 'var(--tulip-forest)' }}
           />
         </div>
 
@@ -199,7 +202,8 @@ function NewTicketModal({ onClose, onCreated, t }: {
             onChange={e => setDescription(e.target.value)}
             placeholder={t('descriptionPlaceholder')}
             rows={5}
-            className="w-full bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] resize-none transition-colors"
+            className="w-full rounded-lg px-4 py-2.5 text-sm outline-none resize-none transition-colors"
+            style={{ background: 'var(--tulip-sage)', border: '1px solid var(--tulip-sage-dark)', color: 'var(--tulip-forest)' }}
           />
         </div>
 
@@ -323,14 +327,14 @@ function ThreadView({ ticket, onBack, onRefresh, t }: {
                       : 'bg-[var(--tulip-sage)] border border-[var(--tulip-sage-dark)] text-[var(--tulip-forest)]'
                 }`}>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-[11px] font-medium ${isUser ? 'text-[var(--tulip-gold)]' : 'text-[var(--tulip-forest)]/50'}`}>
-                      {msg.senderName}
+                    <span className={`text-[11px] font-medium`} style={{ color: isUser ? 'var(--tulip-gold)' : 'rgba(24,58,29,0.5)' }}>
+                      {msg.senderType === 'user' ? 'You' : msg.senderType === 'admin' ? 'Support' : 'System'}
                     </span>
                     <span className={`text-[10px] ${isUser ? 'text-[var(--tulip-cream)]/40' : 'text-[var(--tulip-forest)]/30'}`}>
                       {new Date(msg.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
-                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                  <p className="text-sm whitespace-pre-wrap">{msg.message || msg.content}</p>
                 </div>
               </div>
             )
@@ -349,7 +353,8 @@ function ThreadView({ ticket, onBack, onRefresh, t }: {
               onKeyDown={handleKeyDown}
               placeholder={t('replyPlaceholder')}
               rows={2}
-              className="flex-1 bg-[var(--tulip-cream)] border border-[var(--tulip-sage-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--tulip-forest)] placeholder-[var(--tulip-forest)]/40 outline-none focus:border-[var(--tulip-gold)] resize-none transition-colors"
+              className="flex-1 rounded-lg px-4 py-2.5 text-sm outline-none resize-none transition-colors"
+              style={{ background: 'var(--tulip-cream)', border: '1px solid var(--tulip-sage-dark)', color: 'var(--tulip-forest)' }}
             />
             <button
               onClick={handleSend}

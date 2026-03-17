@@ -838,7 +838,7 @@ export default function DonorDashboardPage() {
       <footer className="border-t border-[var(--tulip-sage-dark)] py-6 mt-8">
         <div className="max-w-6xl mx-auto px-4 md:px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="text-[var(--tulip-forest)]/30 text-xs">
-            &copy; 2026 Tulip DS &middot; Bright Bytes Technology &middot; Dubai, UAE
+            &copy; 2026 Sealayer &middot; Bright Bytes Technology &middot; Dubai, UAE
           </p>
           <Link href="/verify" className="flex items-center gap-1.5 text-[var(--tulip-forest)]/30 text-xs hover:text-[var(--tulip-forest)]/60 transition-colors">
             <Hash size={12} /> {t('verifyADocument')}

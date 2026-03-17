@@ -193,7 +193,7 @@ async function generateImpactReport() {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(26)
   doc.setTextColor(...DARK)
-  doc.text('TULIP DS', 44, 54)
+  doc.text('SEALAYER', 44, 54)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(36)
   doc.setTextColor(...DARK)

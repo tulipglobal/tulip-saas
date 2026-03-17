@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/dashboard/', '/api/', '/login', '/register'],
       },
     ],
-    sitemap: 'https://tulipds.com/sitemap.xml',
+    sitemap: 'https://sealayer.io/sitemap.xml',
   }
 }

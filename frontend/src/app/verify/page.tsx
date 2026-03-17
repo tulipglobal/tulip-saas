@@ -122,7 +122,7 @@ async function generateCertificate(result: VerifyResult, fileName?: string) {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(22)
   doc.setTextColor(12, 122, 237)
-  doc.text('TULIP DS', 20, y)
+  doc.text('SEALAYER', 20, y)
   doc.setFontSize(9)
   doc.setTextColor(100, 116, 139)
   doc.text('Verification Proof Certificate', 20, y + 7)
@@ -350,7 +350,7 @@ async function generateProofBundle(result: VerifyResult, fileName?: string) {
 
   // 2. blockchain-proof.txt
   const proofTxt = [
-    'TULIP DS BLOCKCHAIN VERIFICATION PROOF',
+    'SEALAYER BLOCKCHAIN VERIFICATION PROOF',
     '=======================================',
     '',
     `Document:            ${docName}`,
@@ -394,7 +394,7 @@ async function generateProofBundle(result: VerifyResult, fileName?: string) {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(22)
   doc.setTextColor(12, 122, 237)
-  doc.text('TULIP DS', 20, y)
+  doc.text('SEALAYER', 20, y)
   doc.setFontSize(9)
   doc.setTextColor(100, 116, 139)
   doc.text('Verification Proof Certificate', 20, y + 7)

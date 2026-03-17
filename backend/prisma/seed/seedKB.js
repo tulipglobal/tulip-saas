@@ -2535,14 +2535,27 @@ const DONOR_ARTICLES = [
     category: 'donor-reports-data',
     targetRole: 'donor',
     order: 3,
-    content: `<h2>Exchange rate table explained</h2>
-<p>The exchange rate table shows all monthly rates used for converting project expenses to your reporting currency.</p>
+    content: `<h2>Exchange Rate Table Explained</h2>
+<p>The exchange rate table is a reference tool that shows every monthly exchange rate used across your projects. It provides full transparency into how currency conversions are calculated and allows you to independently verify each rate against the blockchain. This article explains each column and how to use the table effectively.</p>
+
+<h3>Accessing the Table</h3>
+<p>Navigate to <strong>Reports → Exchange Rates</strong> to view the full table. You can filter by currency pair (e.g., KES/USD, UGX/EUR), by date range, or by project. The table is sorted by month in descending order, showing the most recent rates first.</p>
+
+<h3>Table Columns</h3>
 <ul>
-<li><strong>Month</strong> — The month the rate applies to</li>
-<li><strong>Rate</strong> — How much 1 unit of the project currency equals in your currency</li>
-<li><strong>Seal</strong> — The blockchain transaction hash confirming the rate was sealed before use</li>
+<li><strong>Month</strong> — The calendar month the rate applies to. All expenses incurred during this month use this rate for conversion.</li>
+<li><strong>Currency Pair</strong> — The source and target currencies (e.g., KES → USD). The rate converts one unit of the source currency to the target currency.</li>
+<li><strong>Rate</strong> — The exchange rate value. For example, a KES → USD rate of 0.0065 means 1 KES = 0.0065 USD, or equivalently, 1 USD = approximately 153.85 KES.</li>
+<li><strong>Sealed Date</strong> — The date and time the rate was captured and sealed to the blockchain. This is always before the first day of the month the rate applies to, proving the rate was fixed before any transactions occurred.</li>
+<li><strong>Blockchain Seal</strong> — The Polygon transaction hash. Click it to view the on-chain transaction on a block explorer (e.g., Polygonscan), confirming the rate was permanently recorded at the stated time.</li>
+<li><strong>Merkle Proof</strong> — A link to the Merkle proof showing how this specific rate was included in the batch of records anchored to the blockchain. The proof allows independent mathematical verification without trusting the platform.</li>
 </ul>
-<p>Sealed rates cannot be changed retroactively, ensuring fair and transparent conversion.</p>`
+
+<h3>Why Sealed Rates Matter</h3>
+<p>In traditional financial reporting, exchange rates can be a source of disputes. An NGO might use one rate and a donor another, leading to discrepancies. By sealing rates to the blockchain before they are used, Tulip eliminates this ambiguity. Both parties use the same verifiable rate, and neither can claim a different rate was applied. This is especially important for large projects where even small rate differences can translate to significant amounts.</p>
+
+<h3>Exporting Rate Data</h3>
+<p>Click <strong>Export</strong> to download the exchange rate table as a CSV or Excel file. The export includes all columns, including blockchain references, so you can archive the data or share it with auditors.</p>`
   },
   {
     title: 'Downloading your data',
@@ -2550,14 +2563,36 @@ const DONOR_ARTICLES = [
     category: 'donor-reports-data',
     targetRole: 'donor',
     order: 4,
-    content: `<h2>Downloading your data</h2>
-<p>You can export your data in multiple formats:</p>
+    content: `<h2>Downloading Your Data</h2>
+<p>Tulip provides comprehensive data export capabilities so you always have full access to your information. Whether you need formatted reports for stakeholders, raw data for your own analysis, or complete data archives for compliance, the platform supports multiple export formats and scopes.</p>
+
+<h3>Export Formats</h3>
 <ul>
-<li><strong>PDF reports</strong> — Formatted reports with charts and tables</li>
-<li><strong>CSV export</strong> — Raw data for your own analysis</li>
-<li><strong>Excel export</strong> — Formatted spreadsheets with multiple tabs</li>
+<li><strong>PDF Reports</strong> — Professionally formatted documents with charts, tables, and visual summaries. PDF reports include the Tulip header, date range, and blockchain verification QR codes. These are ideal for sharing with boards, stakeholders, or external auditors.</li>
+<li><strong>CSV Export</strong> — Comma-separated values files containing raw, tabular data. CSV exports are perfect for importing into spreadsheet applications, databases, or business intelligence tools. Each row represents one record (expense, repayment, audit entry, etc.) with all relevant fields as columns.</li>
+<li><strong>Excel Export</strong> — Multi-tab workbooks (.xlsx) with formatted headers, column widths, and data types. Tabs are organized by data type: Summary, Expenses, Funding Sources, Audit Log, and Exchange Rates. Excel exports include formulas for subtotals and are ready to use without additional formatting.</li>
+<li><strong>JSON Export</strong> — For technical users or system integrations. JSON exports contain the complete data structure including nested relationships, blockchain references, and metadata.</li>
 </ul>
-<p>Go to <strong>Reports</strong> and select your preferred format when generating or downloading.</p>`
+
+<h3>What You Can Export</h3>
+<p>You can export data at several levels:</p>
+<ul>
+<li><strong>Project-level</strong> — All data related to a specific project: expenses, documents, audit logs, funding details</li>
+<li><strong>Portfolio-level</strong> — All your investments, repayments, and related financial data across all NGOs</li>
+<li><strong>Full Account Export</strong> — Everything associated with your donor account, including messages, settings, and activity history. This is also available under <strong>Settings → Privacy → Export My Data</strong> as part of GDPR compliance</li>
+</ul>
+
+<h3>How to Download</h3>
+<ol>
+<li>Navigate to <strong>Reports</strong> in the sidebar</li>
+<li>Select the scope (project, portfolio, or full account)</li>
+<li>Choose your date range if applicable</li>
+<li>Select the export format from the dropdown</li>
+<li>Click <strong>Download</strong> — the file is generated and your browser downloads it automatically</li>
+</ol>
+
+<h3>Data Integrity</h3>
+<p>Every export includes a SHA-256 checksum in the filename or as a companion file. This allows you to verify that the downloaded file has not been corrupted or tampered with. For PDF reports, blockchain verification QR codes are embedded directly in the document.</p>`
   },
 
   // ── Donor: Messenger & Communication ────────────────────
@@ -2568,15 +2603,32 @@ const DONOR_ARTICLES = [
     targetRole: 'donor',
     isFeatured: true,
     order: 1,
-    content: `<h2>Messaging your NGO</h2>
-<p>Use the built-in messenger to communicate directly with your NGO partner. Messages are linked to your funding relationship for context.</p>
-<h3>How to message</h3>
+    content: `<h2>Messaging Your NGO</h2>
+<p>The built-in messenger provides a secure, contextual communication channel between you and your NGO partners. Unlike external email, messages sent through Tulip are linked to your funding relationship and can reference specific projects, expenses, or documents. This keeps all project-related communication in one place and ensures that important discussions are preserved alongside the financial records they relate to.</p>
+
+<h3>Getting Started</h3>
 <ol>
-<li>Go to <strong>Messenger</strong> in the sidebar</li>
-<li>Select the NGO contact</li>
-<li>Type your message and send</li>
+<li>Navigate to <strong>Messenger</strong> in the sidebar</li>
+<li>Your NGO contacts are listed on the left panel, organized by organization name. A green dot indicates the contact is currently online.</li>
+<li>Click an NGO contact to open the conversation thread</li>
+<li>Type your message in the text area at the bottom and press Enter or click <strong>Send</strong></li>
 </ol>
-<p>You will receive in-app notifications when the NGO replies.</p>`
+
+<h3>Contextual References</h3>
+<p>One of the most powerful features of the Tulip messenger is the ability to reference platform entities directly in your messages. When composing a message, you can:</p>
+<ul>
+<li>Type <strong>@project:</strong> to link to a specific project</li>
+<li>Type <strong>@expense:</strong> to reference a particular expense entry</li>
+<li>Type <strong>@document:</strong> to link to an uploaded document</li>
+<li>Type <strong>@flag:</strong> to reference an active or resolved flag</li>
+</ul>
+<p>These references appear as clickable links in the message, allowing the recipient to jump directly to the referenced item. This eliminates the need to describe where to find something — you can simply link to it.</p>
+
+<h3>Message History</h3>
+<p>All messages are permanently stored and searchable. Use the search bar at the top of the messenger to find past conversations by keyword, date, or referenced entity. Message history is preserved even if team members change on the NGO side, ensuring continuity of communication across personnel changes.</p>
+
+<h3>Security</h3>
+<p>Messages are transmitted over encrypted connections and stored securely on the platform. They are included in your data export if you request a full account export under GDPR provisions. Messages are not shared with third parties and are only visible to authorized users on both the donor and NGO sides.</p>`
   },
   {
     title: 'Sending files',
@@ -2584,10 +2636,35 @@ const DONOR_ARTICLES = [
     category: 'donor-messenger',
     targetRole: 'donor',
     order: 2,
-    content: `<h2>Sending files</h2>
-<p>Share files with your NGO partner through the messenger. Click the <strong>attachment icon</strong> or drag and drop a file into the message area.</p>
-<h3>Supported formats</h3>
-<p>PDF, DOC, DOCX, XLS, XLSX, PNG, JPG — up to 10MB per file.</p>`
+    content: `<h2>Sending Files</h2>
+<p>The Tulip messenger supports file sharing, allowing you to exchange documents with your NGO partners directly within the platform. Files sent through the messenger are stored securely in S3 with SHA-256 integrity hashing, ensuring they cannot be tampered with after sending. This is especially useful for sharing supplementary documentation, contracts, or reports that relate to your funding relationship.</p>
+
+<h3>How to Send a File</h3>
+<ol>
+<li>Open a conversation with your NGO contact in <strong>Messenger</strong></li>
+<li>Click the <strong>attachment icon</strong> (paperclip) in the message input area, or simply drag and drop a file into the message area</li>
+<li>Select the file from your computer — a preview will appear showing the filename, size, and type</li>
+<li>Optionally add a text message to accompany the file (e.g., "Please find the updated funding agreement attached")</li>
+<li>Click <strong>Send</strong> to upload and deliver the file</li>
+</ol>
+
+<h3>Supported Formats and Limits</h3>
+<ul>
+<li><strong>Documents</strong> — PDF, DOC, DOCX, TXT, RTF</li>
+<li><strong>Spreadsheets</strong> — XLS, XLSX, CSV</li>
+<li><strong>Images</strong> — PNG, JPG, JPEG, GIF</li>
+<li><strong>Maximum file size</strong> — 10 MB per file</li>
+<li><strong>Multiple files</strong> — You can attach up to 5 files in a single message</li>
+</ul>
+
+<h3>File Security</h3>
+<p>Every file sent through the messenger is uploaded to S3 with a SHA-256 integrity hash calculated at upload time. This hash is stored alongside the file reference, allowing either party to verify that the file has not been modified since it was sent. Files are accessible only to the participants in the conversation — they are not publicly accessible and require authentication to download.</p>
+
+<h3>Downloading Received Files</h3>
+<p>Files sent to you appear as clickable attachments in the conversation. Click the filename to download it, or click the preview icon to view it in the browser (for PDFs and images). All files you have sent or received are also accessible from <strong>Messenger → Files</strong>, which provides a searchable list of all shared files across all conversations.</p>
+
+<h3>File Retention</h3>
+<p>Files shared through the messenger are retained for the duration of your account. They are included in full account data exports and are subject to the same data retention policies as other platform data.</p>`
   },
   {
     title: 'Notification preferences',
@@ -2595,15 +2672,32 @@ const DONOR_ARTICLES = [
     category: 'donor-messenger',
     targetRole: 'donor',
     order: 3,
-    content: `<h2>Notification preferences</h2>
-<p>Manage your notification settings under <strong>Settings → Notifications</strong>.</p>
-<h3>Options</h3>
+    content: `<h2>Notification Preferences</h2>
+<p>Tulip sends notifications to keep you informed about important events: new messages, flag updates, repayment activity, report availability, and more. You can customize which notifications you receive and how they are delivered, ensuring you stay informed without being overwhelmed.</p>
+
+<h3>Accessing Notification Settings</h3>
+<p>Navigate to <strong>Settings → Notifications</strong> to view and modify your preferences. The settings page is organized by notification category, with toggle controls for each delivery channel.</p>
+
+<h3>Notification Channels</h3>
 <ul>
-<li><strong>In-app notifications</strong> — Always enabled for critical actions</li>
-<li><strong>Email notifications</strong> — Choose which events trigger email alerts</li>
-<li><strong>Message notifications</strong> — Get notified for new messages</li>
+<li><strong>In-App Notifications</strong> — Appear as a badge on the bell icon in the top navigation bar. Click the bell to see your notification feed. In-app notifications are always enabled for critical actions (such as flag responses and overdue repayments) and cannot be disabled for these events.</li>
+<li><strong>Email Notifications</strong> — Sent to the email address associated with your account. You can choose which events trigger emails. Email notifications include a summary of the event and a direct link to the relevant page in the platform.</li>
+<li><strong>Digest Emails</strong> — Instead of receiving individual emails for each event, you can opt for a daily or weekly digest that summarizes all activity. This is useful if you prefer to review updates in batch rather than as they occur.</li>
 </ul>
-<p>You can adjust these settings at any time.</p>`
+
+<h3>Notification Categories</h3>
+<p>You can independently control notifications for each of the following categories:</p>
+<ul>
+<li><strong>Messages</strong> — New messages from NGO partners. Options: instant notification, digest only, or in-app only.</li>
+<li><strong>Flags & Challenges</strong> — Updates on flags you have raised: NGO responses, resolutions, escalations. These are considered high-priority and email is enabled by default.</li>
+<li><strong>Investment Activity</strong> — New proposals shared with you, tranche requests awaiting approval, repayment received, and overdue payment alerts.</li>
+<li><strong>Reports</strong> — Notifications when scheduled reports are ready for download.</li>
+<li><strong>Project Updates</strong> — Changes to projects you are funding: new expenses recorded, documents uploaded, milestones achieved.</li>
+<li><strong>Security</strong> — Account security events: new login from an unrecognized device, password changes, API key creation. Security notifications are always enabled and cannot be turned off.</li>
+</ul>
+
+<h3>Do Not Disturb</h3>
+<p>Enable <strong>Do Not Disturb</strong> mode to temporarily suppress all non-critical notifications. Critical security notifications will still be delivered. You can set DND to expire after a specified duration (1 hour, 4 hours, until tomorrow) or toggle it off manually.</p>`
   },
 ]
 

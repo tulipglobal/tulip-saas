@@ -3050,4 +3050,82 @@ router.get('/exchange-rates/base/:currency', donorAuth, async (req, res) => {
   }
 })
 
+// ── Support Tickets (donor) ──────────────────────────────────
+
+// POST /api/donor/support/tickets — create ticket
+router.post('/support/tickets', donorAuth, async (req, res) => {
+  try {
+    const { subject, description, category, priority } = req.body
+    if (!subject || !description || !category) return res.status(400).json({ error: 'Subject, description and category are required' })
+    const ticket = await prisma.supportTicket.create({
+      data: {
+        donorOrgId: req.donor.donorOrgId,
+        userId: req.donor.donorMemberId,
+        subject,
+        description,
+        category,
+        priority: priority || 'medium',
+        messages: {
+          create: { senderType: 'user', senderId: req.donor.donorMemberId, message: description }
+        }
+      },
+      include: { messages: true }
+    })
+    res.status(201).json(ticket)
+  } catch (err) {
+    console.error('Donor create ticket error:', err)
+    res.status(500).json({ error: 'Failed to create ticket' })
+  }
+})
+
+// GET /api/donor/support/tickets — list donor's tickets
+router.get('/support/tickets', donorAuth, async (req, res) => {
+  try {
+    const tickets = await prisma.supportTicket.findMany({
+      where: { donorOrgId: req.donor.donorOrgId },
+      orderBy: { updatedAt: 'desc' },
+      include: { messages: { orderBy: { createdAt: 'desc' }, take: 1, where: { isInternal: false } } }
+    })
+    res.json(tickets)
+  } catch (err) {
+    console.error('Donor list tickets error:', err)
+    res.status(500).json({ error: 'Failed to fetch tickets' })
+  }
+})
+
+// GET /api/donor/support/tickets/:id — single ticket with messages
+router.get('/support/tickets/:id', donorAuth, async (req, res) => {
+  try {
+    const ticket = await prisma.supportTicket.findUnique({
+      where: { id: req.params.id },
+      include: { messages: { where: { isInternal: false }, orderBy: { createdAt: 'asc' } } }
+    })
+    if (!ticket) return res.status(404).json({ error: 'Ticket not found' })
+    if (ticket.donorOrgId !== req.donor.donorOrgId) return res.status(403).json({ error: 'Access denied' })
+    res.json(ticket)
+  } catch (err) {
+    console.error('Donor get ticket error:', err)
+    res.status(500).json({ error: 'Failed to fetch ticket' })
+  }
+})
+
+// POST /api/donor/support/tickets/:id/messages — reply to ticket
+router.post('/support/tickets/:id/messages', donorAuth, async (req, res) => {
+  try {
+    const message = req.body.message || req.body.content
+    if (!message) return res.status(400).json({ error: 'Message is required' })
+    const ticket = await prisma.supportTicket.findUnique({ where: { id: req.params.id } })
+    if (!ticket) return res.status(404).json({ error: 'Ticket not found' })
+    if (ticket.donorOrgId !== req.donor.donorOrgId) return res.status(403).json({ error: 'Access denied' })
+    const msg = await prisma.ticketMessage.create({
+      data: { ticketId: ticket.id, senderType: 'user', senderId: req.donor.donorMemberId, message }
+    })
+    await prisma.supportTicket.update({ where: { id: ticket.id }, data: { updatedAt: new Date() } })
+    res.status(201).json(msg)
+  } catch (err) {
+    console.error('Donor add message error:', err)
+    res.status(500).json({ error: 'Failed to add message' })
+  }
+})
+
 module.exports = router

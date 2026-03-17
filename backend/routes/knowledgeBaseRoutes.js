@@ -16,7 +16,7 @@ router.get('/articles', async (req, res) => {
     const articles = await prisma.knowledgeBaseArticle.findMany({
       where,
       orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
-      select: { id: true, title: true, slug: true, category: true, targetRole: true, isFeatured: true, viewCount: true, createdAt: true, updatedAt: true }
+      select: { id: true, title: true, slug: true, category: true, targetRole: true, isPublished: true, isFeatured: true, viewCount: true, createdAt: true, updatedAt: true }
     })
     res.json(articles)
   } catch (err) {

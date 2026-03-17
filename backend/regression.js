@@ -1074,8 +1074,8 @@ const TOTAL = 212;
     "count=" + (Array.isArray(kbSearchData) ? kbSearchData.length : 0));
 
   // 193 — KB article view count increments
-  if (kbData.length > 0) {
-    const firstSlug = kbData[0].slug;
+  const firstSlug = kbData.length > 0 ? kbData[0].slug : null;
+  if (firstSlug) {
     const viewBefore = await httpReq("GET", "/api/kb/articles/" + firstSlug);
     const vb = JSON.parse(viewBefore.body);
     const viewAfter = await httpReq("GET", "/api/kb/articles/" + firstSlug);

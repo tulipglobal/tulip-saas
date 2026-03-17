@@ -126,7 +126,7 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
             <span className="text-[var(--tulip-forest)] font-bold" style={{ fontFamily: 'Inter, sans-serif', fontSize: 10 }}>T</span>
           </div>
           <span className="font-bold text-[var(--tulip-forest)] text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
-            tulip<span style={{ color: 'var(--tulip-gold)' }}>ds</span>
+            sea<span style={{ color: 'var(--tulip-gold)' }}>layer</span>
           </span>
         </Link>
       </nav>

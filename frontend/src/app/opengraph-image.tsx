@@ -45,8 +45,8 @@ export default async function OGImage() {
             T
           </div>
           <span style={{ color: 'white', fontSize: '48px', fontWeight: 800 }}>
-            tulip
-            <span style={{ color: 'var(--tulip-gold)' }}>ds</span>
+            sea
+            <span style={{ color: 'var(--tulip-gold)' }}>layer</span>
           </span>
         </div>
         <div

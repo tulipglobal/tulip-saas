@@ -45,7 +45,7 @@ export default function HomePage() {
               <Shield className="w-4 h-4 text-[var(--tulip-forest)]" />
             </div>
             <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: 'var(--tulip-forest)' }}>
-              tulip<span style={{ color: 'var(--tulip-gold)' }}>ds</span>
+              sea<span style={{ color: 'var(--tulip-gold)' }}>layer</span>
             </span>
           </div>
           <div className="hidden md:flex items-center gap-8">
@@ -282,7 +282,7 @@ export default function HomePage() {
                 <Shield className="w-3.5 h-3.5 text-[var(--tulip-forest)]" />
               </div>
               <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, color: 'var(--tulip-forest)', fontSize: '16px' }}>
-                tulip<span style={{ color: 'var(--tulip-gold)' }}>ds</span>
+                sea<span style={{ color: 'var(--tulip-gold)' }}>layer</span>
               </span>
             </div>
             <p style={{ color: 'var(--tulip-forest)', fontSize: '13px', textAlign: 'center', opacity: 0.7 }}>

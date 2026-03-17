@@ -666,7 +666,7 @@ function VerifyPageInner() {
               <Shield className="w-3.5 h-3.5 text-gray-900" />
             </div>
             <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '17px', color: 'white' }}>
-              tulip<span style={{ color: '#0c7aed' }}>ds</span>
+              sea<span style={{ color: '#0c7aed' }}>layer</span>
             </span>
           </Link>
           <Link href="/login" className="px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity"

@@ -159,7 +159,7 @@ export default function DonorPortalPage() {
             <span className="text-[var(--tulip-forest)] font-bold text-xs" style={{ fontFamily: 'Inter, sans-serif' }}>T</span>
           </div>
           <span className="font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>
-            tulip<span style={{ color: 'var(--tulip-gold)' }}>ds</span>
+            sea<span style={{ color: 'var(--tulip-gold)' }}>layer</span>
           </span>
         </Link>
         <div className="flex items-center gap-4">

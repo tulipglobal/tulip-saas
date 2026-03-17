@@ -95,7 +95,7 @@ export default function APIDocsPage() {
             <span className="text-[var(--tulip-forest)] font-bold text-xs" style={{ fontFamily: 'Inter, sans-serif' }}>T</span>
           </div>
           <span className="font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>
-            tulip<span style={{ color: 'var(--tulip-gold)' }}>ds</span>
+            sea<span style={{ color: 'var(--tulip-gold)' }}>layer</span>
             <span className="text-[var(--tulip-forest)]/40 font-normal text-sm ml-2">{t('apiDocs')}</span>
           </span>
         </Link>

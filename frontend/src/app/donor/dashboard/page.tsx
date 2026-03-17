@@ -710,7 +710,7 @@ export default function DonorDashboardPage() {
                 <Shield className="w-4 h-4 text-[var(--tulip-forest)]" />
               </div>
               <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: 'var(--tulip-forest)' }}>
-                tulip<span style={{ color: '#34d399' }}>ds</span>
+                sea<span style={{ color: '#34d399' }}>layer</span>
               </span>
             </Link>
             <span className="text-[var(--tulip-forest)]/30 text-sm">|</span>

@@ -69,7 +69,7 @@ export default function DonorLoginPage() {
               <Shield className="w-4 h-4 text-[var(--tulip-forest)]" />
             </div>
             <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: 'var(--tulip-forest)' }}>
-              tulip<span style={{ color: 'var(--tulip-gold)' }}>ds</span>
+              sea<span style={{ color: 'var(--tulip-gold)' }}>layer</span>
             </span>
             <span className="text-[var(--tulip-forest)]/30 text-sm ml-1">| {t('donorPortal')}</span>
           </Link>

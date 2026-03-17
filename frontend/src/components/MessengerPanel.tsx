@@ -99,7 +99,7 @@ export default function MessengerPanel({ open, onClose, openToConversation }: Me
 
     let socket: Socket
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5050'
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || ''
       socket = io(apiUrl, {
         transports: ['websocket', 'polling'],
         autoConnect: true,

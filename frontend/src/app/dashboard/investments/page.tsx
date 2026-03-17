@@ -215,7 +215,7 @@ export default function InvestmentsPage() {
       if (paymentNotes.trim()) formData.append('notes', paymentNotes.trim())
       if (paymentFile) formData.append('proof', paymentFile)
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5050'}/api/ngo/investments/${paymentModal.investmentId}/record-payment`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/ngo/investments/${paymentModal.investmentId}/record-payment`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('tulip_token')}` },
         body: formData,

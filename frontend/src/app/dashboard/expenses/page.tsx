@@ -198,7 +198,7 @@ function ReceiptUploader({ expenseId, expenseTitle, onUploaded }: { expenseId: s
       fd.append('file', file)
       fd.append('title', expenseTitle || file.name)
       fd.append('expenseId', expenseId)
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5050'}/api/expenses/upload-receipt`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/expenses/upload-receipt`, {
         method: 'POST',
         headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: fd,

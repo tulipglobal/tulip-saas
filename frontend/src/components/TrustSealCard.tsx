@@ -64,7 +64,7 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
     const token = localStorage.getItem('tulip_token')
     const headers: Record<string, string> = {}
     if (token) headers.Authorization = `Bearer ${token}`
-    const api = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5050'
+    const api = process.env.NEXT_PUBLIC_API_URL || ''
 
     fetch(`${api}/api/trust-seal/${sealId}`, { headers })
       .then(r => r.ok ? r.json() : null)
@@ -110,7 +110,7 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
     setDownloading(true)
     try {
       const token = localStorage.getItem('tulip_token')
-      const api = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5050'
+      const api = process.env.NEXT_PUBLIC_API_URL || ''
       const resp = await fetch(`${api}/api/trust-seal/${sealId}/sealed-pdf`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       })

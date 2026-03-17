@@ -1,6 +1,6 @@
 import { offlineDb, type PendingExpense, type PendingDocument } from './offlineDb';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5050';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export function isOnline(): boolean {
   return typeof navigator !== 'undefined' ? navigator.onLine : true;

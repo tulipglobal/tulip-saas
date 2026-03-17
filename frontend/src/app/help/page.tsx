@@ -49,7 +49,7 @@ function getCategoryIcon(slug: string) {
   return CATEGORY_ICONS[slug] || <HelpCircle size={22} />
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5050'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
 /* ── Main Page ─────────────────────────────────────────────── */
 

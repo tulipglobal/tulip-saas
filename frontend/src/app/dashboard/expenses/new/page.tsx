@@ -224,7 +224,7 @@ export default function NewExpensePage() {
       const fd = new FormData()
       fd.append('file', file)
       fd.append('title', form.title || form.vendor || file.name)
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5050'}/api/expenses/upload-receipt`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/expenses/upload-receipt`, {
         method: 'POST',
         headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: fd,

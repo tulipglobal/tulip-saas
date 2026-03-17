@@ -157,7 +157,7 @@ async function generateImpactReport() {
     doc.setTextColor(...LIGHT_GREY)
     doc.text(orgName, 20, H - 14)
     doc.text(`Generated ${dateStr}`, W / 2, H - 14, { align: 'center' })
-    doc.text('Powered by Tulip DS', W - 20, H - 14, { align: 'right' })
+    doc.text('Powered by Sealayer', W - 20, H - 14, { align: 'right' })
     doc.text(`Page ${pageNum} of ${totalPages}`, W / 2, H - 9, { align: 'center' })
   }
 
@@ -232,7 +232,7 @@ async function generateImpactReport() {
   }
   doc.setFillColor(...BLUE); doc.rect(0, H - 6, W, 6, 'F')
   doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...LIGHT_GREY)
-  doc.text('tulipds.com  \u00b7  Bright Bytes Technology  \u00b7  Dubai, UAE', W / 2, H - 12, { align: 'center' })
+  doc.text('sealayer.io  \u00b7  Bright Bytes Technology  \u00b7  Dubai, UAE', W / 2, H - 12, { align: 'center' })
 
   const totalPages = 4
 
@@ -310,7 +310,7 @@ async function generateImpactReport() {
   doc.text('Every audit log entry is SHA-256 hashed, Merkle-tree batched, and anchored to the Polygon blockchain.', 28, y + 17)
   addFooter(4, totalPages)
 
-  doc.save(`tulipds-impact-report-${now.toISOString().slice(0, 10)}.pdf`)
+  doc.save(`sealayer-impact-report-${now.toISOString().slice(0, 10)}.pdf`)
 }
 
 /* ------------------------------------------------------------------ */

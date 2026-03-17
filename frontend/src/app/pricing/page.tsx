@@ -94,7 +94,7 @@ export default function PricingPage() {
       price: { monthly: null, annual: null },
       description: t('enterpriseDesc'),
       cta: t('enterpriseCta'),
-      ctaHref: 'mailto:hello@tulipds.com',
+      ctaHref: 'mailto:hello@sealayer.io',
       highlight: false,
       features: [
         t('enterpriseFeature1'),
@@ -384,7 +384,7 @@ export default function PricingPage() {
               style={{ background: 'var(--tulip-gold)' }}>
               {t('startFree')} <ArrowRight size={15} />
             </Link>
-            <Link href="mailto:hello@tulipds.com"
+            <Link href="mailto:hello@sealayer.io"
               className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm text-[var(--tulip-forest)]/70 border border-[var(--tulip-sage-dark)] hover:border-[var(--tulip-sage-dark)] hover:text-[var(--tulip-forest)] transition-all">
               {t('talkToUs')}
             </Link>

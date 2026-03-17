@@ -1,6 +1,6 @@
 {
-  "name": "Tulip DS — NGO Finance",
-  "short_name": "Tulip DS",
+  "name": "Sealayer — NGO Finance",
+  "short_name": "Sealayer",
   "description": "NGO expense tracking with fraud detection and blockchain seals",
   "start_url": "/dashboard",
   "display": "standalone",

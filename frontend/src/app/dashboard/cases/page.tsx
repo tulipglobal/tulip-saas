@@ -206,7 +206,7 @@ export default function CasesPage() {
   }
 
   const copyShareLink = (token: string) => {
-    navigator.clipboard.writeText(`https://verify.tulipds.com/case/${token}`)
+    navigator.clipboard.writeText(`https://verify.sealayer.io/case/${token}`)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -283,7 +283,7 @@ export default function CasesPage() {
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--tulip-gold)]/10 text-[var(--tulip-forest)] hover:bg-[var(--tulip-gold)]/30 transition-all text-sm font-medium">
             <Copy size={14} /> {t(copied ? 'copied' : 'copyShareLink')}
           </button>
-          <a href={`https://verify.tulipds.com/case/${c.shareToken}`} target="_blank" rel="noopener noreferrer"
+          <a href={`https://verify.sealayer.io/case/${c.shareToken}`} target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--tulip-sage)] text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)] transition-all text-sm font-medium">
             <ExternalLink size={14} /> {t('previewPublicPage')}
           </a>

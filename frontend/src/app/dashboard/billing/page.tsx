@@ -325,7 +325,7 @@ export default function BillingPage() {
                     {t('currentPlanLabel')}
                   </div>
                 ) : plan.id === 'FREE' ? null : plan.id === 'ENTERPRISE' ? (
-                  <a href="mailto:hello@tulipds.com"
+                  <a href="mailto:hello@sealayer.io"
                     className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border border-[var(--tulip-sage-dark)] text-[var(--tulip-forest)] hover:text-[var(--tulip-forest)] hover:bg-[var(--tulip-sage)]/50 transition-all">
                     {t('contactSales')} <ArrowUpRight size={14} />
                   </a>

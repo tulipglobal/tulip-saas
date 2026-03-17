@@ -58,7 +58,7 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
   const [copied, setCopied] = useState(false)
   const [downloading, setDownloading] = useState(false)
 
-  const verifyUrl = `https://verify.tulipds.com/seal/${sealId}`
+  const verifyUrl = `https://verify.sealayer.io/seal/${sealId}`
 
   useEffect(() => {
     const token = localStorage.getItem('tulip_token')

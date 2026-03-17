@@ -566,7 +566,7 @@
     "downloadSealPdf": "Download Seal PDF",
     "generating": "Generating...",
     "verifiedByTulip": "Verified by",
-    "tulipDs": "Tulip DS",
+    "tulipDs": "Sealayer",
     "unableToPreview": "Unable to preview",
     "sealNotFound": "Seal not found",
     "failedToLoad": "Failed to load seal",
@@ -770,7 +770,7 @@
     "step04Title": "RFC 3161 timestamp",
     "step04Desc": "Trusted timestamp from FreeTSA. Legally admissible under eIDAS and ESIGN Act.",
     "ctaTitle": "Ready to prove your integrity?",
-    "ctaDesc": "Join NGOs and enterprises using Tulip DS to make their data tamper-proof.",
+    "ctaDesc": "Join NGOs and enterprises using Sealayer to make their data tamper-proof.",
     "getStartedFree": "Get started free",
     "tryVerifier": "Try the verifier",
     "signIn": "Sign in",
@@ -782,7 +782,7 @@
     "privacy": "Privacy",
     "terms": "Terms",
     "status": "Status",
-    "footer": "© 2026 Tulip DS · A Bright Bytes Technology Product · Dubai, UAE · Tulip Management Consultancy Ltd, London UK",
+    "footer": "© 2026 Sealayer · A Bright Bytes Technology Product · Dubai, UAE · Tulip Management Consultancy Ltd, London UK",
     "step": "STEP"
   },
   "donors": {
@@ -791,7 +791,7 @@
     "heroBadge": "Every expense verified on Polygon blockchain",
     "heroTitle1": "Donate with",
     "heroTitle2": "cryptographic proof",
-    "heroDesc": "Every NGO on Tulip DS publishes verified, blockchain-anchored financial records. See exactly where your money goes — provably.",
+    "heroDesc": "Every NGO on Sealayer publishes verified, blockchain-anchored financial records. See exactly where your money goes — provably.",
     "sha256": "SHA-256 Hashed",
     "polygonAnchored": "Polygon Anchored",
     "rfcTimestamped": "RFC 3161 Timestamped",
@@ -810,7 +810,7 @@
     "good": "Good",
     "fair": "Fair",
     "verifiedSince": "Verified since {date}",
-    "footer": "© 2026 Tulip DS · Bright Bytes Technology · Dubai UAE"
+    "footer": "© 2026 Sealayer · Bright Bytes Technology · Dubai UAE"
   },
   "language": {
     "en": "English",
@@ -1016,7 +1016,7 @@
     "title": "Billing",
     "subtitle": "Manage your subscription, usage, and payment history",
     "trialDaysLeft": "{days} day(s) left in your free trial",
-    "trialChoosePlan": "Choose a plan below to continue using Tulip DS after your trial ends",
+    "trialChoosePlan": "Choose a plan below to continue using Sealayer after your trial ends",
     "trialExpired": "Your free trial has expired",
     "trialExpiredDesc": "You are limited to 5 documents. Upgrade below to unlock full access.",
     "currentPlan": "Current Plan",
@@ -1215,7 +1215,7 @@
     "starterFeature3": "SHA-256 hashing",
     "starterFeature4": "Blockchain anchoring (Polygon)",
     "starterFeature5": "Public verify page",
-    "starterFeature6": "Tulip DS branding",
+    "starterFeature6": "Sealayer branding",
     "starterFeature7": "Community support",
     "starterLimit1": "No custom domain",
     "starterLimit2": "No API access",
@@ -1230,7 +1230,7 @@
     "growthFeature8": "CSV export",
     "growthFeature9": "Email support",
     "growthLimit1": "No custom domain",
-    "growthLimit2": "Tulip DS branding",
+    "growthLimit2": "Sealayer branding",
     "ngoFeature1": "Unlimited projects",
     "ngoFeature2": "Up to 10,000 audit entries/month",
     "ngoFeature3": "SHA-256 + RFC 3161 timestamps",
@@ -1238,7 +1238,7 @@
     "ngoFeature5": "Public donor portal page",
     "ngoFeature6": "API access (1 key)",
     "ngoFeature7": "Webhooks (3 endpoints)",
-    "ngoFeature8": "Remove Tulip DS branding",
+    "ngoFeature8": "Remove Sealayer branding",
     "ngoFeature9": "CSV export",
     "ngoFeature10": "Email support",
     "enterpriseFeature1": "Unlimited everything",
@@ -1269,7 +1269,7 @@
     "faq2q": "What is RFC 3161?",
     "faq2a": "RFC 3161 is an international standard for trusted timestamping. A certified timestamp authority signs a hash of your data with a cryptographic timestamp, making it legally admissible as evidence under EU eIDAS regulation and the US ESIGN Act.",
     "faq3q": "Can donors verify records without an account?",
-    "faq3a": "Yes. The public verifier at tulipds.com/verify requires no login. Any donor can paste a hash and see full blockchain proof instantly. Your donor portal page is also fully public.",
+    "faq3a": "Yes. The public verifier at sealayer.io/verify requires no login. Any donor can paste a hash and see full blockchain proof instantly. Your donor portal page is also fully public.",
     "faq4q": "What happens if I exceed my audit entry limit?",
     "faq4a": "We'll notify you at 80% usage. Entries over the limit are still saved and hashed — blockchain anchoring is queued and processed when you upgrade. No data is ever lost.",
     "faq5q": "Is my data stored securely?",
@@ -1280,7 +1280,7 @@
     "ctaDesc": "Free to start. No credit card required. Your first blockchain anchor in under 5 minutes.",
     "startFree": "Start free",
     "talkToUs": "Talk to us",
-    "footer": "© 2026 Tulip DS · Bright Bytes Technology · Dubai UAE",
+    "footer": "© 2026 Sealayer · Bright Bytes Technology · Dubai UAE",
     "apiDocs": "API Docs",
     "donorPortal": "Donor Portal",
     "getStarted": "Get started",
@@ -1331,7 +1331,7 @@
     "expenses": "expenses",
     "budget": "Budget",
     "pending": "Pending",
-    "footer": "© 2026 Tulip DS · Bright Bytes Technology · Dubai UAE"
+    "footer": "© 2026 Sealayer · Bright Bytes Technology · Dubai UAE"
   },
   "acceptInvite": {
     "invalidInviteLink": "Invalid Invite Link",
@@ -1360,7 +1360,7 @@
     "failedToAccept": "Failed to accept invitation",
     "networkError": "Network error",
     "acceptCreateAccount": "Accept & Create Account",
-    "footerText": "Tulip DS · Blockchain-Verified Financial Transparency"
+    "footerText": "Sealayer · Blockchain-Verified Financial Transparency"
   },
   "donorFlags": {
     "title": "Donor Flags",
@@ -1549,7 +1549,7 @@
     "realTimeAccessDesc": "View all shared documents as soon as they're uploaded by your NGO partner",
     "tamperProof": "Tamper-Proof",
     "tamperProofDesc": "Cryptographic sealing ensures no document can be altered after upload",
-    "footer": "© 2026 Tulip DS · Bright Bytes Technology · Dubai, UAE",
+    "footer": "© 2026 Sealayer · Bright Bytes Technology · Dubai, UAE",
     "verifyADocument": "Verify a document"
   },
   "donorLogin": {
@@ -1565,7 +1565,7 @@
     "noToken": "No token in response",
     "connectError": "Unable to connect to server. Check browser console for details.",
     "backToPortal": "Back to Donor Portal",
-    "footer": "Tulip DS · Bright Bytes Technology · Dubai, UAE"
+    "footer": "Sealayer · Bright Bytes Technology · Dubai, UAE"
   },
   "donorInvite": {
     "title": "Invite Donor",
@@ -1856,7 +1856,7 @@
     "auditLogApi": "Audit Log API",
     "webhooks": "Webhooks",
     "jsSdk": "JavaScript SDK",
-    "title": "Tulip DS API",
+    "title": "Sealayer API",
     "subtitle": "Add blockchain-verified audit trails to any application in minutes. Every record is SHA-256 hashed, anchored to Polygon, and RFC 3161 timestamped.",
     "restApi": "REST API",
     "restApiDesc": "Simple HTTP endpoints",

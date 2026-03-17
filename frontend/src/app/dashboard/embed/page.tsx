@@ -98,7 +98,7 @@ export default function EmbedPage() {
     link.href = `${APP}/verify?hash=${encodeURIComponent(selectedHash)}`
     link.target = '_blank'
     link.rel = 'noopener noreferrer'
-    link.innerHTML = ICON_LOADING + '<div class="tulip-content"><span class="tulip-text">Checking\u2026</span><span class="tulip-label">Tulip DS</span></div>'
+    link.innerHTML = ICON_LOADING + '<div class="tulip-content"><span class="tulip-text">Checking\u2026</span><span class="tulip-label">Sealayer</span></div>'
     shadow.appendChild(link)
 
     fetch(`${API}/api/verify/${encodeURIComponent(selectedHash)}`)
@@ -106,23 +106,23 @@ export default function EmbedPage() {
       .then(data => {
         if (data.verified) {
           link.className = `tulip-badge ${theme} verified${size === 'compact' ? ' compact' : ''}`
-          link.innerHTML = ICON_VERIFIED + '<div class="tulip-content"><span class="tulip-text">Verified</span><span class="tulip-label">Tulip DS \u00b7 Polygon</span></div>'
+          link.innerHTML = ICON_VERIFIED + '<div class="tulip-content"><span class="tulip-text">Verified</span><span class="tulip-label">Sealayer \u00b7 Polygon</span></div>'
         } else {
           link.className = `tulip-badge ${theme} unverified${size === 'compact' ? ' compact' : ''}`
-          link.innerHTML = ICON_UNVERIFIED + '<div class="tulip-content"><span class="tulip-text">Unverified</span><span class="tulip-label">Tulip DS</span></div>'
+          link.innerHTML = ICON_UNVERIFIED + '<div class="tulip-content"><span class="tulip-text">Unverified</span><span class="tulip-label">Sealayer</span></div>'
         }
       })
       .catch(() => {
         link.className = `tulip-badge ${theme} unverified${size === 'compact' ? ' compact' : ''}`
-        link.innerHTML = ICON_UNVERIFIED + '<div class="tulip-content"><span class="tulip-text">Unverified</span><span class="tulip-label">Tulip DS</span></div>'
+        link.innerHTML = ICON_UNVERIFIED + '<div class="tulip-content"><span class="tulip-text">Unverified</span><span class="tulip-label">Sealayer</span></div>'
       })
   }, [selectedHash, theme, size])
 
   const embedSnippet = selectedHash
-    ? `<!-- Tulip DS Verification Badge -->\n<script src="${BADGE_SCRIPT_URL}"></script>\n<div data-tulip-badge="${selectedHash}"${theme !== 'light' ? ` data-tulip-theme="${theme}"` : ''}${size !== 'default' ? ` data-tulip-size="${size}"` : ''}></div>`
+    ? `<!-- Sealayer Verification Badge -->\n<script src="${BADGE_SCRIPT_URL}"></script>\n<div data-tulip-badge="${selectedHash}"${theme !== 'light' ? ` data-tulip-theme="${theme}"` : ''}${size !== 'default' ? ` data-tulip-size="${size}"` : ''}></div>`
     : `<!-- ${t('selectHashFirst')} -->`
 
-  const genericSnippet = `<!-- Tulip DS Verification Badge -->\n<script src="${BADGE_SCRIPT_URL}"></script>\n<div data-tulip-badge="YOUR_DOCUMENT_HASH"></div>`
+  const genericSnippet = `<!-- Sealayer Verification Badge -->\n<script src="${BADGE_SCRIPT_URL}"></script>\n<div data-tulip-badge="YOUR_DOCUMENT_HASH"></div>`
 
   return (
     <div className="p-6 space-y-6 animate-fade-up max-w-4xl">

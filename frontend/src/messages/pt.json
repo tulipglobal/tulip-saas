@@ -566,7 +566,7 @@
     "downloadSealPdf": "Descarregar PDF com selo",
     "generating": "A gerar...",
     "verifiedByTulip": "Verificado por",
-    "tulipDs": "Tulip DS",
+    "tulipDs": "Sealayer",
     "unableToPreview": "Não é possível visualizar",
     "sealNotFound": "Selo não encontrado",
     "failedToLoad": "Não foi possível carregar o selo",
@@ -770,7 +770,7 @@
     "step04Title": "Carimbo de data/hora RFC 3161",
     "step04Desc": "Carimbo temporal certificado pela FreeTSA. Legalmente admissível ao abrigo do eIDAS e da Lei ESIGN.",
     "ctaTitle": "Pronto para provar a sua integridade?",
-    "ctaDesc": "Junte-se às ONG e às empresas que utilizam o Tulip DS para tornar os seus dados à prova de aduleração.",
+    "ctaDesc": "Junte-se às ONG e às empresas que utilizam o Sealayer para tornar os seus dados à prova de aduleração.",
     "getStartedFree": "Comece gratuitamente",
     "tryVerifier": "Experimente o verificador",
     "signIn": "Iniciar sessão",
@@ -782,7 +782,7 @@
     "privacy": "Privacidade",
     "terms": "Termos",
     "status": "Estado",
-    "footer": "© 2026 Tulip DS · Um produto da Bright Bytes Technology · Dubai, Emirados Árabes Unidos · Tulip Management Consultancy Ltd, Londres, Reino Unido",
+    "footer": "© 2026 Sealayer · Um produto da Bright Bytes Technology · Dubai, Emirados Árabes Unidos · Tulip Management Consultancy Ltd, Londres, Reino Unido",
     "step": "PASSO"
   },
   "donors": {
@@ -791,7 +791,7 @@
     "heroBadge": "Todas as despesas verificadas na blockchain Polygon",
     "heroTitle1": "Faça uma doação através de",
     "heroTitle2": "prova criptográfica",
-    "heroDesc": "Todas as ONG na plataforma Tulip DS publicam registos financeiros verificados e ancorados na blockchain. Veja exatamente para onde vai o seu dinheiro — de forma comprovável.",
+    "heroDesc": "Todas as ONG na plataforma Sealayer publicam registos financeiros verificados e ancorados na blockchain. Veja exatamente para onde vai o seu dinheiro — de forma comprovável.",
     "sha256": "Com hash SHA-256",
     "polygonAnchored": "Ancorado no Polygon",
     "rfcTimestamped": "RFC 3161 com marcação temporal",
@@ -810,7 +810,7 @@
     "good": "Ótimo",
     "fair": "Feira",
     "verifiedSince": "Verificado desde {date}",
-    "footer": "© 2026 Tulip DS · Bright Bytes Technology · Dubai, Emirados Árabes Unidos"
+    "footer": "© 2026 Sealayer · Bright Bytes Technology · Dubai, Emirados Árabes Unidos"
   },
   "language": {
     "en": "Português",
@@ -1016,7 +1016,7 @@
     "title": "Faturação",
     "subtitle": "Gerir a sua subscrição, utilização e histórico de pagamentos",
     "trialDaysLeft": "{days} dias restantes no seu período de avaliação gratuita",
-    "trialChoosePlan": "Escolha um plano abaixo para continuar a utilizar o Tulip DS após o término do período de avaliação",
+    "trialChoosePlan": "Escolha um plano abaixo para continuar a utilizar o Sealayer após o término do período de avaliação",
     "trialExpired": "O seu período de avaliação gratuita expirou",
     "trialExpiredDesc": "Está limitado a 5 documentos. Faça o upgrade abaixo para desbloquear o acesso total.",
     "currentPlan": "Plano atual",
@@ -1215,7 +1215,7 @@
     "starterFeature3": "Algoritmo de hash SHA-256",
     "starterFeature4": "Ancoragem em blockchain (Polygon)",
     "starterFeature5": "Página de verificação pública",
-    "starterFeature6": "Identidade visual da Tulip DS",
+    "starterFeature6": "Identidade visual da Sealayer",
     "starterFeature7": "Apoio da comunidade",
     "starterLimit1": "Sem domínio personalizado",
     "starterLimit2": "Sem acesso à API",
@@ -1230,7 +1230,7 @@
     "growthFeature8": "Exportação para CSV",
     "growthFeature9": "Suporte por e-mail",
     "growthLimit1": "Sem domínio personalizado",
-    "growthLimit2": "Identidade visual da Tulip DS",
+    "growthLimit2": "Identidade visual da Sealayer",
     "ngoFeature1": "Projetos ilimitados",
     "ngoFeature2": "Até 10 000 registos de auditoria por mês",
     "ngoFeature3": "SHA-256 + carimbos de data/hora RFC 3161",
@@ -1238,7 +1238,7 @@
     "ngoFeature5": "Página do portal público para doadores",
     "ngoFeature6": "Acesso à API (1 chave)",
     "ngoFeature7": "Webhooks (3 pontos de extremidade)",
-    "ngoFeature8": "Remover a marca Tulip DS",
+    "ngoFeature8": "Remover a marca Sealayer",
     "ngoFeature9": "Exportação para CSV",
     "ngoFeature10": "Suporte por e-mail",
     "enterpriseFeature1": "Tudo ilimitado",
@@ -1269,7 +1269,7 @@
     "faq2q": "O que é a RFC 3161?",
     "faq2a": "A RFC 3161 é uma norma internacional para a marcação temporal fiável. Uma autoridade de marcação temporal certificada assina um hash dos seus dados com uma marcação temporal criptográfica, tornando-os legalmente admissíveis como prova ao abrigo do regulamento eIDAS da UE e da Lei ESIGN dos EUA.",
     "faq3q": "Os doadores podem consultar os registos sem terem uma conta?",
-    "faq3a": "Sim. O verificador público em tulipds.com/verify não requer qualquer início de sessão. Qualquer doador pode colar um hash e ver instantaneamente a prova completa da blockchain. A sua página do portal de doadores também é totalmente pública.",
+    "faq3a": "Sim. O verificador público em sealayer.io/verify não requer qualquer início de sessão. Qualquer doador pode colar um hash e ver instantaneamente a prova completa da blockchain. A sua página do portal de doadores também é totalmente pública.",
     "faq4q": "O que acontece se eu ultrapassar o meu limite de entradas de auditoria?",
     "faq4a": "Iremos notificá-lo quando atingir 80% da capacidade. As entradas que excedam o limite continuam a ser guardadas e submetidas a hash — a fixação na blockchain é colocada em fila e processada quando efetuar a atualização. Nunca se perde qualquer dado.",
     "faq5q": "Os meus dados estão armazenados de forma segura?",
@@ -1280,7 +1280,7 @@
     "ctaDesc": "Comece gratuitamente. Não é necessário cartão de crédito. A sua primeira âncora de blockchain em menos de 5 minutos.",
     "startFree": "Comece gratuitamente",
     "talkToUs": "Fale connosco",
-    "footer": "© 2026 Tulip DS · Bright Bytes Technology · Dubai, Emirados Árabes Unidos",
+    "footer": "© 2026 Sealayer · Bright Bytes Technology · Dubai, Emirados Árabes Unidos",
     "apiDocs": "Documentação da API",
     "donorPortal": "Portal do Doador",
     "getStarted": "Comece já",
@@ -1331,7 +1331,7 @@
     "expenses": "despesas",
     "budget": "Orçamento",
     "pending": "Em espera",
-    "footer": "© 2026 Tulip DS · Bright Bytes Technology · Dubai, Emirados Árabes Unidos"
+    "footer": "© 2026 Sealayer · Bright Bytes Technology · Dubai, Emirados Árabes Unidos"
   },
   "acceptInvite": {
     "invalidInviteLink": "Link de convite inválido",
@@ -1360,7 +1360,7 @@
     "failedToAccept": "Não foi possível aceitar o convite",
     "networkError": "Erro de rede",
     "acceptCreateAccount": "Aceitar e criar conta",
-    "footerText": "Tulip DS · Transparência financeira verificada por blockchain"
+    "footerText": "Sealayer · Transparência financeira verificada por blockchain"
   },
   "donorFlags": {
     "title": "Bandeiras de doadores",
@@ -1549,7 +1549,7 @@
     "realTimeAccessDesc": "Ver todos os documentos partilhados assim que são carregados pela sua ONG parceira",
     "tamperProof": "Inviolável",
     "tamperProofDesc": "A selagem criptográfica garante que nenhum documento pode ser alterado após o carregamento",
-    "footer": "© 2026 Tulip DS - Bright Bytes Technology - Dubai, UAE",
+    "footer": "© 2026 Sealayer - Bright Bytes Technology - Dubai, UAE",
     "verifyADocument": "Verificar um documento"
   },
   "donorLogin": {
@@ -1565,7 +1565,7 @@
     "noToken": "Nenhum token na resposta",
     "connectError": "Não é possível ligar ao servidor. Consulte a consola do browser para obter mais informações.",
     "backToPortal": "Voltar ao Portal do Doador",
-    "footer": "Tulip DS - Bright Bytes Technology - Dubai, Emirados Árabes Unidos"
+    "footer": "Sealayer - Bright Bytes Technology - Dubai, Emirados Árabes Unidos"
   },
   "donorInvite": {
     "title": "Convidar doador",
@@ -1856,7 +1856,7 @@
     "auditLogApi": "API do registo de auditoria",
     "webhooks": "Webhooks",
     "jsSdk": "JavaScript SDK",
-    "title": "API do Tulip DS",
+    "title": "API do Sealayer",
     "subtitle": "Adicione trilhas de auditoria verificadas por blockchain a qualquer aplicativo em minutos. Cada registo tem um hash SHA-256, está ancorado no Polygon e tem um carimbo de data e hora RFC 3161.",
     "restApi": "API REST",
     "restApiDesc": "Pontos de extremidade HTTP simples",

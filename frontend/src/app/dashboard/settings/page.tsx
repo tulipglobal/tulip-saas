@@ -463,7 +463,7 @@ export default function SettingsPage() {
                 </div>
                 <div className="md:col-span-2">
                   <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Callback URL</label>
-                  <input className={inputClass} value={ssoCallbackUrl} onChange={e => setSsoCallbackUrl(e.target.value)} placeholder={`https://api.tulipds.com/api/auth/sso/callback/${ssoProvider.toLowerCase()}`} />
+                  <input className={inputClass} value={ssoCallbackUrl} onChange={e => setSsoCallbackUrl(e.target.value)} placeholder={`https://api.sealayer.io/api/auth/sso/callback/${ssoProvider.toLowerCase()}`} />
                 </div>
               </div>
             )}
@@ -484,7 +484,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <label className="text-xs text-[var(--tulip-forest)]/40 block mb-1">Callback URL (ACS)</label>
-                  <input className={inputClass} value={ssoCallbackUrl} onChange={e => setSsoCallbackUrl(e.target.value)} placeholder="https://api.tulipds.com/api/auth/sso/callback/saml" />
+                  <input className={inputClass} value={ssoCallbackUrl} onChange={e => setSsoCallbackUrl(e.target.value)} placeholder="https://api.sealayer.io/api/auth/sso/callback/saml" />
                 </div>
               </div>
             )}

@@ -8,11 +8,11 @@ import LanguageSwitcher from '@/components/LanguageSwitcher'
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
-  name: 'Tulip DS',
+  name: 'Sealayer',
   applicationCategory: 'BusinessApplication',
   operatingSystem: 'Web',
   description: 'Blockchain-verified audit trails, RFC 3161 timestamps, and document verification for NGOs, donors, and enterprises.',
-  url: 'https://tulipds.com',
+  url: 'https://sealayer.io',
   offers: {
     '@type': 'Offer',
     price: '0',
@@ -22,7 +22,7 @@ const jsonLd = {
   creator: {
     '@type': 'Organization',
     name: 'Bright Bytes Technology',
-    url: 'https://tulipds.com',
+    url: 'https://sealayer.io',
     address: {
       '@type': 'PostalAddress',
       addressLocality: 'Dubai',

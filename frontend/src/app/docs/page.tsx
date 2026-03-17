@@ -128,7 +128,7 @@ export default function APIDocsPage() {
           <div className="mt-6 pt-6 border-t border-[var(--tulip-sage-dark)]/50">
             <div className="px-3">
               <div className="text-xs text-[var(--tulip-forest)]/30 mb-2">{t('baseUrl')}</div>
-              <code className="text-xs text-[var(--tulip-forest)] font-mono">api.tulipds.com</code>
+              <code className="text-xs text-[var(--tulip-forest)] font-mono">api.sealayer.io</code>
             </div>
           </div>
         </aside>
@@ -170,7 +170,7 @@ export default function APIDocsPage() {
             <h2 className="text-lg font-semibold text-[var(--tulip-forest)] mb-3 mt-6" style={{ fontFamily: 'Inter, sans-serif' }}>
               {t('step2Title')}
             </h2>
-            <CodeBlock t={t} language="bash" code={`curl https://api.tulipds.com/api/verify/YOUR_HASH \\
+            <CodeBlock t={t} language="bash" code={`curl https://api.sealayer.io/api/verify/YOUR_HASH \\
   -H "X-API-Key: tulip_live_xxxxxxxxxxxx"`} />
 
             <h2 className="text-lg font-semibold text-[var(--tulip-forest)] mb-3 mt-6" style={{ fontFamily: 'Inter, sans-serif' }}>
@@ -203,7 +203,7 @@ console.log(entry.dataHash)
             </p>
 
             <CodeBlock t={t} language="bash" code={`# All authenticated requests
-curl https://api.tulipds.com/api/audit \\
+curl https://api.sealayer.io/api/audit \\
   -H "X-API-Key: tulip_live_xxxxxxxxxxxx" \\
   -H "Content-Type: application/json"`} />
 
@@ -242,7 +242,7 @@ curl https://api.tulipds.com/api/audit \\
                   <div className="text-xs text-[var(--tulip-forest)]/40 uppercase tracking-wide mb-2">{t('pathParams')}</div>
                   <Param name="dataHash" type="string" required requiredLabel={t('required')} desc={t('dataHashDesc')} />
                 </div>
-                <CodeBlock t={t} language="bash" code={`curl https://api.tulipds.com/api/verify/ab32d3e3e5befae2a6ea9dcb53ad1305372c5df8204bf8d1ede0fe48be65a025`} />
+                <CodeBlock t={t} language="bash" code={`curl https://api.sealayer.io/api/verify/ab32d3e3e5befae2a6ea9dcb53ad1305372c5df8204bf8d1ede0fe48be65a025`} />
                 <CodeBlock t={t} language="json" code={`{
   "verified": true,
   "dataHash": "ab32d3e3e5befae2a6ea9dcb53ad1305...",
@@ -266,7 +266,7 @@ curl https://api.tulipds.com/api/audit \\
               <Endpoint method="GET" path="/api/verify/batch/{batchId}" description={t('verifyBatchDesc')}>
                 <p className="text-sm text-[var(--tulip-forest)]/60">{t('verifyBatchDesc')}</p>
                 <Param name="batchId" type="string" required requiredLabel={t('required')} desc={t('batchIdDesc')} />
-                <CodeBlock t={t} language="bash" code={`curl https://api.tulipds.com/api/verify/batch/88e631dfd0739...`} />
+                <CodeBlock t={t} language="bash" code={`curl https://api.sealayer.io/api/verify/batch/88e631dfd0739...`} />
               </Endpoint>
             </div>
           </section>
@@ -290,7 +290,7 @@ curl https://api.tulipds.com/api/audit \\
                   <Param name="entityId" type="string" required requiredLabel={t('required')} desc="ID of the entity being audited" />
                   <Param name="metadata" type="object" desc="Additional data to include in the hash" />
                 </div>
-                <CodeBlock t={t} language="javascript" code={`const res = await fetch('https://api.tulipds.com/api/audit', {
+                <CodeBlock t={t} language="javascript" code={`const res = await fetch('https://api.sealayer.io/api/audit', {
   method: 'POST',
   headers: {
     'X-API-Key': 'tulip_live_xxxxxxxxxxxx',
@@ -320,7 +320,7 @@ const entry = await res.json()
                   <Param name="anchorStatus" type="string" desc='"confirmed" | "pending" | "failed"' />
                   <Param name="entityType" type="string" desc="Filter by entity type" />
                 </div>
-                <CodeBlock t={t} language="bash" code={`curl "https://api.tulipds.com/api/audit?limit=10&anchorStatus=confirmed" \\
+                <CodeBlock t={t} language="bash" code={`curl "https://api.sealayer.io/api/audit?limit=10&anchorStatus=confirmed" \\
   -H "X-API-Key: tulip_live_xxxxxxxxxxxx"`} />
               </Endpoint>
             </div>
@@ -384,7 +384,7 @@ const entry = await res.json()
 
 const tulip = new Tulip({
   apiKey: process.env.TULIP_API_KEY,
-  // baseUrl: 'https://api.tulipds.com' // default
+  // baseUrl: 'https://api.sealayer.io' // default
 })
 
 // ── Audit log ──────────────────────────────
@@ -419,7 +419,7 @@ log.items.forEach(e => console.log(e.dataHash))`} />
                   style={{ background: 'var(--tulip-gold)' }}>
                   <Key size={15} /> {t('getApiKey')}
                 </Link>
-                <Link href="https://github.com/tulipds" target="_blank"
+                <Link href="https://github.com/sealayer" target="_blank"
                   className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm text-[var(--tulip-forest)]/60 border border-[var(--tulip-sage-dark)] hover:border-[var(--tulip-sage-dark)] transition-all">
                   <ArrowUpRight size={15} /> {t('github')}
                 </Link>

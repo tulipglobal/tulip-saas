@@ -147,7 +147,7 @@ export default function TrustSealPage() {
   }
 
   const copyUrl = (id: string) => {
-    navigator.clipboard.writeText(`https://verify.tulipds.com/seal/${id}`)
+    navigator.clipboard.writeText(`https://verify.sealayer.io/seal/${id}`)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -397,7 +397,7 @@ export default function TrustSealPage() {
               )}
               <div className="space-y-3 mb-5">
                 <div className="flex items-center gap-2 bg-[var(--tulip-sage)] rounded-lg px-3 py-2.5">
-                  <code className="text-xs text-[var(--tulip-forest)]/70 truncate flex-1">{createdSeal.verifyUrl || `https://verify.tulipds.com/seal/${createdSeal.id}`}</code>
+                  <code className="text-xs text-[var(--tulip-forest)]/70 truncate flex-1">{createdSeal.verifyUrl || `https://verify.sealayer.io/seal/${createdSeal.id}`}</code>
                   <button onClick={() => copyUrl(createdSeal.id)} className="text-[var(--tulip-forest)] hover:underline text-xs shrink-0">
                     {copied ? t('copied') : t('copy')}
                   </button>

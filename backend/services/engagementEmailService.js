@@ -19,7 +19,7 @@ function wrap(body) {
       ${body}
       <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 32px 0 16px;" />
       <p style="color: #94a3b8; font-size: 11px; text-align: center;">
-        Sealayer — Blockchain-anchored document verification<br/>
+        sealayer — Blockchain-anchored document verification<br/>
         <a href="${VERIFY_URL}" style="color: ${BRAND};">verify.sealayer.io</a>
       </p>
     </div>

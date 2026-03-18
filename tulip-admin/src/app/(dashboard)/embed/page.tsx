@@ -95,7 +95,7 @@ export default function EmbedPage() {
             <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
               <Check size={12} className="text-white" />
             </div>
-            <span className={`text-sm font-medium ${size === 'compact' ? 'text-xs' : ''}`}>Verified by Sealayer</span>
+            <span className={`text-sm font-medium ${size === 'compact' ? 'text-xs' : ''}`}>Verified by sealayer</span>
           </div>
         </div>
       </div>

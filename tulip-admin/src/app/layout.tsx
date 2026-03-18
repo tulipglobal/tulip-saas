@@ -3,10 +3,10 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: {
-    default: 'Sealayer Admin',
-    template: '%s | Sealayer Admin',
+    default: 'sealayer Admin',
+    template: '%s | sealayer Admin',
   },
-  description: 'Sealayer platform administration panel',
+  description: 'sealayer platform administration panel',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

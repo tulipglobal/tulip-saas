@@ -105,10 +105,14 @@
     "tagline2": "Verificabile.",
     "tagline3": "Affidabile.",
     "taglineDesc": "Ogni record creato viene automaticamente registrato sulla blockchain e contrassegnato con un timestamp conforme allo standard RFC 3161.",
-    "feat1": "Blockchain integrata tramite Polygon",
-    "feat2": "RFC 3161: timestamp affidabili",
-    "feat3": "Multi-tenant conforme al GDPR",
-    "feat4": "Link di verifica condivisibili"
+    "feat1Title": "Ancoraggio Blockchain",
+    "feat1Desc": "Impronte SHA-256 su Polygon con prova crittografica e TX ID.",
+    "feat2Title": "Rilevamento Frodi IA",
+    "feat2Desc": "Ricevute scansionate OCR con rilevamento duplicati e punteggi frode in tempo reale.",
+    "feat3Title": "Portale Fiducia Donatore",
+    "feat3Desc": "Verifica indipendente su verify.sealayer.io — nessuna fiducia richiesta.",
+    "feat4Title": "Design sul Campo",
+    "feat4Desc": "Multi-valuta, prezzi accessibili, progettato per operazioni del Sud Globale."
   },
   "dashboard": {
     "title": "Pannello di controllo",

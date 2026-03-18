@@ -105,10 +105,14 @@
     "tagline2": "Verifiable.",
     "tagline3": "Trusted.",
     "taglineDesc": "Every record you create is automatically anchored to blockchain and timestamped with RFC 3161.",
-    "feat1": "Blockchain anchored via Polygon",
-    "feat2": "RFC 3161 trusted timestamps",
-    "feat3": "GDPR compliant multi-tenant",
-    "feat4": "Shareable verification links"
+    "feat1Title": "Blockchain Anchoring",
+    "feat1Desc": "SHA-256 fingerprints on Polygon with cryptographic proof and TX IDs.",
+    "feat2Title": "AI Fraud Detection",
+    "feat2Desc": "OCR-scanned receipts with duplicate detection and real-time fraud scores.",
+    "feat3Title": "Donor Trust Portal",
+    "feat3Desc": "Independent verification at verify.sealayer.io — no trust required.",
+    "feat4Title": "Field-First Design",
+    "feat4Desc": "Multi-currency, accessibility pricing, built for Global South operations."
   },
   "dashboard": {
     "title": "Dashboard",

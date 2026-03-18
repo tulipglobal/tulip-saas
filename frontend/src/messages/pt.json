@@ -105,10 +105,14 @@
     "tagline2": "Comprovável.",
     "tagline3": "De confiança.",
     "taglineDesc": "Cada registo que criar é automaticamente gravado na blockchain e recebe um carimbo de data/hora de acordo com a norma RFC 3161.",
-    "feat1": "Blockchain ancorado através da Polygon",
-    "feat2": "Carimbos de data e hora confiáveis da RFC 3161",
-    "feat3": "Multi-tenant em conformidade com o RGPD",
-    "feat4": "Links de verificação que podem ser partilhados"
+    "feat1Title": "Ancoragem Blockchain",
+    "feat1Desc": "Impressões SHA-256 na Polygon com prova criptográfica e IDs de TX.",
+    "feat2Title": "Detecção de Fraude IA",
+    "feat2Desc": "Recibos digitalizados por OCR com detecção de duplicados e pontuações de fraude em tempo real.",
+    "feat3Title": "Portal de Confiança do Doador",
+    "feat3Desc": "Verificação independente em verify.sealayer.io — sem necessidade de confiança.",
+    "feat4Title": "Design de Campo",
+    "feat4Desc": "Multi-moeda, preços acessíveis, construído para operações do Sul Global."
   },
   "dashboard": {
     "title": "Painel de controlo",

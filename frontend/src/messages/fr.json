@@ -105,10 +105,14 @@
     "tagline2": "Vérifiable.",
     "tagline3": "Reconnu.",
     "taglineDesc": "Chaque enregistrement que vous créez est automatiquement enregistré sur la blockchain et horodaté conformément à la norme RFC 3161.",
-    "feat1": "Blockchain intégrée via Polygon",
-    "feat2": "Horodatages fiables selon la RFC 3161",
-    "feat3": "Multi-tenant conforme au RGPD",
-    "feat4": "Liens de vérification à partager"
+    "feat1Title": "Ancrage Blockchain",
+    "feat1Desc": "Empreintes SHA-256 sur Polygon avec preuve cryptographique et TX IDs.",
+    "feat2Title": "Détection de Fraude IA",
+    "feat2Desc": "Reçus scannés par OCR avec détection de doublons et scores de fraude en temps réel.",
+    "feat3Title": "Portail de Confiance Donateur",
+    "feat3Desc": "Vérification indépendante sur verify.sealayer.io — aucune confiance requise.",
+    "feat4Title": "Conception Terrain",
+    "feat4Desc": "Multi-devises, tarification accessible, conçu pour les opérations du Sud."
   },
   "dashboard": {
     "title": "Tableau de bord",

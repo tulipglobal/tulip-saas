@@ -105,10 +105,14 @@
     "tagline2": "Comprobable.",
     "tagline3": "De confianza.",
     "taglineDesc": "Cada registro que crees se integra automáticamente en la cadena de bloques y se marca con una marca de tiempo conforme a la norma RFC 3161.",
-    "feat1": "Cadena de bloques integrada a través de Polygon",
-    "feat2": "Marcas de tiempo fiables según el RFC 3161",
-    "feat3": "Multitenencia conforme al RGPD",
-    "feat4": "Enlaces de verificación para compartir"
+    "feat1Title": "Anclaje Blockchain",
+    "feat1Desc": "Huellas SHA-256 en Polygon con prueba criptográfica e IDs de TX.",
+    "feat2Title": "Detección de Fraude IA",
+    "feat2Desc": "Recibos escaneados por OCR con detección de duplicados y puntuaciones de fraude en tiempo real.",
+    "feat3Title": "Portal de Confianza del Donante",
+    "feat3Desc": "Verificación independiente en verify.sealayer.io — sin necesidad de confianza.",
+    "feat4Title": "Diseño de Campo",
+    "feat4Desc": "Multi-moneda, precios accesibles, diseñado para operaciones del Sur Global."
   },
   "dashboard": {
     "title": "Panel de control",

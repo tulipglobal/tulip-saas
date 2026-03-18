@@ -64,28 +64,30 @@ export default function LoginPage() {
         <div className="absolute bottom-[-150px] right-[-150px] w-[500px] h-[500px] rounded-full opacity-[0.05]"
           style={{ background: 'radial-gradient(circle, #ff751f 0%, transparent 70%)' }} />
 
-        <div className="relative z-10 text-center px-12 max-w-lg">
-          {/* Logo */}
-          <Link href="/">
-            <img src="/logo.svg" alt="sealayer" className="mx-auto" style={{ height: '200px', filter: 'brightness(0) invert(1)' }} />
+        <div className="relative z-10 flex flex-col items-center justify-center w-full h-full px-10">
+          {/* Logo on light card */}
+          <Link href="/" className="block">
+            <div className="rounded-3xl px-8 py-6 mx-auto" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(20px)' }}>
+              <img src="/logo.svg" alt="sealayer" className="mx-auto" style={{ height: '280px' }} />
+            </div>
           </Link>
 
           {/* Tagline */}
-          <h2 className="mt-8" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '38px', lineHeight: 1.15, letterSpacing: '-0.02em', color: '#ffffff' }}>
+          <h2 className="mt-10" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '42px', lineHeight: 1.12, letterSpacing: '-0.02em', color: '#ffffff', textAlign: 'center' }}>
             {t('auth.tagline1')}<br />
             <span style={{ color: 'var(--tulip-gold)' }}>{t('auth.tagline2')}</span><br />
             {t('auth.tagline3')}
           </h2>
 
-          <p className="mt-5" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '15px', lineHeight: 1.7 }}>
+          <p className="mt-5 max-w-md" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '15px', lineHeight: 1.7, textAlign: 'center' }}>
             {t('auth.taglineDesc')}
           </p>
 
           {/* Features */}
-          <div className="mt-10 grid grid-cols-2 gap-3 text-left">
+          <div className="mt-10 grid grid-cols-2 gap-3 text-left w-full max-w-lg">
             {[t('auth.feat1'), t('auth.feat2'), t('auth.feat3'), t('auth.feat4')].map(feat => (
-              <div key={feat} className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: 'var(--tulip-gold)' }} />
+              <div key={feat} className="flex items-center gap-2.5 px-4 py-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="w-2 h-2 rounded-full shrink-0" style={{ background: 'var(--tulip-gold)' }} />
                 <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontWeight: 500 }}>{feat}</span>
               </div>
             ))}

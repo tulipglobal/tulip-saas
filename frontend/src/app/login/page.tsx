@@ -55,30 +55,45 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex" style={{ fontFamily: 'Inter, sans-serif' }}>
-      {/* Left panel */}
-      <div className="hidden lg:flex lg:w-1/2 tulip-mesh flex-col p-8 pt-6 pl-6">
-        <Link href="/" className="flex items-start">
-          <img src="/logo.svg" alt="sealayer" style={{ height: '256px' }} />
-        </Link>
+      {/* Left panel — dark branded */}
+      <div className="hidden lg:flex lg:w-1/2 flex-col items-center justify-center relative overflow-hidden"
+        style={{ background: 'var(--tulip-forest)' }}>
+        {/* Subtle glow */}
+        <div className="absolute top-[-200px] left-[-200px] w-[600px] h-[600px] rounded-full opacity-[0.07]"
+          style={{ background: 'radial-gradient(circle, var(--tulip-gold) 0%, transparent 70%)' }} />
+        <div className="absolute bottom-[-150px] right-[-150px] w-[500px] h-[500px] rounded-full opacity-[0.05]"
+          style={{ background: 'radial-gradient(circle, #ff751f 0%, transparent 70%)' }} />
 
-        <div className="mt-4 flex-1">
-          <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '40px', color: 'var(--tulip-forest)', lineHeight: 1.2, letterSpacing: '-0.02em' }}>
+        <div className="relative z-10 text-center px-12 max-w-lg">
+          {/* Logo */}
+          <Link href="/">
+            <img src="/logo.svg" alt="sealayer" className="mx-auto" style={{ height: '200px', filter: 'brightness(0) invert(1)' }} />
+          </Link>
+
+          {/* Tagline */}
+          <h2 className="mt-8" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '38px', lineHeight: 1.15, letterSpacing: '-0.02em', color: '#ffffff' }}>
             {t('auth.tagline1')}<br />
             <span style={{ color: 'var(--tulip-gold)' }}>{t('auth.tagline2')}</span><br />
             {t('auth.tagline3')}
           </h2>
-          <p style={{ color: 'var(--tulip-forest)', opacity: 0.6, fontSize: '16px', marginTop: '16px', lineHeight: 1.7 }}>
+
+          <p className="mt-5" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '15px', lineHeight: 1.7 }}>
             {t('auth.taglineDesc')}
           </p>
 
-          <div className="mt-8 space-y-3">
+          {/* Features */}
+          <div className="mt-10 grid grid-cols-2 gap-3 text-left">
             {[t('auth.feat1'), t('auth.feat2'), t('auth.feat3'), t('auth.feat4')].map(feat => (
-              <p key={feat} style={{ color: 'var(--tulip-forest)', fontSize: '14px', opacity: 0.7 }}>{feat}</p>
+              <div key={feat} className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: 'var(--tulip-gold)' }} />
+                <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontWeight: 500 }}>{feat}</span>
+              </div>
             ))}
           </div>
         </div>
 
-        <p style={{ color: 'var(--tulip-forest)', fontSize: '12px', opacity: 0.7 }}>
+        {/* Footer */}
+        <p className="absolute bottom-6 text-center w-full" style={{ color: 'rgba(255,255,255,0.25)', fontSize: '11px' }}>
           © 2026 sealayer · Bright Bytes Technology · Dubai, UAE
         </p>
       </div>

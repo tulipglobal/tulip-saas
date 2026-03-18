@@ -71,13 +71,13 @@ export default function LoginPage() {
           </Link>
 
           {/* Tagline */}
-          <h2 className="mt-8" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '44px', lineHeight: 1.12, letterSpacing: '-0.02em', color: '#ffffff', textAlign: 'center' }}>
+          <h2 className="mt-6" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '44px', lineHeight: 1.12, letterSpacing: '-0.02em', color: '#ffffff', textAlign: 'center' }}>
             {t('auth.tagline1')}<br />
             <span style={{ color: 'var(--tulip-gold)' }}>{t('auth.tagline2')}</span><br />
             {t('auth.tagline3')}
           </h2>
 
-          <p className="mt-8 max-w-lg" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '15px', lineHeight: 1.7, textAlign: 'center' }}>
+          <p className="mt-6 max-w-lg" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '15px', lineHeight: 1.7, textAlign: 'center' }}>
             {t('auth.taglineDesc')}
           </p>
 

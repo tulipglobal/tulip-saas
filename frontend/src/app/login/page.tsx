@@ -64,46 +64,46 @@ export default function LoginPage() {
         <div className="absolute bottom-[-150px] right-[-150px] w-[500px] h-[500px] rounded-full opacity-[0.05]"
           style={{ background: 'radial-gradient(circle, #ff751f 0%, transparent 70%)' }} />
 
-        <div className="relative z-10 flex flex-col items-center justify-center w-full h-full px-12">
+        <div className="relative z-10 flex flex-col items-center justify-center w-full h-full px-12 py-8">
           {/* Logo */}
           <Link href="/" className="block">
-            <img src="/logo-dark.svg" alt="sealayer" className="mx-auto" style={{ height: '320px' }} />
+            <img src="/logo-dark.svg" alt="sealayer" className="mx-auto" style={{ height: '240px' }} />
           </Link>
 
           {/* Tagline */}
-          <h2 className="mt-8" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '46px', lineHeight: 1.12, letterSpacing: '-0.02em', color: '#ffffff', textAlign: 'center' }}>
+          <h2 className="mt-6" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '40px', lineHeight: 1.12, letterSpacing: '-0.02em', color: '#ffffff', textAlign: 'center' }}>
             {t('auth.tagline1')}<br />
             <span style={{ color: 'var(--tulip-gold)' }}>{t('auth.tagline2')}</span><br />
             {t('auth.tagline3')}
           </h2>
 
-          <p className="mt-5 max-w-lg" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '16px', lineHeight: 1.7, textAlign: 'center' }}>
+          <p className="mt-4 max-w-lg" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '15px', lineHeight: 1.7, textAlign: 'center' }}>
             {t('auth.taglineDesc')}
           </p>
 
           {/* Four Pillars */}
-          <div className="mt-10 grid grid-cols-2 gap-4 text-left w-full max-w-xl">
+          <div className="mt-8 grid grid-cols-2 gap-3 text-left w-full max-w-xl">
             {[
               { icon: Link2, titleKey: 'auth.feat1Title', descKey: 'auth.feat1Desc' },
               { icon: ScanSearch, titleKey: 'auth.feat2Title', descKey: 'auth.feat2Desc' },
               { icon: Users, titleKey: 'auth.feat3Title', descKey: 'auth.feat3Desc' },
               { icon: Globe, titleKey: 'auth.feat4Title', descKey: 'auth.feat4Desc' },
             ].map(({ icon: Icon, titleKey, descKey }) => (
-              <div key={titleKey} className="px-5 py-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                <div className="flex items-center gap-2.5 mb-2">
+              <div key={titleKey} className="px-4 py-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="flex items-center gap-2 mb-1.5">
                   <Icon className="w-4 h-4 shrink-0" style={{ color: 'var(--tulip-gold)' }} />
-                  <span style={{ color: '#ffffff', fontSize: '14px', fontWeight: 700 }}>{t(titleKey)}</span>
+                  <span style={{ color: '#ffffff', fontSize: '13px', fontWeight: 700 }}>{t(titleKey)}</span>
                 </div>
-                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', lineHeight: 1.5 }}>{t(descKey)}</p>
+                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px', lineHeight: 1.5 }}>{t(descKey)}</p>
               </div>
             ))}
           </div>
-        </div>
 
-        {/* Footer */}
-        <p className="absolute bottom-6 text-center w-full" style={{ color: 'rgba(255,255,255,0.25)', fontSize: '11px' }}>
-          © 2026 sealayer.io · Dubai, UAE
-        </p>
+          {/* Footer */}
+          <p className="mt-6" style={{ color: 'rgba(255,255,255,0.25)', fontSize: '11px' }}>
+            © 2026 sealayer.io · Dubai, UAE
+          </p>
+        </div>
       </div>
 
       {/* Right panel */}

@@ -41,7 +41,7 @@ export default function HomePage() {
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[var(--tulip-sage-dark)] backdrop-blur-md bg-[var(--tulip-sage)]/95">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center">
-            <img src="/logo.svg" alt="sealayer" className="h-14" />
+            <img src="/logo.svg" alt="sealayer" style={{ height: '320px' }} />
           </div>
           <div className="hidden md:flex items-center gap-8">
             {[
@@ -273,7 +273,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center">
-              <img src="/logo.svg" alt="sealayer" className="h-12" />
+              <img src="/logo.svg" alt="sealayer" style={{ height: '320px' }} />
             </div>
             <p style={{ color: 'var(--tulip-forest)', fontSize: '13px', textAlign: 'center', opacity: 0.7 }}>
               {t('landing.footer')}

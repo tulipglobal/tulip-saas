@@ -77,7 +77,7 @@ export default function AdminSidebar() {
         'flex items-center h-16 border-b border-white/10 shrink-0',
         collapsed ? 'justify-center px-0' : 'px-5 gap-3'
       )}>
-        <img src="/logo.svg" alt="sealayer" className={collapsed ? 'h-10 w-10 object-contain' : 'h-14'} style={{ filter: 'brightness(0) invert(1)' }} />
+        <img src="/logo.svg" alt="sealayer" className="shrink-0 transition-all" style={{ height: collapsed ? '100px' : '320px', filter: 'brightness(0) invert(1)' }} />
         {!collapsed && (
           <span className="font-bold text-white text-lg">Admin</span>
         )}

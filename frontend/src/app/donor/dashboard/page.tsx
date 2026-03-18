@@ -705,7 +705,7 @@ export default function DonorDashboardPage() {
         <div className="max-w-6xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/donor/dashboard" className="flex items-center">
-              <img src="/logo.svg" alt="sealayer" className="h-14" />
+              <img src="/logo.svg" alt="sealayer" style={{ height: '320px' }} />
             </Link>
             <span className="text-[var(--tulip-forest)]/30 text-sm">|</span>
             <span className="text-[var(--tulip-forest)]/60 text-sm font-medium">{user?.donor?.name || t('donorPortal')}</span>

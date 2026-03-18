@@ -284,7 +284,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         'flex items-center border-b border-[var(--tulip-cream)]/10 h-16 shrink-0',
         collapsed && !mobileOpen ? 'justify-center px-0' : 'px-5 gap-3'
       )}>
-        <img src="/logo.svg" alt="sealayer" className={clsx('shrink-0 transition-all', collapsed && !mobileOpen ? 'h-10 w-10 object-contain' : 'h-14')} style={{ filter: 'brightness(0) invert(1)' }} />
+        <img src="/logo.svg" alt="sealayer" className="shrink-0 transition-all" style={{ height: collapsed && !mobileOpen ? '100px' : '320px', filter: 'brightness(0) invert(1)' }} />
         {/* Close button — mobile only */}
         {mobileOpen && (
           <button onClick={() => setMobileOpen(false)} className="ml-auto text-[var(--tulip-cream)]/60 hover:text-[var(--tulip-cream)] md:hidden">
@@ -403,7 +403,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             {/* Logo — mobile only (centered feel) */}
             <div className="md:hidden flex items-center">
-              <img src="/logo.svg" alt="sealayer" className="h-14" />
+              <img src="/logo.svg" alt="sealayer" style={{ height: '320px' }} />
             </div>
 
             {/* Search — desktop only */}

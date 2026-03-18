@@ -58,7 +58,7 @@ export default function LoginPage() {
       {/* Left panel */}
       <div className="hidden lg:flex lg:w-1/2 tulip-mesh flex-col justify-between p-12">
         <Link href="/" className="flex items-center">
-          <img src="/logo.svg" alt="sealayer" className="h-16" />
+          <img src="/logo.svg" alt="sealayer" style={{ height: '320px' }} />
         </Link>
 
         <div>
@@ -91,7 +91,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <Link href="/" className="flex items-center mb-8 lg:hidden">
-            <img src="/logo.svg" alt="sealayer" className="h-14" />
+            <img src="/logo.svg" alt="sealayer" style={{ height: '320px' }} />
           </Link>
 
           <div className="animate-fade-up">

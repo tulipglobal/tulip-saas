@@ -49,7 +49,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center mb-4">
-            <img src="/logo.svg" alt="sealayer" className="h-24" />
+            <img src="/logo.svg" alt="sealayer" style={{ height: '320px' }} />
           </div>
           <h1 className="text-2xl font-bold text-[var(--admin-text)]">sealayer Admin</h1>
           <p className="text-sm text-[var(--admin-text-secondary)] mt-1">Platform administration portal</p>

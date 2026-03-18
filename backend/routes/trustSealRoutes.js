@@ -12,7 +12,7 @@ const prisma = require('../lib/client')
 const { parsePagination, paginatedResponse } = require('../lib/paginate')
 const { createAuditLog } = require('../services/auditService')
 const { trackEvent } = require('../services/engagementService')
-const { uploadToS3, getPresignedUrlFromKey } = require('../lib/s3Upload')
+const { uploadToS3, getPresignedUrlFromKey, headObject } = require('../lib/s3Upload')
 const { hashPdfPages } = require('../lib/pdfPageHasher')
 const { generateSealedPdf } = require('../lib/sealedPdfGenerator')
 
@@ -217,11 +217,19 @@ router.get('/:id/preview-url', async (req, res) => {
     }
     console.log(`[preview-url] sealId=${req.params.id} s3Key="${seal.s3Key}" resolvedKey="${key}"`)
 
-    const previewUrl = await getPresignedUrlFromKey(key, 900, {
+    // HEAD check — verify the S3 object actually exists before generating a presigned URL
+    const exists = await headObject(key)
+    if (!exists) {
+      console.error(`[preview-url] S3 object missing: key="${key}" sealId=${req.params.id}`)
+      return res.status(404).json({ error: 'File not found in storage', code: 'S3_OBJECT_MISSING' })
+    }
+
+    const expiresIn = 3600
+    const previewUrl = await getPresignedUrlFromKey(key, expiresIn, {
       contentType: seal.fileType || undefined,
     })
     if (!previewUrl) return res.status(500).json({ error: 'Failed to generate presigned URL' })
-    res.json({ previewUrl, fileType: seal.fileType })
+    res.json({ previewUrl, fileType: seal.fileType, expiresIn })
   } catch (err) {
     console.error('Failed to get seal preview URL:', err)
     res.status(500).json({ error: 'Failed to generate preview URL' })

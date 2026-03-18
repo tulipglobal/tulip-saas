@@ -1,4 +1,4 @@
-const { S3Client, PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3')
+const { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand } = require('@aws-sdk/client-s3')
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner')
 const crypto = require('crypto')
 const path = require('path')
@@ -84,4 +84,13 @@ async function getPresignedUrlFromKey(key, expiresIn = 3600, options = {}) {
   }
 }
 
-module.exports = { uploadToS3, computeSHA256, getPresignedUrl, getPresignedUrlFromKey }
+async function headObject(key) {
+  try {
+    await s3.send(new HeadObjectCommand({ Bucket: BUCKET, Key: key }))
+    return true
+  } catch {
+    return false
+  }
+}
+
+module.exports = { uploadToS3, computeSHA256, getPresignedUrl, getPresignedUrlFromKey, headObject }

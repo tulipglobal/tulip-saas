@@ -66,7 +66,7 @@ function log(n, label, result, detail) {
   console.log(`[${String(n).padStart(2)}] ${tag.padEnd(6)} ${label}${d}`);
 }
 
-const TOTAL = 212;
+const TOTAL = 214;
 
 (async () => {
   console.log(`=== REGRESSION CHECKLIST (${TOTAL} items) ===\n`);
@@ -522,8 +522,48 @@ const TOTAL = 212;
     const docData = JSON.parse(docResp.body);
     log(84, "S3 presigned URL generation works", docResp.status === 200 && !!docData.url ? "PASS" : "FAIL",
       docResp.status === 200 ? "URL generated" : "status=" + docResp.status + " " + (docData.error || ""));
+
+    // 84a — Verify presigned URL is actually accessible via HEAD request
+    if (docResp.status === 200 && docData.url) {
+      const headResult = await new Promise(resolve => {
+        const mod = docData.url.startsWith("https") ? https : http;
+        const req = mod.request(docData.url, { method: "HEAD" }, res => {
+          resolve({ status: res.statusCode });
+        });
+        req.on("error", () => resolve({ status: 0 }));
+        req.setTimeout(10000, () => { req.destroy(); resolve({ status: 0 }); });
+        req.end();
+      });
+      log("84a", "S3 presigned URL is accessible (HEAD)", headResult.status === 200 ? "PASS" : "FAIL",
+        "status=" + headResult.status);
+    } else {
+      log("84a", "S3 presigned URL accessibility", "SKIP", "no URL to test");
+    }
   } else {
     log(84, "S3 presigned URL generation", "SKIP", "no seal with s3Key found");
+    log("84a", "S3 presigned URL accessibility", "SKIP", "no seal with s3Key found");
+  }
+
+  // 84b — S3 health check: sample recent seals and verify S3 objects exist
+  const { headObject } = require("./lib/s3Upload");
+  const recentSeals = await prisma.trustSeal.findMany({
+    where: { s3Key: { not: null } },
+    select: { id: true, s3Key: true },
+    orderBy: { createdAt: "desc" },
+    take: 5,
+  });
+  if (recentSeals.length > 0) {
+    let accessible = 0;
+    for (const s of recentSeals) {
+      let key = s.s3Key;
+      if (key.startsWith("http")) { try { key = decodeURIComponent(new URL(key).pathname.substring(1)); } catch {} }
+      if (await headObject(key)) accessible++;
+    }
+    log("84b", "S3 objects exist for recent seals (" + accessible + "/" + recentSeals.length + ")",
+      accessible === recentSeals.length ? "PASS" : "FAIL",
+      accessible + " of " + recentSeals.length + " accessible");
+  } else {
+    log("84b", "S3 health check for recent seals", "SKIP", "no seals with s3Key found");
   }
 
   // ═══════════════════════════════════════════════════════════

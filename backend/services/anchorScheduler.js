@@ -15,6 +15,7 @@ const { checkDocumentExpiry }   = require('../jobs/expiryAlerts')
 const { runEngagementEmails }  = require('./engagementEmailService')
 const { retryFailedAnchors }   = require('./anchorRetryService')
 const { sendMonthlyReports }  = require('../jobs/monthlyReport')
+const { checkSealS3Health }  = require('../jobs/sealS3HealthCheck')
 const prisma  = require('../lib/client')
 const { notifyDonorOrgsForProject } = require('./donorNotificationService')
 const { sendEmail } = require('./emailService')
@@ -363,6 +364,19 @@ function startAnchorScheduler() {
     } catch (err) { logger.error('[auto-reports] Annual failed', { error: err.message }) }
   })
 
+  // Seal S3 health check — every 6 hours
+  cron.schedule('0 */6 * * *', async () => {
+    logger.info('[s3-health] Running seal S3 health check...')
+    try {
+      const result = await checkSealS3Health()
+      if (result.missing > 0) {
+        logger.error(`[s3-health] ${result.missing} seal(s) have missing S3 files!`, { missingSeals: result.missingSeals })
+      } else {
+        logger.info('[s3-health] Complete', { checked: result.checked, healthy: result.healthy })
+      }
+    } catch (err) { logger.error('[s3-health] Job failed', { error: err.message }) }
+  })
+
   logger.info('Blockchain anchor scheduler started (every 5 minutes)')
   logger.info('Anchor retry worker started (every 5 minutes)')
   logger.info('Webhook retry worker started (every 5 minutes)')
@@ -378,6 +392,7 @@ function startAnchorScheduler() {
   logger.info('Auto monthly reports scheduled (1st of month, 6am UTC)')
   logger.info('Auto quarterly reports scheduled (1st of quarter, 7am UTC)')
   logger.info('Auto annual reports scheduled (1st January, 8am UTC)')
+  logger.info('Seal S3 health check scheduled (every 6 hours)')
 
   // Exchange rate fetch — 1st of every month at 00:01 UTC
   cron.schedule('1 0 1 * *', async () => {

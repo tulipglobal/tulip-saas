@@ -54,11 +54,35 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
   const [docUrl, setDocUrl] = useState<string | null>(null)
   const [docLoading, setDocLoading] = useState(false)
   const [docError, setDocError] = useState(false)
+  const [s3Missing, setS3Missing] = useState(false)
+  const [retryCount, setRetryCount] = useState(0)
+  const [expiresIn, setExpiresIn] = useState(3600)
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [downloading, setDownloading] = useState(false)
 
   const verifyUrl = `https://verify.sealayer.io/seal/${sealId}`
+
+  // Reusable: fetch a fresh presigned URL from the backend
+  const fetchPreviewUrl = useCallback(async (): Promise<{ url: string | null; expiresIn: number; missing: boolean }> => {
+    const token = localStorage.getItem('tulip_token')
+    const api = process.env.NEXT_PUBLIC_API_URL || ''
+    const headers: Record<string, string> = {}
+    if (token) headers.Authorization = `Bearer ${token}`
+
+    try {
+      const r = await fetch(`${api}/api/trust-seal/${sealId}/preview-url`, { headers })
+      if (!r.ok) {
+        const errData = await r.json().catch(() => null)
+        if (errData?.code === 'S3_OBJECT_MISSING') return { url: null, expiresIn: 0, missing: true }
+        return { url: null, expiresIn: 0, missing: false }
+      }
+      const d = await r.json()
+      return { url: d?.previewUrl || null, expiresIn: d?.expiresIn || 3600, missing: false }
+    } catch {
+      return { url: null, expiresIn: 0, missing: false }
+    }
+  }, [sealId])
 
   useEffect(() => {
     const token = localStorage.getItem('tulip_token')
@@ -68,7 +92,7 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
 
     fetch(`${api}/api/trust-seal/${sealId}`, { headers })
       .then(r => r.ok ? r.json() : null)
-      .then(data => {
+      .then(async (data) => {
         if (!data) { setError(t('seal.sealNotFound')); setLoading(false); return }
         setSeal(data)
         setLoading(false)
@@ -76,19 +100,17 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
         // Get document preview URL if file exists
         if (data.s3Key) {
           setDocLoading(true)
-          fetch(`${api}/api/trust-seal/${sealId}/preview-url`, { headers })
-            .then(r => r.ok ? r.json() : null)
-            .then(d => {
-              if (d?.previewUrl) {
-                console.log('[TrustSealCard] previewUrl:', d.previewUrl?.substring(0, 120), 'fileType:', d.fileType)
-                setDocUrl(d.previewUrl)
-              } else {
-                console.warn('[TrustSealCard] No previewUrl returned')
-                setDocError(true)
-              }
-              setDocLoading(false)
-            })
-            .catch((err) => { console.error('[TrustSealCard] preview fetch error:', err); setDocLoading(false); setDocError(true) })
+          const result = await fetchPreviewUrl()
+          if (result.missing) {
+            setS3Missing(true)
+          } else if (result.url) {
+            console.log('[TrustSealCard] previewUrl:', result.url.substring(0, 120))
+            setDocUrl(result.url)
+            setExpiresIn(result.expiresIn)
+          } else {
+            setDocError(true)
+          }
+          setDocLoading(false)
         }
       })
       .catch(() => { setError(t('seal.failedToLoad')); setLoading(false) })
@@ -97,7 +119,21 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
     QRCode.toDataURL(verifyUrl, { width: 140, margin: 1, color: { dark: 'var(--tulip-forest)', light: 'var(--tulip-cream)' } })
       .then(url => setQrDataUrl(url))
       .catch(() => {})
-  }, [sealId, verifyUrl])
+  }, [sealId, verifyUrl, fetchPreviewUrl])
+
+  // Lazy refresh: get a fresh presigned URL before the current one expires
+  useEffect(() => {
+    if (!docUrl || docError || s3Missing) return
+    const refreshMs = Math.max((expiresIn - 120), 60) * 1000 // refresh 2 min before expiry
+    const timer = setTimeout(async () => {
+      const result = await fetchPreviewUrl()
+      if (result.url) {
+        setDocUrl(result.url)
+        setExpiresIn(result.expiresIn)
+      }
+    }, refreshMs)
+    return () => clearTimeout(timer)
+  }, [docUrl, docError, s3Missing, expiresIn, fetchPreviewUrl])
 
   const copyHash = useCallback(() => {
     if (!seal) return
@@ -180,7 +216,15 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
                   src={docUrl}
                   alt={seal.documentTitle}
                   className="w-full h-full object-contain max-h-[500px] rounded-lg shadow-sm"
-                  onError={() => { console.warn('[TrustSealCard] Image failed to load:', docUrl?.substring(0, 80)); setDocError(true) }}
+                  onError={async () => {
+                    console.warn('[TrustSealCard] Image failed to load:', docUrl?.substring(0, 80))
+                    if (retryCount < 1) {
+                      setRetryCount(c => c + 1)
+                      const result = await fetchPreviewUrl()
+                      if (result.url) { setDocUrl(result.url); setExpiresIn(result.expiresIn); return }
+                    }
+                    setDocError(true)
+                  }}
                 />
               ) : docUrl && docError ? (
                 <div className="flex flex-col items-center gap-4 text-[var(--tulip-forest)]/40">
@@ -201,6 +245,12 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
                     className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--tulip-gold)] text-[var(--tulip-forest)] text-sm font-medium hover:bg-[var(--tulip-orange)] transition-colors">
                     <Download size={14} /> {t('common.download')}
                   </a>
+                </div>
+              ) : s3Missing ? (
+                <div className="flex flex-col items-center gap-4 text-[var(--tulip-forest)]/40">
+                  <AlertTriangle size={48} className="text-[var(--tulip-orange)]" />
+                  <p className="text-sm font-medium text-[var(--tulip-forest)]/60">{seal.documentTitle}</p>
+                  <p className="text-xs text-[var(--tulip-forest)]/40">File unavailable in storage</p>
                 </div>
               ) : docError ? (
                 <div className="flex flex-col items-center gap-3 text-[var(--tulip-forest)]/40">

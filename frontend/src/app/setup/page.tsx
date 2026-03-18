@@ -180,8 +180,8 @@ export default function SetupWizardPage() {
       {/* Top bar */}
       <div className="border-b border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]/80 backdrop-blur-md">
         <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img src="/logo.svg" alt="sealayer" className="h-7" />
+          <div className="flex items-center">
+            <img src="/logo.svg" alt="sealayer" className="h-12" />
             {tenantName && (
               <>
                 <span className="text-[var(--tulip-forest)]/30 text-sm ml-1">|</span>

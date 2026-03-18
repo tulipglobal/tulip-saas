@@ -13,9 +13,9 @@ export default function DonorLandingPage() {
       {/* Nav */}
       <nav className="border-b border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]/95 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <img src="/logo.svg" alt="sealayer" className="h-8" />
-            <span className="text-[var(--tulip-forest)]/30 text-sm ml-1">| {t('donorPortal')}</span>
+          <Link href="/" className="flex items-center gap-3">
+            <img src="/logo.svg" alt="sealayer" className="h-14" />
+            <span className="text-[var(--tulip-forest)]/30 text-sm">| {t('donorPortal')}</span>
           </Link>
           <Link href="/login" className="text-[var(--tulip-forest)]/60 text-sm hover:text-[var(--tulip-forest)]/70 transition-colors">
             {t('ngoLogin')}

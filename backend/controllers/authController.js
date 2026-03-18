@@ -103,14 +103,14 @@ exports.register = async (req, res) => {
     console.log('[auth/register] SENDING welcome email to', email, '- firstName:', firstName, '- org:', organisationName)
     sendEmail({
       to: email,
-      subject: `Welcome to Tulip DS, ${firstName}!`,
+      subject: `Welcome to sealayer, ${firstName}!`,
       html: `
         <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto;">
           <div style="text-align: center; padding: 24px 0;">
-            <h1 style="color: #0c7aed; font-size: 24px; margin: 0;">Welcome to Tulip DS</h1>
+            <h1 style="color: #0c7aed; font-size: 24px; margin: 0;">Welcome to sealayer</h1>
           </div>
           <p>Hi ${firstName},</p>
-          <p>Your organisation <strong>${organisationName}</strong> has been created on Tulip DS. Your workspace code is <code>${code}</code>.</p>
+          <p>Your organisation <strong>${organisationName}</strong> has been created on sealayer. Your workspace code is <code>${code}</code>.</p>
           <p>Here's what you can do next:</p>
           <ol>
             <li><strong>Complete your organisation profile</strong> — add your logo, website, and registration details</li>
@@ -118,7 +118,7 @@ exports.register = async (req, res) => {
             <li><strong>Invite your team</strong> — add up to 3 colleagues to get started</li>
           </ol>
           <p style="margin-top: 24px;">
-            <a href="${process.env.APP_URL || 'https://app.tulipds.com'}/setup"
+            <a href="${process.env.APP_URL || 'https://app.sealayer.io'}/setup"
                style="background: #0c7aed; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
               Complete Setup →
             </a>
@@ -127,7 +127,7 @@ exports.register = async (req, res) => {
             Every record you create is cryptographically verified and anchored to the blockchain — giving your donors proof they can trust.
           </p>
           <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
-          <p style="color: #94a3b8; font-size: 12px;">Tulip DS</p>
+          <p style="color: #94a3b8; font-size: 12px;">sealayer</p>
         </div>
       `
     }).then(() => {

@@ -63,7 +63,7 @@ exports.createCheckout = async (req, res) => {
     if (!tenant || !user) return res.status(404).json({ error: 'Tenant or user not found' })
 
     const customerId = await getOrCreateCustomer(tenant, user)
-    const appUrl = process.env.APP_URL || 'https://app.tulipds.com'
+    const appUrl = process.env.APP_URL || 'https://app.sealayer.io'
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -187,7 +187,7 @@ exports.createPortalSession = async (req, res) => {
       return res.status(400).json({ error: 'No billing account found. Subscribe to a plan first.' })
     }
 
-    const appUrl = process.env.APP_URL || 'https://app.tulipds.com'
+    const appUrl = process.env.APP_URL || 'https://app.sealayer.io'
     const session = await stripe.billingPortal.sessions.create({
       customer: tenant.stripeCustomerId,
       return_url: `${appUrl}/dashboard/billing`,
@@ -205,7 +205,7 @@ function resolvePlanFromPriceId(priceId) {
   if (!priceId) return null
   if (priceId === process.env.STRIPE_STARTER_PRICE_ID) return 'STARTER'
   if (priceId === process.env.STRIPE_PRO_PRICE_ID) return 'PRO'
-  // Verify.tulipds.com price IDs
+  // Verify.sealayer.io price IDs
   if (priceId === 'price_1T9SPbBmaBA59eijDIOim7cX') return 'STARTER'
   if (priceId === 'price_1T9SQVBmaBA59eijmXjfiHvK') return 'PRO'
   return null
@@ -423,7 +423,7 @@ function getPlanLimits(plan) {
 exports.getPlanLimits = getPlanLimits
 
 // ═══════════════════════════════════════════════════════════════
-//  Verify.tulipds.com billing endpoints
+//  Verify.sealayer.io billing endpoints
 // ═══════════════════════════════════════════════════════════════
 
 const VERIFY_PLANS = {
@@ -463,8 +463,8 @@ exports.verifyCheckout = async (req, res) => {
       customer: customerId,
       mode: 'subscription',
       line_items: [{ price: VERIFY_PLANS[plan].priceId, quantity: 1 }],
-      success_url: 'https://verify.tulipds.com/dashboard?upgraded=true',
-      cancel_url: 'https://verify.tulipds.com/pricing',
+      success_url: 'https://verify.sealayer.io/dashboard?upgraded=true',
+      cancel_url: 'https://verify.sealayer.io/pricing',
       subscription_data: {
         metadata: { tenantId, plan, source: 'verify' },
       },

@@ -223,7 +223,7 @@ router.get('/ocr/jobs/:id', async (req, res) => {
     // Include hash and blockchain info when available
     if (job.hashValue) {
       response.hash = job.hashValue
-      response.verifyUrl = `https://verify.tulipds.com/verify?hash=${job.hashValue}`
+      response.verifyUrl = `https://verify.sealayer.io/verify?hash=${job.hashValue}`
       // Resolve sealId
       const seal = await prisma.trustSeal.findFirst({
         where: { rawHash: job.hashValue, tenantId: req.user.tenantId },

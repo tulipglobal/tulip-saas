@@ -21,7 +21,7 @@ const app = express()
 const httpServer = http.createServer(app)
 initSocketIO(httpServer)
 const cors = require('cors')
-app.use(cors({ origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:4000', 'http://localhost:4001', 'https://tulipds.com', 'https://www.tulipds.com', 'https://app.tulipds.com', 'https://donor.tulipds.com', 'https://verify.tulipds.com', 'https://app.sealayer.io', 'https://verify.sealayer.io', 'https://ngo.sealayer.io', 'https://donor.sealayer.io', 'https://admin.sealayer.io'], credentials: true }))
+app.use(cors({ origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:4000', 'http://localhost:4001', 'https://tulipds.com', 'https://www.tulipds.com', 'https://app.tulipds.com', 'https://donor.tulipds.com', 'https://verify.tulipds.com', 'https://sealayer.io', 'https://www.sealayer.io', 'https://api.sealayer.io', 'https://app.sealayer.io', 'https://verify.sealayer.io', 'https://ngo.sealayer.io', 'https://donor.sealayer.io', 'https://admin.sealayer.io'], credentials: true }))
 app.set('trust proxy', 1)
 
 const { apiLimiter, authLimiter, uploadLimiter, ocrLimiter, strictLimiter, verifyLimiter } = require('./middleware/rateLimit')

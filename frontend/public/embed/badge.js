@@ -1,8 +1,8 @@
 /**
- * Tulip DS — Embeddable Verification Badge v1.0
+ * sealayer — Embeddable Verification Badge v1.0
  *
  * Usage:
- *   <script src="https://tulipds.com/embed/badge.js"></script>
+ *   <script src="https://sealayer.io/embed/badge.js"></script>
  *   <div data-tulip-badge="DOCUMENT_HASH"></div>
  *
  * Options (via data attributes):
@@ -15,8 +15,8 @@
 ;(function () {
   'use strict'
 
-  var API = 'https://api.tulipds.com'
-  var APP = 'https://tulipds.com'
+  var API = 'https://api.sealayer.io'
+  var APP = 'https://sealayer.io'
 
   var STYLES = [
     ':host { display: inline-block; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }',
@@ -75,8 +75,8 @@
     link.href = APP + '/verify?hash=' + encodeURIComponent(hash)
     link.target = '_blank'
     link.rel = 'noopener noreferrer'
-    link.title = 'Verify on Tulip DS'
-    link.innerHTML = ICON_LOADING + '<div class="tulip-content"><span class="tulip-text">Checking\u2026</span><span class="tulip-label">Tulip DS</span></div>'
+    link.title = 'Verify on sealayer'
+    link.innerHTML = ICON_LOADING + '<div class="tulip-content"><span class="tulip-text">Checking\u2026</span><span class="tulip-label">sealayer</span></div>'
     shadow.appendChild(link)
 
     // Verify the hash
@@ -87,19 +87,19 @@
         var data = JSON.parse(xhr.responseText)
         if (data.verified) {
           link.className = 'tulip-badge ' + theme + ' verified' + (size === 'compact' ? ' compact' : '')
-          link.innerHTML = ICON_VERIFIED + '<div class="tulip-content"><span class="tulip-text">Verified</span><span class="tulip-label">Tulip DS \u00b7 Polygon</span></div>'
+          link.innerHTML = ICON_VERIFIED + '<div class="tulip-content"><span class="tulip-text">Verified</span><span class="tulip-label">sealayer \u00b7 Polygon</span></div>'
         } else {
           link.className = 'tulip-badge ' + theme + ' unverified' + (size === 'compact' ? ' compact' : '')
-          link.innerHTML = ICON_UNVERIFIED + '<div class="tulip-content"><span class="tulip-text">Unverified</span><span class="tulip-label">Tulip DS</span></div>'
+          link.innerHTML = ICON_UNVERIFIED + '<div class="tulip-content"><span class="tulip-text">Unverified</span><span class="tulip-label">sealayer</span></div>'
         }
       } catch (e) {
         link.className = 'tulip-badge ' + theme + ' unverified' + (size === 'compact' ? ' compact' : '')
-        link.innerHTML = ICON_UNVERIFIED + '<div class="tulip-content"><span class="tulip-text">Unverified</span><span class="tulip-label">Tulip DS</span></div>'
+        link.innerHTML = ICON_UNVERIFIED + '<div class="tulip-content"><span class="tulip-text">Unverified</span><span class="tulip-label">sealayer</span></div>'
       }
     }
     xhr.onerror = function () {
       link.className = 'tulip-badge ' + theme + ' unverified' + (size === 'compact' ? ' compact' : '')
-      link.innerHTML = ICON_UNVERIFIED + '<div class="tulip-content"><span class="tulip-text">Unverified</span><span class="tulip-label">Tulip DS</span></div>'
+      link.innerHTML = ICON_UNVERIFIED + '<div class="tulip-content"><span class="tulip-text">Unverified</span><span class="tulip-label">sealayer</span></div>'
     }
     xhr.send()
   }

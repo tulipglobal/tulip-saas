@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import CountrySelect from '@/components/CountrySelect'
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.tulipds.com'
+const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.sealayer.io'
 
 function authHeaders() {
   const token = typeof window !== 'undefined' ? localStorage.getItem('tulip_token') : null
@@ -186,7 +186,7 @@ export default function SetupWizardPage() {
               <Building2 className="w-3.5 h-3.5 text-[var(--tulip-forest)]" />
             </div>
             <span className="text-[var(--tulip-forest)] font-bold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
-              Sealayer
+              sealayer
             </span>
             {tenantName && (
               <>

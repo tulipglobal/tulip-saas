@@ -62,7 +62,7 @@ export default function LoginPage() {
             <Shield className="w-4 h-4 text-[var(--tulip-forest)]" />
           </div>
           <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: 'var(--tulip-forest)' }}>
-            Sealayer
+            sealayer
           </span>
         </Link>
 
@@ -84,7 +84,7 @@ export default function LoginPage() {
         </div>
 
         <p style={{ color: 'var(--tulip-forest)', fontSize: '12px', opacity: 0.7 }}>
-          © 2026 Sealayer · Bright Bytes Technology · Dubai, UAE
+          © 2026 sealayer · Bright Bytes Technology · Dubai, UAE
         </p>
       </div>
 
@@ -100,7 +100,7 @@ export default function LoginPage() {
               <Shield className="w-4 h-4 text-[var(--tulip-forest)]" />
             </div>
             <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: 'var(--tulip-forest)' }}>
-              Sealayer
+              sealayer
             </span>
           </Link>
 

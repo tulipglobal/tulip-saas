@@ -5,7 +5,7 @@ import { apiGet } from '@/lib/api'
 import { Code2, Copy, Check, ExternalLink, Eye } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
-const BADGE_SCRIPT_URL = 'https://tulipds.com/embed/badge.js'
+const BADGE_SCRIPT_URL = 'https://sealayer.io/embed/badge.js'
 
 function CodeBlock({ code, label, copiedLabel, copyLabel }: { code: string; label: string; copiedLabel: string; copyLabel: string }) {
   const [copied, setCopied] = useState(false)
@@ -59,8 +59,8 @@ export default function EmbedPage() {
     container.appendChild(el)
 
     // Inline badge renderer for preview (mirrors badge.js logic)
-    const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.tulipds.com'
-    const APP = 'https://tulipds.com'
+    const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.sealayer.io'
+    const APP = 'https://sealayer.io'
 
     const STYLES = `
       :host { display: inline-block; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -98,7 +98,7 @@ export default function EmbedPage() {
     link.href = `${APP}/verify?hash=${encodeURIComponent(selectedHash)}`
     link.target = '_blank'
     link.rel = 'noopener noreferrer'
-    link.innerHTML = ICON_LOADING + '<div class="tulip-content"><span class="tulip-text">Checking\u2026</span><span class="tulip-label">Sealayer</span></div>'
+    link.innerHTML = ICON_LOADING + '<div class="tulip-content"><span class="tulip-text">Checking\u2026</span><span class="tulip-label">sealayer</span></div>'
     shadow.appendChild(link)
 
     fetch(`${API}/api/verify/${encodeURIComponent(selectedHash)}`)
@@ -106,23 +106,23 @@ export default function EmbedPage() {
       .then(data => {
         if (data.verified) {
           link.className = `tulip-badge ${theme} verified${size === 'compact' ? ' compact' : ''}`
-          link.innerHTML = ICON_VERIFIED + '<div class="tulip-content"><span class="tulip-text">Verified</span><span class="tulip-label">Sealayer \u00b7 Polygon</span></div>'
+          link.innerHTML = ICON_VERIFIED + '<div class="tulip-content"><span class="tulip-text">Verified</span><span class="tulip-label">sealayer \u00b7 Polygon</span></div>'
         } else {
           link.className = `tulip-badge ${theme} unverified${size === 'compact' ? ' compact' : ''}`
-          link.innerHTML = ICON_UNVERIFIED + '<div class="tulip-content"><span class="tulip-text">Unverified</span><span class="tulip-label">Sealayer</span></div>'
+          link.innerHTML = ICON_UNVERIFIED + '<div class="tulip-content"><span class="tulip-text">Unverified</span><span class="tulip-label">sealayer</span></div>'
         }
       })
       .catch(() => {
         link.className = `tulip-badge ${theme} unverified${size === 'compact' ? ' compact' : ''}`
-        link.innerHTML = ICON_UNVERIFIED + '<div class="tulip-content"><span class="tulip-text">Unverified</span><span class="tulip-label">Sealayer</span></div>'
+        link.innerHTML = ICON_UNVERIFIED + '<div class="tulip-content"><span class="tulip-text">Unverified</span><span class="tulip-label">sealayer</span></div>'
       })
   }, [selectedHash, theme, size])
 
   const embedSnippet = selectedHash
-    ? `<!-- Sealayer Verification Badge -->\n<script src="${BADGE_SCRIPT_URL}"></script>\n<div data-tulip-badge="${selectedHash}"${theme !== 'light' ? ` data-tulip-theme="${theme}"` : ''}${size !== 'default' ? ` data-tulip-size="${size}"` : ''}></div>`
+    ? `<!-- sealayer Verification Badge -->\n<script src="${BADGE_SCRIPT_URL}"></script>\n<div data-tulip-badge="${selectedHash}"${theme !== 'light' ? ` data-tulip-theme="${theme}"` : ''}${size !== 'default' ? ` data-tulip-size="${size}"` : ''}></div>`
     : `<!-- ${t('selectHashFirst')} -->`
 
-  const genericSnippet = `<!-- Sealayer Verification Badge -->\n<script src="${BADGE_SCRIPT_URL}"></script>\n<div data-tulip-badge="YOUR_DOCUMENT_HASH"></div>`
+  const genericSnippet = `<!-- sealayer Verification Badge -->\n<script src="${BADGE_SCRIPT_URL}"></script>\n<div data-tulip-badge="YOUR_DOCUMENT_HASH"></div>`
 
   return (
     <div className="p-6 space-y-6 animate-fade-up max-w-4xl">

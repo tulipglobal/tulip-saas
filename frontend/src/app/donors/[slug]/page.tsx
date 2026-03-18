@@ -308,7 +308,7 @@ export default function NGOProfilePage({ params }: { params: Promise<{ slug: str
                       )}
                       {expense.dataHash && (
                         <Link href={`/verify?hash=${expense.dataHash}`} target="_blank"
-                          className="text-[var(--tulip-forest)]/30 hover:text-[var(--tulip-gold)] transition-colors" title="Verify on Sealayer">
+                          className="text-[var(--tulip-forest)]/30 hover:text-[var(--tulip-gold)] transition-colors" title="Verify on sealayer">
                           <Shield size={14} />
                         </Link>
                       )}

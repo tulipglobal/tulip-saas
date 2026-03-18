@@ -552,7 +552,7 @@
     "fraudScore": "Punteggio di frode",
     "notScored": "Non valutato",
     "allClear": "Tutti i controlli sono stati superati",
-    "poweredBy": "Realizzato da Sealayer",
+    "poweredBy": "Realizzato da sealayer",
     "loadingPreview": "Caricamento dell'anteprima in corso...",
     "confirmedOnPolygon": "Confermato su Polygon",
     "pendingAnchor": "Ancoraggio in sospeso",
@@ -566,7 +566,7 @@
     "downloadSealPdf": "Scarica il PDF del sigillo",
     "generating": "Generazione in corso...",
     "verifiedByTulip": "Verificato da",
-    "tulipDs": "Sealayer",
+    "tulipDs": "sealayer",
     "unableToPreview": "Impossibile visualizzare l'anteprima",
     "sealNotFound": "Sigillo non trovato",
     "failedToLoad": "Impossibile caricare il sigillo",
@@ -770,7 +770,7 @@
     "step04Title": "Timestamp RFC 3161",
     "step04Desc": "Timestamp certificato da FreeTSA. Ammissibile in sede legale ai sensi del regolamento eIDAS e dell’ESIGN Act.",
     "ctaTitle": "Sei pronto a dimostrare la tua integrità?",
-    "ctaDesc": "Unisciti alle ONG e alle aziende che utilizzano Sealayer per rendere i propri dati a prova di manomissione.",
+    "ctaDesc": "Unisciti alle ONG e alle aziende che utilizzano sealayer per rendere i propri dati a prova di manomissione.",
     "getStartedFree": "Inizia gratuitamente",
     "tryVerifier": "Prova il verificatore",
     "signIn": "Accedi",
@@ -782,7 +782,7 @@
     "privacy": "Privacy",
     "terms": "Condizioni",
     "status": "Stato",
-    "footer": "© 2026 Sealayer · Un prodotto Bright Bytes Technology · Dubai, Emirati Arabi Uniti · Tulip Management Consultancy Ltd, Londra, Regno Unito",
+    "footer": "© 2026 sealayer · Un prodotto Bright Bytes Technology · Dubai, Emirati Arabi Uniti · Tulip Management Consultancy Ltd, Londra, Regno Unito",
     "step": "PASSO"
   },
   "donors": {
@@ -791,7 +791,7 @@
     "heroBadge": "Ogni spesa verificata sulla blockchain di Polygon",
     "heroTitle1": "Dona tramite",
     "heroTitle2": "prova crittografica",
-    "heroDesc": "Ogni ONG presente su Sealayer pubblica documenti finanziari verificati e ancorati alla blockchain. Scopri esattamente dove vanno a finire i tuoi soldi — in modo dimostrabile.",
+    "heroDesc": "Ogni ONG presente su sealayer pubblica documenti finanziari verificati e ancorati alla blockchain. Scopri esattamente dove vanno a finire i tuoi soldi — in modo dimostrabile.",
     "sha256": "Con hash SHA-256",
     "polygonAnchored": "Ancorato a Polygon",
     "rfcTimestamped": "RFC 3161 con indicazione dell'ora",
@@ -810,7 +810,7 @@
     "good": "Bene",
     "fair": "Fiera",
     "verifiedSince": "Verificato il {date}",
-    "footer": "© 2026 Sealayer · Bright Bytes Technology · Dubai, Emirati Arabi Uniti"
+    "footer": "© 2026 sealayer · Bright Bytes Technology · Dubai, Emirati Arabi Uniti"
   },
   "language": {
     "en": "Italiano",
@@ -1016,7 +1016,7 @@
     "title": "Fatturazione",
     "subtitle": "Gestisci il tuo abbonamento, i dati di utilizzo e la cronologia dei pagamenti",
     "trialDaysLeft": "{days} giorni rimanenti della tua prova gratuita",
-    "trialChoosePlan": "Scegli uno dei piani qui sotto per continuare a utilizzare Sealayer al termine del periodo di prova",
+    "trialChoosePlan": "Scegli uno dei piani qui sotto per continuare a utilizzare sealayer al termine del periodo di prova",
     "trialExpired": "Il tuo periodo di prova gratuito è scaduto",
     "trialExpiredDesc": "Puoi visualizzare solo 5 documenti. Effettua l'upgrade qui sotto per sbloccare l'accesso completo.",
     "currentPlan": "Piano attuale",
@@ -1215,7 +1215,7 @@
     "starterFeature3": "Funzione di hash SHA-256",
     "starterFeature4": "Ancoraggio blockchain (Polygon)",
     "starterFeature5": "Pagina pubblica di verifica",
-    "starterFeature6": "Identità visiva di Sealayer",
+    "starterFeature6": "Identità visiva di sealayer",
     "starterFeature7": "Sostegno della comunità",
     "starterLimit1": "Nessun dominio personalizzato",
     "starterLimit2": "Nessun accesso all'API",
@@ -1230,7 +1230,7 @@
     "growthFeature8": "Esportazione in formato CSV",
     "growthFeature9": "Assistenza via e-mail",
     "growthLimit1": "Nessun dominio personalizzato",
-    "growthLimit2": "Identità visiva di Sealayer",
+    "growthLimit2": "Identità visiva di sealayer",
     "ngoFeature1": "Progetti illimitati",
     "ngoFeature2": "Fino a 10.000 voci di audit al mese",
     "ngoFeature3": "SHA-256 + timestamp RFC 3161",
@@ -1238,7 +1238,7 @@
     "ngoFeature5": "Pagina del portale pubblico dei donatori",
     "ngoFeature6": "Accesso all'API (1 chiave)",
     "ngoFeature7": "Webhook (3 endpoint)",
-    "ngoFeature8": "Rimuovere il marchio Sealayer",
+    "ngoFeature8": "Rimuovere il marchio sealayer",
     "ngoFeature9": "Esportazione in formato CSV",
     "ngoFeature10": "Assistenza via e-mail",
     "enterpriseFeature1": "Tutto illimitato",
@@ -1280,7 +1280,7 @@
     "ctaDesc": "Inizia gratis. Non serve la carta di credito. Il tuo primo anchor blockchain in meno di 5 minuti.",
     "startFree": "Inizia gratuitamente",
     "talkToUs": "Contattaci",
-    "footer": "© 2026 Sealayer · Bright Bytes Technology · Dubai, Emirati Arabi Uniti",
+    "footer": "© 2026 sealayer · Bright Bytes Technology · Dubai, Emirati Arabi Uniti",
     "apiDocs": "Documentazione API",
     "donorPortal": "Portale dei donatori",
     "getStarted": "Inizia",
@@ -1331,7 +1331,7 @@
     "expenses": "spese",
     "budget": "Bilancio",
     "pending": "In attesa",
-    "footer": "© 2026 Sealayer · Bright Bytes Technology · Dubai, Emirati Arabi Uniti"
+    "footer": "© 2026 sealayer · Bright Bytes Technology · Dubai, Emirati Arabi Uniti"
   },
   "acceptInvite": {
     "invalidInviteLink": "Link di invito non valido",
@@ -1360,7 +1360,7 @@
     "failedToAccept": "Impossibile accettare l'invito",
     "networkError": "Errore di rete",
     "acceptCreateAccount": "Accetta e crea un account",
-    "footerText": "Sealayer · Trasparenza finanziaria verificata tramite blockchain"
+    "footerText": "sealayer · Trasparenza finanziaria verificata tramite blockchain"
   },
   "donorFlags": {
     "title": "Bandiere dei donatori",
@@ -1549,7 +1549,7 @@
     "realTimeAccessDesc": "Visualizzare tutti i documenti condivisi non appena vengono caricati dalla vostra ONG partner",
     "tamperProof": "A prova di manomissione",
     "tamperProofDesc": "La sigillatura crittografica garantisce che nessun documento possa essere alterato dopo il caricamento",
-    "footer": "© 2026 Sealayer - Bright Bytes Technology - Dubai, UAE",
+    "footer": "© 2026 sealayer - Bright Bytes Technology - Dubai, UAE",
     "verifyADocument": "Verifica di un documento"
   },
   "donorLogin": {
@@ -1565,7 +1565,7 @@
     "noToken": "Nessun token in risposta",
     "connectError": "Impossibile connettersi al server. Controllare la console del browser per i dettagli.",
     "backToPortal": "Torna al portale dei donatori",
-    "footer": "Sealayer - Bright Bytes Technology - Dubai, EAU"
+    "footer": "sealayer - Bright Bytes Technology - Dubai, EAU"
   },
   "donorInvite": {
     "title": "Invitare il donatore",
@@ -2279,7 +2279,7 @@
     "thRef": "Rif.",
     "thVendor": "Venditore",
     "thAmount": "Importo",
-    "blockchainVerified": "Queste cifre sono verificate dalla blockchain di Sealayer.",
+    "blockchainVerified": "Queste cifre sono verificate dalla blockchain di sealayer.",
     "loadingData": "Caricamento dati...",
     "continue": "Continua",
     "orgDetails": "Dettagli sull'organizzazione",
@@ -2455,7 +2455,7 @@
     "needMoreHelp": "Hai bisogno di più aiuto?",
     "loginForSupport": "Accedi per creare un ticket di supporto.",
     "articleCount": "{count} articoli",
-    "gettingStartedBanner": "Nuovo su Sealayer? La nostra base di conoscenza ha tutto ciò di cui hai bisogno.",
+    "gettingStartedBanner": "Nuovo su sealayer? La nostra base di conoscenza ha tutto ciò di cui hai bisogno.",
     "viewGuide": "Vedi guida"
   }
 }

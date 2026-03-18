@@ -289,7 +289,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
         {(!collapsed || mobileOpen) && (
           <span className="font-bold text-[var(--tulip-cream)] text-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
-            Sealayer
+            sealayer
           </span>
         )}
         {/* Close button — mobile only */}
@@ -414,7 +414,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <span className="text-[var(--tulip-forest)] font-bold text-xs" style={{ fontFamily: 'Inter, sans-serif' }}>S</span>
               </div>
               <span className="font-bold text-[var(--tulip-forest)] text-base" style={{ fontFamily: 'Inter, sans-serif' }}>
-                Sealayer
+                sealayer
               </span>
             </div>
 

@@ -21,7 +21,7 @@ export default function DonorLoginPage() {
     setLoading(true)
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.tulipds.com'
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.sealayer.io'
       const res = await fetch(`${apiUrl}/api/donor-auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -65,11 +65,11 @@ export default function DonorLoginPage() {
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
+              style={{ background: 'var(--tulip-gold)' }}>
               <Shield className="w-4 h-4 text-[var(--tulip-forest)]" />
             </div>
             <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: 'var(--tulip-forest)' }}>
-              sea<span style={{ color: 'var(--tulip-gold)' }}>layer</span>
+              sealayer
             </span>
             <span className="text-[var(--tulip-forest)]/30 text-sm ml-1">| {t('donorPortal')}</span>
           </Link>
@@ -86,7 +86,7 @@ export default function DonorLoginPage() {
           {/* Header */}
           <div className="text-center mb-8">
             <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
+              style={{ background: 'var(--tulip-gold)' }}>
               <Shield className="w-7 h-7 text-[var(--tulip-forest)]" />
             </div>
             <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>

@@ -17,7 +17,7 @@ router.get('/subscription', authenticate, getSubscription)
 router.post('/create-checkout', authenticate, createCheckout)
 router.post('/portal', authenticate, createPortalSession)
 
-// verify.tulipds.com billing
+// verify.sealayer.io billing
 router.post('/verify-checkout', authenticate, verifyCheckout)
 router.get('/verify-subscription', authenticate, verifySubscription)
 

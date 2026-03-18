@@ -124,7 +124,7 @@ router.post('/issue', apiKeyAuth, async (req, res) => {
     })
 
     // Generate QR code
-    const verifyUrl = `https://verify.tulipds.com/verify?hash=${fullHash}`
+    const verifyUrl = `https://verify.sealayer.io/verify?hash=${fullHash}`
     const qrCodeDataUrl = await QRCode.toDataURL(verifyUrl, {
       width: 300,
       margin: 2,

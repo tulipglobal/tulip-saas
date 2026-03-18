@@ -124,14 +124,14 @@ exports.inviteTeam = async (req, res) => {
       try {
         await sendEmail({
           to: email,
-          subject: `You're invited to join ${tenant.name} on Tulip DS`,
+          subject: `You're invited to join ${tenant.name} on sealayer`,
           html: `
             <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto;">
               <h2 style="color: #0c7aed;">You've been invited!</h2>
-              <p>${inviter.name} has invited you to join <strong>${tenant.name}</strong> on Tulip DS — the transparency platform for NGOs.</p>
-              <p>Tulip DS provides blockchain-anchored audit trails, verified document management, and donor reporting tools.</p>
+              <p>${inviter.name} has invited you to join <strong>${tenant.name}</strong> on sealayer — the transparency platform for NGOs.</p>
+              <p>sealayer provides blockchain-anchored audit trails, verified document management, and donor reporting tools.</p>
               <p style="margin-top: 24px;">
-                <a href="${process.env.APP_URL || 'https://app.tulipds.com'}/register"
+                <a href="${process.env.APP_URL || 'https://app.sealayer.io'}/register"
                    style="background: #0c7aed; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
                   Accept Invitation
                 </a>

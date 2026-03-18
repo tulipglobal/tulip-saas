@@ -166,7 +166,7 @@ export default function DeveloperApiPage() {
   const [docsSection, setDocsSection] = useState<'ocr' | 'bundle'>('ocr')
   const [docsLang, setDocsLang] = useState<'curl' | 'python' | 'javascript'>('curl')
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.tulipds.com'
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.sealayer.io'
 
   const fetchKeys = useCallback(async () => {
     try {

@@ -8,20 +8,20 @@ const prisma = require('../lib/client')
 
 const APP_URL = process.env.APP_URL || 'https://app.sealayer.io'
 
-// ── Branded HTML wrapper — Sealayer.io ────────────────────────
+// ── Branded HTML wrapper — sealayer.io ────────────────────────
 function wrap(body) {
   return `
     <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 520px; margin: 0 auto; background: #ffffff;">
       <div style="background: #0d9488; text-align: center; padding: 28px 0 20px; border-radius: 8px 8px 0 0;">
-        <h1 style="color: #ffffff; font-size: 22px; margin: 0; font-weight: 700;">Sealayer</h1>
+        <h1 style="color: #ffffff; font-size: 22px; margin: 0; font-weight: 700;">sealayer</h1>
         <p style="color: #ccfbf1; font-size: 12px; margin-top: 2px;">Verification Infrastructure</p>
       </div>
       <div style="padding: 0 24px 24px;">
         ${body}
       </div>
       <div style="border-top: 1px solid #e2e8f0; padding: 16px 24px; text-align: center;">
-        <p style="color: #94a3b8; font-size: 11px; margin: 0;">Powered by <strong>Sealayer.io</strong></p>
-        <p style="color: #cbd5e1; font-size: 10px; margin: 4px 0 0;">You received this because you have an account on <a href="${APP_URL}" style="color: #0d9488; text-decoration: none;">Sealayer</a></p>
+        <p style="color: #94a3b8; font-size: 11px; margin: 0;">Powered by <strong>sealayer.io</strong></p>
+        <p style="color: #cbd5e1; font-size: 10px; margin: 4px 0 0;">You received this because you have an account on <a href="${APP_URL}" style="color: #0d9488; text-decoration: none;">sealayer</a></p>
       </div>
     </div>
   `
@@ -159,7 +159,7 @@ async function notifyMemberJoined({ tenantId, memberName, memberEmail }) {
         html: wrap(`
           <h2 style="color: #1e293b; font-size: 18px; margin: 0 0 12px;">New Team Member</h2>
           <p style="color: #475569; font-size: 14px; line-height: 1.6;">
-            <strong>${memberName}</strong> (${memberEmail}) has joined your Tulip DS workspace.
+            <strong>${memberName}</strong> (${memberEmail}) has joined your sealayer workspace.
           </p>
           <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 16px 0;">
             <p style="color: #166534; font-size: 14px; margin: 0;">Team member added successfully</p>
@@ -182,7 +182,7 @@ async function notifyTrialExpiringSoon({ tenantId, tenantName, daysLeft }) {
       const firstName = (admin.name || '').split(' ')[0] || 'there'
       await sendEmail({
         to: admin.email,
-        subject: `Your Tulip DS trial expires in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}`,
+        subject: `Your sealayer trial expires in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}`,
         html: wrap(`
           <h2 style="color: #1e293b; font-size: 18px; margin: 0 0 12px;">Your Trial is Ending Soon</h2>
           <p style="color: #475569; font-size: 14px; line-height: 1.6;">
@@ -212,7 +212,7 @@ async function notifyTrialExpired({ tenantId, tenantName }) {
       const firstName = (admin.name || '').split(' ')[0] || 'there'
       await sendEmail({
         to: admin.email,
-        subject: `Your Tulip DS free trial has expired`,
+        subject: `Your sealayer free trial has expired`,
         html: wrap(`
           <h2 style="color: #1e293b; font-size: 18px; margin: 0 0 12px;">Your Free Trial Has Expired</h2>
           <p style="color: #475569; font-size: 14px; line-height: 1.6;">
@@ -242,11 +242,11 @@ async function notifyPaymentFailed({ tenantId, tenantName }) {
       const firstName = (admin.name || '').split(' ')[0] || 'there'
       await sendEmail({
         to: admin.email,
-        subject: `Payment failed for your Tulip DS subscription`,
+        subject: `Payment failed for your sealayer subscription`,
         html: wrap(`
           <h2 style="color: #dc2626; font-size: 18px; margin: 0 0 12px;">Payment Failed</h2>
           <p style="color: #475569; font-size: 14px; line-height: 1.6;">
-            Hi ${firstName}, we were unable to process the latest payment for <strong>${tenantName}</strong>'s Tulip DS subscription.
+            Hi ${firstName}, we were unable to process the latest payment for <strong>${tenantName}</strong>'s sealayer subscription.
           </p>
           <p style="color: #475569; font-size: 14px; line-height: 1.6;">
             Please update your payment method to avoid any interruption to your service.
@@ -287,7 +287,7 @@ async function notifyDonorsNewDocument({ tenantId, documentName, projectName, ca
       select: { name: true },
     })
     const orgName = tenant?.name || 'Your NGO partner'
-    const DONOR_URL = process.env.DONOR_URL || 'https://donor.tulipds.com'
+    const DONOR_URL = process.env.DONOR_URL || 'https://donor.sealayer.io'
 
     const categoryLabels = {
       licence: 'Licence', certificate: 'Certificate', contract: 'Contract',

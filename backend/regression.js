@@ -6,7 +6,7 @@ const http = require("http");
 const https = require("https");
 
 // ── Configurable base URLs ────────────────────────────────────
-const API_BASE = process.env.API_BASE || "https://api.tulipds.com";
+const API_BASE = process.env.API_BASE || "https://api.sealayer.io";
 const NGO_BASE = process.env.NGO_BASE || "https://app.sealayer.io";
 const DONOR_BASE = process.env.DONOR_BASE || "https://donor.sealayer.io";
 

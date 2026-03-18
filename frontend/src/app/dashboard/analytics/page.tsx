@@ -157,7 +157,7 @@ async function generateImpactReport() {
     doc.setTextColor(...LIGHT_GREY)
     doc.text(orgName, 20, H - 14)
     doc.text(`Generated ${dateStr}`, W / 2, H - 14, { align: 'center' })
-    doc.text('Powered by Sealayer', W - 20, H - 14, { align: 'right' })
+    doc.text('Powered by sealayer', W - 20, H - 14, { align: 'right' })
     doc.text(`Page ${pageNum} of ${totalPages}`, W / 2, H - 9, { align: 'center' })
   }
 

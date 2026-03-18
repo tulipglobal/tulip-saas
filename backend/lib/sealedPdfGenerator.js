@@ -43,7 +43,7 @@ async function generateSealedPdf(opts) {
     anchoredAt,
   } = opts
 
-  const verifyUrl = `https://verify.tulipds.com/seal/${sealId}`
+  const verifyUrl = `https://verify.sealayer.io/seal/${sealId}`
 
   // Generate QR code as PNG buffer
   const qrPngBuffer = await QRCode.toBuffer(verifyUrl, {

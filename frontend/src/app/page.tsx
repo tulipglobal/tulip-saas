@@ -8,7 +8,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher'
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
-  name: 'Sealayer',
+  name: 'sealayer',
   applicationCategory: 'BusinessApplication',
   operatingSystem: 'Web',
   description: 'Blockchain-verified audit trails, RFC 3161 timestamps, and document verification for NGOs, donors, and enterprises.',
@@ -45,7 +45,7 @@ export default function HomePage() {
               <Shield className="w-4 h-4 text-[var(--tulip-forest)]" />
             </div>
             <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: 'var(--tulip-forest)' }}>
-              sea<span style={{ color: 'var(--tulip-gold)' }}>layer</span>
+              sealayer
             </span>
           </div>
           <div className="hidden md:flex items-center gap-8">
@@ -282,7 +282,7 @@ export default function HomePage() {
                 <Shield className="w-3.5 h-3.5 text-[var(--tulip-forest)]" />
               </div>
               <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, color: 'var(--tulip-forest)', fontSize: '16px' }}>
-                sea<span style={{ color: 'var(--tulip-gold)' }}>layer</span>
+                sealayer
               </span>
             </div>
             <p style={{ color: 'var(--tulip-forest)', fontSize: '13px', textAlign: 'center', opacity: 0.7 }}>

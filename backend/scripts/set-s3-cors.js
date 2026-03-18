@@ -25,9 +25,9 @@ async function main() {
       CORSRules: [
         {
           AllowedOrigins: [
-            'https://verify.tulipds.com',
-            'https://tulipds.com',
-            'https://api.tulipds.com',
+            'https://verify.sealayer.io',
+            'https://sealayer.io',
+            'https://api.sealayer.io',
           ],
           AllowedMethods: ['GET', 'HEAD'],
           AllowedHeaders: ['*'],

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Setup Your Organisation — Sealayer',
+  title: 'Setup Your Organisation — sealayer',
   description: 'Complete your organisation profile, create your first project, and invite your team.',
 }
 

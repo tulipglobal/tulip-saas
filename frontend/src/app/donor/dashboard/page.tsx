@@ -125,7 +125,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   mou: 'MOU',
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.tulipds.com'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.sealayer.io'
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -706,11 +706,11 @@ export default function DonorDashboardPage() {
           <div className="flex items-center gap-3">
             <Link href="/donor/dashboard" className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
+                style={{ background: 'var(--tulip-gold)' }}>
                 <Shield className="w-4 h-4 text-[var(--tulip-forest)]" />
               </div>
               <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: 'var(--tulip-forest)' }}>
-                sea<span style={{ color: '#34d399' }}>layer</span>
+                sealayer
               </span>
             </Link>
             <span className="text-[var(--tulip-forest)]/30 text-sm">|</span>
@@ -838,7 +838,7 @@ export default function DonorDashboardPage() {
       <footer className="border-t border-[var(--tulip-sage-dark)] py-6 mt-8">
         <div className="max-w-6xl mx-auto px-4 md:px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="text-[var(--tulip-forest)]/30 text-xs">
-            &copy; 2026 Sealayer &middot; Bright Bytes Technology &middot; Dubai, UAE
+            &copy; 2026 sealayer &middot; Bright Bytes Technology &middot; Dubai, UAE
           </p>
           <Link href="/verify" className="flex items-center gap-1.5 text-[var(--tulip-forest)]/30 text-xs hover:text-[var(--tulip-forest)]/60 transition-colors">
             <Hash size={12} /> {t('verifyADocument')}

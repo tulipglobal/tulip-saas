@@ -8,7 +8,7 @@
 const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses')
 
 const AWS_REGION = process.env.AWS_REGION || 'ap-south-1'
-const EMAIL_FROM = process.env.EMAIL_FROM || process.env.SMTP_FROM || 'noreply@tulipds.com'
+const EMAIL_FROM = process.env.EMAIL_FROM || process.env.SMTP_FROM || 'noreply@sealayer.io'
 const MASTER_ALERT_EMAIL = process.env.MASTER_ALERT_EMAIL || null
 
 // Only create client if AWS credentials exist

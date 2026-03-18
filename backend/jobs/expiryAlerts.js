@@ -11,7 +11,7 @@ const logger = require('../lib/logger')
 const { dispatch: webhookDispatch } = require('../services/webhookService')
 const { createAuditLog } = require('../services/auditService')
 
-const APP_URL = process.env.APP_URL || 'https://app.tulipds.com'
+const APP_URL = process.env.APP_URL || 'https://app.sealayer.io'
 
 // Get admin emails for a tenant
 async function getAdminEmails(tenantId) {
@@ -59,7 +59,7 @@ async function sendExpiryEmail({ doc, daysLeft, adminEmails, projectName }) {
         html: [
           '<div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:30px">',
           '<div style="text-align:center;margin-bottom:30px">',
-          '<h1 style="color:#0c7aed;font-size:24px;margin:0">Tulip DS</h1>',
+          '<h1 style="color:#0c7aed;font-size:24px;margin:0">Sealayer</h1>',
           '<p style="color:#64748b;font-size:13px;margin-top:4px">Verification Infrastructure</p>',
           '</div>',
           '<h2 style="color:#1e293b;font-size:20px;margin:0 0 16px">Document Expiry Alert</h2>',
@@ -77,7 +77,7 @@ async function sendExpiryEmail({ doc, daysLeft, adminEmails, projectName }) {
           `<a href="${APP_URL}/dashboard/documents" style="display:inline-block;padding:14px 28px;background-color:#0c7aed;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px">View Document</a>`,
           '</div>',
           '<hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0"/>',
-          '<p style="color:#94a3b8;font-size:11px;text-align:center">Tulip DS</p>',
+          '<p style="color:#94a3b8;font-size:11px;text-align:center">Sealayer</p>',
           '</div>',
         ].join(''),
       })

@@ -7,8 +7,8 @@ const { sendEmail } = require('./emailService')
 const logger = require('../lib/logger')
 
 const BRAND = '#0c7aed'
-const APP_URL = process.env.APP_URL || 'https://app.tulipds.com'
-const VERIFY_URL = 'https://verify.tulipds.com'
+const APP_URL = process.env.APP_URL || 'https://app.sealayer.io'
+const VERIFY_URL = 'https://verify.sealayer.io'
 
 function wrap(body) {
   return `
@@ -19,8 +19,8 @@ function wrap(body) {
       ${body}
       <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 32px 0 16px;" />
       <p style="color: #94a3b8; font-size: 11px; text-align: center;">
-        Tulip DS — Blockchain-anchored document verification<br/>
-        <a href="${VERIFY_URL}" style="color: ${BRAND};">verify.tulipds.com</a>
+        Sealayer — Blockchain-anchored document verification<br/>
+        <a href="${VERIFY_URL}" style="color: ${BRAND};">verify.sealayer.io</a>
       </p>
     </div>
   `

@@ -117,8 +117,8 @@ router.post('/issue', upload.single('file'), async (req, res) => {
     if (issuedToEmail) sealData.issuedToEmail = issuedToEmail
     const seal = await db.trustSeal.create({ data: sealData })
 
-    // Generate QR code pointing to verify.tulipds.com/seal/[id]
-    const verifyUrl = `https://verify.tulipds.com/seal/${seal.id}`
+    // Generate QR code pointing to verify.sealayer.io/seal/[id]
+    const verifyUrl = `https://verify.sealayer.io/seal/${seal.id}`
     const qrCodeDataUrl = await QRCode.toDataURL(verifyUrl, {
       width: 300,
       margin: 2,

@@ -72,7 +72,7 @@ export default function PublicCategoryPage() {
               <span className="font-bold text-sm" style={{ color: 'var(--tulip-forest, #183a1d)', fontFamily: 'Inter, sans-serif' }}>S</span>
             </div>
             <span className="font-bold text-lg" style={{ color: 'var(--tulip-forest, #183a1d)', fontFamily: 'Inter, sans-serif' }}>
-              Sealayer
+              sealayer
             </span>
           </Link>
           <Link
@@ -173,7 +173,7 @@ export default function PublicCategoryPage() {
       {/* Footer */}
       <footer className="border-t py-6 px-4 text-center mt-12" style={{ borderColor: 'var(--tulip-sage-dark, #c8d6c0)' }}>
         <p className="text-xs" style={{ color: 'rgba(24,58,29,0.4)' }}>
-          &copy; {new Date().getFullYear()} Sealayer. All rights reserved.
+          &copy; {new Date().getFullYear()} sealayer. All rights reserved.
         </p>
       </footer>
     </div>

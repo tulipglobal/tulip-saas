@@ -280,7 +280,7 @@ router.get('/export', can('audit:read'), async (req, res) => {
       'the Polygon blockchain for tamper-proof',
       'verification.',
       '',
-      'Verify any hash at: https://tulipds.com/verify',
+      'Verify any hash at: https://sealayer.io/verify',
       '═══════════════════════════════════════════════',
     ].join('\n')
     archive.append(summary, { name: 'summary.txt' })

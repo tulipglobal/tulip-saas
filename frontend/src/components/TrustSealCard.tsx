@@ -173,15 +173,25 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
                   <div className="w-8 h-8 border-2 border-[var(--tulip-gold)] border-t-transparent rounded-full animate-spin" />
                   <p className="text-xs text-[var(--tulip-forest)]/40">{t('seal.loadingPreview')}</p>
                 </div>
-              ) : docUrl && isPdf ? (
+              ) : docUrl && isPdf && !docError ? (
                 <iframe src={docUrl} className="w-full h-[500px] rounded-lg border border-[var(--tulip-sage-dark)]" title={seal.documentTitle} />
-              ) : docUrl && isImage ? (
+              ) : docUrl && isImage && !docError ? (
                 <img
                   src={docUrl}
                   alt={seal.documentTitle}
                   className="w-full h-full object-contain max-h-[500px] rounded-lg shadow-sm"
                   onError={() => { console.warn('[TrustSealCard] Image failed to load:', docUrl?.substring(0, 80)); setDocError(true) }}
                 />
+              ) : docUrl && docError ? (
+                <div className="flex flex-col items-center gap-4 text-[var(--tulip-forest)]/40">
+                  {isImage ? <ImageIcon size={56} className="text-[var(--tulip-forest)]/30" /> : <FileText size={56} className="text-[var(--tulip-forest)]/30" />}
+                  <p className="text-sm font-medium text-[var(--tulip-forest)]/60">{seal.documentTitle}</p>
+                  <p className="text-xs text-[var(--tulip-forest)]/40">{t('seal.unableToPreview')}</p>
+                  <a href={docUrl} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--tulip-gold)] text-[var(--tulip-forest)] text-sm font-medium hover:bg-[var(--tulip-orange)] transition-colors">
+                    <Download size={14} /> {t('common.download')}
+                  </a>
+                </div>
               ) : docUrl ? (
                 <div className="flex flex-col items-center gap-4 text-[var(--tulip-forest)]/40">
                   <FileText size={56} className="text-[var(--tulip-forest)]/30" />

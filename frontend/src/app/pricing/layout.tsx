@@ -5,14 +5,14 @@ export const metadata: Metadata = {
   description: 'Simple, transparent pricing for blockchain-verified audit trails. Start free, scale as you grow. No hidden fees.',
   alternates: { canonical: 'https://sealayer.io/pricing' },
   openGraph: {
-    title: 'Pricing — Sealayer',
+    title: 'Pricing — sealayer',
     description: 'Simple, transparent pricing for blockchain-verified audit trails. Start free, scale as you grow.',
     url: 'https://sealayer.io/pricing',
     type: 'website',
   },
   twitter: {
     card: 'summary',
-    title: 'Pricing — Sealayer',
+    title: 'Pricing — sealayer',
     description: 'Simple, transparent pricing for blockchain-verified audit trails. Start free, scale as you grow.',
   },
 }

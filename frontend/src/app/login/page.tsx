@@ -65,11 +65,9 @@ export default function LoginPage() {
           style={{ background: 'radial-gradient(circle, #ff751f 0%, transparent 70%)' }} />
 
         <div className="relative z-10 flex flex-col items-center justify-center w-full h-full px-10">
-          {/* Logo on light card */}
+          {/* Logo */}
           <Link href="/" className="block">
-            <div className="rounded-3xl px-8 py-6 mx-auto" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(20px)' }}>
-              <img src="/logo.svg" alt="sealayer" className="mx-auto" style={{ height: '280px' }} />
-            </div>
+            <img src="/logo-dark.svg" alt="sealayer" className="mx-auto" style={{ height: '280px' }} />
           </Link>
 
           {/* Tagline */}
@@ -88,7 +86,7 @@ export default function LoginPage() {
             {[t('auth.feat1'), t('auth.feat2'), t('auth.feat3'), t('auth.feat4')].map(feat => (
               <div key={feat} className="flex items-center gap-2.5 px-4 py-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
                 <div className="w-2 h-2 rounded-full shrink-0" style={{ background: 'var(--tulip-gold)' }} />
-                <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontWeight: 500 }}>{feat}</span>
+                <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontWeight: 700 }}>{feat}</span>
               </div>
             ))}
           </div>

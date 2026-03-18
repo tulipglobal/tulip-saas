@@ -41,12 +41,7 @@ export default function HomePage() {
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[var(--tulip-sage-dark)] backdrop-blur-md bg-[var(--tulip-sage)]/95">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--tulip-gold)' }}>
-              <Shield className="w-4 h-4 text-[var(--tulip-forest)]" />
-            </div>
-            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: 'var(--tulip-forest)' }}>
-              sealayer
-            </span>
+            <img src="/logo.svg" alt="sealayer" className="h-8" />
           </div>
           <div className="hidden md:flex items-center gap-8">
             {[
@@ -278,12 +273,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--tulip-gold)' }}>
-                <Shield className="w-3.5 h-3.5 text-[var(--tulip-forest)]" />
-              </div>
-              <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, color: 'var(--tulip-forest)', fontSize: '16px' }}>
-                sealayer
-              </span>
+              <img src="/logo.svg" alt="sealayer" className="h-7" />
             </div>
             <p style={{ color: 'var(--tulip-forest)', fontSize: '13px', textAlign: 'center', opacity: 0.7 }}>
               {t('landing.footer')}

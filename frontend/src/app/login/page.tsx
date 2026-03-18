@@ -58,12 +58,7 @@ export default function LoginPage() {
       {/* Left panel */}
       <div className="hidden lg:flex lg:w-1/2 tulip-mesh flex-col justify-between p-12">
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--tulip-gold)' }}>
-            <Shield className="w-4 h-4 text-[var(--tulip-forest)]" />
-          </div>
-          <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: 'var(--tulip-forest)' }}>
-            sealayer
-          </span>
+          <img src="/logo.svg" alt="sealayer" className="h-8" />
         </Link>
 
         <div>
@@ -96,12 +91,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <Link href="/" className="flex items-center gap-2 mb-8 lg:hidden">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--tulip-gold)' }}>
-              <Shield className="w-4 h-4 text-[var(--tulip-forest)]" />
-            </div>
-            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: 'var(--tulip-forest)' }}>
-              sealayer
-            </span>
+            <img src="/logo.svg" alt="sealayer" className="h-8" />
           </Link>
 
           <div className="animate-fade-up">

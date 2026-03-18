@@ -284,14 +284,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         'flex items-center border-b border-[var(--tulip-cream)]/10 h-16 shrink-0',
         collapsed && !mobileOpen ? 'justify-center px-0' : 'px-5 gap-3'
       )}>
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-[var(--tulip-gold)]">
-          <span className="text-[var(--tulip-forest)] font-bold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>S</span>
-        </div>
-        {(!collapsed || mobileOpen) && (
-          <span className="font-bold text-[var(--tulip-cream)] text-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
-            sealayer
-          </span>
-        )}
+        <img src="/logo.svg" alt="sealayer" className={clsx('shrink-0 transition-all', collapsed && !mobileOpen ? 'h-7 w-7 object-contain' : 'h-8')} style={{ filter: 'brightness(0) invert(1)' }} />
         {/* Close button — mobile only */}
         {mobileOpen && (
           <button onClick={() => setMobileOpen(false)} className="ml-auto text-[var(--tulip-cream)]/60 hover:text-[var(--tulip-cream)] md:hidden">
@@ -410,12 +403,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             {/* Logo — mobile only (centered feel) */}
             <div className="md:hidden flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-[var(--tulip-gold)]">
-                <span className="text-[var(--tulip-forest)] font-bold text-xs" style={{ fontFamily: 'Inter, sans-serif' }}>S</span>
-              </div>
-              <span className="font-bold text-[var(--tulip-forest)] text-base" style={{ fontFamily: 'Inter, sans-serif' }}>
-                sealayer
-              </span>
+              <img src="/logo.svg" alt="sealayer" className="h-7" />
             </div>
 
             {/* Search — desktop only */}

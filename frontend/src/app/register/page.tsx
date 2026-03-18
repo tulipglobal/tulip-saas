@@ -219,8 +219,7 @@ export default function RegisterPage() {
         {/* LEFT PANEL */}
         <div className="panel-left">
           <a href="/" className="logo">
-            <div className="logo-mark">🌷</div>
-            sealayer
+            <img src="/logo.svg" alt="sealayer" style={{ height: '34px' }} />
           </a>
           <div className="left-body">
             <div className="left-eyebrow">{t('eyebrow')}</div>

@@ -48,8 +48,8 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[var(--admin-sidebar)] mb-4">
-            <Shield size={28} className="text-white" />
+          <div className="inline-flex items-center justify-center mb-4">
+            <img src="/logo.svg" alt="sealayer" className="h-14" />
           </div>
           <h1 className="text-2xl font-bold text-[var(--admin-text)]">sealayer Admin</h1>
           <p className="text-sm text-[var(--admin-text-secondary)] mt-1">Platform administration portal</p>

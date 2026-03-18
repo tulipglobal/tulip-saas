@@ -64,13 +64,7 @@ export default function DonorLoginPage() {
       <nav className="border-b border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]/95 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: 'var(--tulip-gold)' }}>
-              <Shield className="w-4 h-4 text-[var(--tulip-forest)]" />
-            </div>
-            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: 'var(--tulip-forest)' }}>
-              sealayer
-            </span>
+            <img src="/logo.svg" alt="sealayer" className="h-8" />
             <span className="text-[var(--tulip-forest)]/30 text-sm ml-1">| {t('donorPortal')}</span>
           </Link>
           <Link href="/login" className="text-[var(--tulip-forest)]/60 text-sm hover:text-[var(--tulip-forest)]/70 transition-colors">
@@ -85,9 +79,8 @@ export default function DonorLoginPage() {
 
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
-              style={{ background: 'var(--tulip-gold)' }}>
-              <Shield className="w-7 h-7 text-[var(--tulip-forest)]" />
+            <div className="mx-auto mb-4 flex items-center justify-center">
+              <img src="/logo.svg" alt="sealayer" className="h-14" />
             </div>
             <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>
               {t('title')}
@@ -142,7 +135,7 @@ export default function DonorLoginPage() {
 
             <button type="submit" disabled={loading || !email || !password}
               className="w-full py-3 rounded-xl text-white font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
+              style={{ background: 'var(--tulip-gold)' }}>
               {loading
                 ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 : t('signInButton')

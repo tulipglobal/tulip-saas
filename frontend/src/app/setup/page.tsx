@@ -181,13 +181,7 @@ export default function SetupWizardPage() {
       <div className="border-b border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]/80 backdrop-blur-md">
         <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-              style={{ background: 'var(--tulip-gold)' }}>
-              <Building2 className="w-3.5 h-3.5 text-[var(--tulip-forest)]" />
-            </div>
-            <span className="text-[var(--tulip-forest)] font-bold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
-              sealayer
-            </span>
+            <img src="/logo.svg" alt="sealayer" className="h-7" />
             {tenantName && (
               <>
                 <span className="text-[var(--tulip-forest)]/30 text-sm ml-1">|</span>

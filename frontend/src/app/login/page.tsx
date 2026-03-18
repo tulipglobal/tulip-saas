@@ -56,12 +56,12 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex" style={{ fontFamily: 'Inter, sans-serif' }}>
       {/* Left panel */}
-      <div className="hidden lg:flex lg:w-1/2 tulip-mesh flex-col justify-between p-12">
-        <Link href="/" className="flex items-center">
-          <img src="/logo.svg" alt="sealayer" style={{ height: '320px' }} />
+      <div className="hidden lg:flex lg:w-1/2 tulip-mesh flex-col p-8 pt-6 pl-6">
+        <Link href="/" className="flex items-start">
+          <img src="/logo.svg" alt="sealayer" style={{ height: '256px' }} />
         </Link>
 
-        <div>
+        <div className="mt-4 flex-1">
           <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '40px', color: 'var(--tulip-forest)', lineHeight: 1.2, letterSpacing: '-0.02em' }}>
             {t('auth.tagline1')}<br />
             <span style={{ color: 'var(--tulip-gold)' }}>{t('auth.tagline2')}</span><br />
@@ -71,7 +71,7 @@ export default function LoginPage() {
             {t('auth.taglineDesc')}
           </p>
 
-          <div className="mt-10 space-y-3">
+          <div className="mt-8 space-y-3">
             {[t('auth.feat1'), t('auth.feat2'), t('auth.feat3'), t('auth.feat4')].map(feat => (
               <p key={feat} style={{ color: 'var(--tulip-forest)', fontSize: '14px', opacity: 0.7 }}>{feat}</p>
             ))}
@@ -91,7 +91,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <Link href="/" className="flex items-center mb-8 lg:hidden">
-            <img src="/logo.svg" alt="sealayer" style={{ height: '320px' }} />
+            <img src="/logo.svg" alt="sealayer" style={{ height: '150px' }} />
           </Link>
 
           <div className="animate-fade-up">

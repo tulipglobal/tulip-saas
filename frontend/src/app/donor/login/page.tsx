@@ -64,7 +64,7 @@ export default function DonorLoginPage() {
       <nav className="border-b border-[var(--tulip-sage-dark)] bg-[var(--tulip-sage)]/95 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <img src="/logo.svg" alt="sealayer" style={{ height: '320px' }} />
+            <img src="/logo.svg" alt="sealayer" style={{ height: '56px' }} />
             <span className="text-[var(--tulip-forest)]/30 text-sm">| {t('donorPortal')}</span>
           </Link>
           <Link href="/login" className="text-[var(--tulip-forest)]/60 text-sm hover:text-[var(--tulip-forest)]/70 transition-colors">
@@ -80,7 +80,7 @@ export default function DonorLoginPage() {
           {/* Header */}
           <div className="text-center mb-8">
             <div className="mx-auto mb-4 flex items-center justify-center">
-              <img src="/logo.svg" alt="sealayer" style={{ height: '320px' }} />
+              <img src="/logo.svg" alt="sealayer" style={{ height: '56px' }} />
             </div>
             <h1 className="text-2xl font-bold text-[var(--tulip-forest)]" style={{ fontFamily: 'Inter, sans-serif' }}>
               {t('title')}

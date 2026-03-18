@@ -557,7 +557,7 @@ const TOTAL = 214;
     for (const s of recentSeals) {
       let key = s.s3Key;
       if (key.startsWith("http")) { try { key = decodeURIComponent(new URL(key).pathname.substring(1)); } catch {} }
-      if (await headObject(key)) accessible++;
+      const head = await headObject(key); if (head.exists) accessible++;
     }
     log("84b", "S3 objects exist for recent seals (" + accessible + "/" + recentSeals.length + ")",
       accessible === recentSeals.length ? "PASS" : "FAIL",

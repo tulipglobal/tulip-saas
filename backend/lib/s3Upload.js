@@ -87,9 +87,14 @@ async function getPresignedUrlFromKey(key, expiresIn = 3600, options = {}) {
 async function headObject(key) {
   try {
     await s3.send(new HeadObjectCommand({ Bucket: BUCKET, Key: key }))
-    return true
-  } catch {
-    return false
+    return { exists: true }
+  } catch (err) {
+    const status = err.$metadata?.httpStatusCode
+    if (status === 404 || err.name === 'NotFound' || err.name === 'NoSuchKey') {
+      return { exists: false, notFound: true }
+    }
+    // Non-404 errors (network, permissions, etc.) — don't assume missing
+    return { exists: false, notFound: false, error: err.message }
   }
 }
 

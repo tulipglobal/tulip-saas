@@ -217,11 +217,15 @@ router.get('/:id/preview-url', async (req, res) => {
     }
     console.log(`[preview-url] sealId=${req.params.id} s3Key="${seal.s3Key}" resolvedKey="${key}"`)
 
-    // HEAD check — verify the S3 object actually exists before generating a presigned URL
-    const exists = await headObject(key)
-    if (!exists) {
-      console.error(`[preview-url] S3 object missing: key="${key}" sealId=${req.params.id}`)
+    // HEAD check — verify the S3 object exists; only block on confirmed 404
+    const head = await headObject(key)
+    if (!head.exists && head.notFound) {
+      console.error(`[preview-url] S3 object confirmed missing: key="${key}" sealId=${req.params.id}`)
       return res.status(404).json({ error: 'File not found in storage', code: 'S3_OBJECT_MISSING' })
+    }
+    if (!head.exists) {
+      // Non-404 error (network, permissions) — log but continue with presigned URL
+      console.warn(`[preview-url] HEAD check failed (non-404): key="${key}" error="${head.error}" — proceeding with presigned URL`)
     }
 
     const expiresIn = 3600

@@ -35,10 +35,10 @@ async function checkSealS3Health() {
         try { key = decodeURIComponent(new URL(key).pathname.substring(1)) } catch {}
       }
 
-      const exists = await headObject(key)
-      if (exists) {
+      const head = await headObject(key)
+      if (head.exists) {
         healthy++
-      } else {
+      } else if (head.notFound) {
         missing++
         missingSeals.push({ sealId: seal.id, s3Key: seal.s3Key, title: seal.documentTitle })
         logger.error('[s3-health] MISSING object', { sealId: seal.id, s3Key: seal.s3Key, tenantId: seal.tenantId })

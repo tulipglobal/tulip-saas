@@ -87,7 +87,7 @@ exports.register = async (req, res) => {
     const user = await prisma.user.create({
       data: {
         email, name, password: hashed, tenantId: tenant.id,
-        roles: { create: { roleId: role.id, tenantId: tenant.id } }
+        UserRole: { create: { roleId: role.id, tenantId: tenant.id } }
       }
     })
 

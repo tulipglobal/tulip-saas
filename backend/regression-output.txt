@@ -1,0 +1,273 @@
+[dotenv@17.3.1] injecting env (19) from .env -- tip: ⚙️  override existing env vars with { override: true }
+=== REGRESSION CHECKLIST (212 items) ===
+
+─── DATABASE & SCHEMA ───
+[ 1] PASS   Database tables >= 35 — 74 tables
+[ 2] PASS   TrustSeal fraud+sourceType columns — fraudRiskScore,fraudSignals,fraudRiskLevel,sourceType
+[ 3] PASS   Expense void columns — voided,voidedAt,voidedBy,voidedReason
+[ 4] PASS   Expense fraud columns — fraudRiskScore,fraudSignals,fraudRiskLevel
+[ 5] PASS   Document fraud/duplicate columns — fraudRiskScore,duplicateConfidence,duplicateMethod,fraudRiskLevel
+[ 6] PASS   Expense receipt columns — receiptFileKey,receiptHash,receiptSealId
+
+─── BACKEND FILES & FUNCTIONS ───
+[ 7] PASS   unifiedSealEngine.js exists
+[ 8] PASS   createSeal function
+[ 9] PASS   autoIssueSeal function
+
+─── API ENDPOINTS ───
+[10] PASS   Backend /api/health — status=200
+[11] PASS   Internal seal rejects without secret — status=401
+[12] SKIP   Internal seal with secret — INTERNAL_API_SECRET not set
+
+─── PUBLIC SEAL VERIFICATION ───
+[13] PASS   Public seal has fraudRisk field
+[14] PASS   Public seal has sourceType field
+[15] PASS   Public seal hides tenantId
+
+─── FRAUD DETECTION DATA ───
+[16] PASS   Al Jassar fraud score >= 45 — score=45
+[17] PASS   Al Jassar alteration % in signals
+[18] PASS   EXPENSE_MISMATCH_FLAGGED audit entries — count=13
+[19] PASS   HYBRID_DUPLICATE_DETECTED audit entries — count=15
+[20] PASS   Fraud-scored documents exist
+
+─── SEAL & CASE STATS ───
+[21] PASS   Case seals exist — count=14
+[22] PASS   TrustSeal stats — anchored:80, anchoring:4, pending:3
+[23] PASS   Expense with receipt (receiptFileKey)
+
+─── PM2 SERVICES & CONNECTIVITY ───
+[24] PASS   NGO frontend online — status=200
+[25] PASS   Donor frontend online — status=307
+[26] PASS   /api/ping returns 200 ok — status=200 body=ok
+[27] PASS   External app.sealayer.io/api/ping — status=200
+[28] PASS   External app.sealayer.io — status=200
+
+─── FRONTEND CODE VERIFICATION ───
+[29] PASS   /api/ping has no backend proxy
+[30] PASS   isOnline defaults to true
+[31] PASS   cacheDocuments() in syncService
+[32] PASS   Token refresh logic in drainQueue
+[33] PASS   Date column in expenses table header
+[34] PASS   AnchorBadge hidden when status=pending
+[35] PASS   Void expense modal in expenses page
+
+─── #29 FRAUD RISK HIGHLIGHT ───
+[36] PASS   FRAUD_RISK_SCORED audit action in code
+[37] PASS   scoreFraudRisk function exists
+[38] PASS   Fraud score stored on expense record
+[39] PASS   High fraud triggers email alert
+
+─── #22 API RATE LIMITING ───
+[40] PASS   Auth endpoint has rate limit headers — header=50
+[41] PASS   /api/health responds (not rate-blocked)
+[42] PASS   Rate limiter middleware file exists
+[43] SKIP   Internal API rate limit skip — INTERNAL_API_SECRET not set
+
+─── #15 EMAIL ALERTS ───
+[email] AWS credentials not found — email sending disabled
+[44] PASS   notifyFraudAlert exported
+[45] PASS   notifyDuplicateAlert exported
+[46] PASS   notifyMismatchAlert exported
+[47] PASS   notifyVoidAlert exported
+[48] PASS   AWS SES region configured — ap-south-1
+
+─── #19 WORKFLOW APPROVAL ───
+[49] PASS   WorkflowTask table exists
+[50] PASS   Expense with pending_review status — id=d3ae06f5-50a1-4ed1-b8ff-32ab956be794
+[51] PASS   Workflow task type=expense_approval
+[52] PASS   approveExpense handler exists
+[53] PASS   rejectExpense handler exists
+
+─── #32 POLYGON KEY & #31 REMOVE TEXTRACT ───
+[54] PASS   tulip-verify has BLOCKCHAIN_PRIVATE_KEY
+[55] PASS   No Textract in tulip-verify ocr.ts
+[56] PASS   Mindee import in tulip-verify ocr.ts
+
+─── #33 CHARTS & #20 ANALYTICS ───
+[57] PASS   Charts Y-axis starts from 0
+[58] PASS   Large numbers formatted
+[59] PASS   /api/analytics/fraud endpoint exists — status=401
+[60] PASS   Fraud tab in analytics page
+
+─── #23 WEBHOOK DELIVERY ───
+[61] PASS   webhookService exports dispatch
+[62] PASS   webhookService exports deliver (resend)
+[63] PASS   seal.issued webhook in universalSealService
+[64] PASS   seal.anchored webhook in batchAnchorService
+[65] PASS   expense.flagged webhook in expenseController
+
+─── #17 BULK DOCUMENT UPLOAD ───
+[66] PASS   Multiple file input (multiple attribute)
+[67] PASS   Per-file status tracking
+[68] PASS   Partial failure handling
+[69] PASS   Offline document queue in syncService
+
+─── #18 DOCUMENT EXPIRY ALERTS ───
+[70] PASS   Document expiry columns in schema — expiryAlertSent30,expiryAlertSent7,expiryDate
+[71] PASS   ExpiryCell component in documents page
+[72] PASS   expiryAlerts.js job exists
+[73] PASS   DOCUMENT_EXPIRY_ALERT audit log in job
+
+─── #28 MULTI-CURRENCY ───
+[74] PASS   Tenant baseCurrency column exists
+[75] PASS   CurrencySelect component exists
+[76] PASS   currencies.ts has 150+ currencies — count=150
+[77] PASS   formatCurrencyShort + searchCurrencies in currencies.ts
+[78] PASS   Expense form uses CurrencySelect
+[79] PASS   Budget form uses CurrencySelect
+[80] PASS   Funding form uses CurrencySelect
+[81] PASS   Settings page has baseCurrency
+
+─── AWS S3 CREDENTIALS & PRESIGNED URLS ───
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
+[82] SKIP   AWS_ACCESS_KEY_ID is set — not in local env — check on server
+[83] SKIP   AWS_SECRET_ACCESS_KEY is set — not in local env — check on server
+[84] PASS   S3 presigned URL generation works — URL generated
+
+───  SPRINT 5 — IMPACT INVESTMENTS & DRAWDOWNS ───
+[85] PASS   Sprint 5 tables exist (5 expected) — Covenant, Drawdown, ImpactInvestment, ImpactMilestone, RepaymentSchedule
+[86] PASS   ImpactInvestment.donorOrgId column — uuid
+[87] PASS   ngoInvestmentRoutes.js exists
+[88] PASS   donorInvestmentRoutes.js exists
+[89] PASS   ngoMilestoneRoutes.js exists
+[90] PASS   Investments page has schedule null guard
+[91] PASS   Drawdowns page exists
+[92] PASS   Budget detail has donor org selector
+[93] PASS   Budget new has donor org selector
+
+───  i18n COMPLETENESS ───
+[94] PASS   nav.investments/drawdowns in all langs — all present
+[95] PASS   documents table header keys in all langs — all present
+[96] PASS   All 5 i18n files exist (en,fr,es,pt,it)
+[97] PASS   All documents page i18n keys defined — all present
+
+───  SPRINT 6 — MESSENGER, TRANCHES, CONDITIONS, REPORTS ───
+[98] PASS   Sprint 6 tables exist (6 expected) — CallSession, Conversation, DisbursementTranche, GrantCondition, Message, SavedReport
+[99] PASS   lib/socketio.js exists
+[100] PASS   app.js uses httpServer + Socket.IO
+[101] PASS   messengerRoutes.js exists
+[102] PASS   trancheRoutes.js exists
+[103] PASS   conditionRoutes.js exists
+[104] PASS   reportRoutes.js exists
+[105] PASS   Messenger unread-count endpoint — status=401
+[106] PASS   Tranche endpoint responds — status=401
+[107] PASS   Condition endpoint responds — status=401
+[108] PASS   Report saved endpoint responds — status=401
+[109] PASS   NGO MessengerPanel.tsx exists
+[110] PASS   NGO layout imports MessengerPanel
+[111] PASS   Donor MessengerPanel.tsx exists
+[112] PASS   Donor reports page exists
+[113] SKIP   All 4 PM2 services online — pm2 not available locally — run on server
+
+───  SPRINT 7 — SSO, DARK MODE, SEARCH, SHARE ───
+[114] PASS   SSOConfig table exists
+[115] PASS   ssoRoutes.js exists
+[116] PASS   ssoAdminRoutes.js exists
+[117] PASS   SSO check endpoint responds — status=200
+[118] PASS   userPreferenceRoutes.js exists
+[119] PASS   User.themePreference column exists
+[120] PASS   NGO ThemeToggle.tsx exists
+[121] PASS   searchRoutes.js exists
+[122] PASS   Search endpoint responds — status=401
+[123] PASS   NGO SearchModal.tsx exists
+[124] PASS   ShareLink table exists
+[125] PASS   shareRoutes.js + sharePublicRoutes.js exist
+
+───  SPRINT 8 PART 0 — CAPEX/OPEX, LOGFRAME, RISK, GRANT, WB ───
+[126] PASS   Expense.expenditureType column exists
+[127] PASS   Logframe tables exist (2) — LogframeIndicator, LogframeOutput
+[128] PASS   logframeRoutes.js exists
+[129] PASS   RiskRegisterEntry table exists
+[130] PASS   riskRoutes.js exists
+[131] PASS   RiskRegisterTab.tsx exists
+[132] PASS   GrantReportingConfig table exists
+[133] PASS   grantReportingRoutes.js exists
+[134] PASS   WBProjectComponent table exists
+[135] PASS   WBProcurementContract table exists
+[136] PASS   wbRoutes.js exists
+[137] PASS   WorldBankTab.tsx exists
+[138] PASS   NGO project page has Logframe tab
+[139] PASS   NGO project page has Risk Register tab
+[140] PASS   Settings page has Grant Reporting section
+[141] PASS   Donor project page has logframe + risks tabs
+
+───  SPRINT 8 PARTS 1-4 — REPORTS ───
+[142] PASS   GeneratedReport table exists
+[143] PASS   ReportShareLink table exists
+[144] PASS   reportEngine.js exists
+[145] PASS   reportEngine has createDoc + addCoverPage
+[146] PASS   ngoReportRoutes.js exists
+[147] PASS   reportPublicRoutes.js exists
+[148] PASS   reportAutoService.js exists
+[149] PASS   NGO reports endpoint responds — status=401
+[150] PASS   Monthly report endpoint responds — status=401
+[151] PASS   USAID SF-425 endpoint responds — status=401
+[152] PASS   WB procurement endpoint responds — status=401
+[153] PASS   Public report share endpoint responds — status=400
+[154] PASS   Anchor scheduler has monthly report cron
+[155] PASS   Anchor scheduler has quarterly report cron
+[156] PASS   Anchor scheduler has annual report cron
+[157] PASS   NGO reports page exists
+[158] PASS   NGO layout has Reports nav
+[159] PASS   Donor reports page exists
+[160] PASS   Donor ReportShareModal.tsx exists
+[161] PASS   Donor public report share page exists
+[162] PASS   Tranche routes file exists
+[163] PASS   Donor create tranche endpoint exists
+[164] PASS   Donor release tranche endpoint exists
+[165] PASS   NGO conditions-met endpoint with multer upload
+[166] PASS   NGO attach-evidence endpoint exists
+[167] PASS   Donor GET tranches generates presigned URLs for evidence
+[168] PASS   NGO disbursement-info endpoint exists
+[169] PASS   Budget auto-activates on tranche release
+[170] PASS   NGO tranche table has Amount/Status/Released columns
+[171] PASS   NGO conditions modal has file upload
+[172] PASS   NGO attach-evidence modal exists
+[173] PASS   Expense page shows disbursement limit info
+[174] PASS   Expense controller enforces released tranche limits
+[175] PASS   Expense approval uses uppercase APPROVED
+[176] PASS   Donor project page has disbursement table
+[177] PASS   Donor project page has evidence View link
+[178] PASS   Budget creation auto-creates FundingAgreement for PORTAL donors
+[179] PASS   RepaymentSchedule INSERT includes id, amount, timestamps
+[180] PASS   Donor investment RS INSERT includes id + amount
+[181] PASS   NGO investments route parses numeric totalFacility/drawnDown
+[182] PASS   NGO investments adds currency to schedule rows
+[183] PASS   Covenant query aliases metric as name for frontend
+[184] PASS   Tranche creation blocked when project has active ImpactInvestment
+[185] PASS   drawnDown on ImpactInvestment updated when drawdown approved
+[186] PASS   NGO record-payment endpoint with file upload
+[187] PASS   Donor confirm-payment endpoint sets PAID/PARTIAL
+[188] PASS   Donor reject-payment endpoint resets to PENDING
+[189] PASS   NGO investments page has Record Payment button and modal
+[190] PASS   Donor project page has confirm/reject payment flow
+
+───  SUPPORT + KNOWLEDGE BASE ───
+[191] PASS   KB articles endpoint returns published articles — status=200 count=87
+[192] PASS   KB search returns relevant results — count=20
+[193] PASS   KB article view count increments — before=15 after=16
+[194] PASS   Support ticket requires auth — status=401
+[195] PASS   supportRoutes.js exists
+[196] PASS   knowledgeBaseRoutes.js exists
+[197] PASS   Admin KB endpoint requires auth — status=401
+[198] PASS   Public KB categories accessible without auth — status=200
+[199] PASS   Featured articles endpoint returns results — count=18
+[200] PASS   Category list returns role-filtered results — ngo=11 donor=7
+[201] PASS   NGO support + KB pages exist — support=true kb=true
+[202] PASS   KB search returns relevant results — count=20
+[203] PASS   KB articles returns published only — count=87
+[204] PASS   Support ticket create endpoint exists (401) — status=401
+[205] PASS   Ticket message endpoint exists (401) — status=401
+[206] PASS   List tickets endpoint exists (401) — status=401
+[207] PASS   Admin tickets endpoint requires auth (401) — status=401
+[208] PASS   Admin ticket update endpoint requires auth (401) — status=401
+[209] PASS   KB article feedback endpoint — status=200
+[210] PASS   Public help page exists
+[211] PASS   FloatingHelpButton component exists
+[212] PASS   KB admin CRUD endpoints require auth — create=401 delete=401
+
+═══════════════════════════════════
+  PASS: 207  |  FAIL: 0  |  SKIP: 5  |  TOTAL: 212
+  All non-skipped checks passed
+═══════════════════════════════════

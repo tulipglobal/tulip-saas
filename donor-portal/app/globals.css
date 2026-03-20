@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+:root, [data-theme="light"] {
+  --bg-primary: #F4F3FE;
+  --bg-secondary: #EEEDF9;
+  --bg-card: #ffffff;
+  --bg-sidebar: #3C3489;
+  --text-primary: #1a1a2e;
+  --text-secondary: #1a1a2e99;
+  --text-muted: #1a1a2e66;
+  --border-color: #d8d6f0;
+  --accent: #534AB7;
+  --accent-hover: #4a41a4;
+  --sidebar-text: #F4F3FE;
+  --sidebar-active: #F4F3FE;
+  --input-bg: #EEEDF9;
+  --hover-bg: #e2e0f2;
+  --shadow-color: rgba(0,0,0,0.08);
+}
+
+[data-theme="dark"] {
+  --bg-primary: #0f0e1a;
+  --bg-secondary: #1a1830;
+  --bg-card: #1e1c36;
+  --bg-sidebar: #1a1830;
+  --text-primary: #F4F3FE;
+  --text-secondary: #F4F3FE99;
+  --text-muted: #F4F3FE66;
+  --border-color: #2d2a50;
+  --accent: #534AB7;
+  --accent-hover: #6358cc;
+  --sidebar-text: #F4F3FE;
+  --sidebar-active: #F4F3FE;
+  --input-bg: #1a1830;
+  --hover-bg: #242240;
+  --shadow-color: rgba(0,0,0,0.3);
+}
+
+:root, [data-theme="light"] {
+  --donor-primary: #3C3489;
+  --donor-accent: #534AB7;
+  --donor-light: #F4F3FE;
+  --donor-dark: #26215C;
+  --donor-muted: #7F77DD;
+  --donor-hover: #4A41A0;
+  --donor-border: #E8E6FD;
+  --background: #F8F7FF;
+  --foreground: #26215C;
+}
+
+[data-theme="dark"] {
+  --donor-primary: #1a1830;
+  --donor-accent: #7B73E0;
+  --donor-light: #1e1c36;
+  --donor-dark: #F4F3FE;
+  --donor-muted: #9B95E8;
+  --donor-hover: #6358cc;
+  --donor-border: #2d2a50;
+  --background: #0f0e1a;
+  --foreground: #F4F3FE;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.3s ease-out;
+}
+
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.25s ease-out;
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.animate-skeleton-pulse {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  background-color: var(--donor-border);
+  border-radius: 6px;
+}
+
+@keyframes flash-highlight {
+  0% { background-color: #E8E6FD; }
+  100% { background-color: transparent; }
+}
+
+.animate-flash-highlight {
+  animation: flash-highlight 1.5s ease-out;
+}

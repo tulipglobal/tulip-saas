@@ -95,7 +95,7 @@ model Budget {
   status              String                @default("DRAFT")
   notes               String?
   createdAt           DateTime              @default(now())
-  updatedAt           DateTime
+  updatedAt           DateTime @updatedAt
   projectId           String?
   project             Project?              @relation(fields: [projectId], references: [id])
   tenant              Tenant                @relation(fields: [tenantId], references: [id])
@@ -151,7 +151,7 @@ model BudgetLine {
   approvedAmount Float
   currency       String    @default("USD")
   createdAt      DateTime  @default(now())
-  updatedAt      DateTime
+  updatedAt      DateTime @updatedAt
   budget         Budget    @relation(fields: [budgetId], references: [id], onDelete: Cascade)
   expenses       Expense[]
 
@@ -174,7 +174,7 @@ model BundleJob {
   anchorTxHash      String?
   anchoredAt        DateTime?
   createdAt         DateTime          @default(now())
-  updatedAt         DateTime
+  updatedAt         DateTime @updatedAt
   caseId            String?
   verificationCase  VerificationCase? @relation(fields: [caseId], references: [id])
   Tenant            Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -357,7 +357,7 @@ model Donor {
   registrationNumber String?
   logoUrl            String?
   createdAt          DateTime           @default(now())
-  updatedAt          DateTime
+  updatedAt          DateTime @updatedAt
   donorUsers         DonorUser[]
   fundingAgreements  FundingAgreement[]
 
@@ -376,7 +376,7 @@ model DonorInvite {
   status          String   @default("PENDING")
   expiresAt       DateTime
   createdAt       DateTime @default(now())
-  updatedAt       DateTime
+  updatedAt       DateTime @updatedAt
   user            User     @relation(fields: [invitedByUserId], references: [id])
   project         Project? @relation(fields: [projectId], references: [id])
   tenant          Tenant   @relation(fields: [tenantId], references: [id])
@@ -478,7 +478,7 @@ model DonorUser {
   lastName     String
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
-  updatedAt    DateTime
+  updatedAt    DateTime @updatedAt
   donor        Donor    @relation(fields: [donorId], references: [id])
 
   @@index([donorId])
@@ -640,7 +640,7 @@ model FundingAgreement {
   status              String                @default("DRAFT")
   notes               String?
   createdAt           DateTime              @default(now())
-  updatedAt           DateTime
+  updatedAt           DateTime @updatedAt
   capexBudget         Float                 @default(0)
   grantFrom           DateTime?
   grantRef            String?
@@ -912,7 +912,7 @@ model OcrJob {
   fileSize         Int
   rawText          String?
   createdAt        DateTime          @default(now())
-  updatedAt        DateTime
+  updatedAt        DateTime @updatedAt
   anchorTxHash     String?
   anchoredAt       DateTime?
   apiKeyId         String?
@@ -961,7 +961,7 @@ model Project {
   budget                 Float?
   tenantId               String
   createdAt              DateTime         @default(now())
-  updatedAt              DateTime
+  updatedAt              DateTime @updatedAt
   status                 String           @default("active")
   endDate                DateTime?
   startDate              DateTime?
@@ -989,7 +989,7 @@ model ProjectFunding {
   allocatedAmount    Float
   notes              String?
   createdAt          DateTime         @default(now())
-  updatedAt          DateTime
+  updatedAt          DateTime @updatedAt
   fundingAgreement   FundingAgreement @relation(fields: [fundingAgreementId], references: [id])
   project            Project          @relation(fields: [projectId], references: [id])
 
@@ -1028,7 +1028,7 @@ model RepaymentSchedule {
   paidAt             DateTime?
   notes              String?
   createdAt          DateTime  @default(now())
-  updatedAt          DateTime
+  updatedAt          DateTime @updatedAt
   investmentId       String?   @db.Uuid
   instalmentNumber   Int?
   principalDue       Decimal?  @default(0) @db.Decimal
@@ -1253,7 +1253,7 @@ model TrustSeal {
   qrCodeUrl            String?
   status               String    @default("issued")
   createdAt            DateTime  @default(now())
-  updatedAt            DateTime
+  updatedAt            DateTime @updatedAt
   fileType             String?
   s3Key                String?
   anchorLastRetryAt    DateTime?
@@ -1308,7 +1308,7 @@ model User {
   password          String
   tenantId          String
   createdAt         DateTime       @default(now())
-  updatedAt         DateTime
+  updatedAt         DateTime @updatedAt
   deletedAt         DateTime?
   preferredLanguage String?        @default("en")
   themePreference   String?        @default("system") @db.VarChar(10)
@@ -1328,7 +1328,7 @@ model UserPermissionCache {
   userId      String
   tenantId    String
   permissions Json     @default("[]")
-  updatedAt   DateTime
+  updatedAt   DateTime @updatedAt
 
   @@unique([userId, tenantId])
   @@index([tenantId])
@@ -1359,7 +1359,7 @@ model VerificationCase {
   shareToken       String      @unique
   overallRiskScore Int?
   createdAt        DateTime    @default(now())
-  updatedAt        DateTime
+  updatedAt        DateTime @updatedAt
   bundleJobs       BundleJob[]
   ocrJobs          OcrJob[]
   tenant           Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -1423,7 +1423,7 @@ model Webhook {
   active          Boolean           @default(true)
   description     String?
   createdAt       DateTime          @default(now())
-  updatedAt       DateTime
+  updatedAt       DateTime @updatedAt
   webhookDeliveries WebhookDelivery[]
 
   @@index([active])
@@ -1474,7 +1474,7 @@ model WorkflowTask {
   entityId        String
   entityType      String
   createdAt       DateTime          @default(now())
-  updatedAt       DateTime
+  updatedAt       DateTime @updatedAt
   resolvedAt      DateTime?
   comments        WorkflowComment[]
   tenant          Tenant            @relation(fields: [tenantId], references: [id])

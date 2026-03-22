@@ -429,7 +429,7 @@ export default function TrustSealCard({ sealId, onClose, mismatch, fraudRisk }: 
               {/* Footer */}
               <div className="border-t border-[var(--tulip-sage-dark)] pt-3 flex items-center justify-center gap-2 text-xs text-[var(--tulip-forest)]/40">
                 <Shield size={12} className="text-[var(--tulip-forest)]" />
-                <span>{t('seal.verifiedByTulip')} <strong className="text-[var(--tulip-forest)]">{t('seal.tulipDs')}</strong></span>
+                <span>Verified by <strong className="text-[var(--tulip-forest)]">Sealayer Verify</strong></span>
               </div>
             </div>
           </>

@@ -1,17 +1,20 @@
 // ─────────────────────────────────────────────────────────────
 //  lib/sealedPdfGenerator.js
 //
-//  Generates a sealed PDF by stamping a QR code + seal metadata
-//  onto the last page of the original PDF. If there's no original
-//  PDF, creates a standalone seal certificate page.
+//  Generates a sealed PDF with Sealayer Verify branding:
+//  - Certificate page with document thumbnail, QR code, hash, blockchain proof
+//  - Original document pages appended after the certificate
 // ─────────────────────────────────────────────────────────────
 
 const { PDFDocument, rgb, StandardFonts } = require('pdf-lib')
 const QRCode = require('qrcode')
 
-const TULIP_BLUE = rgb(12 / 255, 122 / 255, 237 / 255) // #0c7aed
+const SEALAYER_PURPLE = rgb(60 / 255, 52 / 255, 137 / 255)  // #3C3489
+const DARK_PURPLE = rgb(45 / 255, 39 / 255, 102 / 255)       // #2D2766
 const GRAY = rgb(0.4, 0.4, 0.4)
-const LIGHT_GRAY = rgb(0.85, 0.85, 0.85)
+const LIGHT_GRAY = rgb(0.6, 0.6, 0.6)
+const BORDER_GRAY = rgb(0.85, 0.85, 0.85)
+const BLACK = rgb(0.1, 0.1, 0.1)
 
 /**
  * Generate a sealed PDF with QR code stamp.
@@ -49,70 +52,92 @@ async function generateSealedPdf(opts) {
   const qrPngBuffer = await QRCode.toBuffer(verifyUrl, {
     width: 200,
     margin: 1,
-    color: { dark: '#0c7aed', light: '#ffffff' },
+    color: { dark: '#3C3489', light: '#ffffff' },
     type: 'png',
   })
 
-  let pdfDoc
+  // Create the certificate document
+  const certDoc = await PDFDocument.create()
+  const helvetica = await certDoc.embedFont(StandardFonts.Helvetica)
+  const helveticaBold = await certDoc.embedFont(StandardFonts.HelveticaBold)
+  const qrImage = await certDoc.embedPng(qrPngBuffer)
 
-  if (originalPdf && originalPdf.length > 0) {
-    // Load original PDF and stamp on last page
-    try {
-      pdfDoc = await PDFDocument.load(originalPdf, { ignoreEncryption: true })
-    } catch {
-      // If we can't load the original, create standalone
-      pdfDoc = await PDFDocument.create()
-    }
-  } else {
-    pdfDoc = await PDFDocument.create()
-  }
-
-  // Embed fonts
-  const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica)
-  const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
-
-  // Embed QR code image
-  const qrImage = await pdfDoc.embedPng(qrPngBuffer)
-
-  // Add a seal certificate page at the end
-  const page = pdfDoc.addPage([595.28, 841.89]) // A4
+  // ── Certificate Page ──
+  const page = certDoc.addPage([595.28, 841.89]) // A4
   const { width, height } = page.getSize()
 
-  // ── Header bar ──
+  // Header bar
   page.drawRectangle({
     x: 0, y: height - 80,
     width, height: 80,
-    color: TULIP_BLUE,
+    color: SEALAYER_PURPLE,
   })
 
-  page.drawText('TULIP DS', {
-    x: 40, y: height - 35,
-    size: 22, font: helveticaBold,
+  page.drawText('S', {
+    x: 40, y: height - 55,
+    size: 24, font: helveticaBold,
     color: rgb(1, 1, 1),
   })
-
+  page.drawText('Sealayer Verify', {
+    x: 68, y: height - 50,
+    size: 18, font: helveticaBold,
+    color: rgb(1, 1, 1),
+  })
   page.drawText('Trust Seal Certificate', {
-    x: 40, y: height - 58,
-    size: 13, font: helvetica,
-    color: rgb(1, 1, 1, 0.85),
+    x: 68, y: height - 66,
+    size: 10, font: helvetica,
+    color: rgb(1, 1, 1, 0.8),
   })
 
-  // ── QR code (top right) ──
-  const qrSize = 100
-  const qrX = width - qrSize - 40
-  const qrY = height - 200
-  page.drawImage(qrImage, { x: qrX, y: qrY, width: qrSize, height: qrSize })
-  page.drawText('Scan to verify', {
-    x: qrX + 12, y: qrY - 14,
-    size: 8, font: helvetica, color: GRAY,
+  // ── Document thumbnail (right side) ──
+  const thumbX = 370
+  const thumbY = height - 400
+  const thumbW = 180
+  const thumbH = 240
+
+  // Thumbnail border
+  page.drawRectangle({
+    x: thumbX - 2, y: thumbY - 2,
+    width: thumbW + 4, height: thumbH + 4,
+    borderColor: BORDER_GRAY, borderWidth: 1,
+    color: rgb(0.97, 0.97, 0.97),
   })
 
-  // ── Document info ──
+  if (originalPdf && originalPdf.length > 0) {
+    try {
+      const origDoc = await PDFDocument.load(originalPdf, { ignoreEncryption: true })
+      const [embeddedPage] = await certDoc.embedPdf(origDoc, [0])
+      const scale = Math.min(thumbW / embeddedPage.width, thumbH / embeddedPage.height)
+      page.drawPage(embeddedPage, {
+        x: thumbX + (thumbW - embeddedPage.width * scale) / 2,
+        y: thumbY + (thumbH - embeddedPage.height * scale) / 2,
+        width: embeddedPage.width * scale,
+        height: embeddedPage.height * scale,
+      })
+    } catch {
+      page.drawText('Document Preview', {
+        x: thumbX + 30, y: thumbY + thumbH / 2,
+        size: 10, font: helvetica, color: LIGHT_GRAY,
+      })
+    }
+  } else {
+    page.drawText('No Preview', {
+      x: thumbX + 45, y: thumbY + thumbH / 2,
+      size: 10, font: helvetica, color: LIGHT_GRAY,
+    })
+  }
+
+  page.drawText('Original Document — Page 1', {
+    x: thumbX + thumbW / 2 - helvetica.widthOfTextAtSize('Original Document — Page 1', 7) / 2,
+    y: thumbY - 15, size: 7, font: helvetica, color: LIGHT_GRAY,
+  })
+
+  // ── Document info (left column) ──
   let y = height - 120
 
   const drawLabel = (label, value, yPos) => {
     page.drawText(label, { x: 40, y: yPos, size: 9, font: helveticaBold, color: GRAY })
-    page.drawText(value || '—', { x: 40, y: yPos - 15, size: 11, font: helvetica, color: rgb(0.1, 0.1, 0.1) })
+    page.drawText(value || '—', { x: 40, y: yPos - 15, size: 11, font: helvetica, color: BLACK })
     return yPos - 40
   }
 
@@ -121,39 +146,39 @@ async function generateSealedPdf(opts) {
   y = drawLabel('ISSUED TO', issuedTo, y)
   y = drawLabel('ISSUE DATE', formatDate(createdAt), y)
 
-  // ── Divider ──
+  // Divider
   y -= 5
-  page.drawLine({
-    start: { x: 40, y }, end: { x: width - 40, y },
-    thickness: 1, color: LIGHT_GRAY,
-  })
+  page.drawLine({ start: { x: 40, y }, end: { x: 330, y }, thickness: 1, color: BORDER_GRAY })
   y -= 25
 
-  // ── Integrity section ──
+  // Integrity section
   page.drawText('DOCUMENT INTEGRITY', {
-    x: 40, y, size: 11, font: helveticaBold, color: TULIP_BLUE,
+    x: 40, y, size: 11, font: helveticaBold, color: SEALAYER_PURPLE,
   })
   y -= 25
 
-  y = drawLabel('SHA-256 HASH', rawHash, y)
+  page.drawText('SHA-256 HASH', { x: 40, y, size: 9, font: helveticaBold, color: GRAY })
+  y -= 14
+  page.drawText(rawHash, { x: 40, y, size: 7.5, font: helvetica, color: BLACK })
+  y -= 25
   y = drawLabel('SEAL ID', sealId, y)
 
-  // ── Blockchain section ──
+  // Blockchain section
   y -= 5
-  page.drawLine({
-    start: { x: 40, y }, end: { x: width - 40, y },
-    thickness: 1, color: LIGHT_GRAY,
-  })
+  page.drawLine({ start: { x: 40, y }, end: { x: 330, y }, thickness: 1, color: BORDER_GRAY })
   y -= 25
 
   page.drawText('BLOCKCHAIN ANCHOR', {
-    x: 40, y, size: 11, font: helveticaBold, color: TULIP_BLUE,
+    x: 40, y, size: 11, font: helveticaBold, color: SEALAYER_PURPLE,
   })
   y -= 25
 
   if (anchorTxHash) {
     y = drawLabel('STATUS', 'Confirmed on Polygon', y)
-    y = drawLabel('TRANSACTION HASH', anchorTxHash, y)
+    page.drawText('TRANSACTION HASH', { x: 40, y, size: 9, font: helveticaBold, color: GRAY })
+    y -= 14
+    page.drawText(anchorTxHash, { x: 40, y, size: 7.5, font: helvetica, color: BLACK })
+    y -= 25
     if (blockNumber) {
       y = drawLabel('BLOCK NUMBER', String(blockNumber), y)
     }
@@ -164,43 +189,71 @@ async function generateSealedPdf(opts) {
     y = drawLabel('STATUS', 'Pending blockchain anchor', y)
   }
 
-  // ── Verify URL ──
-  y -= 10
-  page.drawLine({
-    start: { x: 40, y }, end: { x: width - 40, y },
-    thickness: 1, color: LIGHT_GRAY,
+  // QR Code section (bottom left)
+  const qrSize = 90
+  const qrX = 40
+  const qrY = 140
+  page.drawImage(qrImage, { x: qrX, y: qrY, width: qrSize, height: qrSize })
+  page.drawText('Scan to verify independently', {
+    x: qrX + qrSize + 15, y: qrY + qrSize - 15,
+    size: 10, font: helveticaBold, color: SEALAYER_PURPLE,
   })
-  y -= 25
-
-  page.drawText('VERIFY ONLINE', {
-    x: 40, y, size: 9, font: helveticaBold, color: GRAY,
-  })
-  y -= 16
   page.drawText(verifyUrl, {
-    x: 40, y, size: 10, font: helvetica, color: TULIP_BLUE,
+    x: qrX + qrSize + 15, y: qrY + qrSize - 30,
+    size: 8, font: helvetica, color: GRAY,
   })
 
-  // ── Footer ──
+  // Footer divider
+  page.drawLine({ start: { x: 40, y: 110 }, end: { x: width - 40, y: 110 }, thickness: 1, color: BORDER_GRAY })
+
+  // Disclaimer
   page.drawText(
-    'This document was sealed and verified by Tulip DS. The SHA-256 hash above uniquely identifies the original document.',
-    { x: 40, y: 60, size: 8, font: helvetica, color: GRAY, maxWidth: width - 80 }
+    'This document was sealed and verified by Sealayer Verify. The SHA-256 hash above',
+    { x: 40, y: 90, size: 8, font: helvetica, color: LIGHT_GRAY }
   )
   page.drawText(
-    `Generated on ${new Date().toISOString().split('T')[0]}`,
-    { x: 40, y: 40, size: 7, font: helvetica, color: LIGHT_GRAY }
+    'uniquely identifies the original document. Any modification will invalidate this certificate.',
+    { x: 40, y: 78, size: 8, font: helvetica, color: LIGHT_GRAY }
   )
 
-  const pdfBytes = await pdfDoc.save()
+  // Footer branding
+  page.drawText('Powered by Sealayer Verify — verify.sealayer.io', {
+    x: width / 2 - helvetica.widthOfTextAtSize('Powered by Sealayer Verify — verify.sealayer.io', 8) / 2,
+    y: 45, size: 8, font: helveticaBold, color: SEALAYER_PURPLE,
+  })
+  page.drawText(`Generated on ${new Date().toISOString().split('T')[0]}`, {
+    x: 40, y: 30, size: 7, font: helvetica, color: LIGHT_GRAY,
+  })
+
+  // ── Append original document pages ──
+  if (originalPdf && originalPdf.length > 0) {
+    try {
+      const origDoc = await PDFDocument.load(originalPdf, { ignoreEncryption: true })
+      const pageIndices = origDoc.getPageIndices()
+      const copiedPages = await certDoc.copyPages(origDoc, pageIndices)
+      for (const p of copiedPages) {
+        certDoc.addPage(p)
+      }
+    } catch (err) {
+      console.error('[sealedPdfGenerator] Failed to append original pages:', err.message)
+    }
+  }
+
+  const pdfBytes = await certDoc.save()
   return Buffer.from(pdfBytes)
 }
 
 function formatDate(isoStr) {
   if (!isoStr) return '—'
   try {
-    return new Date(isoStr).toLocaleDateString('en-GB', {
-      day: '2-digit', month: 'long', year: 'numeric',
-      hour: '2-digit', minute: '2-digit',
-    })
+    const d = new Date(isoStr)
+    const day = d.getDate()
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    const month = months[d.getMonth()]
+    const year = d.getFullYear()
+    const hours = d.getHours().toString().padStart(2, '0')
+    const mins = d.getMinutes().toString().padStart(2, '0')
+    return `${day} ${month} ${year} at ${hours}:${mins}`
   } catch {
     return isoStr
   }

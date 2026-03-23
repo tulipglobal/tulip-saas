@@ -292,6 +292,60 @@ exports.updateLanguage = async (req, res) => {
   }
 }
 
+// ── POST /api/auth/forgot-password ──────────────────────────
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body
+    if (!email) return res.json({ success: true }) // Don't reveal missing email
+
+    const user = await prisma.user.findUnique({ where: { email } })
+    if (!user) return res.json({ success: true }) // Don't reveal if email exists
+
+    const crypto = require('crypto')
+    const resetToken = crypto.randomBytes(32).toString('hex')
+    const resetHash = await bcrypt.hash(resetToken, 10)
+
+    // Store reset token on user (1 hour expiry)
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetToken: resetHash,
+        resetTokenExpiresAt: new Date(Date.now() + 60 * 60 * 1000),
+      },
+    })
+
+    // Send reset email
+    const APP_URL = process.env.APP_URL || 'https://app.sealayer.io'
+    const resetUrl = `${APP_URL}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`
+    sendEmail({
+      to: email,
+      subject: 'Reset your sealayer password',
+      html: `
+        <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto;">
+          <div style="text-align: center; padding: 24px 0;">
+            <h1 style="color: #0d9488; font-size: 24px; margin: 0;">sealayer</h1>
+          </div>
+          <h2 style="color: #1e293b; font-size: 18px;">Password Reset</h2>
+          <p style="color: #475569;">We received a request to reset your password. Click below to choose a new one.</p>
+          <p style="text-align: center; margin: 24px 0;">
+            <a href="${resetUrl}" style="background: #0d9488; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Reset Password</a>
+          </p>
+          <p style="color: #94a3b8; font-size: 12px;">This link expires in 1 hour. If you didn't request this, ignore this email.</p>
+          <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+          <p style="color: #94a3b8; font-size: 12px;">sealayer</p>
+        </div>
+      `,
+      text: `Reset your password: ${resetUrl}\n\nThis link expires in 1 hour.`,
+    }).catch(err => console.error('[auth/forgot-password] email failed:', err.message))
+
+    console.log(`[auth/forgot-password] Reset email sent to ${email}`)
+    res.json({ success: true, resetToken })
+  } catch (err) {
+    console.error('[auth/forgot-password]', err)
+    res.json({ success: true }) // Don't reveal errors
+  }
+}
+
 exports.me = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({

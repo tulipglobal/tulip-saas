@@ -1310,8 +1310,10 @@ model User {
   createdAt         DateTime       @default(now())
   updatedAt         DateTime @updatedAt
   deletedAt         DateTime?
-  preferredLanguage String?        @default("en")
-  themePreference   String?        @default("system") @db.VarChar(10)
+  preferredLanguage      String?        @default("en")
+  themePreference        String?        @default("system") @db.VarChar(10)
+  resetToken             String?
+  resetTokenExpiresAt    DateTime?
   apiKeys           ApiKey[]
   auditLogs         AuditLog[]
   documents         Document[]

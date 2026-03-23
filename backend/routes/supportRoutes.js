@@ -3,6 +3,7 @@ const router = express.Router()
 const prisma = require('../lib/client')
 const authenticate = require('../middleware/authenticate')
 const tenantScope = require('../middleware/tenantScope')
+const { sendEmail } = require('../services/emailService')
 
 // All routes require auth
 router.use(authenticate, tenantScope)
@@ -26,6 +27,34 @@ router.post('/tickets', async (req, res) => {
       },
       include: { messages: true }
     })
+    // Send confirmation email (non-blocking)
+    const user = await prisma.user.findUnique({ where: { id: req.user.id }, select: { email: true, name: true } }).catch(() => null)
+    if (user?.email) {
+      const APP_URL = process.env.APP_URL || 'https://app.sealayer.io'
+      sendEmail({
+        to: user.email,
+        subject: `Support ticket received: ${subject}`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto;">
+            <div style="background: #0d9488; text-align: center; padding: 28px 0 20px; border-radius: 8px 8px 0 0;">
+              <h1 style="color: #fff; font-size: 22px; margin: 0; font-weight: 700;">sealayer</h1>
+            </div>
+            <div style="padding: 24px;">
+              <h2 style="color: #1e293b; font-size: 18px; margin: 0 0 12px;">We've received your request</h2>
+              <p style="color: #475569; font-size: 14px;">Your support ticket has been created. Our team will get back to you shortly.</p>
+              <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 16px 0;">
+                <p style="color: #64748b; font-size: 13px; margin: 0 0 8px;"><strong>Subject:</strong> ${subject}</p>
+                <p style="color: #64748b; font-size: 13px; margin: 0;"><strong>Category:</strong> ${category}</p>
+              </div>
+              <p style="text-align: center; margin: 24px 0;">
+                <a href="${APP_URL}/dashboard/support" style="display: inline-block; background: #0d9488; color: #fff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">View Ticket</a>
+              </p>
+            </div>
+          </div>
+        `,
+      }).catch(err => console.error('[email] ticket confirmation failed:', err.message))
+    }
+
     res.status(201).json(ticket)
   } catch (err) {
     console.error('Create ticket error:', err)

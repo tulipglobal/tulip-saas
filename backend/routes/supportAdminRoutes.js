@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const prisma = require('../lib/client')
+const { sendEmail } = require('../services/emailService')
 
 // Admin auth check — accepts NGO superadmin or admin panel JWT
 async function adminCheck(req, res, next) {
@@ -66,6 +67,36 @@ router.patch('/tickets/:id', async (req, res) => {
       where: { id: req.params.id },
       include: { messages: { orderBy: { createdAt: 'asc' } } }
     })
+
+    // Send email notification to user when admin replies (skip internal notes)
+    if (message && !isInternal && ticket.userId) {
+      const ticketUser = await prisma.user.findUnique({ where: { id: ticket.userId }, select: { email: true } }).catch(() => null)
+      if (ticketUser?.email) {
+        const APP_URL = process.env.APP_URL || 'https://app.sealayer.io'
+        const preview = message.length > 200 ? message.slice(0, 200) + '...' : message
+        sendEmail({
+          to: ticketUser.email,
+          subject: `Reply on your ticket: ${ticket.subject}`,
+          html: `
+            <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto;">
+              <div style="background: #0d9488; text-align: center; padding: 28px 0 20px; border-radius: 8px 8px 0 0;">
+                <h1 style="color: #fff; font-size: 22px; margin: 0; font-weight: 700;">sealayer</h1>
+              </div>
+              <div style="padding: 24px;">
+                <h2 style="color: #1e293b; font-size: 18px; margin: 0 0 12px;">New reply on your ticket</h2>
+                <div style="background: #f8fafc; border-left: 3px solid #0d9488; padding: 12px 16px; margin: 16px 0; border-radius: 0 8px 8px 0;">
+                  <p style="color: #475569; font-size: 14px; line-height: 1.6; margin: 0;">${preview}</p>
+                </div>
+                <p style="text-align: center; margin: 24px 0;">
+                  <a href="${APP_URL}/dashboard/support" style="display: inline-block; background: #0d9488; color: #fff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">View Full Reply</a>
+                </p>
+              </div>
+            </div>
+          `,
+        }).catch(err => console.error('[email] ticket reply notification failed:', err.message))
+      }
+    }
+
     res.json(updated)
   } catch (err) {
     console.error('Admin update ticket error:', err)
